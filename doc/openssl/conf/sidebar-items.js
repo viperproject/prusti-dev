@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Conf",""],["ConfMethod",""],["ConfRef",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["Conf",""],["ConfMethod",""],["ConfRef",""]]};

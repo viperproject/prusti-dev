@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["read_integer",""]],"struct":[["Context",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["read_integer",""]],"struct":[["Context",""]]};

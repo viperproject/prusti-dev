@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["remote","Creates a `Filter` to get the remote address of the connection."]]});
+window.SIDEBAR_ITEMS = {"fn":[["remote","Creates a `Filter` to get the remote address of the connection."]]};

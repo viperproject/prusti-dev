@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["UContext",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["UContext",""]]};

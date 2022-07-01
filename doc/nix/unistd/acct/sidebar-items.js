@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["disable","Disable process accounting"],["enable","Enable process accounting"]]});
+window.SIDEBAR_ITEMS = {"fn":[["disable","Disable process accounting"],["enable","Enable process accounting"]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["arg_value","If a command-line option matches `find_arg`, then apply the predicate `pred` on its value. If true, then return it. The parameter is assumed to be either `--arg=value` or `--arg value`."]]});
+window.SIDEBAR_ITEMS = {"fn":[["arg_value","If a command-line option matches `find_arg`, then apply the predicate `pred` on its value. If true, then return it. The parameter is assumed to be either `--arg=value` or `--arg value`."]]};

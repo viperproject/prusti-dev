@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["TypeDecl",""]],"struct":[["Indexed",""],["Pointer",""],["Product",""],["Sum",""],["TypeVar",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["TypeDecl",""]],"struct":[["Indexed",""],["Pointer",""],["Product",""],["Sum",""],["TypeVar",""]]};

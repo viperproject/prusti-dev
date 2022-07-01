@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Cipher","A symmetric cipher."],["CipherRef","A reference to a [`Cipher`]."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Cipher","A symmetric cipher."],["CipherRef","A reference to a [`Cipher`]."]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Expiration","An enumeration allowing the definition of the expiration time of an alarm, recurring or not."]],"struct":[["Timer","A Unix signal per-process timer."],["TimerSetTimeFlags","Flags that are used for arming the timer."]]});
+window.SIDEBAR_ITEMS = {"enum":[["Expiration","An enumeration allowing the definition of the expiration time of an alarm, recurring or not."]],"struct":[["Timer","A Unix signal per-process timer."],["TimerSetTimeFlags","Flags that are used for arming the timer."]]};

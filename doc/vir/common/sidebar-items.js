@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["cfg",""],["constants",""],["display",""],["expression",""],["graphviz",""],["identifier",""],["position",""],["positions",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["cfg",""],["constants",""],["display",""],["expression",""],["graphviz",""],["identifier",""],["position",""],["positions",""]]};

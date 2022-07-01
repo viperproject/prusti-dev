@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["loan_containment_to_text",""],["loan_to_text",""],["loans_to_text",""],["opaque_lifetime_string",""],["point_to_text",""],["points_to_text",""],["to_sorted_text",""]],"trait":[["ToText",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["loan_containment_to_text",""],["loan_to_text",""],["loans_to_text",""],["opaque_lifetime_string",""],["point_to_text",""],["points_to_text",""],["to_sorted_text",""]],"trait":[["ToText",""]]};

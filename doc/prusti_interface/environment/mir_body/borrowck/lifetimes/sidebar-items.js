@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["LifetimeWithInclusions",""],["Lifetimes",""]],"trait":[["LifetimesGraphviz","Functionality used only for the Graphviz output."]]});
+window.SIDEBAR_ITEMS = {"struct":[["LifetimeWithInclusions",""],["Lifetimes",""]],"trait":[["LifetimesGraphviz","Functionality used only for the Graphviz output."]]};

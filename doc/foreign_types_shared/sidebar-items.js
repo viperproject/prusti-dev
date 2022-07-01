@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Opaque","An opaque type used to define `ForeignTypeRef` types."]],"trait":[["ForeignType","A type implemented by wrappers over foreign types."],["ForeignTypeRef","A trait implemented by types which reference borrowed foreign types."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Opaque","An opaque type used to define `ForeignTypeRef` types."]],"trait":[["ForeignType","A type implemented by wrappers over foreign types."],["ForeignTypeRef","A trait implemented by types which reference borrowed foreign types."]]};

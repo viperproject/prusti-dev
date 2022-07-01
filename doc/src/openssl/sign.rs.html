@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.40/src/sign.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sign.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.40/src/sign.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>sign.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -942,7 +941,7 @@
 <span class="doccomment">//! # let target = hmac.clone();</span>
 <span class="doccomment">//! assert!(memcmp::eq(&amp;hmac, &amp;target));</span>
 <span class="doccomment">//! ```</span>
-<span class="kw">use</span> <span class="ident">cfg_if::cfg_if</span>;
+<span class="kw">use</span> <a class="ident" href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
 <span class="kw">use</span> <a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">foreign_types::ForeignTypeRef</a>;
 <span class="kw">use</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>;
 <span class="kw">use</span> <span class="ident">std::io</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>};
@@ -1046,7 +1045,7 @@
         <span class="kw">unsafe</span> {
             <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
 
-            <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_new.html">EVP_MD_CTX_new</a>())<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">EVP_MD_CTX_new</span>())<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
             <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">ffi::EVP_DigestSignInit</span>(
                 <a class="ident" href="../../src/openssl/sign.rs.html#168">ctx</a>,
@@ -1055,12 +1054,12 @@
                 <span class="ident">ptr::null_mut</span>(),
                 <a class="ident" href="../../src/openssl/sign.rs.html#160">pkey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             );
-            <span class="kw">if</span> <a class="ident" href="../../src/openssl/sign.rs.html#170">r</a> <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
+            <span class="kw">if</span> <span class="ident">r</span> <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
                 <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a class="ident" href="../../src/openssl/sign.rs.html#168">ctx</a>);
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorStack::get</span>());
             }
 
-            <span class="macro">assert!</span>(<span class="op">!</span><a class="ident" href="../../src/openssl/sign.rs.html#169">pctx</a>.<span class="ident">is_null</span>());
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">pctx</span>.<span class="ident">is_null</span>());
 
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#108-112">Signer</a> {
                 <span class="ident">md_ctx</span>: <a class="ident" href="../../src/openssl/sign.rs.html#168">ctx</a>,
@@ -1182,10 +1181,10 @@
     <span class="kw">fn</span> <span class="ident">len_intern</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_DigestSign</span>(
-                <a class="self" href="../../src/openssl/sign.rs.html#301">self</a>.<span class="ident">md_ctx</span>,
+            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_DigestSign</span>(
+                <span class="self">self</span>.<span class="ident">md_ctx</span>,
                 <span class="ident">ptr::null_mut</span>(),
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/sign.rs.html#303">len</a>,
+                <span class="kw-2">&amp;mut</span> <span class="ident">len</span>,
                 <span class="ident">ptr::null</span>(),
                 <span class="number">0</span>,
             ))<span class="question-mark">?</span>;
@@ -1204,10 +1203,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sign</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/sign.rs.html#323">buf</a>.<span class="ident">len</span>();
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_DigestSignFinal</span>(
-                <a class="self" href="../../src/openssl/sign.rs.html#323">self</a>.<span class="ident">md_ctx</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#323">buf</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/sign.rs.html#325">len</a>,
+            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_DigestSignFinal</span>(
+                <span class="self">self</span>.<span class="ident">md_ctx</span>,
+                <span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+                <span class="kw-2">&amp;mut</span> <span class="ident">len</span>,
             ))<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#325">len</a>)
         }
@@ -1217,8 +1216,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is a simple convenience wrapper over `len` and `sign`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sign_to_vec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <a class="self" href="../../src/openssl/sign.rs.html#338">self</a>.<a class="ident" href="../../src/openssl/sign.rs.html#283">len</a>()<span class="question-mark">?</span>];
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../src/openssl/sign.rs.html#338">self</a>.<a class="ident" href="../../src/openssl/sign.rs.html#323">sign</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/sign.rs.html#339">buf</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; <span class="self">self</span>.<span class="ident">len</span>()<span class="question-mark">?</span>];
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sign</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>)<span class="question-mark">?</span>;
         <span class="comment">// The advertised length is not always equal to the real length for things like DSA</span>
         <a class="ident" href="../../src/openssl/sign.rs.html#339">buf</a>.<span class="ident">truncate</span>(<a class="ident" href="../../src/openssl/sign.rs.html#340">len</a>);
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#339">buf</a>)
@@ -1243,12 +1242,12 @@
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sig_len</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/sign.rs.html#360">sig_buf</a>.<span class="ident">len</span>();
-            <a class="ident" href="../../src/openssl/lib.rs.html#194">cvt</a>(<span class="ident">ffi::EVP_DigestSign</span>(
-                <a class="self" href="../../src/openssl/sign.rs.html#359">self</a>.<span class="ident">md_ctx</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#360">sig_buf</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/sign.rs.html#364">sig_len</a>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#361">data_buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
-                <a class="ident" href="../../src/openssl/sign.rs.html#361">data_buf</a>.<span class="ident">len</span>(),
+            <span class="ident">cvt</span>(<span class="ident">ffi::EVP_DigestSign</span>(
+                <span class="self">self</span>.<span class="ident">md_ctx</span>,
+                <span class="ident">sig_buf</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>,
+                <span class="kw-2">&amp;mut</span> <span class="ident">sig_len</span>,
+                <span class="ident">data_buf</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>,
+                <span class="ident">data_buf</span>.<span class="ident">len</span>(),
             ))<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#364">sig_len</a>)
         }
@@ -1259,8 +1258,8 @@
     <span class="doccomment">/// This is a simple convenience wrapper over `len` and `sign_oneshot`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl111</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sign_oneshot_to_vec</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data_buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sig_buf</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; <a class="self" href="../../src/openssl/sign.rs.html#380">self</a>.<a class="ident" href="../../src/openssl/sign.rs.html#283">len</a>()<span class="question-mark">?</span>];
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../src/openssl/sign.rs.html#380">self</a>.<a class="ident" href="../../src/openssl/sign.rs.html#358-362">sign_oneshot</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/openssl/sign.rs.html#381">sig_buf</a>, <a class="ident" href="../../src/openssl/sign.rs.html#380">data_buf</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sig_buf</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="number">0</span>; <span class="self">self</span>.<span class="ident">len</span>()<span class="question-mark">?</span>];
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sign_oneshot</span>(<span class="kw-2">&amp;mut</span> <span class="ident">sig_buf</span>, <span class="ident">data_buf</span>)<span class="question-mark">?</span>;
         <span class="comment">// The advertised length is not always equal to the real length for things like DSA</span>
         <a class="ident" href="../../src/openssl/sign.rs.html#381">sig_buf</a>.<span class="ident">truncate</span>(<a class="ident" href="../../src/openssl/sign.rs.html#382">len</a>);
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#381">sig_buf</a>)
@@ -1269,7 +1268,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">Signer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/openssl/sign.rs.html#390">self</a>.<a class="ident" href="../../src/openssl/sign.rs.html#264">update</a>(<a class="ident" href="../../src/openssl/sign.rs.html#390">buf</a>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">update</span>(<span class="ident">buf</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#390">buf</a>.<span class="ident">len</span>())
     }
 
@@ -1337,7 +1336,7 @@
         <span class="kw">unsafe</span> {
             <a class="ident" href="../../openssl/fn.init.html">ffi::init</a>();
 
-            <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_new.html">EVP_MD_CTX_new</a>())<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">EVP_MD_CTX_new</span>())<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pctx</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_PKEY_CTX.html">ffi::EVP_PKEY_CTX</a> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
             <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">ffi::EVP_DigestVerifyInit</span>(
                 <a class="ident" href="../../src/openssl/sign.rs.html#459">ctx</a>,
@@ -1346,12 +1345,12 @@
                 <span class="ident">ptr::null_mut</span>(),
                 <a class="ident" href="../../src/openssl/sign.rs.html#451">pkey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
             );
-            <span class="kw">if</span> <a class="ident" href="../../src/openssl/sign.rs.html#461">r</a> <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
+            <span class="kw">if</span> <span class="ident">r</span> <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
                 <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_MD_CTX_free.html">EVP_MD_CTX_free</a>(<a class="ident" href="../../src/openssl/sign.rs.html#459">ctx</a>);
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ErrorStack::get</span>());
             }
 
-            <span class="macro">assert!</span>(<span class="op">!</span><a class="ident" href="../../src/openssl/sign.rs.html#460">pctx</a>.<span class="ident">is_null</span>());
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">pctx</span>.<span class="ident">is_null</span>());
 
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#400-404">Verifier</a> {
                 <span class="ident">md_ctx</span>: <a class="ident" href="../../src/openssl/sign.rs.html#459">ctx</a>,
@@ -1493,7 +1492,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a> <span class="kw">for</span> <span class="ident">Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/openssl/sign.rs.html#614">self</a>.<a class="ident" href="../../src/openssl/sign.rs.html#555">update</a>(<a class="ident" href="../../src/openssl/sign.rs.html#614">buf</a>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">update</span>(<span class="ident">buf</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/openssl/sign.rs.html#614">buf</a>.<span class="ident">len</span>())
     }
 
@@ -1754,5 +1753,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

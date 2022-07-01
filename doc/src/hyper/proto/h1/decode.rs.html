@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.19/src/proto/h1/decode.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>decode.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.19/src/proto/h1/decode.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>decode.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -742,7 +741,7 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/usize/index.html">std::usize</a>;
 
 <span class="kw">use</span> <a class="ident" href="../../../../hyper/body/struct.Bytes.html">bytes::Bytes</a>;
-<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>};
+<span class="kw">use</span> <span class="ident">tracing</span>::{<a class="ident" href="../../../../tracing/macro.debug.html">debug</a>, <a class="ident" href="../../../../tracing/macro.trace.html">trace</a>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{<a class="ident" href="../../../../src/hyper/common/mod.rs.html#26">task</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
@@ -833,7 +832,7 @@
     <span class="comment">// methods</span>
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_eof</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="macro">matches!</span>(<a class="self" href="../../../../src/hyper/proto/h1/decode.rs.html#97">self</a>.<span class="ident">kind</span>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#28">Length</a>(<span class="number">0</span>) <span class="op">|</span> <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#30">Chunked</a>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#63">ChunkedState::End</a>, <span class="kw">_</span>) <span class="op">|</span> <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#47">Eof</a>(<span class="bool-val">true</span>))
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="ident">kind</span>, <span class="ident">Length</span>(<span class="number">0</span>) <span class="op">|</span> <span class="ident">Chunked</span>(<span class="ident">ChunkedState::End</span>, <span class="kw">_</span>) <span class="op">|</span> <span class="ident">Eof</span>(<span class="bool-val">true</span>))
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#368-370">MemRead</a><span class="op">&gt;</span>(
@@ -841,18 +840,18 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">body</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/body/struct.Bytes.html">Bytes</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">trace!</span>(<span class="string">&quot;decode; state={:?}&quot;</span>, <a class="self" href="../../../../src/hyper/proto/h1/decode.rs.html#102">self</a>.<span class="ident">kind</span>);
+        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;decode; state={:?}&quot;</span>, <span class="self">self</span>.<span class="ident">kind</span>);
         <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/decode.rs.html#102">self</a>.<span class="ident">kind</span> {
             <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#28">Length</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">remaining</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#108">remaining</a> <span class="op">==</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">remaining</span> <span class="op">==</span> <span class="number">0</span> {
                     <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">Bytes::new</span>()))
                 } <span class="kw">else</span> {
                     <span class="kw">let</span> <span class="ident">to_read</span> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#108">remaining</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-                    <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#104">body</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#369">read_mem</a>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#103">cx</a>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#112">to_read</a>))<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">body</span>.<span class="ident">read_mem</span>(<span class="ident">cx</span>, <span class="ident">to_read</span>))<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#113">buf</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
-                    <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#114">num</a> <span class="op">&gt;</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#108">remaining</a> {
+                    <span class="kw">if</span> <span class="ident">num</span> <span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">remaining</span> {
                         <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#108">remaining</a> <span class="op">=</span> <span class="number">0</span>;
-                    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#114">num</a> <span class="op">==</span> <span class="number">0</span> {
+                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">num</span> <span class="op">==</span> <span class="number">0</span> {
                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
                             <span class="ident">io::ErrorKind::UnexpectedEof</span>,
                             <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#415">IncompleteBody</a>,
@@ -867,9 +866,9 @@
                 <span class="kw">loop</span> {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                     <span class="comment">// advances the chunked state</span>
-                    <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#128">state</a> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#128">state</a>.<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#183-189">step</a>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#103">cx</a>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#104">body</a>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#128">size</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#130">buf</a>))<span class="question-mark">?</span>;
-                    <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#128">state</a> <span class="op">==</span> <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#63">ChunkedState::End</a> {
-                        <span class="macro">trace!</span>(<span class="string">&quot;end of chunked&quot;</span>);
+                    <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#128">state</a> <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">state</span>.<span class="ident">step</span>(<span class="ident">cx</span>, <span class="ident">body</span>, <span class="ident">size</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>))<span class="question-mark">?</span>;
+                    <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">state</span> <span class="op">==</span> <span class="ident">ChunkedState::End</span> {
+                        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;end of chunked&quot;</span>);
                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">Bytes::new</span>()));
                     }
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">buf</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#130">buf</a> {
@@ -878,7 +877,7 @@
                 }
             }
             <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#47">Eof</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">is_eof</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#142">is_eof</a> {
+                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">is_eof</span> {
                     <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">Bytes::new</span>()))
                 } <span class="kw">else</span> {
                     <span class="comment">// 8192 chosen because its about 2 packets, there probably</span>
@@ -946,7 +945,7 @@
         <span class="ident">rdr</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>,
         <span class="ident">size</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#51-64">ChunkedState</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">trace!</span>(<span class="string">&quot;Read chunk hex size&quot;</span>);
+        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;Read chunk hex size&quot;</span>);
 
         <span class="macro">macro_rules!</span> <span class="ident">or_overflow</span> {
             (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">e</span>:<span class="ident">expr</span>) =&gt; (
@@ -961,18 +960,18 @@
         }
 
         <span class="kw">let</span> <span class="ident">radix</span> <span class="op">=</span> <span class="number">16</span>;
-        <span class="kw">match</span> <span class="macro">byte!</span>(<span class="ident">rdr</span>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#207">cx</a>) {
+        <span class="kw">match</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#170-180">byte!</a>(<span class="ident">rdr</span>, <span class="ident">cx</span>) {
             <span class="ident">b</span> @ <span class="string">b&#39;0&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span> =&gt; {
-                <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a> <span class="op">=</span> <span class="macro">or_overflow!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a>.<span class="ident">checked_mul</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#225">radix</a>));
-                <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a> <span class="op">=</span> <span class="macro">or_overflow!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a>.<span class="ident">checked_add</span>((<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#227">b</a> <span class="op">-</span> <span class="string">b&#39;0&#39;</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>));
+                <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a> <span class="op">=</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#213-223">or_overflow!</a>(<span class="ident">size</span>.<span class="ident">checked_mul</span>(<span class="ident">radix</span>));
+                <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a> <span class="op">=</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#213-223">or_overflow!</a>(<span class="ident">size</span>.<span class="ident">checked_add</span>((<span class="ident">b</span> <span class="op">-</span> <span class="string">b&#39;0&#39;</span>) <span class="kw">as</span> <span class="ident">u64</span>));
             }
             <span class="ident">b</span> @ <span class="string">b&#39;a&#39;</span>..<span class="op">=</span><span class="string">b&#39;f&#39;</span> =&gt; {
-                <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a> <span class="op">=</span> <span class="macro">or_overflow!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a>.<span class="ident">checked_mul</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#225">radix</a>));
-                <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a> <span class="op">=</span> <span class="macro">or_overflow!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a>.<span class="ident">checked_add</span>((<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#231">b</a> <span class="op">+</span> <span class="number">10</span> <span class="op">-</span> <span class="string">b&#39;a&#39;</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>));
+                <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a> <span class="op">=</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#213-223">or_overflow!</a>(<span class="ident">size</span>.<span class="ident">checked_mul</span>(<span class="ident">radix</span>));
+                <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a> <span class="op">=</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#213-223">or_overflow!</a>(<span class="ident">size</span>.<span class="ident">checked_add</span>((<span class="ident">b</span> <span class="op">+</span> <span class="number">10</span> <span class="op">-</span> <span class="string">b&#39;a&#39;</span>) <span class="kw">as</span> <span class="ident">u64</span>));
             }
             <span class="ident">b</span> @ <span class="string">b&#39;A&#39;</span>..<span class="op">=</span><span class="string">b&#39;F&#39;</span> =&gt; {
-                <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a> <span class="op">=</span> <span class="macro">or_overflow!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a>.<span class="ident">checked_mul</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#225">radix</a>));
-                <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a> <span class="op">=</span> <span class="macro">or_overflow!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a>.<span class="ident">checked_add</span>((<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#235">b</a> <span class="op">+</span> <span class="number">10</span> <span class="op">-</span> <span class="string">b&#39;A&#39;</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>));
+                <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a> <span class="op">=</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#213-223">or_overflow!</a>(<span class="ident">size</span>.<span class="ident">checked_mul</span>(<span class="ident">radix</span>));
+                <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#209">size</a> <span class="op">=</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#213-223">or_overflow!</a>(<span class="ident">size</span>.<span class="ident">checked_add</span>((<span class="ident">b</span> <span class="op">+</span> <span class="number">10</span> <span class="op">-</span> <span class="string">b&#39;A&#39;</span>) <span class="kw">as</span> <span class="ident">u64</span>));
             }
             <span class="string">b&#39;\t&#39;</span> <span class="op">|</span> <span class="string">b&#39; &#39;</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#53">ChunkedState::SizeLws</a>)),
             <span class="string">b&#39;;&#39;</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#54">ChunkedState::Extension</a>)),
@@ -990,8 +989,8 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">rdr</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#51-64">ChunkedState</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">trace!</span>(<span class="string">&quot;read_size_lws&quot;</span>);
-        <span class="kw">match</span> <span class="macro">byte!</span>(<span class="ident">rdr</span>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#252">cx</a>) {
+        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;read_size_lws&quot;</span>);
+        <span class="kw">match</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#170-180">byte!</a>(<span class="ident">rdr</span>, <span class="ident">cx</span>) {
             <span class="comment">// LWS can follow the chunk size, but no more digits can come</span>
             <span class="string">b&#39;\t&#39;</span> <span class="op">|</span> <span class="string">b&#39; &#39;</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#53">ChunkedState::SizeLws</a>)),
             <span class="string">b&#39;;&#39;</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#54">ChunkedState::Extension</a>)),
@@ -1006,14 +1005,14 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">rdr</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#51-64">ChunkedState</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">trace!</span>(<span class="string">&quot;read_extension&quot;</span>);
+        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;read_extension&quot;</span>);
         <span class="comment">// We don&#39;t care about extensions really at all. Just ignore them.</span>
         <span class="comment">// They &quot;end&quot; at the next CRLF.</span>
         <span class="comment">//</span>
         <span class="comment">// However, some implementations may not check for the CR, so to save</span>
         <span class="comment">// them from themselves, we reject extensions containing plain LF as</span>
         <span class="comment">// well.</span>
-        <span class="kw">match</span> <span class="macro">byte!</span>(<span class="ident">rdr</span>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#268">cx</a>) {
+        <span class="kw">match</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#170-180">byte!</a>(<span class="ident">rdr</span>, <span class="ident">cx</span>) {
             <span class="string">b&#39;\r&#39;</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#55">ChunkedState::SizeLf</a>)),
             <span class="string">b&#39;\n&#39;</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
                 <span class="ident">io::ErrorKind::InvalidData</span>,
@@ -1027,13 +1026,13 @@
         <span class="ident">rdr</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>,
         <span class="ident">size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#51-64">ChunkedState</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">trace!</span>(<span class="string">&quot;Chunk size is {:?}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#290">size</a>);
-        <span class="kw">match</span> <span class="macro">byte!</span>(<span class="ident">rdr</span>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#288">cx</a>) {
+        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;Chunk size is {:?}&quot;</span>, <span class="ident">size</span>);
+        <span class="kw">match</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#170-180">byte!</a>(<span class="ident">rdr</span>, <span class="ident">cx</span>) {
             <span class="string">b&#39;\n&#39;</span> =&gt; {
-                <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#290">size</a> <span class="op">==</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="ident">size</span> <span class="op">==</span> <span class="number">0</span> {
                     <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#61">ChunkedState::EndCr</a>))
                 } <span class="kw">else</span> {
-                    <span class="macro">debug!</span>(<span class="string">&quot;incoming chunked header: {0:#X} ({0} bytes)&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#290">size</a>);
+                    <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;incoming chunked header: {0:#X} ({0} bytes)&quot;</span>, <span class="ident">size</span>);
                     <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#56">ChunkedState::Body</a>))
                 }
             }
@@ -1050,7 +1049,7 @@
         <span class="ident">rem</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
         <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/body/struct.Bytes.html">Bytes</a><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#51-64">ChunkedState</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">trace!</span>(<span class="string">&quot;Chunked read, remaining={:?}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#312">rem</a>);
+        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;Chunked read, remaining={:?}&quot;</span>, <span class="ident">rem</span>);
 
         <span class="comment">// cap remaining bytes at the max capacity of usize</span>
         <span class="kw">let</span> <span class="ident">rem_cap</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#312">rem</a> {
@@ -1059,10 +1058,10 @@
         };
 
         <span class="kw">let</span> <span class="ident">to_read</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#318">rem_cap</a>;
-        <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#311">rdr</a>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#369">read_mem</a>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#310">cx</a>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#323">to_read</a>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">rdr</span>.<span class="ident">read_mem</span>(<span class="ident">cx</span>, <span class="ident">to_read</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#324">slice</a>.<span class="ident">len</span>();
 
-        <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#325">count</a> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">count</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#312">rem</a> <span class="op">=</span> <span class="number">0</span>;
             <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
                 <span class="ident">io::ErrorKind::UnexpectedEof</span>,
@@ -1072,7 +1071,7 @@
         <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#313">buf</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#324">slice</a>);
         <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#312">rem</a> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#325">count</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
 
-        <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#312">rem</a> <span class="op">&gt;</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">rem</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#56">ChunkedState::Body</a>))
         } <span class="kw">else</span> {
             <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#57">ChunkedState::BodyCr</a>))
@@ -1082,7 +1081,7 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">rdr</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#51-64">ChunkedState</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="macro">byte!</span>(<span class="ident">rdr</span>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#344">cx</a>) {
+        <span class="kw">match</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#170-180">byte!</a>(<span class="ident">rdr</span>, <span class="ident">cx</span>) {
             <span class="string">b&#39;\r&#39;</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#58">ChunkedState::BodyLf</a>)),
             <span class="kw">_</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
                 <span class="ident">io::ErrorKind::InvalidInput</span>,
@@ -1094,7 +1093,7 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">rdr</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#51-64">ChunkedState</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="macro">byte!</span>(<span class="ident">rdr</span>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#356">cx</a>) {
+        <span class="kw">match</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#170-180">byte!</a>(<span class="ident">rdr</span>, <span class="ident">cx</span>) {
             <span class="string">b&#39;\n&#39;</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#52">ChunkedState::Size</a>)),
             <span class="kw">_</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
                 <span class="ident">io::ErrorKind::InvalidInput</span>,
@@ -1107,8 +1106,8 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">rdr</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#51-64">ChunkedState</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">trace!</span>(<span class="string">&quot;read_trailer&quot;</span>);
-        <span class="kw">match</span> <span class="macro">byte!</span>(<span class="ident">rdr</span>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#369">cx</a>) {
+        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;read_trailer&quot;</span>);
+        <span class="kw">match</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#170-180">byte!</a>(<span class="ident">rdr</span>, <span class="ident">cx</span>) {
             <span class="string">b&#39;\r&#39;</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#60">ChunkedState::TrailerLf</a>)),
             <span class="kw">_</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#59">ChunkedState::Trailer</a>)),
         }
@@ -1117,7 +1116,7 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">rdr</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#51-64">ChunkedState</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="macro">byte!</span>(<span class="ident">rdr</span>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#379">cx</a>) {
+        <span class="kw">match</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#170-180">byte!</a>(<span class="ident">rdr</span>, <span class="ident">cx</span>) {
             <span class="string">b&#39;\n&#39;</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#61">ChunkedState::EndCr</a>)),
             <span class="kw">_</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
                 <span class="ident">io::ErrorKind::InvalidInput</span>,
@@ -1130,7 +1129,7 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">rdr</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#51-64">ChunkedState</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="macro">byte!</span>(<span class="ident">rdr</span>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#392">cx</a>) {
+        <span class="kw">match</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#170-180">byte!</a>(<span class="ident">rdr</span>, <span class="ident">cx</span>) {
             <span class="string">b&#39;\r&#39;</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#62">ChunkedState::EndLf</a>)),
             <span class="kw">_</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#59">ChunkedState::Trailer</a>)),
         }
@@ -1139,7 +1138,7 @@
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
         <span class="ident">rdr</span>: <span class="kw-2">&amp;mut</span> <span class="ident">R</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#51-64">ChunkedState</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="macro">byte!</span>(<span class="ident">rdr</span>, <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#401">cx</a>) {
+        <span class="kw">match</span> <a class="macro" href="../../../../src/hyper/proto/h1/decode.rs.html#170-180">byte!</a>(<span class="ident">rdr</span>, <span class="ident">cx</span>) {
             <span class="string">b&#39;\n&#39;</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#63">ChunkedState::End</a>)),
             <span class="kw">_</span> =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
                 <span class="ident">io::ErrorKind::InvalidInput</span>,
@@ -1154,7 +1153,7 @@
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#415">IncompleteBody</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">write!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#418">f</a>, <span class="string">&quot;end of file before message length reached&quot;</span>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<span class="ident">f</span>, <span class="string">&quot;end of file before message length reached&quot;</span>)
     }
 }
 
@@ -1468,5 +1467,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["BufReader","`BufReader` used by `Decoder` when it is constructed with `Decoder::new_bufferless`"],["Buffer","Marker used by `Decoder` for an internal buffer"],["Bufferless","Marker used by `Decoder` for an external buffer"]]});
+window.SIDEBAR_ITEMS = {"struct":[["BufReader","`BufReader` used by `Decoder` when it is constructed with `Decoder::new_bufferless`"],["Buffer","Marker used by `Decoder` for an internal buffer"],["Bufferless","Marker used by `Decoder` for an external buffer"]]};

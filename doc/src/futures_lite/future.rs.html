@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-lite-1.12.0/src/future.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>future.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_lite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-lite-1.12.0/src/future.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>future.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_lite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../futures_lite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_lite/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_lite/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -834,7 +833,7 @@
 <span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
 
-<span class="kw">use</span> <span class="ident">pin_project_lite::pin_project</span>;
+<span class="kw">use</span> <a class="ident" href="../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -868,7 +867,7 @@
     <span class="kw">use</span> <span class="ident">waker_fn::waker_fn</span>;
 
     <span class="comment">// Pin the future on the stack.</span>
-    <span class="macro">crate::pin!</span>(<span class="ident">future</span>);
+    <a class="macro" href="../../src/futures_lite/lib.rs.html#120-130">crate::pin!</a>(<span class="ident">future</span>);
 
     <span class="comment">// Creates a parker and an associated waker that unparks it.</span>
     <span class="kw">fn</span> <span class="ident">parker_and_waker</span>() -&gt; (<a class="ident" href="../../parking/struct.Parker.html">Parker</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) {
@@ -880,9 +879,9 @@
         (<a class="ident" href="../../src/futures_lite/future.rs.html#66">parker</a>, <a class="ident" href="../../src/futures_lite/future.rs.html#68">waker</a>)
     }
 
-    <span class="macro">thread_local!</span> {
+    <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local!</a> {
         <span class="comment">// Cached parker and waker for efficiency.</span>
-        <span class="kw">static</span> <span class="ident">CACHE</span>: <span class="ident">RefCell</span><span class="op">&lt;</span>(<a class="ident" href="../../parking/struct.Parker.html">Parker</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell::new</span>(<a class="ident" href="../../src/futures_lite/future.rs.html#65">parker_and_waker</a>());
+        <span class="kw">static</span> <span class="ident">CACHE</span>: <span class="ident">RefCell</span><span class="op">&lt;</span>(<span class="ident">Parker</span>, <span class="ident">Waker</span>)<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell::new</span>(<span class="ident">parker_and_waker</span>());
     }
 
     <a class="ident" href="../../src/futures_lite/future.rs.html#74-77">CACHE</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">cache</span><span class="op">|</span> {
@@ -978,7 +977,7 @@
     <a class="ident" href="../../src/futures_lite/future.rs.html#172-179">PollOnce</a> { <a class="ident" href="../../src/futures_lite/future.rs.html#165">f</a> }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Future for the [`poll_once()`] function.</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PollOnce</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
@@ -1030,7 +1029,7 @@
     <a class="ident" href="../../src/futures_lite/future.rs.html#224-230">PollFn</a> { <a class="ident" href="../../src/futures_lite/future.rs.html#217">f</a> }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Future for the [`poll_fn()`] function.</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PollFn</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span> {
@@ -1114,7 +1113,7 @@
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> ();
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/futures_lite/future.rs.html#307">self</a>.<span class="number">0</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="number">0</span> {
             <a class="self" href="../../src/futures_lite/future.rs.html#307">self</a>.<span class="number">0</span> <span class="op">=</span> <span class="bool-val">true</span>;
             <a class="ident" href="../../src/futures_lite/future.rs.html#307">cx</a>.<span class="ident">waker</span>().<span class="ident">wake_by_ref</span>();
             <span class="ident">Poll::Pending</span>
@@ -1151,7 +1150,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Future for the [`zip()`] function.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
@@ -1179,19 +1178,19 @@
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/future.rs.html#370">self</a>.<a class="ident" href="../../src/futures_lite/future.rs.html#345-361">project</a>();
 
-        <span class="kw">if</span> <a class="ident" href="../../src/futures_lite/future.rs.html#371">this</a>.<span class="ident">output1</span>.<span class="ident">is_none</span>() {
+        <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">output1</span>.<span class="ident">is_none</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="ident">out</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_lite/future.rs.html#371">this</a>.<span class="ident">future1</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../src/futures_lite/future.rs.html#370">cx</a>) {
                 <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/future.rs.html#371">this</a>.<span class="ident">output1</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/future.rs.html#374">out</a>);
             }
         }
 
-        <span class="kw">if</span> <a class="ident" href="../../src/futures_lite/future.rs.html#371">this</a>.<span class="ident">output2</span>.<span class="ident">is_none</span>() {
+        <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">output2</span>.<span class="ident">is_none</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="ident">out</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_lite/future.rs.html#371">this</a>.<span class="ident">future2</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../src/futures_lite/future.rs.html#370">cx</a>) {
                 <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/future.rs.html#371">this</a>.<span class="ident">output2</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/future.rs.html#380">out</a>);
             }
         }
 
-        <span class="kw">if</span> <a class="ident" href="../../src/futures_lite/future.rs.html#371">this</a>.<span class="ident">output1</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/futures_lite/future.rs.html#371">this</a>.<span class="ident">output2</span>.<span class="ident">is_some</span>() {
+        <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">output1</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">this</span>.<span class="ident">output2</span>.<span class="ident">is_some</span>() {
             <span class="ident">Poll::Ready</span>((<a class="ident" href="../../src/futures_lite/future.rs.html#371">this</a>.<span class="ident">output1</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>(), <a class="ident" href="../../src/futures_lite/future.rs.html#371">this</a>.<span class="ident">output2</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>()))
         } <span class="kw">else</span> {
             <span class="ident">Poll::Pending</span>
@@ -1226,7 +1225,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Future for the [`try_zip()`] function.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
@@ -1254,7 +1253,7 @@
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/future.rs.html#445">self</a>.<a class="ident" href="../../src/futures_lite/future.rs.html#420-436">project</a>();
 
-        <span class="kw">if</span> <a class="ident" href="../../src/futures_lite/future.rs.html#446">this</a>.<span class="ident">output1</span>.<span class="ident">is_none</span>() {
+        <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">output1</span>.<span class="ident">is_none</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="ident">out</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_lite/future.rs.html#446">this</a>.<span class="ident">future1</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../src/futures_lite/future.rs.html#445">cx</a>) {
                 <span class="kw">match</span> <a class="ident" href="../../src/futures_lite/future.rs.html#449">out</a> {
                     <span class="prelude-val">Ok</span>(<span class="ident">t</span>) =&gt; <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/future.rs.html#446">this</a>.<span class="ident">output1</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../src/futures_lite/future.rs.html#451">t</a>)),
@@ -1263,7 +1262,7 @@
             }
         }
 
-        <span class="kw">if</span> <a class="ident" href="../../src/futures_lite/future.rs.html#446">this</a>.<span class="ident">output2</span>.<span class="ident">is_none</span>() {
+        <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">output2</span>.<span class="ident">is_none</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Poll::Ready</span>(<span class="ident">out</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_lite/future.rs.html#446">this</a>.<span class="ident">future2</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../src/futures_lite/future.rs.html#445">cx</a>) {
                 <span class="kw">match</span> <a class="ident" href="../../src/futures_lite/future.rs.html#458">out</a> {
                     <span class="prelude-val">Ok</span>(<span class="ident">t</span>) =&gt; <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/future.rs.html#446">this</a>.<span class="ident">output2</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../src/futures_lite/future.rs.html#460">t</a>)),
@@ -1272,11 +1271,11 @@
             }
         }
 
-        <span class="kw">if</span> <a class="ident" href="../../src/futures_lite/future.rs.html#446">this</a>.<span class="ident">output1</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/futures_lite/future.rs.html#446">this</a>.<span class="ident">output2</span>.<span class="ident">is_some</span>() {
+        <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">output1</span>.<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">this</span>.<span class="ident">output2</span>.<span class="ident">is_some</span>() {
             <span class="kw">let</span> <span class="ident">res1</span> <span class="op">=</span> <a class="ident" href="../../src/futures_lite/future.rs.html#446">this</a>.<span class="ident">output1</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">res2</span> <span class="op">=</span> <a class="ident" href="../../src/futures_lite/future.rs.html#446">this</a>.<span class="ident">output2</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">t1</span> <span class="op">=</span> <a class="ident" href="../../src/futures_lite/future.rs.html#467">res1</a>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="macro">unreachable!</span>()).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">t2</span> <span class="op">=</span> <a class="ident" href="../../src/futures_lite/future.rs.html#468">res2</a>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="macro">unreachable!</span>()).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">t1</span> <span class="op">=</span> <a class="ident" href="../../src/futures_lite/future.rs.html#467">res1</a>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">t2</span> <span class="op">=</span> <a class="ident" href="../../src/futures_lite/future.rs.html#468">res2</a>.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()).<span class="ident">unwrap</span>();
             <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>((<a class="ident" href="../../src/futures_lite/future.rs.html#469">t1</a>, <a class="ident" href="../../src/futures_lite/future.rs.html#470">t2</a>)))
         } <span class="kw">else</span> {
             <span class="ident">Poll::Pending</span>
@@ -1310,7 +1309,7 @@
     <a class="ident" href="../../src/futures_lite/future.rs.html#504-514">Or</a> { <a class="ident" href="../../src/futures_lite/future.rs.html#496">future1</a>, <a class="ident" href="../../src/futures_lite/future.rs.html#496">future2</a> }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Future for the [`or()`] function and the [`FutureExt::or()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
@@ -1373,7 +1372,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Future for the [`race()`] function and the [`FutureExt::race()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
@@ -1416,7 +1415,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Future for the [`FutureExt::catch_unwind()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
@@ -1432,7 +1431,7 @@
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/future.rs.html#624">self</a>.<a class="ident" href="../../src/futures_lite/future.rs.html#610-618">project</a>();
-        <a class="ident" href="https://doc.rust-lang.org/nightly/std/panic/fn.catch_unwind.html">catch_unwind</a>(<span class="ident">AssertUnwindSafe</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/futures_lite/future.rs.html#625">this</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../src/futures_lite/future.rs.html#624">cx</a>)))<span class="question-mark">?</span>.<span class="ident">map</span>(<span class="prelude-val">Ok</span>)
+        <span class="ident">catch_unwind</span>(<span class="ident">AssertUnwindSafe</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">this</span>.<span class="ident">inner</span>.<span class="ident">poll</span>(<span class="ident">cx</span>)))<span class="question-mark">?</span>.<span class="ident">map</span>(<span class="prelude-val">Ok</span>)
     }
 }
 
@@ -1610,5 +1609,5 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <a class="ident" href="../../src/futures_lite/future.rs.html#659-800">FutureExt</a> <span class="kw">for</span> <span class="ident">F</span> {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_lite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_lite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

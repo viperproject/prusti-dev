@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["compute_function_identifier",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["compute_function_identifier",""]]};

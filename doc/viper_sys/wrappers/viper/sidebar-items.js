@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["carbon",""],["silicon",""],["silver",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["carbon",""],["silicon",""],["silver",""]]};

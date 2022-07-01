@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["SiliconMappedCounterexample",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["SiliconMappedCounterexample",""]]};

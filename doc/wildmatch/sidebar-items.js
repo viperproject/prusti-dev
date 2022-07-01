@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["WildMatch","Wildcard matcher used to match strings."]]});
+window.SIDEBAR_ITEMS = {"struct":[["WildMatch","Wildcard matcher used to match strings."]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["ToSnapshot",""],["ToSnapshotLowerer",""]]});
+window.SIDEBAR_ITEMS = {"trait":[["ToSnapshot",""],["ToSnapshotLowerer",""]]};

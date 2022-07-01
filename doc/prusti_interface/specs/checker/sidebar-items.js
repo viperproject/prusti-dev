@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["SpecChecker","Checker visitor for the specifications. Checks are implemented in various [SpecCheckerStrategy]s"]]});
+window.SIDEBAR_ITEMS = {"struct":[["SpecChecker","Checker visitor for the specifications. Checks are implemented in various [SpecCheckerStrategy]s"]]};

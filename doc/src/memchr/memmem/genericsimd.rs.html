@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.5.0/src/memmem/genericsimd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>genericsimd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../memchr/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/memchr-2.5.0/src/memmem/genericsimd.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>genericsimd.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../memchr/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../memchr/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../memchr/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../memchr/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -340,9 +339,9 @@
         <span class="comment">// if the rare bytes detected are at the same position. (It likely</span>
         <span class="comment">// suggests a degenerate case, although it should technically not be</span>
         <span class="comment">// possible.)</span>
-        <span class="kw">if</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#64">needle</a>.<span class="ident">len</span>() <span class="op">&lt;</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#8">MIN_NEEDLE_LEN</a>
-            <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#64">needle</a>.<span class="ident">len</span>() <span class="op">&gt;</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#35">MAX_NEEDLE_LEN</a>
-            <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#65">rare1i</a> <span class="op">==</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#65">rare2i</a>
+        <span class="kw">if</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">MIN_NEEDLE_LEN</span>
+            <span class="op">|</span><span class="op">|</span> <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">MAX_NEEDLE_LEN</span>
+            <span class="op">|</span><span class="op">|</span> <span class="ident">rare1i</span> <span class="op">==</span> <span class="ident">rare2i</span>
         {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
@@ -383,21 +382,21 @@
     <span class="comment">// guarantee that end_ptr.sub(needle.len()) won&#39;t result in UB. We could</span>
     <span class="comment">// put it as part of the safety contract, but it makes it more complicated</span>
     <span class="comment">// than necessary.</span>
-    <span class="kw">if</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#105">haystack</a>.<span class="ident">len</span>() <span class="op">&lt;</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#106">needle</a>.<span class="ident">len</span>() {
+    <span class="kw">if</span> <span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">needle</span>.<span class="ident">len</span>() {
         <span class="kw">return</span> <span class="prelude-val">None</span>;
     }
     <span class="kw">let</span> <span class="ident">min_haystack_len</span> <span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#104">fwd</a>.<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#83">min_haystack_len</a>::<span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>();
-    <span class="macro">assert!</span>(<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#105">haystack</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#116">min_haystack_len</a>, <span class="string">&quot;haystack too small&quot;</span>);
-    <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#106">needle</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#105">haystack</a>.<span class="ident">len</span>());
-    <span class="macro">debug_assert!</span>(
-        <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#106">needle</a>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#8">MIN_NEEDLE_LEN</a>,
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">haystack</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">min_haystack_len</span>, <span class="string">&quot;haystack too small&quot;</span>);
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">haystack</span>.<span class="ident">len</span>());
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+        <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">MIN_NEEDLE_LEN</span>,
         <span class="string">&quot;needle must be at least {} bytes&quot;</span>,
-        <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#8">MIN_NEEDLE_LEN</a>,
+        <span class="ident">MIN_NEEDLE_LEN</span>,
     );
-    <span class="macro">debug_assert!</span>(
-        <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#106">needle</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#35">MAX_NEEDLE_LEN</a>,
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+        <span class="ident">needle</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">MAX_NEEDLE_LEN</span>,
         <span class="string">&quot;needle must be at most {} bytes&quot;</span>,
-        <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#35">MAX_NEEDLE_LEN</a>,
+        <span class="ident">MAX_NEEDLE_LEN</span>,
     );
 
     <span class="kw">let</span> (<span class="ident">rare1i</span>, <span class="ident">rare2i</span>) <span class="op">=</span> (<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#104">fwd</a>.<span class="ident">rare1i</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#104">fwd</a>.<span class="ident">rare2i</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
@@ -414,41 +413,41 @@
     <span class="comment">// marginally faster while the quadruple unroll was unambiguously slower.</span>
     <span class="comment">// In the end, I decided the complexity from unrolling wasn&#39;t worth it. I</span>
     <span class="comment">// used the memmem/krate/prebuilt/huge-en/ benchmarks to compare.</span>
-    <span class="kw">while</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#137">ptr</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#136">max_ptr</a> {
-        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#217-225">fwd_find_in_chunk</a>(
-            <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#104">fwd</a>, <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#106">needle</a>, <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#137">ptr</a>, <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#135">end_ptr</a>, <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#131">rare1chunk</a>, <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#132">rare2chunk</a>, <span class="op">!</span><span class="number">0</span>,
+    <span class="kw">while</span> <span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max_ptr</span> {
+        <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">fwd_find_in_chunk</span>(
+            <span class="ident">fwd</span>, <span class="ident">needle</span>, <span class="ident">ptr</span>, <span class="ident">end_ptr</span>, <span class="ident">rare1chunk</span>, <span class="ident">rare2chunk</span>, <span class="op">!</span><span class="number">0</span>,
         );
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">chunki</span>) <span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#145">m</a> {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#257">matched</a>(<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#134">start_ptr</a>, <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#137">ptr</a>, <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#148">chunki</a>));
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">chunki</span>) <span class="op">=</span> <span class="ident">m</span> {
+            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">matched</span>(<span class="ident">start_ptr</span>, <span class="ident">ptr</span>, <span class="ident">chunki</span>));
         }
-        <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#137">ptr</a> <span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#137">ptr</a>.<span class="ident">add</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>());
+        <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">add</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>());
     }
-    <span class="kw">if</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#137">ptr</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#135">end_ptr</a> {
+    <span class="kw">if</span> <span class="ident">ptr</span> <span class="op">&lt;</span> <span class="ident">end_ptr</span> {
         <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#263">diff</a>(<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#135">end_ptr</a>, <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#137">ptr</a>);
-        <span class="macro">debug_assert!</span>(
-            <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#154">remaining</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#116">min_haystack_len</a>,
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+            <span class="ident">remaining</span> <span class="op">&lt;</span> <span class="ident">min_haystack_len</span>,
             <span class="string">&quot;remaining bytes should be smaller than the minimum haystack \
              length of {}, but there are {} bytes remaining&quot;</span>,
-            <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#116">min_haystack_len</a>,
-            <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#154">remaining</a>,
+            <span class="ident">min_haystack_len</span>,
+            <span class="ident">remaining</span>,
         );
-        <span class="kw">if</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#154">remaining</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#106">needle</a>.<span class="ident">len</span>() {
+        <span class="kw">if</span> <span class="ident">remaining</span> <span class="op">&lt;</span> <span class="ident">needle</span>.<span class="ident">len</span>() {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
-        <span class="macro">debug_assert!</span>(
-            <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#136">max_ptr</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#137">ptr</a>,
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+            <span class="ident">max_ptr</span> <span class="op">&lt;</span> <span class="ident">ptr</span>,
             <span class="string">&quot;after main loop, ptr should have exceeded max_ptr&quot;</span>,
         );
         <span class="kw">let</span> <span class="ident">overlap</span> <span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#263">diff</a>(<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#137">ptr</a>, <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#136">max_ptr</a>);
-        <span class="macro">debug_assert!</span>(
-            <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#169">overlap</a> <span class="op">&gt;</span> <span class="number">0</span>,
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+            <span class="ident">overlap</span> <span class="op">&gt;</span> <span class="number">0</span>,
             <span class="string">&quot;overlap ({}) must always be non-zero&quot;</span>,
-            <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#169">overlap</a>,
+            <span class="ident">overlap</span>,
         );
-        <span class="macro">debug_assert!</span>(
-            <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#169">overlap</a> <span class="op">&lt;</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(),
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+            <span class="ident">overlap</span> <span class="op">&lt;</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(),
             <span class="string">&quot;overlap ({}) cannot possibly be &gt;= than a vector ({})&quot;</span>,
-            <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#169">overlap</a>,
+            <span class="ident">overlap</span>,
             <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(),
         );
         <span class="comment">// The mask has all of its bits set except for the first N least</span>
@@ -503,17 +502,17 @@
     <span class="kw">let</span> <span class="ident">eq1</span> <span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#227">chunk1</a>.<a class="ident" href="../../../src/memchr/memmem/vector.rs.html#29">cmpeq</a>(<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#223">rare2chunk</a>);
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">match_offsets</span> <span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#229">eq0</a>.<a class="ident" href="../../../src/memchr/memmem/vector.rs.html#31">and</a>(<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#230">eq1</a>).<a class="ident" href="../../../src/memchr/memmem/vector.rs.html#27">movemask</a>() <span class="op">&amp;</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#224">mask</a>;
-    <span class="kw">while</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#232">match_offsets</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#232">match_offsets</a>.<span class="ident">trailing_zeros</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#220">ptr</a>.<span class="ident">add</span>(<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#234">offset</a>);
-        <span class="kw">if</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#221">end_ptr</a>.<span class="ident">sub</span>(<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#219">needle</a>.<span class="ident">len</span>()) <span class="op">&lt;</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#235">ptr</a> {
+    <span class="kw">while</span> <span class="ident">match_offsets</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">match_offsets</span>.<span class="ident">trailing_zeros</span>() <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ptr</span>.<span class="ident">add</span>(<span class="ident">offset</span>);
+        <span class="kw">if</span> <span class="ident">end_ptr</span>.<span class="ident">sub</span>(<span class="ident">needle</span>.<span class="ident">len</span>()) <span class="op">&lt;</span> <span class="ident">ptr</span> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
-        <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="ident">core::slice::from_raw_parts</span>(<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#235">ptr</a>, <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#219">needle</a>.<span class="ident">len</span>());
-        <span class="kw">if</span> <a class="ident" href="../../../src/memchr/memmem/util.rs.html#32">memcmp</a>(<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#219">needle</a>, <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#239">chunk</a>) {
-            <span class="kw">return</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#234">offset</a>);
+        <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="ident">core::slice::from_raw_parts</span>(<span class="ident">ptr</span>, <span class="ident">needle</span>.<span class="ident">len</span>());
+        <span class="kw">if</span> <span class="ident">memcmp</span>(<span class="ident">needle</span>, <span class="ident">chunk</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">offset</span>);
         }
-        <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#232">match_offsets</a> <span class="op">&amp;=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#232">match_offsets</a> <span class="op">-</span> <span class="number">1</span>;
+        <span class="ident">match_offsets</span> <span class="op">&amp;=</span> <span class="ident">match_offsets</span> <span class="op">-</span> <span class="number">1</span>;
     }
     <span class="prelude-val">None</span>
 }
@@ -534,9 +533,9 @@
 <span class="doccomment">/// Subtract `b` from `a` and return the difference. `a` must be greater than</span>
 <span class="doccomment">/// or equal to `b`.</span>
 <span class="kw">fn</span> <span class="ident">diff</span>(<span class="ident">a</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">b</span>: <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-    <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#263">a</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#263">b</a>);
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">a</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">b</span>);
     (<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#263">a</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">-</span> (<a class="ident" href="../../../src/memchr/memmem/genericsimd.rs.html#263">b</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="memchr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

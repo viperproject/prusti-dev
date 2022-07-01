@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.3/src/poll.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>poll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/poll.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>poll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../mio/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../mio/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -687,8 +686,29 @@
 <span id="680">680</span>
 <span id="681">681</span>
 <span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/mio/lib.rs.html#54">event</a>, <a class="ident" href="../../src/mio/lib.rs.html#49">sys</a>, <a class="ident" href="../../src/mio/event/events.rs.html#42-44">Events</a>, <a class="ident" href="../../src/mio/interest.rs.html#17">Interest</a>, <a class="ident" href="../../src/mio/token.rs.html#132">Token</a>};
-<span class="kw">use</span> <span class="ident">log::trace</span>;
+<span class="kw">use</span> <a class="ident" href="../../log/macro.trace.html">log::trace</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
 <span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
@@ -876,6 +896,28 @@
 <span class="doccomment">/// operations to go through Mio otherwise it is not able to update it&#39;s</span>
 <span class="doccomment">/// internal state properly and won&#39;t generate events.</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// ### Polling without registering event sources</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// *The following is **not** guaranteed, just a description of the current</span>
+<span class="doccomment">/// situation!* Mio is allowed to change the following without it being</span>
+<span class="doccomment">/// considered a breaking change, don&#39;t depend on this, it&#39;s just here to inform</span>
+<span class="doccomment">/// the user. On platforms that use epoll, kqueue or IOCP (see implementation</span>
+<span class="doccomment">/// notes below) polling without previously registering [event sources] will</span>
+<span class="doccomment">/// result in sleeping forever, only a process signal will be able to wake up</span>
+<span class="doccomment">/// the thread.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// On WASM/WASI this is different as it doesn&#39;t support process signals,</span>
+<span class="doccomment">/// furthermore the WASI specification doesn&#39;t specify a behaviour in this</span>
+<span class="doccomment">/// situation, thus it&#39;s up to the implementation what to do here. As an</span>
+<span class="doccomment">/// example, the wasmtime runtime will return `EINVAL` in this situation, but</span>
+<span class="doccomment">/// different runtimes may return different results. If you have further</span>
+<span class="doccomment">/// insights or thoughts about this situation (and/or how Mio should handle it)</span>
+<span class="doccomment">/// please add you comment to [pull request#1580].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [event sources]: crate::event::Source</span>
+<span class="doccomment">/// [pull request#1580]: https://github.com/tokio-rs/mio/pull/1580</span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// # Implementation notes</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// `Poll` is backed by the selector provided by the operating system.</span>
@@ -914,7 +956,7 @@
 <span class="doccomment">/// [`SourceFd`]: unix/struct.SourceFd.html</span>
 <span class="doccomment">/// [`Poll::poll`]: struct.Poll.html#method.poll</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Poll</span> {
-    <span class="ident">registry</span>: <a class="ident" href="../../src/mio/poll.rs.html#232-234">Registry</a>,
+    <span class="ident">registry</span>: <a class="ident" href="../../src/mio/poll.rs.html#254-256">Registry</a>,
 }
 
 <span class="doccomment">/// Registers I/O resources.</span>
@@ -922,7 +964,7 @@
     <span class="ident">selector</span>: <a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#16-22">sys::Selector</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/mio/poll.rs.html#227-229">Poll</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/mio/poll.rs.html#249-251">Poll</a> {
     <span class="macro">cfg_os_poll!</span> {
         <span class="doccomment">/// Return a new `Poll` handle.</span>
         <span class="doccomment">///</span>
@@ -957,17 +999,17 @@
         <span class="doccomment">/// #     Ok(())</span>
         <span class="doccomment">/// # }</span>
         <span class="doccomment">/// ```</span>
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/mio/poll.rs.html#227-229">Poll</a><span class="op">&gt;</span> {
-            <span class="ident">sys::Selector::new</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">selector</span><span class="op">|</span> <a class="ident" href="../../src/mio/poll.rs.html#227-229">Poll</a> {
-                <span class="ident">registry</span>: <a class="ident" href="../../src/mio/poll.rs.html#232-234">Registry</a> { <a class="ident" href="../../src/mio/poll.rs.html#272">selector</a> },
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/mio/poll.rs.html#249-251">Poll</a><span class="op">&gt;</span> {
+            <span class="ident">sys::Selector::new</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">selector</span><span class="op">|</span> <a class="ident" href="../../src/mio/poll.rs.html#249-251">Poll</a> {
+                <span class="ident">registry</span>: <a class="ident" href="../../src/mio/poll.rs.html#254-256">Registry</a> { <a class="ident" href="../../src/mio/poll.rs.html#294">selector</a> },
             })
         }
     }
 
     <span class="doccomment">/// Create a separate `Registry` which can be used to register</span>
     <span class="doccomment">/// `event::Source`s.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">registry</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/poll.rs.html#232-234">Registry</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/mio/poll.rs.html#280">self</a>.<span class="ident">registry</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">registry</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/poll.rs.html#254-256">Registry</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/mio/poll.rs.html#302">self</a>.<span class="ident">registry</span>
     }
 
     <span class="doccomment">/// Wait for readiness events</span>
@@ -1064,24 +1106,24 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [struct]: #</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">events</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/mio/event/events.rs.html#42-44">Events</a>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../src/mio/poll.rs.html#377">self</a>.<span class="ident">registry</span>.<span class="ident">selector</span>.<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#54">select</a>(<a class="ident" href="../../src/mio/poll.rs.html#377">events</a>.<a class="ident" href="../../src/mio/event/events.rs.html#189">sys</a>(), <a class="ident" href="../../src/mio/poll.rs.html#377">timeout</a>)
+        <a class="self" href="../../src/mio/poll.rs.html#399">self</a>.<span class="ident">registry</span>.<span class="ident">selector</span>.<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#54">select</a>(<a class="ident" href="../../src/mio/poll.rs.html#399">events</a>.<a class="ident" href="../../src/mio/event/events.rs.html#189">sys</a>(), <a class="ident" href="../../src/mio/poll.rs.html#399">timeout</a>)
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/poll.rs.html#227-229">Poll</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/poll.rs.html#249-251">Poll</a> {
     <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../src/mio/poll.rs.html#384">self</a>.<span class="ident">registry</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+        <a class="self" href="../../src/mio/poll.rs.html#406">self</a>.<span class="ident">registry</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/poll.rs.html#227-229">Poll</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/poll.rs.html#249-251">Poll</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/mio/poll.rs.html#390">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Poll&quot;</span>).<span class="ident">finish</span>()
+        <a class="ident" href="../../src/mio/poll.rs.html#412">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Poll&quot;</span>).<span class="ident">finish</span>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/mio/poll.rs.html#232-234">Registry</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/mio/poll.rs.html#254-256">Registry</a> {
     <span class="doccomment">/// Register an [`event::Source`] with the `Poll` instance.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Once registered, the `Poll` instance will monitor the event source for</span>
@@ -1185,12 +1227,12 @@
     <span class="kw">where</span>
         <span class="ident">S</span>: <a class="ident" href="../../src/mio/event/source.rs.html#75-112">event::Source</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <span class="macro">trace!</span>(
+        <a class="macro" href="../../log/macro.trace.html">trace!</a>(
             <span class="string">&quot;registering event source with poller: token={:?}, interests={:?}&quot;</span>,
-            <a class="ident" href="../../src/mio/poll.rs.html#495">token</a>,
-            <a class="ident" href="../../src/mio/poll.rs.html#495">interests</a>
+            <span class="ident">token</span>,
+            <span class="ident">interests</span>
         );
-        <a class="ident" href="../../src/mio/poll.rs.html#495">source</a>.<a class="ident" href="../../src/mio/event/source.rs.html#83-88">register</a>(<a class="self" href="../../src/mio/poll.rs.html#495">self</a>, <a class="ident" href="../../src/mio/poll.rs.html#495">token</a>, <a class="ident" href="../../src/mio/poll.rs.html#495">interests</a>)
+        <a class="ident" href="../../src/mio/poll.rs.html#517">source</a>.<a class="ident" href="../../src/mio/event/source.rs.html#83-88">register</a>(<a class="self" href="../../src/mio/poll.rs.html#517">self</a>, <a class="ident" href="../../src/mio/poll.rs.html#517">token</a>, <a class="ident" href="../../src/mio/poll.rs.html#517">interests</a>)
     }
 
     <span class="doccomment">/// Re-register an [`event::Source`] with the `Poll` instance.</span>
@@ -1253,12 +1295,12 @@
     <span class="kw">where</span>
         <span class="ident">S</span>: <a class="ident" href="../../src/mio/event/source.rs.html#75-112">event::Source</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <span class="macro">trace!</span>(
+        <a class="macro" href="../../log/macro.trace.html">trace!</a>(
             <span class="string">&quot;reregistering event source with poller: token={:?}, interests={:?}&quot;</span>,
-            <a class="ident" href="../../src/mio/poll.rs.html#563">token</a>,
-            <a class="ident" href="../../src/mio/poll.rs.html#563">interests</a>
+            <span class="ident">token</span>,
+            <span class="ident">interests</span>
         );
-        <a class="ident" href="../../src/mio/poll.rs.html#563">source</a>.<a class="ident" href="../../src/mio/event/source.rs.html#97-102">reregister</a>(<a class="self" href="../../src/mio/poll.rs.html#563">self</a>, <a class="ident" href="../../src/mio/poll.rs.html#563">token</a>, <a class="ident" href="../../src/mio/poll.rs.html#563">interests</a>)
+        <a class="ident" href="../../src/mio/poll.rs.html#585">source</a>.<a class="ident" href="../../src/mio/event/source.rs.html#97-102">reregister</a>(<a class="self" href="../../src/mio/poll.rs.html#585">self</a>, <a class="ident" href="../../src/mio/poll.rs.html#585">token</a>, <a class="ident" href="../../src/mio/poll.rs.html#585">interests</a>)
     }
 
     <span class="doccomment">/// Deregister an [`event::Source`] with the `Poll` instance.</span>
@@ -1316,27 +1358,26 @@
     <span class="kw">where</span>
         <span class="ident">S</span>: <a class="ident" href="../../src/mio/event/source.rs.html#75-112">event::Source</a> <span class="op">+</span> <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <span class="macro">trace!</span>(<span class="string">&quot;deregistering event source from poller&quot;</span>);
-        <a class="ident" href="../../src/mio/poll.rs.html#626">source</a>.<a class="ident" href="../../src/mio/event/source.rs.html#111">deregister</a>(<a class="self" href="../../src/mio/poll.rs.html#626">self</a>)
+        <a class="macro" href="../../log/macro.trace.html">trace!</a>(<span class="string">&quot;deregistering event source from poller&quot;</span>);
+        <a class="ident" href="../../src/mio/poll.rs.html#648">source</a>.<a class="ident" href="../../src/mio/event/source.rs.html#111">deregister</a>(<a class="self" href="../../src/mio/poll.rs.html#648">self</a>)
     }
 
     <span class="doccomment">/// Creates a new independently owned `Registry`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Event sources registered with this `Registry` will be registered with</span>
     <span class="doccomment">/// the original `Registry` and `Poll` instance.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/mio/poll.rs.html#232-234">Registry</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/mio/poll.rs.html#639">self</a>.<span class="ident">selector</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/mio/poll.rs.html#254-256">Registry</a><span class="op">&gt;</span> {
+        <a class="self" href="../../src/mio/poll.rs.html#660">self</a>.<span class="ident">selector</span>
             .<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#43">try_clone</a>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">selector</span><span class="op">|</span> <a class="ident" href="../../src/mio/poll.rs.html#232-234">Registry</a> { <a class="ident" href="../../src/mio/poll.rs.html#642">selector</a> })
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">selector</span><span class="op">|</span> <a class="ident" href="../../src/mio/poll.rs.html#254-256">Registry</a> { <a class="ident" href="../../src/mio/poll.rs.html#663">selector</a> })
     }
 
     <span class="doccomment">/// Internal check to ensure only a single `Waker` is active per [`Poll`]</span>
     <span class="doccomment">/// instance.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">debug_assertions</span>, <span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>)))]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">register_waker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="macro">assert!</span>(
-            <span class="op">!</span><a class="self" href="../../src/mio/poll.rs.html#648">self</a>.<span class="ident">selector</span>.<a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#108">register_waker</a>(),
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+            <span class="op">!</span><span class="self">self</span>.<span class="ident">selector</span>.<span class="ident">register_waker</span>(),
             <span class="string">&quot;Only a single `Waker` can be active per `Poll` instance&quot;</span>
         );
     }
@@ -1344,20 +1385,20 @@
     <span class="doccomment">/// Get access to the `sys::Selector`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;net&quot;</span>))]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">selector</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/mio/sys/unix/selector/epoll.rs.html#16-22">sys::Selector</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/mio/poll.rs.html#657">self</a>.<span class="ident">selector</span>
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/mio/poll.rs.html#678">self</a>.<span class="ident">selector</span>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/poll.rs.html#232-234">Registry</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/poll.rs.html#254-256">Registry</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/mio/poll.rs.html#663">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Registry&quot;</span>).<span class="ident">finish</span>()
+        <a class="ident" href="../../src/mio/poll.rs.html#684">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Registry&quot;</span>).<span class="ident">finish</span>()
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/poll.rs.html#232-234">Registry</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../src/mio/poll.rs.html#254-256">Registry</a> {
     <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
-        <a class="self" href="../../src/mio/poll.rs.html#670">self</a>.<span class="ident">selector</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
+        <a class="self" href="../../src/mio/poll.rs.html#691">self</a>.<span class="ident">selector</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
     }
 }
 
@@ -1370,5 +1411,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

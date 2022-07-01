@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["common",""],["converter",""],["high",""],["legacy",""],["low",""],["middle",""],["polymorphic",""],["snapshot",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["common",""],["converter",""],["high",""],["legacy",""],["low",""],["middle",""],["polymorphic",""],["snapshot",""]]};

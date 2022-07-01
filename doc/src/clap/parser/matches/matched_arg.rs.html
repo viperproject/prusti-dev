@@ -1,11 +1,10 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.5/src/parser/matches/matched_arg.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>matched_arg.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.8/src/parser/matches/matched_arg.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>matched_arg.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../clap/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
         </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../clap/index.html">
-                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+                        <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -259,7 +258,7 @@
 <span class="kw">use</span> <a class="ident" href="../../../../src/clap/parser/matches/any_value.rs.html#42-46"><span class="kw">crate</span>::parser::AnyValueId</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/clap/parser/matches/value_source.rs.html#4-11"><span class="kw">crate</span>::parser::ValueSource</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/clap/util/mod.rs.html#35"><span class="kw">crate</span>::util::eq_ignore_case</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/clap/lib.rs.html#106-107"><span class="kw">crate</span>::INTERNAL_ERROR_MSG</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/clap/lib.rs.html#109-110"><span class="kw">crate</span>::INTERNAL_ERROR_MSG</a>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">MatchedArg</span> {
@@ -306,8 +305,8 @@
             <span class="ident">source</span>: <span class="prelude-val">None</span>,
             <span class="ident">indices</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">type_id</span>: <span class="prelude-val">Some</span>(
-                <a class="ident" href="../../../../src/clap/parser/matches/matched_arg.rs.html#53">cmd</a>.<a class="ident" href="../../../../src/clap/builder/command.rs.html#3703">get_external_subcommand_value_parser</a>()
-                    .<span class="ident">expect</span>(<a class="ident" href="../../../../src/clap/lib.rs.html#106-107">INTERNAL_ERROR_MSG</a>)
+                <a class="ident" href="../../../../src/clap/parser/matches/matched_arg.rs.html#53">cmd</a>.<a class="ident" href="../../../../src/clap/builder/command.rs.html#3747">get_external_subcommand_value_parser</a>()
+                    .<span class="ident">expect</span>(<a class="ident" href="../../../../src/clap/lib.rs.html#109-110">INTERNAL_ERROR_MSG</a>)
                     .<a class="ident" href="../../../../src/clap/builder/value_parser.rs.html#237">type_id</a>(),
             ),
             <span class="ident">vals</span>: <span class="ident">Vec::new</span>(),
@@ -370,16 +369,16 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_val_group</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../../src/clap/parser/matches/matched_arg.rs.html#123">self</a>.<span class="ident">vals</span>.<span class="ident">push</span>(<span class="macro">vec!</span>[]);
-        <a class="self" href="../../../../src/clap/parser/matches/matched_arg.rs.html#123">self</a>.<span class="ident">raw_vals</span>.<span class="ident">push</span>(<span class="macro">vec!</span>[]);
+        <a class="self" href="../../../../src/clap/parser/matches/matched_arg.rs.html#123">self</a>.<span class="ident">vals</span>.<span class="ident">push</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]);
+        <a class="self" href="../../../../src/clap/parser/matches/matched_arg.rs.html#123">self</a>.<span class="ident">raw_vals</span>.<span class="ident">push</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]);
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">append_val</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="../../../../src/clap/parser/matches/any_value.rs.html#2-7">AnyValue</a>, <span class="ident">raw_val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>) {
         <span class="comment">// We assume there is always a group created before.</span>
-        <a class="self" href="../../../../src/clap/parser/matches/matched_arg.rs.html#128">self</a>.<span class="ident">vals</span>.<span class="ident">last_mut</span>().<span class="ident">expect</span>(<a class="ident" href="../../../../src/clap/lib.rs.html#106-107">INTERNAL_ERROR_MSG</a>).<span class="ident">push</span>(<a class="ident" href="../../../../src/clap/parser/matches/matched_arg.rs.html#128">val</a>);
+        <a class="self" href="../../../../src/clap/parser/matches/matched_arg.rs.html#128">self</a>.<span class="ident">vals</span>.<span class="ident">last_mut</span>().<span class="ident">expect</span>(<a class="ident" href="../../../../src/clap/lib.rs.html#109-110">INTERNAL_ERROR_MSG</a>).<span class="ident">push</span>(<a class="ident" href="../../../../src/clap/parser/matches/matched_arg.rs.html#128">val</a>);
         <a class="self" href="../../../../src/clap/parser/matches/matched_arg.rs.html#128">self</a>.<span class="ident">raw_vals</span>
             .<span class="ident">last_mut</span>()
-            .<span class="ident">expect</span>(<a class="ident" href="../../../../src/clap/lib.rs.html#106-107">INTERNAL_ERROR_MSG</a>)
+            .<span class="ident">expect</span>(<a class="ident" href="../../../../src/clap/lib.rs.html#109-110">INTERNAL_ERROR_MSG</a>)
             .<span class="ident">push</span>(<a class="ident" href="../../../../src/clap/parser/matches/matched_arg.rs.html#128">raw_val</a>);
     }
 
@@ -398,13 +397,13 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">check_explicit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">predicate</span>: <a class="ident" href="../../../../src/clap/builder/arg_predicate.rs.html#2-5">ArgPredicate</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <a class="self" href="../../../../src/clap/parser/matches/matched_arg.rs.html#151">self</a>.<span class="ident">source</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/clap/parser/matches/value_source.rs.html#6">ValueSource::DefaultValue</a>) {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">source</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">ValueSource::DefaultValue</span>) {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
 
         <span class="kw">match</span> <a class="ident" href="../../../../src/clap/parser/matches/matched_arg.rs.html#151">predicate</a> {
             <a class="ident" href="../../../../src/clap/builder/arg_predicate.rs.html#4">ArgPredicate::Equals</a>(<span class="ident">val</span>) =&gt; <a class="self" href="../../../../src/clap/parser/matches/matched_arg.rs.html#151">self</a>.<a class="ident" href="../../../../src/clap/parser/matches/matched_arg.rs.html#110">raw_vals_flatten</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
-                <span class="kw">if</span> <a class="self" href="../../../../src/clap/parser/matches/matched_arg.rs.html#151">self</a>.<span class="ident">ignore_case</span> {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ignore_case</span> {
                     <span class="comment">// If `v` isn&#39;t utf8, it can&#39;t match `val`, so `OsStr::to_str` should be fine</span>
                     <a class="ident" href="../../../../src/clap/util/mod.rs.html#35">eq_ignore_case</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/clap/parser/matches/matched_arg.rs.html#157">v</a>.<span class="ident">to_string_lossy</span>(), <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/clap/parser/matches/matched_arg.rs.html#157">val</a>.<span class="ident">to_string_lossy</span>())
                 } <span class="kw">else</span> {
@@ -488,5 +487,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

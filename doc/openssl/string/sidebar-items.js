@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["OpensslString",""],["OpensslStringRef",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["OpensslString",""],["OpensslStringRef",""]]};

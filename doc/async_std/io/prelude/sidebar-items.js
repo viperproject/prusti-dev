@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["BufReadExt","Extension methods for `BufRead`."],["ReadExt","Extension methods for `Read`."],["SeekExt","Extension methods for `Seek`."],["WriteExt","Extension methods for `Write`."]]});
+window.SIDEBAR_ITEMS = {"trait":[["BufReadExt","Extension methods for `BufRead`."],["ReadExt","Extension methods for `Read`."],["SeekExt","Extension methods for `Seek`."],["WriteExt","Extension methods for `Write`."]]};

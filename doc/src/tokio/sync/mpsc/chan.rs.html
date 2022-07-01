@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/sync/mpsc/chan.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chan.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/sync/mpsc/chan.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>chan.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -570,12 +569,12 @@
         <span class="comment">// In order to avoid a race condition, we first request a notification,</span>
         <span class="comment">// **then** check whether the semaphore is closed. If the semaphore is</span>
         <span class="comment">// closed the notification request is dropped.</span>
-        <span class="kw">let</span> <span class="ident">notified</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#157">self</a>.<span class="ident">inner</span>.<span class="ident">notify_rx_closed</span>.<a class="ident" href="../../../../src/tokio/sync/notify.rs.html#376">notified</a>();
+        <span class="kw">let</span> <span class="ident">notified</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">notify_rx_closed</span>.<span class="ident">notified</span>();
 
-        <span class="kw">if</span> <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#157">self</a>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#46">is_closed</a>() {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<span class="ident">is_closed</span>() {
             <span class="kw">return</span>;
         }
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#161">notified</a>.<span class="kw">await</span>;
+        <span class="ident">notified</span>.<span class="kw">await</span>;
     }
 }
 
@@ -593,7 +592,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Tx</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#183">self</a>.<span class="ident">inner</span>.<span class="ident">tx_count</span>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">AcqRel</span>) <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">tx_count</span>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">AcqRel</span>) <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
             <span class="kw">return</span>;
         }
 
@@ -616,7 +615,7 @@
         <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#203">self</a>.<span class="ident">inner</span>.<span class="ident">rx_fields</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">rx_fields_ptr</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">rx_fields</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#204">rx_fields_ptr</a> };
 
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#205">rx_fields</a>.<span class="ident">rx_closed</span> {
+            <span class="kw">if</span> <span class="ident">rx_fields</span>.<span class="ident">rx_closed</span> {
                 <span class="kw">return</span>;
             }
 
@@ -632,7 +631,7 @@
         <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#34-37"><span class="kw">super</span>::block::Read</a>::<span class="kw-2">*</span>;
 
         <span class="comment">// Keep track of task budget</span>
-        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../../../src/tokio/coop.rs.html#169"><span class="kw">crate</span>::coop::poll_proceed</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">cx</a>));
+        <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="ident"><span class="kw">crate</span>::coop::poll_proceed</span>(<span class="ident">cx</span>));
 
         <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">self</a>.<span class="ident">inner</span>.<span class="ident">rx_fields</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">rx_fields_ptr</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">rx_fields</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#225">rx_fields_ptr</a> };
@@ -661,16 +660,16 @@
                 };
             }
 
-            <span class="macro">try_recv!</span>();
+            <a class="macro" href="../../../../src/tokio/sync/mpsc/chan.rs.html#228-250">try_recv!</a>();
 
             <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">self</a>.<span class="ident">inner</span>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#171">register_by_ref</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">cx</a>.<span class="ident">waker</span>());
 
             <span class="comment">// It is possible that a value was pushed between attempting to read</span>
             <span class="comment">// and registering the task, so we have to check the channel a</span>
             <span class="comment">// second time here.</span>
-            <span class="macro">try_recv!</span>();
+            <a class="macro" href="../../../../src/tokio/sync/mpsc/chan.rs.html#228-250">try_recv!</a>();
 
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#226">rx_fields</a>.<span class="ident">rx_closed</span> <span class="op">&amp;&amp;</span> <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">self</a>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#40">is_idle</a>() {
+            <span class="kw">if</span> <span class="ident">rx_fields</span>.<span class="ident">rx_closed</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<span class="ident">is_idle</span>() {
                 <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#223">coop</a>.<a class="ident" href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
                 <span class="ident">Ready</span>(<span class="prelude-val">None</span>)
             } <span class="kw">else</span> {
@@ -700,7 +699,7 @@
                 };
             }
 
-            <span class="macro">try_recv!</span>();
+            <a class="macro" href="../../../../src/tokio/sync/mpsc/chan.rs.html#277-289">try_recv!</a>();
 
             <span class="comment">// If a previous `poll_recv` call has set a waker, we wake it here.</span>
             <span class="comment">// This allows us to put our own CachedParkThread waker in the</span>
@@ -718,7 +717,7 @@
                 <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#271">self</a>.<span class="ident">inner</span>.<span class="ident">rx_waker</span>.<a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#171">register_by_ref</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#304">waker</a>);
                 <span class="comment">// It is possible that the problematic send has now completed,</span>
                 <span class="comment">// so we have to check for messages again.</span>
-                <span class="macro">try_recv!</span>();
+                <a class="macro" href="../../../../src/tokio/sync/mpsc/chan.rs.html#277-289">try_recv!</a>();
                 <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#303">park</a>.<a class="ident" href="../../../../src/tokio/park/mod.rs.html#70">park</a>().<span class="ident">expect</span>(<span class="string">&quot;park failed&quot;</span>);
             }
         })
@@ -734,8 +733,8 @@
         <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#317">self</a>.<span class="ident">inner</span>.<span class="ident">rx_fields</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">rx_fields_ptr</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">rx_fields</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#322">rx_fields_ptr</a> };
 
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#35">Value</a>(<span class="kw">_</span>)) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#323">rx_fields</a>.<span class="ident">list</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#234">pop</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#317">self</a>.<span class="ident">inner</span>.<span class="ident">tx</span>) {
-                <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#317">self</a>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#42">add_permit</a>();
+            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Value</span>(<span class="kw">_</span>)) <span class="op">=</span> <span class="ident">rx_fields</span>.<span class="ident">list</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">tx</span>) {
+                <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">semaphore</span>.<span class="ident">add_permit</span>();
             }
         })
     }
@@ -762,7 +761,7 @@
         <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#345">self</a>.<span class="ident">rx_fields</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">rx_fields_ptr</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">rx_fields</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#350">rx_fields_ptr</a> };
 
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#35">Value</a>(<span class="kw">_</span>)) <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#351">rx_fields</a>.<span class="ident">list</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#234">pop</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#345">self</a>.<span class="ident">tx</span>) {}
+            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Value</span>(<span class="kw">_</span>)) <span class="op">=</span> <span class="ident">rx_fields</span>.<span class="ident">list</span>.<span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">tx</span>) {}
             <span class="kw">unsafe</span> { <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#351">rx_fields</a>.<span class="ident">list</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#343">free_blocks</a>() };
         });
     }
@@ -797,7 +796,7 @@
     <span class="kw">fn</span> <span class="ident">add_permit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/mpsc/chan.rs.html#385">self</a>.<span class="ident">fetch_sub</span>(<span class="number">2</span>, <span class="ident">Release</span>);
 
-        <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#386">prev</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">prev</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="comment">// Something went wrong</span>
             <span class="ident">process::abort</span>();
         }
@@ -816,5 +815,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

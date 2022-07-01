@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["validate_already_defined",""],["validate_ast",""],["validate_pairs",""],["validate_pest_keywords",""],["validate_rust_keywords",""],["validate_undefined",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["validate_already_defined",""],["validate_ast",""],["validate_pairs",""],["validate_pest_keywords",""],["validate_rust_keywords",""],["validate_undefined",""]]};

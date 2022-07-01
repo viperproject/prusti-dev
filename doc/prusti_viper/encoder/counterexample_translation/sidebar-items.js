@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["backtranslate",""]],"struct":[["CounterexampleTranslator",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["backtranslate",""]],"struct":[["CounterexampleTranslator",""]]};

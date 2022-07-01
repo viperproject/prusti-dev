@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["encoder",""],["verifier",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["encoder",""],["verifier",""]]};

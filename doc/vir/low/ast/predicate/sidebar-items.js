@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["PredicateDecl",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["PredicateDecl",""]]};

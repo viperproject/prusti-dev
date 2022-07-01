@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["ast",""],["reporter",""],["verifier",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["ast",""],["reporter",""],["verifier",""]]};

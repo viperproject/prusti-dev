@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["derive_parser",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["derive_parser",""]]};

@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-lock-2.5.0/src/mutex.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mutex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../async_lock/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-lock-2.5.0/src/mutex.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mutex.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../async_lock/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../async_lock/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../async_lock/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../async_lock/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -591,11 +590,11 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">guard</span>) <span class="op">=</span> <a class="self" href="../../src/async_lock/mutex.rs.html#105">self</a>.<a class="ident" href="../../src/async_lock/mutex.rs.html#233">try_lock</a>() {
-            <span class="kw">return</span> <a class="ident" href="../../src/async_lock/mutex.rs.html#106">guard</a>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">guard</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_lock</span>() {
+            <span class="kw">return</span> <span class="ident">guard</span>;
         }
-        <a class="self" href="../../src/async_lock/mutex.rs.html#105">self</a>.<a class="ident" href="../../src/async_lock/mutex.rs.html#115">acquire_slow</a>().<span class="kw">await</span>;
-        <a class="ident" href="../../src/async_lock/mutex.rs.html#356">MutexGuard</a>(<a class="self" href="../../src/async_lock/mutex.rs.html#105">self</a>)
+        <span class="self">self</span>.<span class="ident">acquire_slow</span>().<span class="kw">await</span>;
+        <span class="ident">MutexGuard</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Slow path for acquiring the mutex.</span>
@@ -607,13 +606,13 @@
 
         <span class="kw">loop</span> {
             <span class="comment">// Start listening for events.</span>
-            <span class="kw">let</span> <span class="ident">listener</span> <span class="op">=</span> <a class="self" href="../../src/async_lock/mutex.rs.html#115">self</a>.<span class="ident">lock_ops</span>.<span class="ident">listen</span>();
+            <span class="kw">let</span> <span class="ident">listener</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lock_ops</span>.<span class="ident">listen</span>();
 
             <span class="comment">// Try locking if nobody is being starved.</span>
-            <span class="kw">match</span> <a class="self" href="../../src/async_lock/mutex.rs.html#115">self</a>
+            <span class="kw">match</span> <span class="self">self</span>
                 .<span class="ident">state</span>
                 .<span class="ident">compare_exchange</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="ident">Ordering::Acquire</span>, <span class="ident">Ordering::Acquire</span>)
-                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/async_lock/mutex.rs.html#128">x</a>)
+                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>)
             {
                 <span class="comment">// Lock acquired!</span>
                 <span class="number">0</span> =&gt; <span class="kw">return</span>,
@@ -626,13 +625,13 @@
             }
 
             <span class="comment">// Wait for a notification.</span>
-            <a class="ident" href="../../src/async_lock/mutex.rs.html#122">listener</a>.<span class="kw">await</span>;
+            <span class="ident">listener</span>.<span class="kw">await</span>;
 
             <span class="comment">// Try locking if nobody is being starved.</span>
-            <span class="kw">match</span> <a class="self" href="../../src/async_lock/mutex.rs.html#115">self</a>
+            <span class="kw">match</span> <span class="self">self</span>
                 .<span class="ident">state</span>
                 .<span class="ident">compare_exchange</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="ident">Ordering::Acquire</span>, <span class="ident">Ordering::Acquire</span>)
-                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/async_lock/mutex.rs.html#147">x</a>)
+                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>)
             {
                 <span class="comment">// Lock acquired!</span>
                 <span class="number">0</span> =&gt; <span class="kw">return</span>,
@@ -644,7 +643,7 @@
                 <span class="kw">_</span> =&gt; {
                     <span class="comment">// Notify the first listener in line because we probably received a</span>
                     <span class="comment">// notification that was meant for a starved task.</span>
-                    <a class="self" href="../../src/async_lock/mutex.rs.html#115">self</a>.<span class="ident">lock_ops</span>.<span class="ident">notify</span>(<span class="number">1</span>);
+                    <span class="self">self</span>.<span class="ident">lock_ops</span>.<span class="ident">notify</span>(<span class="number">1</span>);
                     <span class="kw">break</span>;
                 }
             }
@@ -652,50 +651,50 @@
             <span class="comment">// If waiting for too long, fall back to a fairer locking strategy that will prevent</span>
             <span class="comment">// newer lock operations from starving us forever.</span>
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>))]</span>
-            <span class="kw">if</span> <a class="ident" href="../../src/async_lock/mutex.rs.html#118">start</a>.<span class="ident">elapsed</span>() <span class="op">&gt;</span> <span class="ident">Duration::from_micros</span>(<span class="number">500</span>) {
+            <span class="kw">if</span> <span class="ident">start</span>.<span class="ident">elapsed</span>() <span class="op">&gt;</span> <span class="ident">Duration::from_micros</span>(<span class="number">500</span>) {
                 <span class="kw">break</span>;
             }
         }
 
         <span class="comment">// Increment the number of starved lock operations.</span>
-        <span class="kw">if</span> <a class="self" href="../../src/async_lock/mutex.rs.html#115">self</a>.<span class="ident">state</span>.<span class="ident">fetch_add</span>(<span class="number">2</span>, <span class="ident">Ordering::Release</span>) <span class="op">&gt;</span> <span class="ident">usize::MAX</span> <span class="op">/</span> <span class="number">2</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">fetch_add</span>(<span class="number">2</span>, <span class="ident">Ordering::Release</span>) <span class="op">&gt;</span> <span class="ident">usize::MAX</span> <span class="op">/</span> <span class="number">2</span> {
             <span class="comment">// In case of potential overflow, abort.</span>
             <span class="ident">process::abort</span>();
         }
 
         <span class="comment">// Decrement the counter when exiting this function.</span>
-        <span class="kw">let</span> <span class="ident">_call</span> <span class="op">=</span> <a class="ident" href="../../src/async_lock/mutex.rs.html#475">CallOnDrop</a>(<span class="op">|</span><span class="op">|</span> {
-            <a class="self" href="../../src/async_lock/mutex.rs.html#115">self</a>.<span class="ident">state</span>.<span class="ident">fetch_sub</span>(<span class="number">2</span>, <span class="ident">Ordering::Release</span>);
+        <span class="kw">let</span> <span class="ident">_call</span> <span class="op">=</span> <span class="ident">CallOnDrop</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">fetch_sub</span>(<span class="number">2</span>, <span class="ident">Ordering::Release</span>);
         });
 
         <span class="kw">loop</span> {
             <span class="comment">// Start listening for events.</span>
-            <span class="kw">let</span> <span class="ident">listener</span> <span class="op">=</span> <a class="self" href="../../src/async_lock/mutex.rs.html#115">self</a>.<span class="ident">lock_ops</span>.<span class="ident">listen</span>();
+            <span class="kw">let</span> <span class="ident">listener</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">lock_ops</span>.<span class="ident">listen</span>();
 
             <span class="comment">// Try locking if nobody else is being starved.</span>
-            <span class="kw">match</span> <a class="self" href="../../src/async_lock/mutex.rs.html#115">self</a>
+            <span class="kw">match</span> <span class="self">self</span>
                 .<span class="ident">state</span>
                 .<span class="ident">compare_exchange</span>(<span class="number">2</span>, <span class="number">2</span> <span class="op">|</span> <span class="number">1</span>, <span class="ident">Ordering::Acquire</span>, <span class="ident">Ordering::Acquire</span>)
-                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/async_lock/mutex.rs.html#191">x</a>)
+                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>)
             {
                 <span class="comment">// Lock acquired!</span>
                 <span class="number">2</span> =&gt; <span class="kw">return</span>,
 
                 <span class="comment">// Lock is held by someone.</span>
-                <span class="ident">s</span> <span class="kw">if</span> <a class="ident" href="../../src/async_lock/mutex.rs.html#197">s</a> <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">1</span> =&gt; {}
+                <span class="ident">s</span> <span class="kw">if</span> <span class="ident">s</span> <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">1</span> =&gt; {}
 
                 <span class="comment">// Lock is available.</span>
                 <span class="kw">_</span> =&gt; {
                     <span class="comment">// Be fair: notify the first listener and then go wait in line.</span>
-                    <a class="self" href="../../src/async_lock/mutex.rs.html#115">self</a>.<span class="ident">lock_ops</span>.<span class="ident">notify</span>(<span class="number">1</span>);
+                    <span class="self">self</span>.<span class="ident">lock_ops</span>.<span class="ident">notify</span>(<span class="number">1</span>);
                 }
             }
 
             <span class="comment">// Wait for a notification.</span>
-            <a class="ident" href="../../src/async_lock/mutex.rs.html#185">listener</a>.<span class="kw">await</span>;
+            <span class="ident">listener</span>.<span class="kw">await</span>;
 
             <span class="comment">// Try acquiring the lock without waiting for others.</span>
-            <span class="kw">if</span> <a class="self" href="../../src/async_lock/mutex.rs.html#115">self</a>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<span class="number">1</span>, <span class="ident">Ordering::Acquire</span>) <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<span class="number">1</span>, <span class="ident">Ordering::Acquire</span>) <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">return</span>;
             }
         }
@@ -719,7 +718,7 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="self" href="../../src/async_lock/mutex.rs.html#233">self</a>
+        <span class="kw">if</span> <span class="self">self</span>
             .<span class="ident">state</span>
             .<span class="ident">compare_exchange</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="ident">Ordering::Acquire</span>, <span class="ident">Ordering::Acquire</span>)
             .<span class="ident">is_ok</span>()
@@ -753,11 +752,11 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">lock_arc_impl</span>(<span class="self">self</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">MutexGuardArc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">guard</span>) <span class="op">=</span> <a class="self" href="../../src/async_lock/mutex.rs.html#267">self</a>.<a class="ident" href="../../src/async_lock/mutex.rs.html#314">try_lock_arc</a>() {
-            <span class="kw">return</span> <a class="ident" href="../../src/async_lock/mutex.rs.html#268">guard</a>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">guard</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">try_lock_arc</span>() {
+            <span class="kw">return</span> <span class="ident">guard</span>;
         }
-        <a class="self" href="../../src/async_lock/mutex.rs.html#267">self</a>.<a class="ident" href="../../src/async_lock/mutex.rs.html#115">acquire_slow</a>().<span class="kw">await</span>;
-        <a class="ident" href="../../src/async_lock/mutex.rs.html#415">MutexGuardArc</a>(<a class="self" href="../../src/async_lock/mutex.rs.html#267">self</a>)
+        <span class="self">self</span>.<span class="ident">acquire_slow</span>().<span class="kw">await</span>;
+        <span class="ident">MutexGuardArc</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// Acquires the mutex and clones a reference to it.</span>
@@ -800,7 +799,7 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_lock_arc</span>(<span class="self">self</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MutexGuardArc</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="self" href="../../src/async_lock/mutex.rs.html#314">self</a>
+        <span class="kw">if</span> <span class="self">self</span>
             .<span class="ident">state</span>
             .<span class="ident">compare_exchange</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="ident">Ordering::Acquire</span>, <span class="ident">Ordering::Acquire</span>)
             .<span class="ident">is_ok</span>()
@@ -968,5 +967,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_lock" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_lock" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

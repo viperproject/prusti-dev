@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.13/src/proto/connection.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connection.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.13/src/proto/connection.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connection.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -725,7 +724,7 @@
                 <span class="ident">ping_pong</span>: <span class="ident">PingPong::new</span>(),
                 <span class="ident">settings</span>: <span class="ident">Settings::new</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#104">config</a>.<span class="ident">settings</span>),
                 <a class="ident" href="../../../src/h2/proto/connection.rs.html#128">streams</a>,
-                <span class="ident">span</span>: <span class="macro">tracing::debug_span!</span>(<span class="string">&quot;Connection&quot;</span>, <span class="ident">peer</span> <span class="op">=</span> <span class="op">%</span><span class="ident">P::NAME</span>),
+                <span class="ident">span</span>: <a class="macro" href="../../../tracing/tracing/macro.debug_span.html">tracing::debug_span!</a>(<span class="string">&quot;Connection&quot;</span>, <span class="ident">peer</span> <span class="op">=</span> <span class="op">%</span><span class="ident">P::NAME</span>),
                 <span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
             },
         }
@@ -768,16 +767,16 @@
     <span class="doccomment">/// processing of received frames.</span>
     <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/proto/error.rs.html#10-14">Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#179">self</a>.<span class="ident">inner</span>.<span class="ident">span</span>.<span class="ident">enter</span>();
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;poll_ready&quot;</span>);
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;poll_ready&quot;</span>);
         <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#181">span</a>.<span class="ident">enter</span>();
         <span class="comment">// The order of these calls don&#39;t really matter too much</span>
-        <span class="macro">ready!</span>(<a class="self" href="../../../src/h2/proto/connection.rs.html#179">self</a>.<span class="ident">inner</span>.<span class="ident">ping_pong</span>.<a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#138-145">send_pending_pong</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#179">cx</a>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#179">self</a>.<span class="ident">codec</span>))<span class="question-mark">?</span>;
-        <span class="macro">ready!</span>(<a class="self" href="../../../src/h2/proto/connection.rs.html#179">self</a>.<span class="ident">inner</span>.<span class="ident">ping_pong</span>.<a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#161-168">send_pending_ping</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#179">cx</a>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#179">self</a>.<span class="ident">codec</span>))<span class="question-mark">?</span>;
-        <span class="macro">ready!</span>(<a class="self" href="../../../src/h2/proto/connection.rs.html#179">self</a>
+        <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">ping_pong</span>.<span class="ident">send_pending_pong</span>(<span class="ident">cx</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">codec</span>))<span class="question-mark">?</span>;
+        <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">ping_pong</span>.<span class="ident">send_pending_ping</span>(<span class="ident">cx</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">codec</span>))<span class="question-mark">?</span>;
+        <span class="macro">ready!</span>(<span class="self">self</span>
             .<span class="ident">inner</span>
             .<span class="ident">settings</span>
-            .<a class="ident" href="../../../src/h2/proto/settings.rs.html#95-105">poll_send</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#179">cx</a>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#179">self</a>.<span class="ident">codec</span>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#179">self</a>.<span class="ident">inner</span>.<span class="ident">streams</span>))<span class="question-mark">?</span>;
-        <span class="macro">ready!</span>(<a class="self" href="../../../src/h2/proto/connection.rs.html#179">self</a>.<span class="ident">inner</span>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#151-157">send_pending_refusal</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#179">cx</a>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#179">self</a>.<span class="ident">codec</span>))<span class="question-mark">?</span>;
+            .<span class="ident">poll_send</span>(<span class="ident">cx</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">codec</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">streams</span>))<span class="question-mark">?</span>;
+        <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">streams</span>.<span class="ident">send_pending_refusal</span>(<span class="ident">cx</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">codec</span>))<span class="question-mark">?</span>;
 
         <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
     }
@@ -820,7 +819,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">maybe_close_connection_if_no_streams</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// If we poll() and realize that there are no streams or references</span>
         <span class="comment">// then we can close the connection by transitioning to GOAWAY</span>
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/h2/proto/connection.rs.html#230">self</a>.<span class="ident">inner</span>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#981">has_streams_or_other_references</a>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">streams</span>.<span class="ident">has_streams_or_other_references</span>() {
             <a class="self" href="../../../src/h2/proto/connection.rs.html#230">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/h2/proto/connection.rs.html#358">as_dyn</a>().<a class="ident" href="../../../src/h2/proto/connection.rs.html#388">go_away_now</a>(<span class="ident">Reason::NO_ERROR</span>);
         }
     }
@@ -837,11 +836,11 @@
         <span class="comment">// The clone is just an atomic ref bump.</span>
         <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">inner</span>.<span class="ident">span</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#248">span</a>.<span class="ident">enter</span>();
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;poll&quot;</span>);
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;poll&quot;</span>);
         <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#250">span</a>.<span class="ident">enter</span>();
 
         <span class="kw">loop</span> {
-            <span class="macro">tracing::trace!</span>(<span class="ident">connection</span>.<span class="ident">state</span> <span class="op">=</span> <span class="question-mark">?</span><a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">inner</span>.<span class="ident">state</span>);
+            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="ident">connection</span>.<span class="ident">state</span> <span class="op">=</span> <span class="question-mark">?</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">state</span>);
             <span class="comment">// TODO: probably clean up this glob of code</span>
             <span class="kw">match</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">inner</span>.<span class="ident">state</span> {
                 <span class="comment">// When open, continue to poll a frame</span>
@@ -853,11 +852,11 @@
                             <span class="comment">// Ensure all window updates have been sent.</span>
                             <span class="comment">//</span>
                             <span class="comment">// This will also handle flushing `self.codec`</span>
-                            <span class="macro">ready!</span>(<a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">inner</span>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#172-178">poll_complete</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#243">cx</a>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">codec</span>))<span class="question-mark">?</span>;
+                            <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">streams</span>.<span class="ident">poll_complete</span>(<span class="ident">cx</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">codec</span>))<span class="question-mark">?</span>;
 
-                            <span class="kw">if</span> (<a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">inner</span>.<span class="ident">error</span>.<span class="ident">is_some</span>()
-                                <span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">inner</span>.<span class="ident">go_away</span>.<a class="ident" href="../../../src/h2/proto/go_away.rs.html#112">should_close_on_idle</a>())
-                                <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">inner</span>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#976">has_streams</a>()
+                            <span class="kw">if</span> (<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">error</span>.<span class="ident">is_some</span>()
+                                <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">go_away</span>.<span class="ident">should_close_on_idle</span>())
+                                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">streams</span>.<span class="ident">has_streams</span>()
                             {
                                 <a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/h2/proto/connection.rs.html#358">as_dyn</a>().<a class="ident" href="../../../src/h2/proto/connection.rs.html#388">go_away_now</a>(<span class="ident">Reason::NO_ERROR</span>);
                                 <span class="kw">continue</span>;
@@ -867,12 +866,12 @@
                         }
                     };
 
-                    <a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/h2/proto/connection.rs.html#358">as_dyn</a>().<a class="ident" href="../../../src/h2/proto/connection.rs.html#403">handle_poll2_result</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#259">result</a>)<span class="question-mark">?</span>
+                    <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">as_dyn</span>().<span class="ident">handle_poll2_result</span>(<span class="ident">result</span>)<span class="question-mark">?</span>
                 }
                 <a class="ident" href="../../../src/h2/proto/connection.rs.html#92">State::Closing</a>(<span class="ident">reason</span>, <span class="ident">initiator</span>) =&gt; {
-                    <span class="macro">tracing::trace!</span>(<span class="string">&quot;connection closing after flush&quot;</span>);
+                    <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;connection closing after flush&quot;</span>);
                     <span class="comment">// Flush/shutdown the codec</span>
-                    <span class="macro">ready!</span>(<a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">codec</span>.<a class="ident" href="../../../src/h2/codec/mod.rs.html#150">shutdown</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#243">cx</a>))<span class="question-mark">?</span>;
+                    <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">codec</span>.<span class="ident">shutdown</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
 
                     <span class="comment">// Transition the state to error</span>
                     <a class="self" href="../../../src/h2/proto/connection.rs.html#243">self</a>.<span class="ident">inner</span>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#95">State::Closed</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#282">reason</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#282">initiator</a>);
@@ -896,9 +895,9 @@
             <span class="comment">// The order here matters:</span>
             <span class="comment">// - poll_go_away may buffer a graceful shutdown GOAWAY frame</span>
             <span class="comment">// - If it has, we&#39;ve also added a PING to be sent in poll_ready</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">reason</span>) <span class="op">=</span> <span class="macro">ready!</span>(<a class="self" href="../../../src/h2/proto/connection.rs.html#297">self</a>.<a class="ident" href="../../../src/h2/proto/connection.rs.html#199">poll_go_away</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#297">cx</a>)<span class="question-mark">?</span>) {
-                <span class="kw">if</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#297">self</a>.<span class="ident">inner</span>.<span class="ident">go_away</span>.<a class="ident" href="../../../src/h2/proto/go_away.rs.html#107">should_close_now</a>() {
-                    <span class="kw">if</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#297">self</a>.<span class="ident">inner</span>.<span class="ident">go_away</span>.<a class="ident" href="../../../src/h2/proto/go_away.rs.html#97">is_user_initiated</a>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">reason</span>) <span class="op">=</span> <a class="macro" href="../../../src/h2/lib.rs.html#94-101">ready!</a>(<span class="self">self</span>.<span class="ident">poll_go_away</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>) {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">go_away</span>.<span class="ident">should_close_now</span>() {
+                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">go_away</span>.<span class="ident">is_user_initiated</span>() {
                         <span class="comment">// A user initiated abrupt shutdown shouldn&#39;t return</span>
                         <span class="comment">// the same error back to the user.</span>
                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()));
@@ -907,24 +906,24 @@
                     }
                 }
                 <span class="comment">// Only NO_ERROR should be waiting for idle</span>
-                <span class="macro">debug_assert_eq!</span>(
-                    <a class="ident" href="../../../src/h2/proto/connection.rs.html#309">reason</a>,
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(
+                    <span class="ident">reason</span>,
                     <span class="ident">Reason::NO_ERROR</span>,
                     <span class="string">&quot;graceful GOAWAY should be NO_ERROR&quot;</span>
                 );
             }
-            <span class="macro">ready!</span>(<a class="self" href="../../../src/h2/proto/connection.rs.html#297">self</a>.<a class="ident" href="../../../src/h2/proto/connection.rs.html#179">poll_ready</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#297">cx</a>))<span class="question-mark">?</span>;
+            <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">poll_ready</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
 
-            <span class="kw">match</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#297">self</a>
+            <span class="kw">match</span> <span class="self">self</span>
                 .<span class="ident">inner</span>
-                .<a class="ident" href="../../../src/h2/proto/connection.rs.html#358">as_dyn</a>()
-                .<a class="ident" href="../../../src/h2/proto/connection.rs.html#460">recv_frame</a>(<span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#297">self</a>.<span class="ident">codec</span>).<a class="ident" href="../../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#297">cx</a>)<span class="question-mark">?</span>))<span class="question-mark">?</span>
+                .<span class="ident">as_dyn</span>()
+                .<span class="ident">recv_frame</span>(<span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">codec</span>).<span class="ident">poll_next</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>))<span class="question-mark">?</span>
             {
                 <a class="ident" href="../../../src/h2/proto/connection.rs.html#524">ReceivedFrame::Settings</a>(<span class="ident">frame</span>) =&gt; {
-                    <a class="self" href="../../../src/h2/proto/connection.rs.html#297">self</a>.<span class="ident">inner</span>.<span class="ident">settings</span>.<a class="ident" href="../../../src/h2/proto/settings.rs.html#38-48">recv_settings</a>(
-                        <a class="ident" href="../../../src/h2/proto/connection.rs.html#333">frame</a>,
-                        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#297">self</a>.<span class="ident">codec</span>,
-                        <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#297">self</a>.<span class="ident">inner</span>.<span class="ident">streams</span>,
+                    <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">settings</span>.<span class="ident">recv_settings</span>(
+                        <span class="ident">frame</span>,
+                        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">codec</span>,
+                        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">streams</span>,
                     )<span class="question-mark">?</span>;
                 }
                 <a class="ident" href="../../../src/h2/proto/connection.rs.html#525">ReceivedFrame::Continue</a> =&gt; (),
@@ -1002,16 +1001,16 @@
             <span class="comment">// terminating the connection.</span>
             <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/proto/error.rs.html#12">Error::GoAway</a>(<span class="ident">debug_data</span>, <span class="ident">reason</span>, <span class="ident">initiator</span>)) =&gt; {
                 <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/error.rs.html#12">Error::GoAway</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#413">debug_data</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#413">reason</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#413">initiator</a>);
-                <span class="macro">tracing::debug!</span>(<span class="ident">error</span> <span class="op">=</span> <span class="question-mark">?</span><a class="ident" href="../../../src/h2/proto/connection.rs.html#414">e</a>, <span class="string">&quot;Connection::poll; connection error&quot;</span>);
+                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="ident">error</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">e</span>, <span class="string">&quot;Connection::poll; connection error&quot;</span>);
 
                 <span class="comment">// We may have already sent a GOAWAY for this error,</span>
                 <span class="comment">// if so, don&#39;t send another, just flush and close up.</span>
-                <span class="kw">if</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#403">self</a>
+                <span class="kw">if</span> <span class="self">self</span>
                     .<span class="ident">go_away</span>
-                    .<a class="ident" href="../../../src/h2/proto/go_away.rs.html#102">going_away</a>()
-                    .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">frame</span><span class="op">|</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#422">frame</a>.<a class="ident" href="../../../src/h2/proto/go_away.rs.html#155">reason</a>() <span class="op">==</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#413">reason</a>)
+                    .<span class="ident">going_away</span>()
+                    .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">frame</span><span class="op">|</span> <span class="ident">frame</span>.<span class="ident">reason</span>() <span class="op">==</span> <span class="ident">reason</span>)
                 {
-                    <span class="macro">tracing::trace!</span>(<span class="string">&quot;    -&gt; already going away&quot;</span>);
+                    <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;    -&gt; already going away&quot;</span>);
                     <span class="kw-2">*</span><a class="self" href="../../../src/h2/proto/connection.rs.html#403">self</a>.<span class="ident">state</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#92">State::Closing</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#413">reason</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#413">initiator</a>);
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
                 }
@@ -1025,8 +1024,8 @@
             <span class="comment">// This is handled by resetting the frame then trying to read</span>
             <span class="comment">// another frame.</span>
             <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/proto/error.rs.html#11">Error::Reset</a>(<span class="ident">id</span>, <span class="ident">reason</span>, <span class="ident">initiator</span>)) =&gt; {
-                <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#437">initiator</a>, <a class="ident" href="../../../src/h2/proto/error.rs.html#19">Initiator::Library</a>);
-                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span><span class="ident">id</span>, <span class="question-mark">?</span><span class="ident">reason</span>, <span class="string">&quot;stream error&quot;</span>);
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">initiator</span>, <span class="ident">Initiator::Library</span>);
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">id</span>, <span class="question-mark">?</span><span class="ident">reason</span>, <span class="string">&quot;stream error&quot;</span>);
                 <a class="self" href="../../../src/h2/proto/connection.rs.html#403">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#360">send_reset</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#437">id</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#437">reason</a>);
                 <span class="prelude-val">Ok</span>(())
             }
@@ -1035,7 +1034,7 @@
             <span class="comment">//</span>
             <span class="comment">// TODO: Are I/O errors recoverable?</span>
             <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/proto/error.rs.html#13">Error::Io</a>(<span class="ident">e</span>, <span class="ident">inner</span>)) =&gt; {
-                <span class="macro">tracing::debug!</span>(<span class="ident">error</span> <span class="op">=</span> <span class="question-mark">?</span><a class="ident" href="../../../src/h2/proto/connection.rs.html#447">e</a>, <span class="string">&quot;Connection::poll; IO error&quot;</span>);
+                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="ident">error</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">e</span>, <span class="string">&quot;Connection::poll; IO error&quot;</span>);
                 <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/proto/error.rs.html#13">Error::Io</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#447">e</a>, <a class="ident" href="../../../src/h2/proto/connection.rs.html#447">inner</a>);
 
                 <span class="comment">// Reset all active streams</span>
@@ -1051,40 +1050,40 @@
         <span class="kw">use</span> <a class="ident" href="../../../src/h2/frame/mod.rs.html#70-80"><span class="kw">crate</span>::frame::Frame</a>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#460">frame</a> {
             <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#72">Headers</a>(<span class="ident">frame</span>)) =&gt; {
-                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv HEADERS&quot;</span>);
-                <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#313">recv_headers</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#463">frame</a>)<span class="question-mark">?</span>;
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv HEADERS&quot;</span>);
+                <span class="self">self</span>.<span class="ident">streams</span>.<span class="ident">recv_headers</span>(<span class="ident">frame</span>)<span class="question-mark">?</span>;
             }
             <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#71">Data</a>(<span class="ident">frame</span>)) =&gt; {
-                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv DATA&quot;</span>);
-                <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#319">recv_data</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#467">frame</a>)<span class="question-mark">?</span>;
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv DATA&quot;</span>);
+                <span class="self">self</span>.<span class="ident">streams</span>.<span class="ident">recv_data</span>(<span class="ident">frame</span>)<span class="question-mark">?</span>;
             }
             <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#79">Reset</a>(<span class="ident">frame</span>)) =&gt; {
-                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv RST_STREAM&quot;</span>);
-                <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#324">recv_reset</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#471">frame</a>)<span class="question-mark">?</span>;
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv RST_STREAM&quot;</span>);
+                <span class="self">self</span>.<span class="ident">streams</span>.<span class="ident">recv_reset</span>(<span class="ident">frame</span>)<span class="question-mark">?</span>;
             }
             <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#74">PushPromise</a>(<span class="ident">frame</span>)) =&gt; {
-                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv PUSH_PROMISE&quot;</span>);
-                <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#350">recv_push_promise</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#475">frame</a>)<span class="question-mark">?</span>;
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv PUSH_PROMISE&quot;</span>);
+                <span class="self">self</span>.<span class="ident">streams</span>.<span class="ident">recv_push_promise</span>(<span class="ident">frame</span>)<span class="question-mark">?</span>;
             }
             <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#75">Settings</a>(<span class="ident">frame</span>)) =&gt; {
-                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv SETTINGS&quot;</span>);
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv SETTINGS&quot;</span>);
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#524">ReceivedFrame::Settings</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#479">frame</a>));
             }
             <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#77">GoAway</a>(<span class="ident">frame</span>)) =&gt; {
-                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv GOAWAY&quot;</span>);
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv GOAWAY&quot;</span>);
                 <span class="comment">// This should prevent starting new streams,</span>
                 <span class="comment">// but should allow continuing to process current streams</span>
                 <span class="comment">// until they are all EOS. Once they are, State should</span>
                 <span class="comment">// transition to GoAway.</span>
-                <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#336">recv_go_away</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/proto/connection.rs.html#483">frame</a>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">streams</span>.<span class="ident">recv_go_away</span>(<span class="kw-2">&amp;</span><span class="ident">frame</span>)<span class="question-mark">?</span>;
                 <span class="kw-2">*</span><a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#483">frame</a>);
             }
             <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#76">Ping</a>(<span class="ident">frame</span>)) =&gt; {
-                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv PING&quot;</span>);
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv PING&quot;</span>);
                 <span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<span class="ident">ping_pong</span>.<a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#97">recv_ping</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#492">frame</a>);
-                <span class="kw">if</span> <a class="ident" href="../../../src/h2/proto/connection.rs.html#494">status</a>.<a class="ident" href="../../../src/h2/proto/ping_pong.rs.html#202">is_shutdown</a>() {
-                    <span class="macro">assert!</span>(
-                        <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<span class="ident">go_away</span>.<a class="ident" href="../../../src/h2/proto/go_away.rs.html#93">is_going_away</a>(),
+                <span class="kw">if</span> <span class="ident">status</span>.<span class="ident">is_shutdown</span>() {
+                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+                        <span class="self">self</span>.<span class="ident">go_away</span>.<span class="ident">is_going_away</span>(),
                         <span class="string">&quot;received unexpected shutdown ping&quot;</span>
                     );
 
@@ -1093,15 +1092,15 @@
                 }
             }
             <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#78">WindowUpdate</a>(<span class="ident">frame</span>)) =&gt; {
-                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv WINDOW_UPDATE&quot;</span>);
-                <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#345">recv_window_update</a>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#505">frame</a>)<span class="question-mark">?</span>;
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv WINDOW_UPDATE&quot;</span>);
+                <span class="self">self</span>.<span class="ident">streams</span>.<span class="ident">recv_window_update</span>(<span class="ident">frame</span>)<span class="question-mark">?</span>;
             }
             <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/frame/mod.rs.html#73">Priority</a>(<span class="ident">frame</span>)) =&gt; {
-                <span class="macro">tracing::trace!</span>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv PRIORITY&quot;</span>);
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="question-mark">?</span><span class="ident">frame</span>, <span class="string">&quot;recv PRIORITY&quot;</span>);
                 <span class="comment">// TODO: handle</span>
             }
             <span class="prelude-val">None</span> =&gt; {
-                <span class="macro">tracing::trace!</span>(<span class="string">&quot;codec closed&quot;</span>);
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;codec closed&quot;</span>);
                 <a class="self" href="../../../src/h2/proto/connection.rs.html#460">self</a>.<span class="ident">streams</span>.<a class="ident" href="../../../src/h2/proto/streams/streams.rs.html#355">recv_eof</a>(<span class="bool-val">false</span>).<span class="ident">expect</span>(<span class="string">&quot;mutex poisoned&quot;</span>);
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/h2/proto/connection.rs.html#526">ReceivedFrame::Done</a>);
             }
@@ -1137,7 +1136,7 @@
 
     <span class="comment">// Graceful shutdown only makes sense for server peers.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">go_away_gracefully</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <a class="self" href="../../../src/h2/proto/connection.rs.html#549">self</a>.<span class="ident">inner</span>.<span class="ident">go_away</span>.<a class="ident" href="../../../src/h2/proto/go_away.rs.html#93">is_going_away</a>() {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">go_away</span>.<span class="ident">is_going_away</span>() {
             <span class="comment">// No reason to start a new one.</span>
             <span class="kw">return</span>;
         }
@@ -1172,5 +1171,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

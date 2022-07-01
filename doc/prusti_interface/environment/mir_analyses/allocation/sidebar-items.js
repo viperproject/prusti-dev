@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["compute_definitely_allocated",""]],"type":[["DefinitelyAllocatedAnalysisResult","The result of the definitely allocated analysis."]]});
+window.SIDEBAR_ITEMS = {"fn":[["compute_definitely_allocated",""]],"type":[["DefinitelyAllocatedAnalysisResult","The result of the definitely allocated analysis."]]};

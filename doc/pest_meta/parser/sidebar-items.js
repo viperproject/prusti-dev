@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ParserExpr",""],["Rule",""]],"fn":[["consume_rules",""],["parse",""]],"struct":[["ParserNode",""],["ParserRule",""],["PestParser",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["ParserExpr",""],["Rule",""]],"fn":[["consume_rules",""],["parse",""]],"struct":[["ParserNode",""],["ParserRule",""],["PestParser",""]]};

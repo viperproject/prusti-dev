@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["AddLength","Helper trait for `arr!` macro"]],"type":[["Inc","Helper type for `arr!` macro"]]});
+window.SIDEBAR_ITEMS = {"trait":[["AddLength","Helper trait for `arr!` macro"]],"type":[["Inc","Helper type for `arr!` macro"]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["MIR_BODIES",""]],"fn":[["retrieve_mir_body",""],["store_mir_body",""]]});
+window.SIDEBAR_ITEMS = {"constant":[["MIR_BODIES",""]],"fn":[["retrieve_mir_body",""],["store_mir_body",""]]};

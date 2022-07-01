@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.24.1/src/pty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pty.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.24.1/src/pty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pty.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../nix/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../nix/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -452,8 +451,8 @@
         <span class="comment">// condition, which can cause confusing errors for future I/O</span>
         <span class="comment">// operations.</span>
         <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <a class="ident" href="../../src/nix/unistd.rs.html#1027">unistd::close</a>(<a class="self" href="../../src/nix/pty.rs.html#68">self</a>.<span class="number">0</span>);
-        <span class="kw">if</span> <a class="ident" href="../../src/nix/pty.rs.html#76">e</a> <span class="op">==</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/nix/errno.rs.html#786">Errno::EBADF</a>) {
-            <span class="macro">panic!</span>(<span class="string">&quot;Closing an invalid file descriptor!&quot;</span>);
+        <span class="kw">if</span> <span class="ident">e</span> <span class="op">==</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::EBADF</span>) {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Closing an invalid file descriptor!&quot;</span>);
         };
     }
 }
@@ -495,7 +494,7 @@
 <span class="doccomment">/// master pseudoterminal referred to by `fd`. This is a necessary step towards opening the slave.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">grantpt</span>(<span class="ident">fd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">libc::grantpt</span>(<a class="ident" href="../../src/nix/pty.rs.html#119">fd</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()) } <span class="op">&lt;</span> <span class="number">0</span> {
+    <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">libc::grantpt</span>(<span class="ident">fd</span>.<span class="ident">as_raw_fd</span>()) } <span class="op">&lt;</span> <span class="number">0</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>());
     }
 
@@ -541,7 +540,7 @@
         <span class="ident">libc::posix_openpt</span>(<a class="ident" href="../../src/nix/pty.rs.html#161">flags</a>.<a class="ident" href="../../src/nix/fcntl.rs.html#48-193">bits</a>())
     };
 
-    <span class="kw">if</span> <a class="ident" href="../../src/nix/pty.rs.html#162">fd</a> <span class="op">&lt;</span> <span class="number">0</span> {
+    <span class="kw">if</span> <span class="ident">fd</span> <span class="op">&lt;</span> <span class="number">0</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>());
     }
 
@@ -567,7 +566,7 @@
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">ptsname</span>(<span class="ident">fd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">name_ptr</span> <span class="op">=</span> <span class="ident">libc::ptsname</span>(<a class="ident" href="../../src/nix/pty.rs.html#190">fd</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>());
-    <span class="kw">if</span> <a class="ident" href="../../src/nix/pty.rs.html#191">name_ptr</a>.<span class="ident">is_null</span>() {
+    <span class="kw">if</span> <span class="ident">name_ptr</span>.<span class="ident">is_null</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>());
     }
 
@@ -592,7 +591,7 @@
     <span class="kw">let</span> <span class="ident">name_buf_ptr</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#213">name_buf</a>.<span class="ident">as_mut_ptr</span>();
     <span class="kw">let</span> <span class="ident">cname</span> <span class="op">=</span> <span class="kw">unsafe</span> {
         <span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span> <a class="ident" href="../../src/nix/pty.rs.html#213">name_buf</a>.<span class="ident">capacity</span>();
-        <span class="kw">if</span> <span class="ident">libc::ptsname_r</span>(<a class="ident" href="../../src/nix/pty.rs.html#212">fd</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>(), <a class="ident" href="../../src/nix/pty.rs.html#214">name_buf_ptr</a>, <a class="ident" href="../../src/nix/pty.rs.html#216">cap</a>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">libc::ptsname_r</span>(<span class="ident">fd</span>.<span class="ident">as_raw_fd</span>(), <span class="ident">name_buf_ptr</span>, <span class="ident">cap</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::last</span>());
         }
         <span class="ident">CStr::from_ptr</span>(<a class="ident" href="../../src/nix/pty.rs.html#213">name_buf</a>.<span class="ident">as_ptr</span>())
@@ -610,7 +609,7 @@
 <span class="doccomment">/// pseudoterminal.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unlockpt</span>(<span class="ident">fd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/nix/pty.rs.html#51">PtyMaster</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">libc::unlockpt</span>(<a class="ident" href="../../src/nix/pty.rs.html#234">fd</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()) } <span class="op">&lt;</span> <span class="number">0</span> {
+    <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">libc::unlockpt</span>(<span class="ident">fd</span>.<span class="ident">as_raw_fd</span>()) } <span class="op">&lt;</span> <span class="number">0</span> {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Errno::last</span>());
     }
 
@@ -682,7 +681,7 @@
         }
     };
 
-    <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/pty.rs.html#256">ret</a>)<span class="question-mark">?</span>;
+    <span class="ident">Errno::result</span>(<span class="ident">ret</span>)<span class="question-mark">?</span>;
 
     <span class="kw">unsafe</span> {
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nix/pty.rs.html#22-27">OpenptyResult</a> {
@@ -736,9 +735,9 @@
 
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">libc::forkpty</span>(<a class="ident" href="../../src/nix/pty.rs.html#344">master</a>.<span class="ident">as_mut_ptr</span>(), <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/fn.null_mut.html">ptr::null_mut</a>(), <a class="ident" href="../../src/nix/pty.rs.html#346">term</a>, <a class="ident" href="../../src/nix/pty.rs.html#354">win</a>);
 
-    <span class="kw">let</span> <span class="ident">fork_result</span> <span class="op">=</span> <span class="ident">Errno::result</span>(<a class="ident" href="../../src/nix/pty.rs.html#359">res</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="kw">match</span> <a class="ident" href="../../src/nix/pty.rs.html#361">res</a> {
-        <span class="number">0</span> =&gt; <a class="ident" href="../../src/nix/unistd.rs.html#193">ForkResult::Child</a>,
-        <span class="ident">res</span> =&gt; <a class="ident" href="../../src/nix/unistd.rs.html#192">ForkResult::Parent</a> { <span class="ident">child</span>: <span class="ident">Pid::from_raw</span>(<a class="ident" href="../../src/nix/pty.rs.html#363">res</a>) },
+    <span class="kw">let</span> <span class="ident">fork_result</span> <span class="op">=</span> <span class="ident">Errno::result</span>(<span class="ident">res</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">res</span> {
+        <span class="number">0</span> =&gt; <span class="ident">ForkResult::Child</span>,
+        <span class="ident">res</span> =&gt; <span class="ident">ForkResult::Parent</span> { <span class="ident">child</span>: <span class="ident">Pid::from_raw</span>(<span class="ident">res</span>) },
     })<span class="question-mark">?</span>;
 
     <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/nix/pty.rs.html#36-41">ForkptyResult</a> {
@@ -748,5 +747,5 @@
 }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

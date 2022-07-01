@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.11/src/async_impl/client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.11/src/async_impl/client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../reqwest/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../reqwest/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -2097,13 +2096,13 @@
 <span class="kw">use</span> <a class="ident" href="../../../hyper/client/client/struct.ResponseFuture.html">hyper::client::ResponseFuture</a>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls-crate&quot;</span>)]</span>
 <span class="kw">use</span> <a class="ident" href="../../../native_tls/struct.TlsConnector.html">native_tls_crate::TlsConnector</a>;
-<span class="kw">use</span> <span class="ident">pin_project_lite::pin_project</span>;
+<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
 <span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 <span class="kw">use</span> <a class="ident" href="../../../tokio/time/driver/sleep/struct.Sleep.html">tokio::time::Sleep</a>;
 
-<span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>};
+<span class="kw">use</span> <span class="ident">log</span>::{<a class="ident" href="../../../log/macro.debug.html">debug</a>, <a class="ident" href="../../../log/macro.trace.html">trace</a>};
 
 <span class="kw">use</span> <a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#30-37"><span class="kw">super</span>::decoder::Accepts</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::request</span>::{<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#24-31">Request</a>, <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#37-40">RequestBuilder</a>};
@@ -2264,7 +2263,7 @@
                 <span class="ident">http2_keep_alive_while_idle</span>: <span class="bool-val">false</span>,
                 <span class="ident">local_address</span>: <span class="prelude-val">None</span>,
                 <span class="ident">nodelay</span>: <span class="bool-val">true</span>,
-                <span class="ident">trust_dns</span>: <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;trust-dns&quot;</span>),
+                <span class="ident">trust_dns</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;trust-dns&quot;</span>),
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;cookies&quot;</span>)]</span>
                 <span class="ident">cookie_store</span>: <span class="prelude-val">None</span>,
                 <span class="ident">https_only</span>: <span class="bool-val">false</span>,
@@ -2287,7 +2286,7 @@
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxies</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">proxies</span>;
-        <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">auto_sys_proxy</span> {
+        <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">auto_sys_proxy</span> {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#208">proxies</a>.<span class="ident">push</span>(<span class="ident">Proxy::system</span>());
         }
         <span class="kw">let</span> <span class="ident">proxies</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#208">proxies</a>);
@@ -2300,7 +2299,7 @@
 
             <span class="kw">let</span> <span class="ident">http</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">trust_dns</span> {
                 <span class="bool-val">false</span> =&gt; {
-                    <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">dns_overrides</span>.<span class="ident">is_empty</span>() {
+                    <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">dns_overrides</span>.<span class="ident">is_empty</span>() {
                         <span class="ident">HttpConnector::new_gai</span>()
                     } <span class="kw">else</span> {
                         <span class="ident">HttpConnector::new_gai_with_overrides</span>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">dns_overrides</span>)
@@ -2315,7 +2314,7 @@
                     }
                 }
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;trust-dns&quot;</span>))]</span>
-                <span class="bool-val">true</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;trust-dns shouldn&#39;t be enabled unless the feature is&quot;</span>),
+                <span class="bool-val">true</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;trust-dns shouldn&#39;t be enabled unless the feature is&quot;</span>),
             };
 
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__tls&quot;</span>)]</span>
@@ -2348,8 +2347,8 @@
 
                     <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#244">tls</a>.<span class="ident">disable_built_in_roots</span>(<span class="op">!</span><a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">tls_built_in_root_certs</span>);
 
-                    <span class="kw">for</span> <span class="ident">cert</span> <span class="kw">in</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">root_certs</span> {
-                        <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#270">cert</a>.<a class="ident" href="../../../src/reqwest/tls.rs.html#107">add_to_native_tls</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#244">tls</a>);
+                    <span class="kw">for</span> <span class="ident">cert</span> <span class="kw">in</span> <span class="ident">config</span>.<span class="ident">root_certs</span> {
+                        <span class="ident">cert</span>.<span class="ident">add_to_native_tls</span>(<span class="kw-2">&amp;mut</span> <span class="ident">tls</span>);
                     }
 
                     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>)]</span>
@@ -2360,33 +2359,33 @@
                     }
 
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">min_tls_version</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">min_tls_version</span> {
-                        <span class="kw">let</span> <span class="ident">protocol</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#281">min_tls_version</a>.<a class="ident" href="../../../src/reqwest/tls.rs.html#321">to_native_tls</a>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="kw">let</span> <span class="ident">protocol</span> <span class="op">=</span> <span class="ident">min_tls_version</span>.<span class="ident">to_native_tls</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="comment">// TLS v1.3. This would be entirely reasonable,</span>
                             <span class="comment">// native-tls just doesn&#39;t support it.</span>
                             <span class="comment">// https://github.com/sfackler/rust-native-tls/issues/140</span>
-                            <a class="ident" href="../../../src/reqwest/error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<span class="string">&quot;invalid minimum TLS version for backend&quot;</span>)
+                            <span class="ident"><span class="kw">crate</span>::error::builder</span>(<span class="string">&quot;invalid minimum TLS version for backend&quot;</span>)
                         })<span class="question-mark">?</span>;
                         <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#244">tls</a>.<span class="ident">min_protocol_version</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#282">protocol</a>));
                     }
 
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">max_tls_version</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">max_tls_version</span> {
-                        <span class="kw">let</span> <span class="ident">protocol</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#291">max_tls_version</a>.<a class="ident" href="../../../src/reqwest/tls.rs.html#321">to_native_tls</a>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="kw">let</span> <span class="ident">protocol</span> <span class="op">=</span> <span class="ident">max_tls_version</span>.<span class="ident">to_native_tls</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="comment">// TLS v1.3.</span>
                             <span class="comment">// We could arguably do max_protocol_version(None), given</span>
                             <span class="comment">// that 1.4 does not exist yet, but that&#39;d get messy in the</span>
                             <span class="comment">// future.</span>
-                            <a class="ident" href="../../../src/reqwest/error.rs.html#243"><span class="kw">crate</span>::error::builder</a>(<span class="string">&quot;invalid maximum TLS version for backend&quot;</span>)
+                            <span class="ident"><span class="kw">crate</span>::error::builder</span>(<span class="string">&quot;invalid maximum TLS version for backend&quot;</span>)
                         })<span class="question-mark">?</span>;
                         <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#244">tls</a>.<span class="ident">max_protocol_version</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#292">protocol</a>));
                     }
 
                     <span class="ident">Connector::new_default_tls</span>(
-                        <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#220">http</a>,
-                        <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#244">tls</a>,
-                        <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#212">proxies</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#216">user_agent</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">headers</span>),
-                        <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">local_address</span>,
-                        <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">nodelay</span>,
+                        <span class="ident">http</span>,
+                        <span class="ident">tls</span>,
+                        <span class="ident">proxies</span>.<span class="ident">clone</span>(),
+                        <span class="ident">user_agent</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">headers</span>),
+                        <span class="ident">config</span>.<span class="ident">local_address</span>,
+                        <span class="ident">config</span>.<span class="ident">nodelay</span>,
                     )<span class="question-mark">?</span>
                 }
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;native-tls&quot;</span>)]</span>
@@ -2545,7 +2544,7 @@
         <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#214">connector</a>.<a class="ident" href="../../../src/reqwest/connect.rs.html#293">set_verbose</a>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">connection_verbose</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">builder</span> <span class="op">=</span> <span class="ident">hyper::Client::builder</span>();
-        <span class="kw">if</span> <span class="macro">matches!</span>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">http_version_pref</span>, <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#71">HttpVersionPref::Http2</a>) {
+        <span class="kw">if</span> <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="ident">config</span>.<span class="ident">http_version_pref</span>, <span class="ident">HttpVersionPref::Http2</span>) {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#466">builder</a>.<span class="ident">http2_only</span>(<span class="bool-val">true</span>);
         }
 
@@ -2557,7 +2556,7 @@
         {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#466">builder</a>.<span class="ident">http2_initial_connection_window_size</span>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#474">http2_initial_connection_window_size</a>);
         }
-        <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">http2_adaptive_window</span> {
+        <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">http2_adaptive_window</span> {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#466">builder</a>.<span class="ident">http2_adaptive_window</span>(<span class="bool-val">true</span>);
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">http2_max_frame_size</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">http2_max_frame_size</span> {
@@ -2569,7 +2568,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">http2_keep_alive_timeout</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">http2_keep_alive_timeout</span> {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#466">builder</a>.<span class="ident">http2_keep_alive_timeout</span>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#488">http2_keep_alive_timeout</a>);
         }
-        <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">http2_keep_alive_while_idle</span> {
+        <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">http2_keep_alive_while_idle</span> {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#466">builder</a>.<span class="ident">http2_keep_alive_while_idle</span>(<span class="bool-val">true</span>);
         }
 
@@ -2577,15 +2576,15 @@
         <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#466">builder</a>.<span class="ident">pool_max_idle_per_host</span>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">pool_max_idle_per_host</span>);
         <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#214">connector</a>.<a class="ident" href="../../../src/reqwest/connect.rs.html#513">set_keepalive</a>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">tcp_keepalive</span>);
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">http09_responses</span> {
+        <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">http09_responses</span> {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#466">builder</a>.<span class="ident">http09_responses</span>(<span class="bool-val">true</span>);
         }
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">http1_title_case_headers</span> {
+        <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">http1_title_case_headers</span> {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#466">builder</a>.<span class="ident">http1_title_case_headers</span>(<span class="bool-val">true</span>);
         }
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#202">config</a>.<span class="ident">http1_allow_obsolete_multiline_headers_in_responses</span> {
+        <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">http1_allow_obsolete_multiline_headers_in_responses</span> {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#466">builder</a>.<span class="ident">http1_allow_obsolete_multiline_headers_in_responses</span>(<span class="bool-val">true</span>);
         }
 
@@ -2692,8 +2691,8 @@
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_headers</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">headers</span>: <a class="ident" href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#65-67">ClientBuilder</a> {
-        <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="kw">in</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#613">headers</a>.<span class="ident">iter</span>() {
-            <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#613">self</a>.<span class="ident">config</span>.<span class="ident">headers</span>.<span class="ident">insert</span>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#614">key</a>, <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#614">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">headers</span>.<span class="ident">iter</span>() {
+            <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">headers</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">value</span>.<span class="ident">clone</span>());
         }
         <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#613">self</a>
     }
@@ -3526,20 +3525,20 @@
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">execute_request</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#24-31">Request</a>) -&gt; <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1743-1748">Pending</a> {
         <span class="kw">let</span> (<span class="ident">method</span>, <span class="ident">url</span>, <span class="kw-2">mut</span> <span class="ident">headers</span>, <span class="ident">body</span>, <span class="ident">timeout</span>, <span class="ident">version</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1446">req</a>.<a class="ident" href="../../../src/reqwest/async_impl/request.rs.html#144-153">pieces</a>();
-        <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1447">url</a>.<span class="ident">scheme</span>() <span class="op">!</span><span class="op">=</span> <span class="string">&quot;http&quot;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1447">url</a>.<span class="ident">scheme</span>() <span class="op">!</span><span class="op">=</span> <span class="string">&quot;https&quot;</span> {
+        <span class="kw">if</span> <span class="ident">url</span>.<span class="ident">scheme</span>() <span class="op">!</span><span class="op">=</span> <span class="string">&quot;http&quot;</span> <span class="op">&amp;&amp;</span> <span class="ident">url</span>.<span class="ident">scheme</span>() <span class="op">!</span><span class="op">=</span> <span class="string">&quot;https&quot;</span> {
             <span class="kw">return</span> <span class="ident">Pending::new_err</span>(<a class="ident" href="../../../src/reqwest/error.rs.html#267">error::url_bad_scheme</a>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1447">url</a>));
         }
 
         <span class="comment">// check if we&#39;re in https_only mode and check the scheme of the current URL</span>
-        <span class="kw">if</span> <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1446">self</a>.<span class="ident">inner</span>.<span class="ident">https_only</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1447">url</a>.<span class="ident">scheme</span>() <span class="op">!</span><span class="op">=</span> <span class="string">&quot;https&quot;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">https_only</span> <span class="op">&amp;&amp;</span> <span class="ident">url</span>.<span class="ident">scheme</span>() <span class="op">!</span><span class="op">=</span> <span class="string">&quot;https&quot;</span> {
             <span class="kw">return</span> <span class="ident">Pending::new_err</span>(<a class="ident" href="../../../src/reqwest/error.rs.html#267">error::url_bad_scheme</a>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1447">url</a>));
         }
 
         <span class="comment">// insert default headers in the request headers</span>
         <span class="comment">// without overwriting already appended headers.</span>
-        <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1446">self</a>.<span class="ident">inner</span>.<span class="ident">headers</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Entry::Vacant</span>(<span class="ident">entry</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1447">headers</a>.<span class="ident">entry</span>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1459">key</a>) {
-                <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1460">entry</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1459">value</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">headers</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Entry::Vacant</span>(<span class="ident">entry</span>) <span class="op">=</span> <span class="ident">headers</span>.<span class="ident">entry</span>(<span class="ident">key</span>) {
+                <span class="ident">entry</span>.<span class="ident">insert</span>(<span class="ident">value</span>.<span class="ident">clone</span>());
             }
         }
 
@@ -3556,7 +3555,7 @@
         <span class="kw">let</span> <span class="ident">accept_encoding</span> <span class="op">=</span> <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1446">self</a>.<span class="ident">inner</span>.<span class="ident">accepts</span>.<a class="ident" href="../../../src/reqwest/async_impl/decoder.rs.html#357">as_str</a>();
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">accept_encoding</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1475">accept_encoding</a> {
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1447">headers</a>.<span class="ident">contains_key</span>(<a class="ident" href="../../../reqwest/header/constant.ACCEPT_ENCODING.html">ACCEPT_ENCODING</a>) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1447">headers</a>.<span class="ident">contains_key</span>(<a class="ident" href="../../../reqwest/header/constant.RANGE.html">RANGE</a>) {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">headers</span>.<span class="ident">contains_key</span>(<span class="ident">ACCEPT_ENCODING</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">headers</span>.<span class="ident">contains_key</span>(<span class="ident">RANGE</span>) {
                 <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1447">headers</a>.<span class="ident">insert</span>(<a class="ident" href="../../../reqwest/header/constant.ACCEPT_ENCODING.html">ACCEPT_ENCODING</a>, <span class="ident">HeaderValue::from_static</span>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1477">accept_encoding</a>));
             }
         }
@@ -3609,25 +3608,25 @@
     }
 
     <span class="kw">fn</span> <span class="ident">proxy_auth</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../http/uri/struct.Uri.html">Uri</a>, <span class="ident">headers</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../reqwest/header/struct.HeaderMap.html">HeaderMap</a>) {
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1530">self</a>.<span class="ident">inner</span>.<span class="ident">proxies_maybe_http_auth</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">proxies_maybe_http_auth</span> {
             <span class="kw">return</span>;
         }
 
         <span class="comment">// Only set the header here if the destination scheme is &#39;http&#39;,</span>
         <span class="comment">// since otherwise, the header will be included in the CONNECT tunnel</span>
         <span class="comment">// request instead.</span>
-        <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1530">dst</a>.<span class="ident">scheme</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme::HTTP</span>) {
+        <span class="kw">if</span> <span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme::HTTP</span>) {
             <span class="kw">return</span>;
         }
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1530">headers</a>.<span class="ident">contains_key</span>(<a class="ident" href="../../../reqwest/header/constant.PROXY_AUTHORIZATION.html">PROXY_AUTHORIZATION</a>) {
+        <span class="kw">if</span> <span class="ident">headers</span>.<span class="ident">contains_key</span>(<span class="ident">PROXY_AUTHORIZATION</span>) {
             <span class="kw">return</span>;
         }
 
-        <span class="kw">for</span> <span class="ident">proxy</span> <span class="kw">in</span> <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1530">self</a>.<span class="ident">inner</span>.<span class="ident">proxies</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1546">proxy</a>.<a class="ident" href="../../../src/reqwest/proxy.rs.html#362">is_match</a>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1530">dst</a>) {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">header</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1546">proxy</a>.<a class="ident" href="../../../src/reqwest/proxy.rs.html#317">http_basic_auth</a>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1530">dst</a>) {
-                    <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1530">headers</a>.<span class="ident">insert</span>(<a class="ident" href="../../../reqwest/header/constant.PROXY_AUTHORIZATION.html">PROXY_AUTHORIZATION</a>, <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1548">header</a>);
+        <span class="kw">for</span> <span class="ident">proxy</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">proxies</span>.<span class="ident">iter</span>() {
+            <span class="kw">if</span> <span class="ident">proxy</span>.<span class="ident">is_match</span>(<span class="ident">dst</span>) {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">header</span>) <span class="op">=</span> <span class="ident">proxy</span>.<span class="ident">http_basic_auth</span>(<span class="ident">dst</span>) {
+                    <span class="ident">headers</span>.<span class="ident">insert</span>(<span class="ident">PROXY_AUTHORIZATION</span>, <span class="ident">header</span>);
                 }
 
                 <span class="kw">break</span>;
@@ -3694,33 +3693,33 @@
 
         <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1603">f</a>.<span class="ident">field</span>(<span class="string">&quot;accepts&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1603">self</a>.<span class="ident">accepts</span>);
 
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1603">self</a>.<span class="ident">proxies</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">proxies</span>.<span class="ident">is_empty</span>() {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1603">f</a>.<span class="ident">field</span>(<span class="string">&quot;proxies&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1603">self</a>.<span class="ident">proxies</span>);
         }
 
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1603">self</a>.<span class="ident">redirect_policy</span>.<a class="ident" href="../../../src/reqwest/redirect.rs.html#150">is_default</a>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">redirect_policy</span>.<span class="ident">is_default</span>() {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1603">f</a>.<span class="ident">field</span>(<span class="string">&quot;redirect_policy&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1603">self</a>.<span class="ident">redirect_policy</span>);
         }
 
-        <span class="kw">if</span> <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1603">self</a>.<span class="ident">referer</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">referer</span> {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1603">f</a>.<span class="ident">field</span>(<span class="string">&quot;referer&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
         <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1603">f</a>.<span class="ident">field</span>(<span class="string">&quot;default_headers&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1603">self</a>.<span class="ident">headers</span>);
 
-        <span class="kw">if</span> <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1603">self</a>.<span class="ident">http1_title_case_headers</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">http1_title_case_headers</span> {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1603">f</a>.<span class="ident">field</span>(<span class="string">&quot;http1_title_case_headers&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
-        <span class="kw">if</span> <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1603">self</a>.<span class="ident">http1_allow_obsolete_multiline_headers_in_responses</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">http1_allow_obsolete_multiline_headers_in_responses</span> {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1603">f</a>.<span class="ident">field</span>(<span class="string">&quot;http1_allow_obsolete_multiline_headers_in_responses&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
-        <span class="kw">if</span> <span class="macro">matches!</span>(<a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1603">self</a>.<span class="ident">http_version_pref</span>, <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#70">HttpVersionPref::Http1</a>) {
+        <span class="kw">if</span> <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="ident">http_version_pref</span>, <span class="ident">HttpVersionPref::Http1</span>) {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1603">f</a>.<span class="ident">field</span>(<span class="string">&quot;http1_only&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
-        <span class="kw">if</span> <span class="macro">matches!</span>(<a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1603">self</a>.<span class="ident">http_version_pref</span>, <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#71">HttpVersionPref::Http2</a>) {
+        <span class="kw">if</span> <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="ident">http_version_pref</span>, <span class="ident">HttpVersionPref::Http2</span>) {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1603">f</a>.<span class="ident">field</span>(<span class="string">&quot;http2_prior_knowledge&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
@@ -3736,7 +3735,7 @@
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1603">f</a>.<span class="ident">field</span>(<span class="string">&quot;local_address&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1654">v</a>);
         }
 
-        <span class="kw">if</span> <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1603">self</a>.<span class="ident">nodelay</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">nodelay</span> {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1603">f</a>.<span class="ident">field</span>(<span class="string">&quot;tcp_nodelay&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
@@ -3749,7 +3748,7 @@
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__tls&quot;</span>)]</span>
         {
-            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1603">self</a>.<span class="ident">certs_verification</span> {
+            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">certs_verification</span> {
                 <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1603">f</a>.<span class="ident">field</span>(<span class="string">&quot;danger_accept_invalid_certs&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
             }
 
@@ -3767,7 +3766,7 @@
             <span class="ident">f</span>.<span class="ident">field</span>(<span class="string">&quot;tls_backend&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">tls</span>);
         }
 
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1603">self</a>.<span class="ident">dns_overrides</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">dns_overrides</span>.<span class="ident">is_empty</span>() {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1603">f</a>.<span class="ident">field</span>(<span class="string">&quot;dns_overrides&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1603">self</a>.<span class="ident">dns_overrides</span>);
         }
     }
@@ -3801,15 +3800,15 @@
 
         <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1710">f</a>.<span class="ident">field</span>(<span class="string">&quot;accepts&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1710">self</a>.<span class="ident">accepts</span>);
 
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1710">self</a>.<span class="ident">proxies</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">proxies</span>.<span class="ident">is_empty</span>() {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1710">f</a>.<span class="ident">field</span>(<span class="string">&quot;proxies&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1710">self</a>.<span class="ident">proxies</span>);
         }
 
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1710">self</a>.<span class="ident">redirect_policy</span>.<a class="ident" href="../../../src/reqwest/redirect.rs.html#150">is_default</a>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">redirect_policy</span>.<span class="ident">is_default</span>() {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1710">f</a>.<span class="ident">field</span>(<span class="string">&quot;redirect_policy&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1710">self</a>.<span class="ident">redirect_policy</span>);
         }
 
-        <span class="kw">if</span> <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1710">self</a>.<span class="ident">referer</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">referer</span> {
             <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1710">f</a>.<span class="ident">field</span>(<span class="string">&quot;referer&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
@@ -3821,7 +3820,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pending</span> {
         <span class="attribute">#[<span class="ident">pin</span>]</span>
         <span class="ident">inner</span>: <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1750-1753">PendingInner</a>,
@@ -3833,7 +3832,7 @@
     <span class="ident">Error</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/reqwest/error.rs.html#16-18"><span class="kw">crate</span>::Error</a><span class="op">&gt;</span>),
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="kw">struct</span> <span class="ident">PendingRequest</span> {
         <span class="ident">method</span>: <a class="ident" href="../../../reqwest/struct.Method.html">Method</a>,
         <span class="ident">url</span>: <a class="ident" href="../../../reqwest/struct.Url.html">Url</a>,
@@ -3871,23 +3870,23 @@
     }
 
     <span class="kw">fn</span> <span class="ident">retry_error</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">err</span>: <span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>)) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1829">is_retryable_error</a>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1792">err</a>) {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">is_retryable_error</span>(<span class="ident">err</span>) {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
 
-        <span class="macro">trace!</span>(<span class="string">&quot;can retry {:?}&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1792">err</a>);
+        <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;can retry {:?}&quot;</span>, <span class="ident">err</span>);
 
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1792">self</a>.<span class="ident">body</span> {
             <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">body</span>)) =&gt; <span class="ident">Body::reusable</span>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1800">body</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
             <span class="prelude-val">Some</span>(<span class="prelude-val">None</span>) =&gt; {
-                <span class="macro">debug!</span>(<span class="string">&quot;error was retryable, but body not reusable&quot;</span>);
+                <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;error was retryable, but body not reusable&quot;</span>);
                 <span class="kw">return</span> <span class="bool-val">false</span>;
             }
             <span class="prelude-val">None</span> =&gt; <span class="ident">Body::empty</span>(),
         };
 
-        <span class="kw">if</span> <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1792">self</a>.<span class="ident">retry_count</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> {
-            <span class="macro">trace!</span>(<span class="string">&quot;retry count too high&quot;</span>);
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">retry_count</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span> {
+            <a class="macro" href="../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;retry count too high&quot;</span>);
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
         <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1792">self</a>.<span class="ident">retry_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -3960,7 +3959,7 @@
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1776">in_flight</a>().<span class="ident">as_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1870">cx</a>) {
                 <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; {
-                    <span class="kw">if</span> <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1792">retry_error</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1881">e</a>) {
+                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">retry_error</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>) {
                         <span class="kw">continue</span>;
                     }
                     <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/reqwest/error.rs.html#255"><span class="kw">crate</span>::error::request</a>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1881">e</a>).<a class="ident" href="../../../src/reqwest/error.rs.html#73">with_url</a>(<a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">url</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())));
@@ -3983,12 +3982,12 @@
                 <span class="ident">StatusCode::MOVED_PERMANENTLY</span> <span class="op">|</span> <span class="ident">StatusCode::FOUND</span> <span class="op">|</span> <span class="ident">StatusCode::SEE_OTHER</span> =&gt; {
                     <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">body</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                     <span class="kw">for</span> <span class="ident">header</span> <span class="kw">in</span> <span class="kw-2">&amp;</span>[
-                        <a class="ident" href="../../../reqwest/header/constant.TRANSFER_ENCODING.html">TRANSFER_ENCODING</a>,
-                        <a class="ident" href="../../../reqwest/header/constant.CONTENT_ENCODING.html">CONTENT_ENCODING</a>,
-                        <a class="ident" href="../../../reqwest/header/constant.CONTENT_TYPE.html">CONTENT_TYPE</a>,
-                        <a class="ident" href="../../../reqwest/header/constant.CONTENT_LENGTH.html">CONTENT_LENGTH</a>,
+                        <span class="ident">TRANSFER_ENCODING</span>,
+                        <span class="ident">CONTENT_ENCODING</span>,
+                        <span class="ident">CONTENT_TYPE</span>,
+                        <span class="ident">CONTENT_LENGTH</span>,
                     ] {
-                        <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">headers</span>.<span class="ident">remove</span>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1904">header</a>);
+                        <span class="self">self</span>.<span class="ident">headers</span>.<span class="ident">remove</span>(<span class="ident">header</span>);
                     }
 
                     <span class="kw">match</span> <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">method</span> {
@@ -4007,33 +4006,33 @@
                 }
                 <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
             };
-            <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1901">should_redirect</a> {
+            <span class="kw">if</span> <span class="ident">should_redirect</span> {
                 <span class="kw">let</span> <span class="ident">loc</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1880">res</a>.<span class="ident">headers</span>().<span class="ident">get</span>(<a class="ident" href="../../../reqwest/header/constant.LOCATION.html">LOCATION</a>).<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">val</span><span class="op">|</span> {
                     <span class="kw">let</span> <span class="ident">loc</span> <span class="op">=</span> (<span class="op">|</span><span class="op">|</span> -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../reqwest/struct.Url.html">Url</a><span class="op">&gt;</span> {
                         <span class="comment">// Some sites may send a utf-8 Location header,</span>
                         <span class="comment">// even though we&#39;re supposed to treat those bytes</span>
                         <span class="comment">// as opaque, we&#39;ll check specifically for utf8.</span>
-                        <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">url</span>.<span class="ident">join</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1930">val</a>.<span class="ident">as_bytes</span>()).<span class="ident">ok</span>()<span class="question-mark">?</span>).<span class="ident">ok</span>()
+                        <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">url</span>.<span class="ident">join</span>(<span class="ident">str::from_utf8</span>(<span class="ident">val</span>.<span class="ident">as_bytes</span>()).<span class="ident">ok</span>()<span class="question-mark">?</span>).<span class="ident">ok</span>()
                     })();
 
                     <span class="comment">// Check that the `url` is also a valid `http::Uri`.</span>
                     <span class="comment">//</span>
                     <span class="comment">// If not, just log it and skip the redirect.</span>
                     <span class="kw">let</span> <span class="ident">loc</span> <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1931">loc</a>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">url</span><span class="op">|</span> {
-                        <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/into_url.rs.html#73">try_uri</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1941">url</a>).<span class="ident">is_some</span>() {
+                        <span class="kw">if</span> <span class="ident">try_uri</span>(<span class="kw-2">&amp;</span><span class="ident">url</span>).<span class="ident">is_some</span>() {
                             <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1941">url</a>)
                         } <span class="kw">else</span> {
                             <span class="prelude-val">None</span>
                         }
                     });
 
-                    <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1941">loc</a>.<span class="ident">is_none</span>() {
-                        <span class="macro">debug!</span>(<span class="string">&quot;Location header had invalid URI: {:?}&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1930">val</a>);
+                    <span class="kw">if</span> <span class="ident">loc</span>.<span class="ident">is_none</span>() {
+                        <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Location header had invalid URI: {:?}&quot;</span>, <span class="ident">val</span>);
                     }
                     <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1941">loc</a>
                 });
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">loc</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1930">loc</a> {
-                    <span class="kw">if</span> <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">client</span>.<span class="ident">referer</span> {
+                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">client</span>.<span class="ident">referer</span> {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">referer</span>) <span class="op">=</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#2042">make_referer</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1954">loc</a>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">url</span>) {
                             <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">headers</span>.<span class="ident">insert</span>(<a class="ident" href="../../../reqwest/header/constant.REFERER.html">REFERER</a>, <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1956">referer</a>);
                         }
@@ -4047,9 +4046,9 @@
 
                     <span class="kw">match</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1962">action</a> {
                         <a class="ident" href="../../../src/reqwest/redirect.rs.html#229">redirect::ActionKind::Follow</a> =&gt; {
-                            <span class="macro">debug!</span>(<span class="string">&quot;redirecting &#39;{}&#39; to &#39;{}&#39;&quot;</span>, <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">url</span>, <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1954">loc</a>);
+                            <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;redirecting &#39;{}&#39; to &#39;{}&#39;&quot;</span>, <span class="self">self</span>.<span class="ident">url</span>, <span class="ident">loc</span>);
 
-                            <span class="kw">if</span> <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">client</span>.<span class="ident">https_only</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1954">loc</a>.<span class="ident">scheme</span>() <span class="op">!</span><span class="op">=</span> <span class="string">&quot;https&quot;</span> {
+                            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">client</span>.<span class="ident">https_only</span> <span class="op">&amp;&amp;</span> <span class="ident">loc</span>.<span class="ident">scheme</span>() <span class="op">!</span><span class="op">=</span> <span class="string">&quot;https&quot;</span> {
                                 <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/reqwest/error.rs.html#259">error::redirect</a>(
                                     <a class="ident" href="../../../src/reqwest/error.rs.html#267">error::url_bad_scheme</a>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1954">loc</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
                                     <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1954">loc</a>,
@@ -4086,7 +4085,7 @@
                             <span class="kw">continue</span>;
                         }
                         <a class="ident" href="../../../src/reqwest/redirect.rs.html#230">redirect::ActionKind::Stop</a> =&gt; {
-                            <span class="macro">debug!</span>(<span class="string">&quot;redirect policy disallowed redirection to &#39;{}&#39;&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1954">loc</a>);
+                            <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;redirect policy disallowed redirection to &#39;{}&#39;&quot;</span>, <span class="ident">loc</span>);
                         }
                         <a class="ident" href="../../../src/reqwest/redirect.rs.html#231">redirect::ActionKind::Error</a>(<span class="ident">err</span>) =&gt; {
                             <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/reqwest/error.rs.html#259"><span class="kw">crate</span>::error::redirect</a>(<a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#2010">err</a>, <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">url</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())));
@@ -4095,7 +4094,7 @@
                 }
             }
 
-            <span class="macro">debug!</span>(<span class="string">&quot;response &#39;{}&#39; for {}&quot;</span>, <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1880">res</a>.<span class="ident">status</span>(), <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">url</span>);
+            <a class="macro" href="../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;response &#39;{}&#39; for {}&quot;</span>, <span class="ident">res</span>.<span class="ident">status</span>(), <span class="self">self</span>.<span class="ident">url</span>);
             <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Response::new</span>(
                 <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#1880">res</a>,
                 <a class="self" href="../../../src/reqwest/async_impl/client.rs.html#1870">self</a>.<span class="ident">url</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
@@ -4121,7 +4120,7 @@
 }
 
 <span class="kw">fn</span> <span class="ident">make_referer</span>(<span class="ident">next</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../reqwest/struct.Url.html">Url</a>, <span class="ident">previous</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../reqwest/struct.Url.html">Url</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../reqwest/header/struct.HeaderValue.html">HeaderValue</a><span class="op">&gt;</span> {
-    <span class="kw">if</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#2042">next</a>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="string">&quot;http&quot;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/reqwest/async_impl/client.rs.html#2042">previous</a>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="string">&quot;https&quot;</span> {
+    <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="string">&quot;http&quot;</span> <span class="op">&amp;&amp;</span> <span class="ident">previous</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="string">&quot;https&quot;</span> {
         <span class="kw">return</span> <span class="prelude-val">None</span>;
     }
 
@@ -4154,5 +4153,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

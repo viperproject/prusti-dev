@@ -1,1 +1,1 @@
-initSidebarItems({"type":[["Never","A type with no possible values."]]});
+window.SIDEBAR_ITEMS = {"type":[["Never","A type with no possible values."]]};

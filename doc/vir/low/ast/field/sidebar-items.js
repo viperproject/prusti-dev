@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["FieldDecl",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["FieldDecl",""]]};

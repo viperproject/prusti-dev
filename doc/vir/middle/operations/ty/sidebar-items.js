@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["Generic",""],["Typed",""]]});
+window.SIDEBAR_ITEMS = {"trait":[["Generic",""],["Typed",""]]};

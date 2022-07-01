@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Pkcs7","A PKCS#7 structure."],["Pkcs7Flags",""],["Pkcs7Ref","Reference to `Pkcs7`"]]});
+window.SIDEBAR_ITEMS = {"struct":[["Pkcs7","A PKCS#7 structure."],["Pkcs7Flags",""],["Pkcs7Ref","Reference to `Pkcs7`"]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"type":[["DiscriminantValue",""]]});
+window.SIDEBAR_ITEMS = {"type":[["DiscriminantValue",""]]};

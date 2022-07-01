@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["to_graphviz",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["to_graphviz",""]]};

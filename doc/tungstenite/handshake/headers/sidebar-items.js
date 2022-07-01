@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["MAX_HEADERS","Limit for the number of header lines."]]});
+window.SIDEBAR_ITEMS = {"constant":[["MAX_HEADERS","Limit for the number of header lines."]]};

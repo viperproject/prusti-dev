@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["get_system_out",""]],"mod":[["wrappers","Automatically generated code"]]});
+window.SIDEBAR_ITEMS = {"fn":[["get_system_out",""]],"mod":[["wrappers","Automatically generated code"]]};

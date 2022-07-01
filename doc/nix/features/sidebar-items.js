@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["socket_atomic_cloexec","Check if the OS supports atomic close-on-exec for sockets"]]});
+window.SIDEBAR_ITEMS = {"fn":[["socket_atomic_cloexec","Check if the OS supports atomic close-on-exec for sockets"]]};

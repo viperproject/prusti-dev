@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.18/src/nfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>nfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/aho-corasick-0.7.18/src/nfa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>nfa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../aho_corasick/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -1573,26 +1572,26 @@
 
     <span class="kw">fn</span> <span class="ident">add_dense_state</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">trans</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#392">Transitions::Dense</a>(<span class="ident">Dense::new</span>());
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/state_id.rs.html#29">usize_to_state_id</a>(<a class="self" href="../../src/aho_corasick/nfa.rs.html#190">self</a>.<span class="ident">states</span>.<span class="ident">len</span>())<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">usize_to_state_id</span>(<span class="self">self</span>.<span class="ident">states</span>.<span class="ident">len</span>())<span class="question-mark">?</span>;
         <a class="self" href="../../src/aho_corasick/nfa.rs.html#190">self</a>.<span class="ident">states</span>.<span class="ident">push</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#290-300">State</a> {
             <a class="ident" href="../../src/aho_corasick/nfa.rs.html#191">trans</a>,
             <span class="comment">// Anchored automatons do not have any failure transitions.</span>
-            <span class="ident">fail</span>: <span class="kw">if</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#190">self</a>.<span class="ident">anchored</span> { <a class="ident" href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>() } <span class="kw">else</span> { <a class="self" href="../../src/aho_corasick/nfa.rs.html#190">self</a>.<span class="ident">start_id</span> },
+            <span class="ident">fail</span>: <span class="kw">if</span> <span class="self">self</span>.<span class="ident">anchored</span> { <a class="ident" href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>() } <span class="kw">else</span> { <a class="self" href="../../src/aho_corasick/nfa.rs.html#190">self</a>.<span class="ident">start_id</span> },
             <a class="ident" href="../../src/aho_corasick/nfa.rs.html#190">depth</a>,
-            <span class="ident">matches</span>: <span class="macro">vec!</span>[],
+            <span class="ident">matches</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         });
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#192">id</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">add_sparse_state</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">trans</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#391">Transitions::Sparse</a>(<span class="macro">vec!</span>[]);
-        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/state_id.rs.html#29">usize_to_state_id</a>(<a class="self" href="../../src/aho_corasick/nfa.rs.html#203">self</a>.<span class="ident">states</span>.<span class="ident">len</span>())<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">trans</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#391">Transitions::Sparse</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]);
+        <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">usize_to_state_id</span>(<span class="self">self</span>.<span class="ident">states</span>.<span class="ident">len</span>())<span class="question-mark">?</span>;
         <a class="self" href="../../src/aho_corasick/nfa.rs.html#203">self</a>.<span class="ident">states</span>.<span class="ident">push</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#290-300">State</a> {
             <a class="ident" href="../../src/aho_corasick/nfa.rs.html#204">trans</a>,
             <span class="comment">// Anchored automatons do not have any failure transitions.</span>
-            <span class="ident">fail</span>: <span class="kw">if</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#203">self</a>.<span class="ident">anchored</span> { <a class="ident" href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>() } <span class="kw">else</span> { <a class="self" href="../../src/aho_corasick/nfa.rs.html#203">self</a>.<span class="ident">start_id</span> },
+            <span class="ident">fail</span>: <span class="kw">if</span> <span class="self">self</span>.<span class="ident">anchored</span> { <a class="ident" href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>() } <span class="kw">else</span> { <a class="self" href="../../src/aho_corasick/nfa.rs.html#203">self</a>.<span class="ident">start_id</span> },
             <a class="ident" href="../../src/aho_corasick/nfa.rs.html#203">depth</a>,
-            <span class="ident">matches</span>: <span class="macro">vec!</span>[],
+            <span class="ident">matches</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
         });
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#205">id</a>)
     }
@@ -1655,7 +1654,7 @@
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/nfa.rs.html#265">self</a>.<span class="ident">states</span>[<a class="ident" href="../../src/aho_corasick/nfa.rs.html#265">current</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>()];
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#272">state</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#327">next_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#265">input</a>);
-            <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#273">next</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>() {
+            <span class="kw">if</span> <span class="ident">next</span> <span class="op">!</span><span class="op">=</span> <span class="ident">fail_id</span>() {
                 <span class="kw">return</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#273">next</a>;
             }
             <a class="ident" href="../../src/aho_corasick/nfa.rs.html#265">current</a> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#272">state</a>.<span class="ident">fail</span>;
@@ -1730,7 +1729,7 @@
     <span class="ident">S</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-105">StateID</a>,
 {
     <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/aho_corasick/nfa.rs.html#342">Dense</a>(<span class="macro">vec!</span>[<a class="ident" href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>(); <span class="number">256</span>])
+        <a class="ident" href="../../src/aho_corasick/nfa.rs.html#342">Dense</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">fail_id</span>(); <span class="number">256</span>])
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1789,9 +1788,9 @@
     <span class="kw">fn</span> <span class="ident">next_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">input</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="ident">S</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/aho_corasick/nfa.rs.html#405">self</a> {
             <a class="ident" href="../../src/aho_corasick/nfa.rs.html#391">Transitions::Sparse</a>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) =&gt; {
-                <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">b</span>, <span class="ident">id</span>) <span class="kw">in</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#407">sparse</a> {
-                    <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#408">b</a> <span class="op">==</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#405">input</a> {
-                        <span class="kw">return</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#408">id</a>;
+                <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">b</span>, <span class="ident">id</span>) <span class="kw">in</span> <span class="ident">sparse</span> {
+                    <span class="kw">if</span> <span class="ident">b</span> <span class="op">==</span> <span class="ident">input</span> {
+                        <span class="kw">return</span> <span class="ident">id</span>;
                     }
                 }
                 <a class="ident" href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>()
@@ -1819,15 +1818,15 @@
     <span class="kw">fn</span> <span class="ident">iter</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">S</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/aho_corasick/nfa.rs.html#435">self</a> {
             <a class="ident" href="../../src/aho_corasick/nfa.rs.html#391">Transitions::Sparse</a>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) =&gt; {
-                <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">b</span>, <span class="ident">id</span>) <span class="kw">in</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#437">sparse</a> {
-                    <a class="ident" href="../../src/aho_corasick/nfa.rs.html#435">f</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#438">b</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#438">id</a>);
+                <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">b</span>, <span class="ident">id</span>) <span class="kw">in</span> <span class="ident">sparse</span> {
+                    <span class="ident">f</span>(<span class="ident">b</span>, <span class="ident">id</span>);
                 }
             }
             <a class="ident" href="../../src/aho_corasick/nfa.rs.html#392">Transitions::Dense</a>(<span class="kw-2">ref</span> <span class="ident">dense</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
-                    <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#442">dense</a>[<a class="ident" href="../../src/aho_corasick/nfa.rs.html#443">b</a>];
-                    <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#444">id</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>() {
-                        <a class="ident" href="../../src/aho_corasick/nfa.rs.html#435">f</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#443">b</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#444">id</a>);
+                    <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">dense</span>[<span class="ident">b</span>];
+                    <span class="kw">if</span> <span class="ident">id</span> <span class="op">!</span><span class="op">=</span> <span class="ident">fail_id</span>() {
+                        <span class="ident">f</span>(<span class="ident">b</span>, <span class="ident">id</span>);
                     }
                 }
             }
@@ -1837,14 +1836,14 @@
     <span class="doccomment">/// Iterate over all transitions in this state according to the given</span>
     <span class="doccomment">/// equivalence classes, including transitions to `fail_id()`.</span>
     <span class="kw">fn</span> <span class="ident">iter_all</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">S</span>)<span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">classes</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/aho_corasick/classes.rs.html#9">ByteClasses</a>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) {
-        <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#455">classes</a>.<a class="ident" href="../../src/aho_corasick/classes.rs.html#54">is_singleton</a>() {
+        <span class="kw">if</span> <span class="ident">classes</span>.<span class="ident">is_singleton</span>() {
             <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/aho_corasick/nfa.rs.html#455">self</a> {
                 <a class="ident" href="../../src/aho_corasick/nfa.rs.html#391">Transitions::Sparse</a>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) =&gt; {
                     <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1318">sparse_iter</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#458">sparse</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#455">f</a>);
                 }
                 <a class="ident" href="../../src/aho_corasick/nfa.rs.html#392">Transitions::Dense</a>(<span class="kw-2">ref</span> <span class="ident">dense</span>) =&gt; {
                     <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
-                        <a class="ident" href="../../src/aho_corasick/nfa.rs.html#455">f</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#462">b</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#461">dense</a>[<a class="ident" href="../../src/aho_corasick/nfa.rs.html#462">b</a>]);
+                        <span class="ident">f</span>(<span class="ident">b</span>, <span class="ident">dense</span>[<span class="ident">b</span>]);
                     }
                 }
             }
@@ -1856,15 +1855,15 @@
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_class</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                     <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1318">sparse_iter</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#471">sparse</a>, <span class="op">|</span><span class="ident">b</span>, <span class="ident">next</span><span class="op">|</span> {
                         <span class="kw">let</span> <span class="ident">class</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#455">classes</a>.<a class="ident" href="../../src/aho_corasick/classes.rs.html#36">get</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#473">b</a>);
-                        <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#472">last_class</a> <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#474">class</a>) {
+                        <span class="kw">if</span> <span class="ident">last_class</span> <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">class</span>) {
                             <a class="ident" href="../../src/aho_corasick/nfa.rs.html#472">last_class</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#474">class</a>);
                             <a class="ident" href="../../src/aho_corasick/nfa.rs.html#455">f</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#473">b</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#473">next</a>);
                         }
                     })
                 }
                 <a class="ident" href="../../src/aho_corasick/nfa.rs.html#392">Transitions::Dense</a>(<span class="kw-2">ref</span> <span class="ident">dense</span>) =&gt; {
-                    <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#455">classes</a>.<a class="ident" href="../../src/aho_corasick/classes.rs.html#67">representatives</a>() {
-                        <a class="ident" href="../../src/aho_corasick/nfa.rs.html#455">f</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#482">b</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#481">dense</a>[<a class="ident" href="../../src/aho_corasick/nfa.rs.html#482">b</a>]);
+                    <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">classes</span>.<span class="ident">representatives</span>() {
+                        <span class="ident">f</span>(<span class="ident">b</span>, <span class="ident">dense</span>[<span class="ident">b</span>]);
                     }
                 }
             }
@@ -1903,7 +1902,7 @@
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">S</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#519">self</a>.<span class="ident">nfa</span>.<span class="ident">states</span>[<a class="self" href="../../src/aho_corasick/nfa.rs.html#519">self</a>.<span class="ident">state_id</span>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>()].<span class="ident">trans</span> {
             <a class="ident" href="../../src/aho_corasick/nfa.rs.html#391">Transitions::Sparse</a>(<span class="kw-2">ref</span> <span class="ident">sparse</span>) =&gt; {
-                <span class="kw">if</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#519">self</a>.<span class="ident">cur</span> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#521">sparse</a>.<span class="ident">len</span>() {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cur</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">sparse</span>.<span class="ident">len</span>() {
                     <span class="kw">return</span> <span class="prelude-val">None</span>;
                 }
                 <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#519">self</a>.<span class="ident">cur</span>;
@@ -1911,15 +1910,15 @@
                 <span class="prelude-val">Some</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#521">sparse</a>[<a class="ident" href="../../src/aho_corasick/nfa.rs.html#525">i</a>])
             }
             <a class="ident" href="../../src/aho_corasick/nfa.rs.html#392">Transitions::Dense</a>(<span class="kw-2">ref</span> <span class="ident">dense</span>) =&gt; {
-                <span class="kw">while</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#519">self</a>.<span class="ident">cur</span> <span class="op">&lt;</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#529">dense</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#353">len</a>() {
+                <span class="kw">while</span> <span class="self">self</span>.<span class="ident">cur</span> <span class="op">&lt;</span> <span class="ident">dense</span>.<span class="ident">len</span>() {
                     <span class="comment">// There are always exactly 255 transitions in dense repr.</span>
-                    <span class="macro">debug_assert!</span>(<a class="self" href="../../src/aho_corasick/nfa.rs.html#519">self</a>.<span class="ident">cur</span> <span class="op">&lt;</span> <span class="number">256</span>);
+                    <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">cur</span> <span class="op">&lt;</span> <span class="number">256</span>);
 
-                    <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#519">self</a>.<span class="ident">cur</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
-                    <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#529">dense</a>[<a class="ident" href="../../src/aho_corasick/nfa.rs.html#534">b</a>];
-                    <a class="self" href="../../src/aho_corasick/nfa.rs.html#519">self</a>.<span class="ident">cur</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                    <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#535">id</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>() {
-                        <span class="kw">return</span> <span class="prelude-val">Some</span>((<a class="ident" href="../../src/aho_corasick/nfa.rs.html#534">b</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#535">id</a>));
+                    <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cur</span> <span class="kw">as</span> <span class="ident">u8</span>;
+                    <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">dense</span>[<span class="ident">b</span>];
+                    <span class="self">self</span>.<span class="ident">cur</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                    <span class="kw">if</span> <span class="ident">id</span> <span class="op">!</span><span class="op">=</span> <span class="ident">fail_id</span>() {
+                        <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">b</span>, <span class="ident">id</span>));
                     }
                 }
                 <span class="prelude-val">None</span>
@@ -1960,7 +1959,7 @@
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">P</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>,
     {
-        <span class="ident">Compiler::new</span>(<a class="self" href="../../src/aho_corasick/nfa.rs.html#574">self</a>)<span class="question-mark">?</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#640-643">compile</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#574">patterns</a>)
+        <span class="ident">Compiler::new</span>(<span class="self">self</span>)<span class="question-mark">?</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#640-643">compile</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#574">patterns</a>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">match_kind</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <a class="ident" href="../../src/aho_corasick/ahocorasick.rs.html#2046-2075">MatchKind</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#549-555">Builder</a> {
@@ -2008,14 +2007,14 @@
                 .<a class="ident" href="../../src/aho_corasick/prefilter.rs.html#298">ascii_case_insensitive</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#620">builder</a>.<span class="ident">ascii_case_insensitive</span>),
             <span class="ident">nfa</span>: <a class="ident" href="../../src/aho_corasick/nfa.rs.html#47-88">NFA</a> {
                 <span class="ident">match_kind</span>: <a class="ident" href="../../src/aho_corasick/nfa.rs.html#620">builder</a>.<span class="ident">match_kind</span>,
-                <span class="ident">start_id</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#29">usize_to_state_id</a>(<span class="number">2</span>)<span class="question-mark">?</span>,
+                <span class="ident">start_id</span>: <span class="ident">usize_to_state_id</span>(<span class="number">2</span>)<span class="question-mark">?</span>,
                 <span class="ident">max_pattern_len</span>: <span class="number">0</span>,
                 <span class="ident">pattern_count</span>: <span class="number">0</span>,
                 <span class="ident">heap_bytes</span>: <span class="number">0</span>,
                 <span class="ident">prefilter</span>: <span class="prelude-val">None</span>,
                 <span class="ident">anchored</span>: <a class="ident" href="../../src/aho_corasick/nfa.rs.html#620">builder</a>.<span class="ident">anchored</span>,
                 <span class="ident">byte_classes</span>: <span class="ident">ByteClasses::singletons</span>(),
-                <span class="ident">states</span>: <span class="macro">vec!</span>[],
+                <span class="ident">states</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
             },
             <span class="ident">byte_classes</span>: <span class="ident">ByteClassBuilder::new</span>(),
         })
@@ -2026,14 +2025,14 @@
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">P</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>,
     {
-        <a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1189">add_state</a>(<span class="number">0</span>)<span class="question-mark">?</span>; <span class="comment">// the fail state, which is never entered</span>
-        <a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1189">add_state</a>(<span class="number">0</span>)<span class="question-mark">?</span>; <span class="comment">// the dead state, only used for leftmost</span>
-        <a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1189">add_state</a>(<span class="number">0</span>)<span class="question-mark">?</span>; <span class="comment">// the start state</span>
-        <a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#671-674">build_trie</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#640">patterns</a>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">add_state</span>(<span class="number">0</span>)<span class="question-mark">?</span>; <span class="comment">// the fail state, which is never entered</span>
+        <span class="self">self</span>.<span class="ident">add_state</span>(<span class="number">0</span>)<span class="question-mark">?</span>; <span class="comment">// the dead state, only used for leftmost</span>
+        <span class="self">self</span>.<span class="ident">add_state</span>(<span class="number">0</span>)<span class="question-mark">?</span>; <span class="comment">// the start state</span>
+        <span class="self">self</span>.<span class="ident">build_trie</span>(<span class="ident">patterns</span>)<span class="question-mark">?</span>;
         <a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1127">add_start_state_loop</a>();
         <a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1168">add_dead_state_loop</a>();
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<span class="ident">builder</span>.<span class="ident">anchored</span> {
-            <span class="kw">if</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1198">match_kind</a>().<a class="ident" href="../../src/aho_corasick/ahocorasick.rs.html#2100">is_leftmost</a>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">anchored</span> {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">match_kind</span>().<span class="ident">is_leftmost</span>() {
                 <a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#924">fill_failure_transitions_leftmost</a>();
             } <span class="kw">else</span> {
                 <a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#842">fill_failure_transitions_standard</a>();
@@ -2041,7 +2040,7 @@
         }
         <a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1151">close_start_state_loop</a>();
         <a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<span class="ident">nfa</span>.<span class="ident">byte_classes</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<span class="ident">byte_classes</span>.<a class="ident" href="../../src/aho_corasick/classes.rs.html#176">build</a>();
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<span class="ident">builder</span>.<span class="ident">anchored</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">anchored</span> {
             <a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<span class="ident">nfa</span>.<span class="ident">prefilter</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<span class="ident">prefilter</span>.<a class="ident" href="../../src/aho_corasick/prefilter.rs.html#309">build</a>();
         }
         <a class="self" href="../../src/aho_corasick/nfa.rs.html#640">self</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1176">calculate_size</a>();
@@ -2057,15 +2056,15 @@
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">P</span><span class="op">&gt;</span>,
         <span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>,
     {
-        <span class="lifetime">&#39;PATTERNS</span>: <span class="kw">for</span> (<span class="ident">pati</span>, <span class="ident">pat</span>) <span class="kw">in</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#671">patterns</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
-            <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#676">pat</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>();
-            <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">nfa</span>.<span class="ident">max_pattern_len</span> <span class="op">=</span>
-                <span class="ident">cmp::max</span>(<a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">nfa</span>.<span class="ident">max_pattern_len</span>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#677">pat</a>.<span class="ident">len</span>());
-            <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">nfa</span>.<span class="ident">pattern_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="lifetime">&#39;PATTERNS</span>: <span class="kw">for</span> (<span class="ident">pati</span>, <span class="ident">pat</span>) <span class="kw">in</span> <span class="ident">patterns</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
+            <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="ident">pat</span>.<span class="ident">as_ref</span>();
+            <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">max_pattern_len</span> <span class="op">=</span>
+                <span class="ident">cmp::max</span>(<span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">max_pattern_len</span>, <span class="ident">pat</span>.<span class="ident">len</span>());
+            <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">pattern_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">nfa</span>.<span class="ident">start_id</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start_id</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">saw_match</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="kw">for</span> (<span class="ident">depth</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>) <span class="kw">in</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#677">pat</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
+            <span class="kw">for</span> (<span class="ident">depth</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>) <span class="kw">in</span> <span class="ident">pat</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                 <span class="comment">// When leftmost-first match semantics are requested, we</span>
                 <span class="comment">// specifically stop adding patterns when a previously added</span>
                 <span class="comment">// pattern is a prefix of it. We avoid adding it because</span>
@@ -2074,8 +2073,8 @@
                 <span class="comment">// is necessary for correctness. In fact, this is the only</span>
                 <span class="comment">// difference in the automaton between the implementations for</span>
                 <span class="comment">// leftmost-first and leftmost-longest.</span>
-                <a class="ident" href="../../src/aho_corasick/nfa.rs.html#683">saw_match</a> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#683">saw_match</a> <span class="op">|</span><span class="op">|</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#158">state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#682">prev</a>).<a class="ident" href="../../src/aho_corasick/nfa.rs.html#312">is_match</a>();
-                <span class="kw">if</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">builder</span>.<span class="ident">match_kind</span>.<a class="ident" href="../../src/aho_corasick/ahocorasick.rs.html#2105">is_leftmost_first</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#683">saw_match</a> {
+                <span class="ident">saw_match</span> <span class="op">=</span> <span class="ident">saw_match</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">state</span>(<span class="ident">prev</span>).<span class="ident">is_match</span>();
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">match_kind</span>.<span class="ident">is_leftmost_first</span>() <span class="op">&amp;&amp;</span> <span class="ident">saw_match</span> {
                     <span class="comment">// Skip to the next pattern immediately. This avoids</span>
                     <span class="comment">// incorrectly adding a match after this loop terminates.</span>
                     <span class="kw">continue</span> <span class="lifetime">&#39;PATTERNS</span>;
@@ -2085,10 +2084,10 @@
                 <span class="comment">// for NFA construction. These are instead used only if we&#39;re</span>
                 <span class="comment">// building a DFA. They would technically be useful for the</span>
                 <span class="comment">// NFA, but it would require a second pass over the patterns.</span>
-                <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">byte_classes</span>.<a class="ident" href="../../src/aho_corasick/classes.rs.html#165">set_range</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#684">b</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#684">b</a>);
-                <span class="kw">if</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">builder</span>.<span class="ident">ascii_case_insensitive</span> {
-                    <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/prefilter.rs.html#1022">opposite_ascii_case</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#684">b</a>);
-                    <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">byte_classes</span>.<a class="ident" href="../../src/aho_corasick/classes.rs.html#165">set_range</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#706">b</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#706">b</a>);
+                <span class="self">self</span>.<span class="ident">byte_classes</span>.<span class="ident">set_range</span>(<span class="ident">b</span>, <span class="ident">b</span>);
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">ascii_case_insensitive</span> {
+                    <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">opposite_ascii_case</span>(<span class="ident">b</span>);
+                    <span class="self">self</span>.<span class="ident">byte_classes</span>.<span class="ident">set_range</span>(<span class="ident">b</span>, <span class="ident">b</span>);
                 }
 
                 <span class="comment">// If the transition from prev using the current byte already</span>
@@ -2098,25 +2097,25 @@
                 <span class="comment">// use a dense representation that uses more memory but is</span>
                 <span class="comment">// faster. Other states use a sparse representation that uses</span>
                 <span class="comment">// less memory but is slower.</span>
-                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#158">state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#682">prev</a>).<a class="ident" href="../../src/aho_corasick/nfa.rs.html#327">next_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#684">b</a>);
-                <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#717">next</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>() {
-                    <a class="ident" href="../../src/aho_corasick/nfa.rs.html#682">prev</a> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#717">next</a>;
+                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">state</span>(<span class="ident">prev</span>).<span class="ident">next_state</span>(<span class="ident">b</span>);
+                <span class="kw">if</span> <span class="ident">next</span> <span class="op">!</span><span class="op">=</span> <span class="ident">fail_id</span>() {
+                    <span class="ident">prev</span> <span class="op">=</span> <span class="ident">next</span>;
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1189">add_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#684">depth</a> <span class="op">+</span> <span class="number">1</span>)<span class="question-mark">?</span>;
-                    <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#162">state_mut</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#682">prev</a>).<a class="ident" href="../../src/aho_corasick/nfa.rs.html#331">set_next_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#684">b</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#721">next</a>);
-                    <span class="kw">if</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">builder</span>.<span class="ident">ascii_case_insensitive</span> {
-                        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/prefilter.rs.html#1022">opposite_ascii_case</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#684">b</a>);
-                        <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#162">state_mut</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#682">prev</a>).<a class="ident" href="../../src/aho_corasick/nfa.rs.html#331">set_next_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#724">b</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#721">next</a>);
+                    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">add_state</span>(<span class="ident">depth</span> <span class="op">+</span> <span class="number">1</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">state_mut</span>(<span class="ident">prev</span>).<span class="ident">set_next_state</span>(<span class="ident">b</span>, <span class="ident">next</span>);
+                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">ascii_case_insensitive</span> {
+                        <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">opposite_ascii_case</span>(<span class="ident">b</span>);
+                        <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">state_mut</span>(<span class="ident">prev</span>).<span class="ident">set_next_state</span>(<span class="ident">b</span>, <span class="ident">next</span>);
                     }
-                    <a class="ident" href="../../src/aho_corasick/nfa.rs.html#682">prev</a> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#721">next</a>;
+                    <span class="ident">prev</span> <span class="op">=</span> <span class="ident">next</span>;
                 }
             }
             <span class="comment">// Once the pattern has been added, log the match in the final</span>
             <span class="comment">// state that it reached.</span>
-            <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#162">state_mut</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#682">prev</a>).<a class="ident" href="../../src/aho_corasick/nfa.rs.html#308">add_match</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#676">pati</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#677">pat</a>.<span class="ident">len</span>());
+            <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">state_mut</span>(<span class="ident">prev</span>).<span class="ident">add_match</span>(<span class="ident">pati</span>, <span class="ident">pat</span>.<span class="ident">len</span>());
             <span class="comment">// ... and hand it to the prefilter builder, if applicable.</span>
-            <span class="kw">if</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">builder</span>.<span class="ident">prefilter</span> {
-                <a class="self" href="../../src/aho_corasick/nfa.rs.html#671">self</a>.<span class="ident">prefilter</span>.<a class="ident" href="../../src/aho_corasick/prefilter.rs.html#349">add</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#677">pat</a>);
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">prefilter</span> {
+                <span class="self">self</span>.<span class="ident">prefilter</span>.<span class="ident">add</span>(<span class="ident">pat</span>);
             }
         }
         <span class="prelude-val">Ok</span>(())
@@ -2231,18 +2230,18 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">queue</span> <span class="op">=</span> <span class="ident">VecDeque::new</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seen</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#842">self</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1110">queued_set</a>();
         <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#842">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#166">start</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#327">next_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#849">b</a>);
-            <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#850">next</a> <span class="op">!</span><span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#842">self</a>.<span class="ident">nfa</span>.<span class="ident">start_id</span> {
-                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/aho_corasick/nfa.rs.html#848">seen</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1237">contains</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#850">next</a>) {
-                    <a class="ident" href="../../src/aho_corasick/nfa.rs.html#847">queue</a>.<span class="ident">push_back</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#850">next</a>);
-                    <a class="ident" href="../../src/aho_corasick/nfa.rs.html#848">seen</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1229">insert</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#850">next</a>);
+            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start</span>().<span class="ident">next_state</span>(<span class="ident">b</span>);
+            <span class="kw">if</span> <span class="ident">next</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start_id</span> {
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">seen</span>.<span class="ident">contains</span>(<span class="ident">next</span>) {
+                    <span class="ident">queue</span>.<span class="ident">push_back</span>(<span class="ident">next</span>);
+                    <span class="ident">seen</span>.<span class="ident">insert</span>(<span class="ident">next</span>);
                 }
             }
         }
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">id</span>) <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#847">queue</a>.<span class="ident">pop_front</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">it</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#842">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#175">iter_transitions_mut</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#858">id</a>);
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">b</span>, <span class="ident">next</span>)) <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#859">it</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#848">seen</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1237">contains</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#860">next</a>) {
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">id</span>) <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">pop_front</span>() {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">it</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">iter_transitions_mut</span>(<span class="ident">id</span>);
+            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">b</span>, <span class="ident">next</span>)) <span class="op">=</span> <span class="ident">it</span>.<span class="ident">next</span>() {
+                <span class="kw">if</span> <span class="ident">seen</span>.<span class="ident">contains</span>(<span class="ident">next</span>) {
                     <span class="comment">// The only way to visit a duplicate state in a transition</span>
                     <span class="comment">// list is when ASCII case insensitivity is enabled. In</span>
                     <span class="comment">// this case, we want to skip it since it&#39;s redundant work.</span>
@@ -2251,16 +2250,16 @@
                     <span class="comment">// See the &#39;acasei010&#39; regression test.</span>
                     <span class="kw">continue</span>;
                 }
-                <a class="ident" href="../../src/aho_corasick/nfa.rs.html#847">queue</a>.<span class="ident">push_back</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#860">next</a>);
-                <a class="ident" href="../../src/aho_corasick/nfa.rs.html#848">seen</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1229">insert</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#860">next</a>);
+                <span class="ident">queue</span>.<span class="ident">push_back</span>(<span class="ident">next</span>);
+                <span class="ident">seen</span>.<span class="ident">insert</span>(<span class="ident">next</span>);
 
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fail</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#859">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#158">state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#858">id</a>).<span class="ident">fail</span>;
-                <span class="kw">while</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#859">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#158">state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#873">fail</a>).<a class="ident" href="../../src/aho_corasick/nfa.rs.html#327">next_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#860">b</a>) <span class="op">==</span> <a class="ident" href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>() {
-                    <a class="ident" href="../../src/aho_corasick/nfa.rs.html#873">fail</a> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#859">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#158">state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#873">fail</a>).<span class="ident">fail</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fail</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">id</span>).<span class="ident">fail</span>;
+                <span class="kw">while</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">fail</span>).<span class="ident">next_state</span>(<span class="ident">b</span>) <span class="op">==</span> <span class="ident">fail_id</span>() {
+                    <span class="ident">fail</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">fail</span>).<span class="ident">fail</span>;
                 }
-                <a class="ident" href="../../src/aho_corasick/nfa.rs.html#873">fail</a> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#859">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#158">state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#873">fail</a>).<a class="ident" href="../../src/aho_corasick/nfa.rs.html#327">next_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#860">b</a>);
-                <a class="ident" href="../../src/aho_corasick/nfa.rs.html#859">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#162">state_mut</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#860">next</a>).<span class="ident">fail</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#873">fail</a>;
-                <a class="ident" href="../../src/aho_corasick/nfa.rs.html#859">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#179">copy_matches</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#873">fail</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#860">next</a>);
+                <span class="ident">fail</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">fail</span>).<span class="ident">next_state</span>(<span class="ident">b</span>);
+                <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state_mut</span>(<span class="ident">next</span>).<span class="ident">fail</span> <span class="op">=</span> <span class="ident">fail</span>;
+                <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">copy_matches</span>(<span class="ident">fail</span>, <span class="ident">next</span>);
             }
             <span class="comment">// If the start state is a match state, then this automaton can</span>
             <span class="comment">// match the empty string. This implies all states are match states</span>
@@ -2271,7 +2270,7 @@
             <span class="comment">// in addition to its own. For the non-overlapping case, such</span>
             <span class="comment">// states only report the first match, which is never empty since</span>
             <span class="comment">// it isn&#39;t a start state.</span>
-            <a class="ident" href="../../src/aho_corasick/nfa.rs.html#859">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#185">copy_empty_matches</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#858">id</a>);
+            <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">copy_empty_matches</span>(<span class="ident">id</span>);
         }
     }
 
@@ -2328,7 +2327,7 @@
             <span class="doccomment">/// state.</span>
             <span class="kw">fn</span> <span class="ident">start</span>(<span class="ident">nfa</span>: <span class="kw-2">&amp;</span><span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="ident">QueuedState</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
                 <span class="kw">let</span> <span class="ident">match_at_depth</span> <span class="op">=</span>
-                    <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#945">nfa</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#166">start</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#312">is_match</a>() { <span class="prelude-val">Some</span>(<span class="number">0</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
+                    <span class="kw">if</span> <span class="ident">nfa</span>.<span class="ident">start</span>().<span class="ident">is_match</span>() { <span class="prelude-val">Some</span>(<span class="number">0</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
                 <a class="ident" href="../../src/aho_corasick/nfa.rs.html#932-940">QueuedState</a> { <span class="ident">id</span>: <a class="ident" href="../../src/aho_corasick/nfa.rs.html#945">nfa</a>.<span class="ident">start_id</span>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#946">match_at_depth</a> }
             }
 
@@ -2375,12 +2374,12 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seen</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#924">self</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1110">queued_set</a>();
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">QueuedState::start</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/nfa.rs.html#924">self</a>.<span class="ident">nfa</span>);
         <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
-            <span class="kw">let</span> <span class="ident">next_id</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#924">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#166">start</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#327">next_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#993">b</a>);
-            <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#994">next_id</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#992">start</a>.<span class="ident">id</span> {
-                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#992">start</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#953-957">next_queued_state</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/nfa.rs.html#924">self</a>.<span class="ident">nfa</span>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#994">next_id</a>);
-                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/aho_corasick/nfa.rs.html#991">seen</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1237">contains</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#996">next</a>.<span class="ident">id</span>) {
-                    <a class="ident" href="../../src/aho_corasick/nfa.rs.html#990">queue</a>.<span class="ident">push_back</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#996">next</a>);
-                    <a class="ident" href="../../src/aho_corasick/nfa.rs.html#991">seen</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1229">insert</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#996">next</a>.<span class="ident">id</span>);
+            <span class="kw">let</span> <span class="ident">next_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start</span>().<span class="ident">next_state</span>(<span class="ident">b</span>);
+            <span class="kw">if</span> <span class="ident">next_id</span> <span class="op">!</span><span class="op">=</span> <span class="ident">start</span>.<span class="ident">id</span> {
+                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">start</span>.<span class="ident">next_queued_state</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">nfa</span>, <span class="ident">next_id</span>);
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">seen</span>.<span class="ident">contains</span>(<span class="ident">next</span>.<span class="ident">id</span>) {
+                    <span class="ident">queue</span>.<span class="ident">push_back</span>(<span class="ident">next</span>);
+                    <span class="ident">seen</span>.<span class="ident">insert</span>(<span class="ident">next</span>.<span class="ident">id</span>);
                 }
                 <span class="comment">// If a state immediately following the start state is a match</span>
                 <span class="comment">// state, then we never want to follow its failure transition</span>
@@ -2390,20 +2389,20 @@
                 <span class="comment">//</span>
                 <span class="comment">// N.B. This is a special case of the more general handling</span>
                 <span class="comment">// found below.</span>
-                <span class="kw">if</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#924">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#158">state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#994">next_id</a>).<a class="ident" href="../../src/aho_corasick/nfa.rs.html#312">is_match</a>() {
-                    <a class="self" href="../../src/aho_corasick/nfa.rs.html#924">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#162">state_mut</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#994">next_id</a>).<span class="ident">fail</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>();
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">state</span>(<span class="ident">next_id</span>).<span class="ident">is_match</span>() {
+                    <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">state_mut</span>(<span class="ident">next_id</span>).<span class="ident">fail</span> <span class="op">=</span> <span class="ident">dead_id</span>();
                 }
             }
         }
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">item</span>) <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#990">queue</a>.<span class="ident">pop_front</span>() {
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">item</span>) <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">pop_front</span>() {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">any_trans</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">it</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#924">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#175">iter_transitions_mut</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1014">item</a>.<span class="ident">id</span>);
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">b</span>, <span class="ident">next_id</span>)) <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1016">it</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-                <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1015">any_trans</a> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">it</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">iter_transitions_mut</span>(<span class="ident">item</span>.<span class="ident">id</span>);
+            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">b</span>, <span class="ident">next_id</span>)) <span class="op">=</span> <span class="ident">it</span>.<span class="ident">next</span>() {
+                <span class="ident">any_trans</span> <span class="op">=</span> <span class="bool-val">true</span>;
 
                 <span class="comment">// Queue up the next state.</span>
-                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1014">item</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#953-957">next_queued_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1016">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>(), <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1017">next_id</a>);
-                <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#991">seen</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1237">contains</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1021">next</a>.<span class="ident">id</span>) {
+                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">next_queued_state</span>(<span class="ident">it</span>.<span class="ident">nfa</span>(), <span class="ident">next_id</span>);
+                <span class="kw">if</span> <span class="ident">seen</span>.<span class="ident">contains</span>(<span class="ident">next</span>.<span class="ident">id</span>) {
                     <span class="comment">// The only way to visit a duplicate state in a transition</span>
                     <span class="comment">// list is when ASCII case insensitivity is enabled. In</span>
                     <span class="comment">// this case, we want to skip it since it&#39;s redundant work.</span>
@@ -2412,15 +2411,15 @@
                     <span class="comment">// See the &#39;acasei010&#39; regression test.</span>
                     <span class="kw">continue</span>;
                 }
-                <a class="ident" href="../../src/aho_corasick/nfa.rs.html#990">queue</a>.<span class="ident">push_back</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1021">next</a>);
-                <a class="ident" href="../../src/aho_corasick/nfa.rs.html#991">seen</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1229">insert</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1021">next</a>.<span class="ident">id</span>);
+                <span class="ident">queue</span>.<span class="ident">push_back</span>(<span class="ident">next</span>);
+                <span class="ident">seen</span>.<span class="ident">insert</span>(<span class="ident">next</span>.<span class="ident">id</span>);
 
                 <span class="comment">// Find the failure state for next. Same as standard.</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fail</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1016">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#158">state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1014">item</a>.<span class="ident">id</span>).<span class="ident">fail</span>;
-                <span class="kw">while</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1016">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#158">state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1035">fail</a>).<a class="ident" href="../../src/aho_corasick/nfa.rs.html#327">next_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1017">b</a>) <span class="op">==</span> <a class="ident" href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>() {
-                    <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1035">fail</a> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1016">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#158">state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1035">fail</a>).<span class="ident">fail</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fail</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">item</span>.<span class="ident">id</span>).<span class="ident">fail</span>;
+                <span class="kw">while</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">fail</span>).<span class="ident">next_state</span>(<span class="ident">b</span>) <span class="op">==</span> <span class="ident">fail_id</span>() {
+                    <span class="ident">fail</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">fail</span>).<span class="ident">fail</span>;
                 }
-                <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1035">fail</a> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1016">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#158">state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1035">fail</a>).<a class="ident" href="../../src/aho_corasick/nfa.rs.html#327">next_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1017">b</a>);
+                <span class="ident">fail</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">fail</span>).<span class="ident">next_state</span>(<span class="ident">b</span>);
 
                 <span class="comment">// This is the key difference from the standard formulation.</span>
                 <span class="comment">// Namely, if we&#39;ve seen a match, then we only want a failure</span>
@@ -2455,29 +2454,29 @@
                 <span class="comment">// failures. Write out the automatons for them and try to work</span>
                 <span class="comment">// backwards by figuring out which failure transitions should</span>
                 <span class="comment">// be removed. You should arrive at the same rule used below.</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">match_depth</span>) <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1021">next</a>.<span class="ident">match_at_depth</span> {
-                    <span class="kw">let</span> <span class="ident">fail_depth</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1016">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#158">state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1035">fail</a>).<span class="ident">depth</span>;
-                    <span class="kw">let</span> <span class="ident">next_depth</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1016">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#158">state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1021">next</a>.<span class="ident">id</span>).<span class="ident">depth</span>;
-                    <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1076">next_depth</a> <span class="op">-</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1074">match_depth</a> <span class="op">+</span> <span class="number">1</span> <span class="op">&gt;</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1075">fail_depth</a> {
-                        <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1016">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#162">state_mut</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1021">next</a>.<span class="ident">id</span>).<span class="ident">fail</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>();
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">match_depth</span>) <span class="op">=</span> <span class="ident">next</span>.<span class="ident">match_at_depth</span> {
+                    <span class="kw">let</span> <span class="ident">fail_depth</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">fail</span>).<span class="ident">depth</span>;
+                    <span class="kw">let</span> <span class="ident">next_depth</span> <span class="op">=</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">next</span>.<span class="ident">id</span>).<span class="ident">depth</span>;
+                    <span class="kw">if</span> <span class="ident">next_depth</span> <span class="op">-</span> <span class="ident">match_depth</span> <span class="op">+</span> <span class="number">1</span> <span class="op">&gt;</span> <span class="ident">fail_depth</span> {
+                        <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state_mut</span>(<span class="ident">next</span>.<span class="ident">id</span>).<span class="ident">fail</span> <span class="op">=</span> <span class="ident">dead_id</span>();
                         <span class="kw">continue</span>;
                     }
                     <span class="macro">assert_ne!</span>(
-                        <a class="ident" href="../../src/aho_corasick/nfa.rs.html#992">start</a>.<span class="ident">id</span>,
-                        <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1016">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#158">state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1021">next</a>.<span class="ident">id</span>).<span class="ident">fail</span>,
+                        <span class="ident">start</span>.<span class="ident">id</span>,
+                        <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">next</span>.<span class="ident">id</span>).<span class="ident">fail</span>,
                         <span class="string">&quot;states that are match states or follow match \
                          states should never have a failure transition \
                          back to the start state in leftmost searching&quot;</span>,
                     );
                 }
-                <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1016">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#162">state_mut</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1021">next</a>.<span class="ident">id</span>).<span class="ident">fail</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1035">fail</a>;
-                <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1016">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#179">copy_matches</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1035">fail</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1021">next</a>.<span class="ident">id</span>);
+                <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state_mut</span>(<span class="ident">next</span>.<span class="ident">id</span>).<span class="ident">fail</span> <span class="op">=</span> <span class="ident">fail</span>;
+                <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">copy_matches</span>(<span class="ident">fail</span>, <span class="ident">next</span>.<span class="ident">id</span>);
             }
             <span class="comment">// If there are no transitions for this state and if it&#39;s a match</span>
             <span class="comment">// state, then we must set its failure transition to the dead</span>
             <span class="comment">// state since we never want it to restart the search.</span>
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/aho_corasick/nfa.rs.html#1015">any_trans</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1016">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#158">state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1014">item</a>.<span class="ident">id</span>).<a class="ident" href="../../src/aho_corasick/nfa.rs.html#312">is_match</a>() {
-                <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1016">it</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#511">nfa</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#162">state_mut</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1014">item</a>.<span class="ident">id</span>).<span class="ident">fail</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>();
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">any_trans</span> <span class="op">&amp;&amp;</span> <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state</span>(<span class="ident">item</span>.<span class="ident">id</span>).<span class="ident">is_match</span>() {
+                <span class="ident">it</span>.<span class="ident">nfa</span>().<span class="ident">state_mut</span>(<span class="ident">item</span>.<span class="ident">id</span>).<span class="ident">fail</span> <span class="op">=</span> <span class="ident">dead_id</span>();
             }
             <span class="comment">// We don&#39;t need to copy empty matches from the start state here</span>
             <span class="comment">// because that&#39;s only necessary for overlapping matches and</span>
@@ -2492,7 +2491,7 @@
     <span class="doccomment">/// returns an inert set that nevers adds anything and always reports</span>
     <span class="doccomment">/// `false` for every member test.</span>
     <span class="kw">fn</span> <span class="ident">queued_set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">QueuedSet</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#1110">self</a>.<span class="ident">builder</span>.<span class="ident">ascii_case_insensitive</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">ascii_case_insensitive</span> {
             <span class="ident">QueuedSet::active</span>()
         } <span class="kw">else</span> {
             <span class="ident">QueuedSet::inert</span>()
@@ -2512,8 +2511,8 @@
         <span class="kw">let</span> <span class="ident">start_id</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#1127">self</a>.<span class="ident">nfa</span>.<span class="ident">start_id</span>;
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#1127">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#170">start_mut</a>();
         <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
-            <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1129">start</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#327">next_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1130">b</a>) <span class="op">==</span> <a class="ident" href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>() {
-                <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1129">start</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#331">set_next_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1130">b</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1128">start_id</a>);
+            <span class="kw">if</span> <span class="ident">start</span>.<span class="ident">next_state</span>(<span class="ident">b</span>) <span class="op">==</span> <span class="ident">fail_id</span>() {
+                <span class="ident">start</span>.<span class="ident">set_next_state</span>(<span class="ident">b</span>, <span class="ident">start_id</span>);
             }
         }
     }
@@ -2533,14 +2532,14 @@
     <span class="doccomment">/// none exist, we transition to the dead state, which signals that</span>
     <span class="doccomment">/// searching should stop.</span>
     <span class="kw">fn</span> <span class="ident">close_start_state_loop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#1151">self</a>.<span class="ident">builder</span>.<span class="ident">anchored</span>
-            <span class="op">|</span><span class="op">|</span> (<a class="self" href="../../src/aho_corasick/nfa.rs.html#1151">self</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1198">match_kind</a>().<a class="ident" href="../../src/aho_corasick/ahocorasick.rs.html#2100">is_leftmost</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#1151">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#166">start</a>().<a class="ident" href="../../src/aho_corasick/nfa.rs.html#312">is_match</a>())
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">anchored</span>
+            <span class="op">|</span><span class="op">|</span> (<span class="self">self</span>.<span class="ident">match_kind</span>().<span class="ident">is_leftmost</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">start</span>().<span class="ident">is_match</span>())
         {
             <span class="kw">let</span> <span class="ident">start_id</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#1151">self</a>.<span class="ident">nfa</span>.<span class="ident">start_id</span>;
             <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#1151">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#170">start_mut</a>();
             <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
-                <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1156">start</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#327">next_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1157">b</a>) <span class="op">==</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1155">start_id</a> {
-                    <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1156">start</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#331">set_next_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1157">b</a>, <a class="ident" href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>());
+                <span class="kw">if</span> <span class="ident">start</span>.<span class="ident">next_state</span>(<span class="ident">b</span>) <span class="op">==</span> <span class="ident">start_id</span> {
+                    <span class="ident">start</span>.<span class="ident">set_next_state</span>(<span class="ident">b</span>, <span class="ident">dead_id</span>());
                 }
             }
         }
@@ -2552,15 +2551,15 @@
     <span class="kw">fn</span> <span class="ident">add_dead_state_loop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">dead</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#1168">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#162">state_mut</a>(<a class="ident" href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>());
         <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">AllBytesIter::new</span>() {
-            <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1169">dead</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#331">set_next_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1170">b</a>, <a class="ident" href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>());
+            <span class="ident">dead</span>.<span class="ident">set_next_state</span>(<span class="ident">b</span>, <span class="ident">dead_id</span>());
         }
     }
 
     <span class="doccomment">/// Computes the total amount of heap used by this NFA in bytes.</span>
     <span class="kw">fn</span> <span class="ident">calculate_size</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">size</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">for</span> <span class="ident">state</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/aho_corasick/nfa.rs.html#1176">self</a>.<span class="ident">nfa</span>.<span class="ident">states</span> {
-            <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1177">size</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1178">state</a>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#303">heap_bytes</a>();
+        <span class="kw">for</span> <span class="ident">state</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">nfa</span>.<span class="ident">states</span> {
+            <span class="ident">size</span> <span class="op">+</span><span class="op">=</span> <span class="ident">state</span>.<span class="ident">heap_bytes</span>();
         }
         <a class="self" href="../../src/aho_corasick/nfa.rs.html#1176">self</a>.<span class="ident">nfa</span>.<span class="ident">heap_bytes</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1177">size</a>;
     }
@@ -2571,7 +2570,7 @@
     <span class="doccomment">/// If adding the new state would overflow the chosen state ID</span>
     <span class="doccomment">/// representation, then this returns an error.</span>
     <span class="kw">fn</span> <span class="ident">add_state</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">depth</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1189">depth</a> <span class="op">&lt;</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#1189">self</a>.<span class="ident">builder</span>.<span class="ident">dense_depth</span> {
+        <span class="kw">if</span> <span class="ident">depth</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">builder</span>.<span class="ident">dense_depth</span> {
             <a class="self" href="../../src/aho_corasick/nfa.rs.html#1189">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#190">add_dense_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1189">depth</a>)
         } <span class="kw">else</span> {
             <a class="self" href="../../src/aho_corasick/nfa.rs.html#1189">self</a>.<span class="ident">nfa</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#203">add_sparse_state</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1189">depth</a>)
@@ -2647,7 +2646,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#1265">self</a>.<span class="number">0</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">256</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">256</span> {
             <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#1265">self</a>.<span class="number">0</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
@@ -2659,41 +2658,41 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-105">StateID</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">NFA</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <span class="macro">writeln!</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1277">f</a>, <span class="string">&quot;NFA(&quot;</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1277">f</a>, <span class="string">&quot;match_kind: {:?}&quot;</span>, <a class="self" href="../../src/aho_corasick/nfa.rs.html#1277">self</a>.<span class="ident">match_kind</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1277">f</a>, <span class="string">&quot;prefilter: {:?}&quot;</span>, <a class="self" href="../../src/aho_corasick/nfa.rs.html#1277">self</a>.<span class="ident">prefilter</span>)<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1277">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="string">&quot;-&quot;</span>.<span class="ident">repeat</span>(<span class="number">79</span>))<span class="question-mark">?</span>;
-        <span class="kw">for</span> (<span class="ident">id</span>, <span class="ident">s</span>) <span class="kw">in</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#1277">self</a>.<span class="ident">states</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>() {
+        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;NFA(&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;match_kind: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">match_kind</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;prefilter: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">prefilter</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="string">&quot;-&quot;</span>.<span class="ident">repeat</span>(<span class="number">79</span>))<span class="question-mark">?</span>;
+        <span class="kw">for</span> (<span class="ident">id</span>, <span class="ident">s</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">states</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trans</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-            <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1282">s</a>.<span class="ident">trans</span>.<a class="ident" href="../../src/aho_corasick/nfa.rs.html#435">iter</a>(<span class="op">|</span><span class="ident">byte</span>, <span class="ident">next</span><span class="op">|</span> {
+            <span class="ident">s</span>.<span class="ident">trans</span>.<span class="ident">iter</span>(<span class="op">|</span><span class="ident">byte</span>, <span class="ident">next</span><span class="op">|</span> {
                 <span class="comment">// The start state has a bunch of uninteresting transitions</span>
                 <span class="comment">// back into itself. It&#39;s questionable to hide them since they</span>
                 <span class="comment">// are critical to understanding the automaton, but they are</span>
                 <span class="comment">// very noisy without better formatting for contiugous ranges</span>
                 <span class="comment">// to the same state.</span>
-                <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1282">id</a> <span class="op">==</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#1277">self</a>.<span class="ident">start_id</span>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1284">next</a> <span class="op">==</span> <a class="self" href="../../src/aho_corasick/nfa.rs.html#1277">self</a>.<span class="ident">start_id</span> {
+                <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">start_id</span>.<span class="ident">to_usize</span>() <span class="op">&amp;&amp;</span> <span class="ident">next</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">start_id</span> {
                     <span class="kw">return</span>;
                 }
                 <span class="comment">// Similarly, the dead state has a bunch of uninteresting</span>
                 <span class="comment">// transitions too.</span>
-                <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1282">id</a> <span class="op">==</span> <a class="ident" href="../../src/aho_corasick/state_id.rs.html#45">dead_id</a>() {
+                <span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">dead_id</span>() {
                     <span class="kw">return</span>;
                 }
-                <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1283">trans</a>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;{} =&gt; {}&quot;</span>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1349">escape</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1284">byte</a>), <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1284">next</a>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>()));
+                <span class="ident">trans</span>.<span class="ident">push</span>(<span class="macro">format!</span>(<span class="string">&quot;{} =&gt; {}&quot;</span>, <span class="ident">escape</span>(<span class="ident">byte</span>), <span class="ident">next</span>.<span class="ident">to_usize</span>()));
             });
-            <span class="macro">writeln!</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1277">f</a>, <span class="string">&quot;{:04}: {}&quot;</span>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1282">id</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1283">trans</a>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{:04}: {}&quot;</span>, <span class="ident">id</span>, <span class="ident">trans</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">matches</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1282">s</a>
+            <span class="kw">let</span> <span class="ident">matches</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">s</span>
                 .<span class="ident">matches</span>
                 .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">pattern_id</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1305">pattern_id</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-            <span class="macro">writeln!</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1277">f</a>, <span class="string">&quot;  matches: {}&quot;</span>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1302">matches</a>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))<span class="question-mark">?</span>;
-            <span class="macro">writeln!</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1277">f</a>, <span class="string">&quot;     fail: {}&quot;</span>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1282">s</a>.<span class="ident">fail</span>.<a class="ident" href="../../src/aho_corasick/state_id.rs.html#98">to_usize</a>())<span class="question-mark">?</span>;
-            <span class="macro">writeln!</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1277">f</a>, <span class="string">&quot;    depth: {}&quot;</span>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1282">s</a>.<span class="ident">depth</span>)<span class="question-mark">?</span>;
+                .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">pattern_id</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="ident">pattern_id</span>.<span class="ident">to_string</span>())
+                .<span class="ident">collect</span>();
+            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;  matches: {}&quot;</span>, <span class="ident">matches</span>.<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>))<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;     fail: {}&quot;</span>, <span class="ident">s</span>.<span class="ident">fail</span>.<span class="ident">to_usize</span>())<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;    depth: {}&quot;</span>, <span class="ident">s</span>.<span class="ident">depth</span>)<span class="question-mark">?</span>;
         }
-        <span class="macro">writeln!</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1277">f</a>, <span class="string">&quot;{}&quot;</span>, <span class="string">&quot;-&quot;</span>.<span class="ident">repeat</span>(<span class="number">79</span>))<span class="question-mark">?</span>;
-        <span class="macro">writeln!</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1277">f</a>, <span class="string">&quot;)&quot;</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="string">&quot;-&quot;</span>.<span class="ident">repeat</span>(<span class="number">79</span>))<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;)&quot;</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -2701,16 +2700,16 @@
 <span class="doccomment">/// Iterate over all possible byte transitions given a sparse set.</span>
 <span class="kw">fn</span> <span class="ident">sparse_iter</span><span class="op">&lt;</span><span class="ident">S</span>: <a class="ident" href="../../src/aho_corasick/state_id.rs.html#72-105">StateID</a>, <span class="ident">F</span>: <span class="ident">FnMut</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">S</span>)<span class="op">&gt;</span>(<span class="ident">trans</span>: <span class="kw-2">&amp;</span>[(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">S</span>)], <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">byte</span> <span class="op">=</span> <span class="number">0u16</span>;
-    <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">b</span>, <span class="ident">id</span>) <span class="kw">in</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1318">trans</a> {
-        <span class="kw">while</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1319">byte</a> <span class="op">&lt;</span> (<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1320">b</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>) {
-            <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1318">f</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1319">byte</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>());
-            <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1319">byte</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">b</span>, <span class="ident">id</span>) <span class="kw">in</span> <span class="ident">trans</span> {
+        <span class="kw">while</span> <span class="ident">byte</span> <span class="op">&lt;</span> (<span class="ident">b</span> <span class="kw">as</span> <span class="ident">u16</span>) {
+            <span class="ident">f</span>(<span class="ident">byte</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">fail_id</span>());
+            <span class="ident">byte</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
-        <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1318">f</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1320">b</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1320">id</a>);
-        <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1319">byte</a> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="ident">f</span>(<span class="ident">b</span>, <span class="ident">id</span>);
+        <span class="ident">byte</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
     }
-    <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1319">byte</a>..<span class="number">256</span> {
-        <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1318">f</a>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1328">b</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../src/aho_corasick/state_id.rs.html#39">fail_id</a>());
+    <span class="kw">for</span> <span class="ident">b</span> <span class="kw">in</span> <span class="ident">byte</span>..<span class="number">256</span> {
+        <span class="ident">f</span>(<span class="ident">b</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">fail_id</span>());
     }
 }
 
@@ -2719,8 +2718,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// This panics if i == j.</span>
 <span class="kw">fn</span> <span class="ident">get_two_mut</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">xs</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">T</span>], <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">j</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<span class="kw-2">&amp;mut</span> <span class="ident">T</span>, <span class="kw-2">&amp;mut</span> <span class="ident">T</span>) {
-    <span class="macro">assert!</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1337">i</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1337">j</a>, <span class="string">&quot;{} must not be equal to {}&quot;</span>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1337">i</a>, <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1337">j</a>);
-    <span class="kw">if</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1337">i</a> <span class="op">&lt;</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1337">j</a> {
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">i</span> <span class="op">!</span><span class="op">=</span> <span class="ident">j</span>, <span class="string">&quot;{} must not be equal to {}&quot;</span>, <span class="ident">i</span>, <span class="ident">j</span>);
+    <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">j</span> {
         <span class="kw">let</span> (<span class="ident">before</span>, <span class="ident">after</span>) <span class="op">=</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1337">xs</a>.<span class="ident">split_at_mut</span>(<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1337">j</a>);
         (<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1340">before</a>[<a class="ident" href="../../src/aho_corasick/nfa.rs.html#1337">i</a>], <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/aho_corasick/nfa.rs.html#1340">after</a>[<span class="number">0</span>])
     } <span class="kw">else</span> {
@@ -2760,5 +2759,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

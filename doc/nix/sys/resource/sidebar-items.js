@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Resource","Types of process resources."]],"fn":[["getrlimit","Get the current processes resource limits"],["setrlimit","Set the current processes resource limits"]],"type":[["rlim_t",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["Resource","Types of process resources."]],"fn":[["getrlimit","Get the current processes resource limits"],["setrlimit","Set the current processes resource limits"]],"type":[["rlim_t",""]]};

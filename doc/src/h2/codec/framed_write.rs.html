@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.13/src/codec/framed_write.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>framed_write.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/h2-0.3.13/src/codec/framed_write.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>framed_write.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../h2/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../h2/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -476,11 +475,11 @@
     <span class="doccomment">/// Calling this function may result in the current contents of the buffer</span>
     <span class="doccomment">/// to be flushed to `T`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/h2/codec/framed_write.rs.html#97">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#307">has_capacity</a>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">has_capacity</span>() {
             <span class="comment">// Try flushing</span>
-            <span class="macro">ready!</span>(<a class="self" href="../../../src/h2/codec/framed_write.rs.html#97">self</a>.<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#119">flush</a>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#97">cx</a>))<span class="question-mark">?</span>;
+            <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">flush</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
 
-            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/h2/codec/framed_write.rs.html#97">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#307">has_capacity</a>() {
+            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">has_capacity</span>() {
                 <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
             }
         }
@@ -498,29 +497,29 @@
 
     <span class="doccomment">/// Flush buffered data to the wire</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;FramedWrite::flush&quot;</span>);
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;FramedWrite::flush&quot;</span>);
         <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#120">span</a>.<span class="ident">enter</span>();
 
         <span class="kw">loop</span> {
-            <span class="kw">while</span> <span class="op">!</span><a class="self" href="../../../src/h2/codec/framed_write.rs.html#119">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#311">is_empty</a>() {
-                <span class="kw">match</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#119">self</a>.<span class="ident">encoder</span>.<span class="ident">next</span> {
-                    <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#54">Next::Data</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">frame</span>)) =&gt; {
+            <span class="kw">while</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">is_empty</span>() {
+                <span class="kw">match</span> <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">next</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">Next::Data</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">frame</span>)) =&gt; {
                         <span class="macro">tracing::trace!</span>(<span class="ident">queued_data_frame</span> <span class="op">=</span> <span class="bool-val">true</span>);
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> (<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#119">self</a>.<span class="ident">encoder</span>.<span class="ident">buf</span>).<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">chain</a>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#126">frame</a>.<a class="ident" href="../../../src/h2/frame/data.rs.html#90">payload_mut</a>());
-                        <span class="macro">ready!</span>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#168-176">write</a>(
-                            <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#119">self</a>.<span class="ident">inner</span>,
-                            <a class="self" href="../../../src/h2/codec/framed_write.rs.html#119">self</a>.<span class="ident">encoder</span>.<span class="ident">is_write_vectored</span>,
-                            <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#128">buf</a>,
-                            <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#119">cx</a>,
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> (<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">buf</span>).<span class="ident">chain</span>(<span class="ident">frame</span>.<span class="ident">payload_mut</span>());
+                        <span class="macro">ready!</span>(<span class="ident">write</span>(
+                            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">inner</span>,
+                            <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">is_write_vectored</span>,
+                            <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>,
+                            <span class="ident">cx</span>,
                         ))<span class="question-mark">?</span>
                     }
                     <span class="kw">_</span> =&gt; {
                         <span class="macro">tracing::trace!</span>(<span class="ident">queued_data_frame</span> <span class="op">=</span> <span class="bool-val">false</span>);
-                        <span class="macro">ready!</span>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#168-176">write</a>(
-                            <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#119">self</a>.<span class="ident">inner</span>,
-                            <a class="self" href="../../../src/h2/codec/framed_write.rs.html#119">self</a>.<span class="ident">encoder</span>.<span class="ident">is_write_vectored</span>,
-                            <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#119">self</a>.<span class="ident">encoder</span>.<span class="ident">buf</span>,
-                            <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#119">cx</a>,
+                        <span class="macro">ready!</span>(<span class="ident">write</span>(
+                            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">inner</span>,
+                            <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">is_write_vectored</span>,
+                            <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">buf</span>,
+                            <span class="ident">cx</span>,
                         ))<span class="question-mark">?</span>
                     }
                 }
@@ -532,16 +531,16 @@
             }
         }
 
-        <span class="macro">tracing::trace!</span>(<span class="string">&quot;flushing buffer&quot;</span>);
+        <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;flushing buffer&quot;</span>);
         <span class="comment">// Flush the upstream</span>
-        <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#119">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#119">cx</a>))<span class="question-mark">?</span>;
+        <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">inner</span>).<span class="ident">poll_flush</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
 
         <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
     }
 
     <span class="doccomment">/// Close the codec</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">ready!</span>(<a class="self" href="../../../src/h2/codec/framed_write.rs.html#162">self</a>.<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#119">flush</a>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#162">cx</a>))<span class="question-mark">?</span>;
+        <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">flush</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
         <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#162">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">poll_shutdown</a>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#162">cx</a>)
     }
 }
@@ -559,12 +558,12 @@
     <span class="comment">// TODO(eliza): when tokio-util 0.5.1 is released, this</span>
     <span class="comment">// could just use `poll_write_buf`...</span>
     <span class="kw">const</span> <span class="ident">MAX_IOVS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">64</span>;
-    <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#170">is_write_vectored</a> {
+    <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_write_vectored</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bufs</span> <span class="op">=</span> [<span class="ident">IoSlice::new</span>(<span class="kw-2">&amp;</span>[]); <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#180">MAX_IOVS</a>];
         <span class="kw">let</span> <span class="ident">cnt</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#171">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">chunks_vectored</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#182">bufs</a>);
-        <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#169">writer</a>).<a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">poll_write_vectored</a>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#172">cx</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/h2/codec/framed_write.rs.html#182">bufs</a>[..<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#183">cnt</a>]))<span class="question-mark">?</span>
+        <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="ident">writer</span>).<span class="ident">poll_write_vectored</span>(<span class="ident">cx</span>, <span class="kw-2">&amp;</span><span class="ident">bufs</span>[..<span class="ident">cnt</span>]))<span class="question-mark">?</span>
     } <span class="kw">else</span> {
-        <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#169">writer</a>).<a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">poll_write</a>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#172">cx</a>, <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#171">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">chunk</a>()))<span class="question-mark">?</span>
+        <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="ident">writer</span>).<span class="ident">poll_write</span>(<span class="ident">cx</span>, <span class="ident">buf</span>.<span class="ident">chunk</span>()))<span class="question-mark">?</span>
     };
     <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#171">buf</a>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#181">n</a>);
     <span class="prelude-val">Ok</span>(()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()
@@ -589,12 +588,12 @@
         <span class="kw">match</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#202">self</a>.<span class="ident">next</span>.<span class="ident">take</span>() {
             <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#54">Next::Data</a>(<span class="ident">frame</span>)) =&gt; {
                 <a class="self" href="../../../src/h2/codec/framed_write.rs.html#202">self</a>.<span class="ident">last_data_frame</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#209">frame</a>);
-                <span class="macro">debug_assert!</span>(<a class="self" href="../../../src/h2/codec/framed_write.rs.html#202">self</a>.<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#311">is_empty</a>());
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">is_empty</span>());
                 <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#195">ControlFlow::Break</a>
             }
             <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#55">Next::Continuation</a>(<span class="ident">frame</span>)) =&gt; {
                 <span class="comment">// Buffer the continuation frame, then try to write again</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">limited_write_buf!</span>(<a class="self" href="../../../src/h2/codec/framed_write.rs.html#202">self</a>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <a class="macro" href="../../../src/h2/codec/framed_write.rs.html#14-19">limited_write_buf!</a>(<span class="self">self</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">continuation</span>) <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#214">frame</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#531">encode</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#216">buf</a>) {
                     <a class="self" href="../../../src/h2/codec/framed_write.rs.html#202">self</a>.<span class="ident">next</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#55">Next::Continuation</a>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#217">continuation</a>));
                 }
@@ -606,22 +605,22 @@
 
     <span class="kw">fn</span> <span class="ident">buffer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="ident">Frame</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/h2/codec/error.rs.html#14-52">UserError</a><span class="op">&gt;</span> {
         <span class="comment">// Ensure that we have enough capacity to accept the write.</span>
-        <span class="macro">assert!</span>(<a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#307">has_capacity</a>());
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="macro">tracing::trace_span!</span>(<span class="string">&quot;FramedWrite::buffer&quot;</span>, <span class="ident">frame</span> <span class="op">=</span> <span class="question-mark">?</span><a class="ident" href="../../../src/h2/codec/framed_write.rs.html#226">item</a>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="ident">has_capacity</span>());
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="macro" href="../../../tracing/tracing/macro.trace_span.html">tracing::trace_span!</a>(<span class="string">&quot;FramedWrite::buffer&quot;</span>, <span class="ident">frame</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">item</span>);
         <span class="kw">let</span> <span class="ident">_e</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#229">span</a>.<span class="ident">enter</span>();
 
-        <span class="macro">tracing::debug!</span>(<span class="ident">frame</span> <span class="op">=</span> <span class="question-mark">?</span><a class="ident" href="../../../src/h2/codec/framed_write.rs.html#226">item</a>, <span class="string">&quot;send&quot;</span>);
+        <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="ident">frame</span> <span class="op">=</span> <span class="question-mark">?</span><span class="ident">item</span>, <span class="string">&quot;send&quot;</span>);
 
         <span class="kw">match</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#226">item</a> {
             <a class="ident" href="../../../src/h2/frame/mod.rs.html#71">Frame::Data</a>(<span class="kw-2">mut</span> <span class="ident">v</span>) =&gt; {
                 <span class="comment">// Ensure that the payload is not greater than the max frame.</span>
                 <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#235">v</a>.<a class="ident" href="../../../src/h2/frame/data.rs.html#82">payload</a>().<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>();
 
-                <span class="kw">if</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#237">len</a> <span class="op">&gt;</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#320">max_frame_size</a>() {
+                <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">max_frame_size</span>() {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/h2/codec/error.rs.html#22">PayloadTooBig</a>);
                 }
 
-                <span class="kw">if</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#237">len</a> <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#70">CHAIN_THRESHOLD</a> {
+                <span class="kw">if</span> <span class="ident">len</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">CHAIN_THRESHOLD</span> {
                     <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#235">v</a>.<a class="ident" href="../../../src/h2/frame/data.rs.html#102">head</a>();
 
                     <span class="comment">// Encode the frame head to the buffer</span>
@@ -634,39 +633,39 @@
 
                     <span class="comment">// The chunk has been fully encoded, so there is no need to</span>
                     <span class="comment">// keep it around</span>
-                    <span class="macro">assert_eq!</span>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#235">v</a>.<a class="ident" href="../../../src/h2/frame/data.rs.html#82">payload</a>().<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>(), <span class="number">0</span>, <span class="string">&quot;chunk not fully encoded&quot;</span>);
+                    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">v</span>.<span class="ident">payload</span>().<span class="ident">remaining</span>(), <span class="number">0</span>, <span class="string">&quot;chunk not fully encoded&quot;</span>);
 
                     <span class="comment">// Save off the last frame...</span>
                     <a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<span class="ident">last_data_frame</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#235">v</a>);
                 }
             }
             <a class="ident" href="../../../src/h2/frame/mod.rs.html#72">Frame::Headers</a>(<span class="ident">v</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">limited_write_buf!</span>(<a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <a class="macro" href="../../../src/h2/codec/framed_write.rs.html#14-19">limited_write_buf!</a>(<span class="self">self</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">continuation</span>) <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#262">v</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#263-267">encode</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<span class="ident">hpack</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#263">buf</a>) {
                     <a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<span class="ident">next</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#55">Next::Continuation</a>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#264">continuation</a>));
                 }
             }
             <a class="ident" href="../../../src/h2/frame/mod.rs.html#74">Frame::PushPromise</a>(<span class="ident">v</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">limited_write_buf!</span>(<a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <a class="macro" href="../../../src/h2/codec/framed_write.rs.html#14-19">limited_write_buf!</a>(<span class="self">self</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">continuation</span>) <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#268">v</a>.<a class="ident" href="../../../src/h2/frame/headers.rs.html#479-483">encode</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<span class="ident">hpack</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#269">buf</a>) {
                     <a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<span class="ident">next</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#55">Next::Continuation</a>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#270">continuation</a>));
                 }
             }
             <a class="ident" href="../../../src/h2/frame/mod.rs.html#75">Frame::Settings</a>(<span class="ident">v</span>) =&gt; {
                 <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#274">v</a>.<a class="ident" href="../../../src/h2/frame/settings.rs.html#215">encode</a>(<a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<span class="ident">buf</span>.<span class="ident">get_mut</span>());
-                <span class="macro">tracing::trace!</span>(<span class="ident">rem</span> <span class="op">=</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<span class="ident">buf</span>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>(), <span class="string">&quot;encoded settings&quot;</span>);
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="ident">rem</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">remaining</span>(), <span class="string">&quot;encoded settings&quot;</span>);
             }
             <a class="ident" href="../../../src/h2/frame/mod.rs.html#77">Frame::GoAway</a>(<span class="ident">v</span>) =&gt; {
                 <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#278">v</a>.<a class="ident" href="../../../src/h2/frame/go_away.rs.html#52">encode</a>(<a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<span class="ident">buf</span>.<span class="ident">get_mut</span>());
-                <span class="macro">tracing::trace!</span>(<span class="ident">rem</span> <span class="op">=</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<span class="ident">buf</span>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>(), <span class="string">&quot;encoded go_away&quot;</span>);
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="ident">rem</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">remaining</span>(), <span class="string">&quot;encoded go_away&quot;</span>);
             }
             <a class="ident" href="../../../src/h2/frame/mod.rs.html#76">Frame::Ping</a>(<span class="ident">v</span>) =&gt; {
                 <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#282">v</a>.<a class="ident" href="../../../src/h2/frame/ping.rs.html#86">encode</a>(<a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<span class="ident">buf</span>.<span class="ident">get_mut</span>());
-                <span class="macro">tracing::trace!</span>(<span class="ident">rem</span> <span class="op">=</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<span class="ident">buf</span>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>(), <span class="string">&quot;encoded ping&quot;</span>);
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="ident">rem</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">remaining</span>(), <span class="string">&quot;encoded ping&quot;</span>);
             }
             <a class="ident" href="../../../src/h2/frame/mod.rs.html#78">Frame::WindowUpdate</a>(<span class="ident">v</span>) =&gt; {
                 <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#286">v</a>.<a class="ident" href="../../../src/h2/frame/window_update.rs.html#50">encode</a>(<a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<span class="ident">buf</span>.<span class="ident">get_mut</span>());
-                <span class="macro">tracing::trace!</span>(<span class="ident">rem</span> <span class="op">=</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<span class="ident">buf</span>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>(), <span class="string">&quot;encoded window_update&quot;</span>);
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="ident">rem</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">remaining</span>(), <span class="string">&quot;encoded window_update&quot;</span>);
             }
 
             <a class="ident" href="../../../src/h2/frame/mod.rs.html#73">Frame::Priority</a>(<span class="kw">_</span>) =&gt; {
@@ -674,11 +673,11 @@
                 v.encode(self.buf.get_mut());
                 tracing::trace!(&quot;encoded priority; rem={:?}&quot;, self.buf.remaining());
                 */</span>
-                <span class="macro">unimplemented!</span>();
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>();
             }
             <a class="ident" href="../../../src/h2/frame/mod.rs.html#79">Frame::Reset</a>(<span class="ident">v</span>) =&gt; {
                 <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#298">v</a>.<a class="ident" href="../../../src/h2/frame/reset.rs.html#40">encode</a>(<a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<span class="ident">buf</span>.<span class="ident">get_mut</span>());
-                <span class="macro">tracing::trace!</span>(<span class="ident">rem</span> <span class="op">=</span> <a class="self" href="../../../src/h2/codec/framed_write.rs.html#226">self</a>.<span class="ident">buf</span>.<a class="ident" href="../../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>(), <span class="string">&quot;encoded reset&quot;</span>);
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="ident">rem</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">buf</span>.<span class="ident">remaining</span>(), <span class="string">&quot;encoded reset&quot;</span>);
             }
         }
 
@@ -711,7 +710,7 @@
 
     <span class="doccomment">/// Set the peer&#39;s max frame size.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_max_frame_size</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="macro">assert!</span>(<a class="ident" href="../../../src/h2/codec/framed_write.rs.html#332">val</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/h2/frame/settings.rs.html#53">frame::MAX_MAX_FRAME_SIZE</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">val</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">frame::MAX_MAX_FRAME_SIZE</span> <span class="kw">as</span> <span class="ident">usize</span>);
         <a class="self" href="../../../src/h2/codec/framed_write.rs.html#332">self</a>.<span class="ident">encoder</span>.<span class="ident">max_frame_size</span> <span class="op">=</span> <a class="ident" href="../../../src/h2/codec/framed_write.rs.html#332">val</a> <span class="kw">as</span> <a class="ident" href="../../../src/h2/frame/mod.rs.html#65">FrameSize</a>;
     }
 
@@ -754,5 +753,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="h2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

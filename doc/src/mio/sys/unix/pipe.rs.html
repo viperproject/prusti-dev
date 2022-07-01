@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.3/src/sys/unix/pipe.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pipe.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/mio-0.8.4/src/sys/unix/pipe.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pipe.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../mio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../mio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../mio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -584,7 +583,7 @@
 <span class="kw">use</span> <span class="ident">std::process</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStderr.html">ChildStderr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdin.html">ChildStdin</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdout.html">ChildStdout</a>};
 
 <span class="kw">use</span> <a class="ident" href="../../../../src/mio/io_source.rs.html#62-67"><span class="kw">crate</span>::io_source::IoSource</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../../src/mio/lib.rs.html#54">event</a>, <a class="ident" href="../../../../src/mio/interest.rs.html#17">Interest</a>, <a class="ident" href="../../../../src/mio/poll.rs.html#232-234">Registry</a>, <a class="ident" href="../../../../src/mio/token.rs.html#132">Token</a>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../../src/mio/lib.rs.html#54">event</a>, <a class="ident" href="../../../../src/mio/interest.rs.html#17">Interest</a>, <a class="ident" href="../../../../src/mio/poll.rs.html#254-256">Registry</a>, <a class="ident" href="../../../../src/mio/token.rs.html#132">Token</a>};
 
 <span class="doccomment">/// Create a new non-blocking Unix pipe.</span>
 <span class="doccomment">///</span>
@@ -734,7 +733,7 @@
         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;redox&quot;</span>,
     ))]</span>
     <span class="kw">unsafe</span> {
-        <span class="kw">if</span> <span class="ident">libc::pipe2</span>(<a class="ident" href="../../../../src/mio/sys/unix/pipe.rs.html#148">fds</a>.<span class="ident">as_mut_ptr</span>(), <span class="ident">libc::O_CLOEXEC</span> <span class="op">|</span> <span class="ident">libc::O_NONBLOCK</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">libc::pipe2</span>(<span class="ident">fds</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">libc::O_CLOEXEC</span> <span class="op">|</span> <span class="ident">libc::O_NONBLOCK</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::last_os_error</span>());
         }
     }
@@ -866,7 +865,7 @@
 <span class="kw">impl</span> <a class="ident" href="../../../../src/mio/event/source.rs.html#75-112">event::Source</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/sys/unix/pipe.rs.html#211-213">Sender</a> {
     <span class="kw">fn</span> <span class="ident">register</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#232-234">Registry</a>,
+        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#254-256">Registry</a>,
         <span class="ident">token</span>: <a class="ident" href="../../../../src/mio/token.rs.html#132">Token</a>,
         <span class="ident">interests</span>: <a class="ident" href="../../../../src/mio/interest.rs.html#17">Interest</a>,
     ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
@@ -875,14 +874,14 @@
 
     <span class="kw">fn</span> <span class="ident">reregister</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#232-234">Registry</a>,
+        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#254-256">Registry</a>,
         <span class="ident">token</span>: <a class="ident" href="../../../../src/mio/token.rs.html#132">Token</a>,
         <span class="ident">interests</span>: <a class="ident" href="../../../../src/mio/interest.rs.html#17">Interest</a>,
     ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#301">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/event/source.rs.html#97-102">reregister</a>(<a class="ident" href="../../../../src/mio/sys/unix/pipe.rs.html#302">registry</a>, <a class="ident" href="../../../../src/mio/sys/unix/pipe.rs.html#303">token</a>, <a class="ident" href="../../../../src/mio/sys/unix/pipe.rs.html#304">interests</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#232-234">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#254-256">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#309">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/event/source.rs.html#111">deregister</a>(<a class="ident" href="../../../../src/mio/sys/unix/pipe.rs.html#309">registry</a>)
     }
 }
@@ -1031,7 +1030,7 @@
 <span class="kw">impl</span> <a class="ident" href="../../../../src/mio/event/source.rs.html#75-112">event::Source</a> <span class="kw">for</span> <a class="ident" href="../../../../src/mio/sys/unix/pipe.rs.html#376-378">Receiver</a> {
     <span class="kw">fn</span> <span class="ident">register</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#232-234">Registry</a>,
+        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#254-256">Registry</a>,
         <span class="ident">token</span>: <a class="ident" href="../../../../src/mio/token.rs.html#132">Token</a>,
         <span class="ident">interests</span>: <a class="ident" href="../../../../src/mio/interest.rs.html#17">Interest</a>,
     ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
@@ -1040,14 +1039,14 @@
 
     <span class="kw">fn</span> <span class="ident">reregister</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#232-234">Registry</a>,
+        <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#254-256">Registry</a>,
         <span class="ident">token</span>: <a class="ident" href="../../../../src/mio/token.rs.html#132">Token</a>,
         <span class="ident">interests</span>: <a class="ident" href="../../../../src/mio/interest.rs.html#17">Interest</a>,
     ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#466">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/event/source.rs.html#97-102">reregister</a>(<a class="ident" href="../../../../src/mio/sys/unix/pipe.rs.html#467">registry</a>, <a class="ident" href="../../../../src/mio/sys/unix/pipe.rs.html#468">token</a>, <a class="ident" href="../../../../src/mio/sys/unix/pipe.rs.html#469">interests</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#232-234">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">registry</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/poll.rs.html#254-256">Registry</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <a class="self" href="../../../../src/mio/sys/unix/pipe.rs.html#474">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/mio/event/source.rs.html#111">deregister</a>(<a class="ident" href="../../../../src/mio/sys/unix/pipe.rs.html#474">registry</a>)
     }
 }
@@ -1115,7 +1114,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;illumos&quot;</span>))]</span>
 <span class="kw">fn</span> <span class="ident">set_nonblocking</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">nonblocking</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <a class="ident" href="../../../../src/mio/sys/unix/pipe.rs.html#540">nonblocking</a> <span class="kw">as</span> <a class="ident" href="../../../../libc/unix/type.c_int.html">libc::c_int</a>;
-    <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">libc::ioctl</span>(<a class="ident" href="../../../../src/mio/sys/unix/pipe.rs.html#540">fd</a>, <span class="ident">libc::FIONBIO</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/mio/sys/unix/pipe.rs.html#541">value</a>) } <span class="op">==</span> <span class="op">-</span><span class="number">1</span> {
+    <span class="kw">if</span> <span class="kw">unsafe</span> { <span class="ident">libc::ioctl</span>(<span class="ident">fd</span>, <span class="ident">libc::FIONBIO</span>, <span class="kw-2">&amp;</span><span class="ident">value</span>) } <span class="op">==</span> <span class="op">-</span><span class="number">1</span> {
         <span class="prelude-val">Err</span>(<span class="ident">io::Error::last_os_error</span>())
     } <span class="kw">else</span> {
         <span class="prelude-val">Ok</span>(())
@@ -1144,5 +1143,5 @@
     <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="mio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

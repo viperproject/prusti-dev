@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["AbortedExceptionally",""],["AbstractError",""],["ConsistencyError",""],["Counterexample",""],["ErrorMessage",""],["ErrorReason",""],["Failure",""],["FailureContext",""],["VerificationError",""],["Verifier",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["AbortedExceptionally",""],["AbstractError",""],["ConsistencyError",""],["Counterexample",""],["ErrorMessage",""],["ErrorReason",""],["Failure",""],["FailureContext",""],["VerificationError",""],["Verifier",""]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["file",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["file",""]]};

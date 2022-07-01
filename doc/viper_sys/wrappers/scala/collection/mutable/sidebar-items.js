@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ArrayBuffer",""],["ListBuffer",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["ArrayBuffer",""],["ListBuffer",""]]};

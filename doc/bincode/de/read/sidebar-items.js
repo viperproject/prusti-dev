@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["IoReader","A BincodeRead implementation for `io::Read`ers"],["SliceReader","A BincodeRead implementation for byte slices"]],"trait":[["BincodeRead","An optional Read trait for advanced Bincode usage."]]});
+window.SIDEBAR_ITEMS = {"struct":[["IoReader","A BincodeRead implementation for `io::Read`ers"],["SliceReader","A BincodeRead implementation for byte slices"]],"trait":[["BincodeRead","An optional Read trait for advanced Bincode usage."]]};

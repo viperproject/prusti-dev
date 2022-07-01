@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["read","A module for reading signed and unsigned integers that have been LEB128 encoded."]]});
+window.SIDEBAR_ITEMS = {"mod":[["read","A module for reading signed and unsigned integers that have been LEB128 encoded."]]};

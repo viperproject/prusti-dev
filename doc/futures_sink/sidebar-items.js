@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["Sink","A `Sink` is a value into which other values can be sent, asynchronously."]]});
+window.SIDEBAR_ITEMS = {"trait":[["Sink","A `Sink` is a value into which other values can be sent, asynchronously."]]};

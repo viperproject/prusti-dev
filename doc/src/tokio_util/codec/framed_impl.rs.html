@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/codec/framed_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>framed_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-util-0.7.3/src/codec/framed_impl.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>framed_impl.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../tokio_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -320,16 +319,16 @@
 <span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
 
 <span class="kw">use</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">bytes::BytesMut</a>;
-<span class="kw">use</span> <span class="ident">futures_core::ready</span>;
+<span class="kw">use</span> <a class="ident" href="../../../futures_core/macro.ready.html">futures_core::ready</a>;
 <span class="kw">use</span> <a class="ident" href="../../../futures_sink/trait.Sink.html">futures_sink::Sink</a>;
-<span class="kw">use</span> <span class="ident">pin_project_lite::pin_project</span>;
+<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 <span class="kw">use</span> <span class="ident">std::borrow</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">Borrow</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.BorrowMut.html">BorrowMut</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/index.html">std::io</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
 <span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
-<span class="kw">use</span> <span class="ident">tracing::trace</span>;
+<span class="kw">use</span> <a class="ident" href="../../../tracing/macro.trace.html">tracing::trace</a>;
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">FramedImpl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">U</span>, <span class="ident">State</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">pin</span>]</span>
@@ -382,7 +381,7 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#31-36">ReadFrame</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw-2">mut</span> <span class="ident">buffer</span>: <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#68">buffer</a>.<span class="ident">capacity</span>();
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#69">size</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#27">INITIAL_CAPACITY</a> {
+        <span class="kw">if</span> <span class="ident">size</span> <span class="op">&lt;</span> <span class="ident">INITIAL_CAPACITY</span> {
             <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#68">buffer</a>.<span class="ident">reserve</span>(<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#27">INITIAL_CAPACITY</a> <span class="op">-</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#69">size</a>);
         }
 
@@ -398,7 +397,7 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#38-40">WriteFrame</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="kw-2">mut</span> <span class="ident">buffer</span>: <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#84">buffer</a>.<span class="ident">capacity</span>();
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#85">size</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#27">INITIAL_CAPACITY</a> {
+        <span class="kw">if</span> <span class="ident">size</span> <span class="op">&lt;</span> <span class="ident">INITIAL_CAPACITY</span> {
             <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#84">buffer</a>.<span class="ident">reserve</span>(<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#27">INITIAL_CAPACITY</a> <span class="op">-</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#85">size</a>);
         }
 
@@ -473,9 +472,9 @@
         <span class="kw">loop</span> {
             <span class="comment">// Return `None` if we have encountered an error from the underlying decoder</span>
             <span class="comment">// See: https://github.com/tokio-rs/tokio/issues/3976</span>
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#126">state</a>.<span class="ident">has_errored</span> {
+            <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">has_errored</span> {
                 <span class="comment">// preparing has_errored -&gt; paused</span>
-                <span class="macro">trace!</span>(<span class="string">&quot;Returning None and setting paused&quot;</span>);
+                <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;Returning None and setting paused&quot;</span>);
                 <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#126">state</a>.<span class="ident">is_readable</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#126">state</a>.<span class="ident">has_errored</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>);
@@ -492,16 +491,16 @@
             <span class="comment">// but must finish emitting all of it&#39;s associated `decode_eof` frames.</span>
             <span class="comment">// Furthermore, we don&#39;t want to emit any `decode_eof` frames on retried</span>
             <span class="comment">// reads after an EOF unless we&#39;ve actually read more data.</span>
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#126">state</a>.<span class="ident">is_readable</span> {
+            <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">is_readable</span> {
                 <span class="comment">// pausing or framing</span>
-                <span class="kw">if</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#126">state</a>.<span class="ident">eof</span> {
+                <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">eof</span> {
                     <span class="comment">// pausing</span>
-                    <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#125">pinned</a>.<span class="ident">codec</span>.<a class="ident" href="../../../src/tokio_util/codec/decoder.rs.html#144">decode_eof</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#126">state</a>.<span class="ident">buffer</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                    <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="ident">pinned</span>.<span class="ident">codec</span>.<span class="ident">decode_eof</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>.<span class="ident">buffer</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
                         <span class="macro">trace!</span>(<span class="string">&quot;Got an error, going to errored state&quot;</span>);
-                        <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#126">state</a>.<span class="ident">has_errored</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                        <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#184">err</a>
+                        <span class="ident">state</span>.<span class="ident">has_errored</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                        <span class="ident">err</span>
                     })<span class="question-mark">?</span>;
-                    <span class="kw">if</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#184">frame</a>.<span class="ident">is_none</span>() {
+                    <span class="kw">if</span> <span class="ident">frame</span>.<span class="ident">is_none</span>() {
                         <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#126">state</a>.<span class="ident">is_readable</span> <span class="op">=</span> <span class="bool-val">false</span>; <span class="comment">// prepare pausing -&gt; paused</span>
                     }
                     <span class="comment">// implicit pausing -&gt; pausing or pausing -&gt; paused</span>
@@ -509,14 +508,14 @@
                 }
 
                 <span class="comment">// framing</span>
-                <span class="macro">trace!</span>(<span class="string">&quot;attempting to decode a frame&quot;</span>);
+                <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;attempting to decode a frame&quot;</span>);
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#125">pinned</a>.<span class="ident">codec</span>.<a class="ident" href="../../../src/tokio_util/codec/decoder.rs.html#124">decode</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#126">state</a>.<span class="ident">buffer</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">op</span><span class="op">|</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=</span> <span class="ident">pinned</span>.<span class="ident">codec</span>.<span class="ident">decode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>.<span class="ident">buffer</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">op</span><span class="op">|</span> {
                     <span class="macro">trace!</span>(<span class="string">&quot;Got an error, going to errored state&quot;</span>);
-                    <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#126">state</a>.<span class="ident">has_errored</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                    <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#199">op</a>
+                    <span class="ident">state</span>.<span class="ident">has_errored</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                    <span class="ident">op</span>
                 })<span class="question-mark">?</span> {
-                    <span class="macro">trace!</span>(<span class="string">&quot;frame decoded from buffer&quot;</span>);
+                    <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;frame decoded from buffer&quot;</span>);
                     <span class="comment">// implicit framing -&gt; framing</span>
                     <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#199">frame</a>)));
                 }
@@ -529,19 +528,19 @@
             <span class="comment">// Make sure we&#39;ve got room for at least one byte to read to ensure</span>
             <span class="comment">// that we don&#39;t get a spurious 0 that looks like EOF.</span>
             <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#126">state</a>.<span class="ident">buffer</span>.<span class="ident">reserve</span>(<span class="number">1</span>);
-            <span class="kw">let</span> <span class="ident">bytect</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio_util/lib.rs.html#107-111">poll_read_buf</a>(<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#125">pinned</a>.<span class="ident">inner</span>.<span class="ident">as_mut</span>(), <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#122">cx</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#126">state</a>.<span class="ident">buffer</span>).<span class="ident">map_err</span>(
+            <span class="kw">let</span> <span class="ident">bytect</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">poll_read_buf</span>(<span class="ident">pinned</span>.<span class="ident">inner</span>.<span class="ident">as_mut</span>(), <span class="ident">cx</span>, <span class="kw-2">&amp;mut</span> <span class="ident">state</span>.<span class="ident">buffer</span>).<span class="ident">map_err</span>(
                 <span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
                     <span class="macro">trace!</span>(<span class="string">&quot;Got an error, going to errored state&quot;</span>);
-                    <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#126">state</a>.<span class="ident">has_errored</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                    <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#218">err</a>
+                    <span class="ident">state</span>.<span class="ident">has_errored</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                    <span class="ident">err</span>
                 },
             )<span class="question-mark">?</span> {
                 <span class="ident">Poll::Ready</span>(<span class="ident">ct</span>) =&gt; <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#224">ct</a>,
                 <span class="comment">// implicit reading -&gt; reading or implicit paused -&gt; paused</span>
                 <span class="ident">Poll::Pending</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Pending</span>,
             };
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#217">bytect</a> <span class="op">==</span> <span class="number">0</span> {
-                <span class="kw">if</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#126">state</a>.<span class="ident">eof</span> {
+            <span class="kw">if</span> <span class="ident">bytect</span> <span class="op">==</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">eof</span> {
                     <span class="comment">// We&#39;re already at an EOF, and since we&#39;ve reached this path</span>
                     <span class="comment">// we&#39;re also not readable. This implies that we&#39;ve already finished</span>
                     <span class="comment">// our `decode_eof` handling, so we can simply return `None`.</span>
@@ -571,7 +570,7 @@
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">U::Error</span>;
 
     <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <a class="self" href="../../../src/tokio_util/codec/framed_impl.rs.html#258">self</a>.<span class="ident">state</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">borrow</a>().<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#28">BACKPRESSURE_BOUNDARY</a> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">borrow</span>().<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">BACKPRESSURE_BOUNDARY</span> {
             <a class="self" href="../../../src/tokio_util/codec/framed_impl.rs.html#258">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../futures_sink/trait.Sink.html">poll_flush</a>(<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#258">cx</a>)
         } <span class="kw">else</span> {
             <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
@@ -580,47 +579,47 @@
 
     <span class="kw">fn</span> <span class="ident">start_send</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">item</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">pinned</span> <span class="op">=</span> <a class="self" href="../../../src/tokio_util/codec/framed_impl.rs.html#266">self</a>.<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">project</a>();
-        <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#267">pinned</a>
+        <span class="ident">pinned</span>
             .<span class="ident">codec</span>
-            .<a class="ident" href="../../../src/tokio_util/codec/encoder.rs.html#24">encode</a>(<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#266">item</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#267">pinned</a>.<span class="ident">state</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.BorrowMut.html">borrow_mut</a>().<span class="ident">buffer</span>)<span class="question-mark">?</span>;
+            .<span class="ident">encode</span>(<span class="ident">item</span>, <span class="kw-2">&amp;mut</span> <span class="ident">pinned</span>.<span class="ident">state</span>.<span class="ident">borrow_mut</span>().<span class="ident">buffer</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">use</span> <a class="ident" href="../../../src/tokio_util/lib.rs.html#181-185"><span class="kw">crate</span>::util::poll_write_buf</a>;
-        <span class="macro">trace!</span>(<span class="string">&quot;flushing framed transport&quot;</span>);
+        <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;flushing framed transport&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pinned</span> <span class="op">=</span> <a class="self" href="../../../src/tokio_util/codec/framed_impl.rs.html#274">self</a>.<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">project</a>();
 
-        <span class="kw">while</span> <span class="op">!</span><a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#277">pinned</a>.<span class="ident">state</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.BorrowMut.html">borrow_mut</a>().<span class="ident">buffer</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">let</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#38-40">WriteFrame</a> { <span class="ident">buffer</span> } <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#277">pinned</a>.<span class="ident">state</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.BorrowMut.html">borrow_mut</a>();
-            <span class="macro">trace!</span>(<span class="ident">remaining</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#280">buffer</a>.<span class="ident">len</span>(), <span class="string">&quot;writing;&quot;</span>);
+        <span class="kw">while</span> <span class="op">!</span><span class="ident">pinned</span>.<span class="ident">state</span>.<span class="ident">borrow_mut</span>().<span class="ident">buffer</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">let</span> <span class="ident">WriteFrame</span> { <span class="ident">buffer</span> } <span class="op">=</span> <span class="ident">pinned</span>.<span class="ident">state</span>.<span class="ident">borrow_mut</span>();
+            <span class="macro">trace!</span>(<span class="ident">remaining</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">len</span>(), <span class="string">&quot;writing;&quot;</span>);
 
-            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../../src/tokio_util/lib.rs.html#181-185">poll_write_buf</a>(<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#277">pinned</a>.<span class="ident">inner</span>.<span class="ident">as_mut</span>(), <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#274">cx</a>, <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#280">buffer</a>))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="ident">poll_write_buf</span>(<span class="ident">pinned</span>.<span class="ident">inner</span>.<span class="ident">as_mut</span>(), <span class="ident">cx</span>, <span class="ident">buffer</span>))<span class="question-mark">?</span>;
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#283">n</a> <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
                 <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
                     <span class="ident">io::ErrorKind::WriteZero</span>,
                     <span class="string">&quot;failed to \
                      write frame to transport&quot;</span>,
                 )
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
+                .<span class="ident">into</span>()));
             }
         }
 
         <span class="comment">// Try flushing the underlying IO</span>
-        <span class="macro">ready!</span>(<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#277">pinned</a>.<span class="ident">inner</span>.<a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">poll_flush</a>(<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#274">cx</a>))<span class="question-mark">?</span>;
+        <span class="macro">ready!</span>(<span class="ident">pinned</span>.<span class="ident">inner</span>.<span class="ident">poll_flush</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
 
-        <span class="macro">trace!</span>(<span class="string">&quot;framed transport flushed&quot;</span>);
+        <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;framed transport flushed&quot;</span>);
         <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
     }
 
     <span class="kw">fn</span> <span class="ident">poll_close</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">ready!</span>(<a class="self" href="../../../src/tokio_util/codec/framed_impl.rs.html#302">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../../futures_sink/trait.Sink.html">poll_flush</a>(<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#302">cx</a>))<span class="question-mark">?</span>;
-        <span class="macro">ready!</span>(<a class="self" href="../../../src/tokio_util/codec/framed_impl.rs.html#302">self</a>.<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#17-25">project</a>().<span class="ident">inner</span>.<a class="ident" href="../../../tokio/io/async_write/trait.AsyncWrite.html">poll_shutdown</a>(<a class="ident" href="../../../src/tokio_util/codec/framed_impl.rs.html#302">cx</a>))<span class="question-mark">?</span>;
+        <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">poll_flush</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
+        <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">project</span>().<span class="ident">inner</span>.<span class="ident">poll_shutdown</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
 
         <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

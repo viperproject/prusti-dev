@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/fs.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fs.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/warp-0.3.2/src/filters/fs.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fs.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../warp/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -555,7 +554,7 @@
 
 <span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../bytes/bytes/struct.Bytes.html">Bytes</a>, <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
 <span class="kw">use</span> <span class="ident">futures_util::future::Either</span>;
-<span class="kw">use</span> <span class="ident">futures_util</span>::{<a class="ident" href="../../../futures_util/future/index.html">future</a>, <span class="ident">ready</span>, <a class="ident" href="../../../futures_util/stream/index.html">stream</a>, <a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">FutureExt</a>, <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a>, <a class="ident" href="../../../futures_util/stream/stream/trait.StreamExt.html">StreamExt</a>, <a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">TryFutureExt</a>};
+<span class="kw">use</span> <span class="ident">futures_util</span>::{<a class="ident" href="../../../futures_util/future/index.html">future</a>, <a class="ident" href="../../../futures_core/macro.ready.html">ready</a>, <a class="ident" href="../../../futures_util/stream/index.html">stream</a>, <a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">FutureExt</a>, <a class="ident" href="../../../futures_core/stream/trait.Stream.html">Stream</a>, <a class="ident" href="../../../futures_util/stream/stream/trait.StreamExt.html">StreamExt</a>, <a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">TryFutureExt</a>};
 <span class="kw">use</span> <span class="ident">headers</span>::{
     <a class="ident" href="../../../headers/common/accept_ranges/struct.AcceptRanges.html">AcceptRanges</a>, <span class="ident">ContentLength</span>, <a class="ident" href="../../../headers/common/content_range/struct.ContentRange.html">ContentRange</a>, <a class="ident" href="../../../headers/common/content_type/struct.ContentType.html">ContentType</a>, <a class="ident" href="../../../headers/map_ext/trait.HeaderMapExt.html">HeaderMapExt</a>, <a class="ident" href="../../../headers/common/if_modified_since/struct.IfModifiedSince.html">IfModifiedSince</a>, <a class="ident" href="../../../headers/common/if_range/struct.IfRange.html">IfRange</a>,
     <a class="ident" href="../../../headers/common/if_unmodified_since/struct.IfUnmodifiedSince.html">IfUnmodifiedSince</a>, <a class="ident" href="../../../headers/common/last_modified/struct.LastModified.html">LastModified</a>, <a class="ident" href="../../../headers/common/range/struct.Range.html">Range</a>,
@@ -592,7 +591,7 @@
     <span class="kw">let</span> <span class="ident">path</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#48">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
     <a class="ident" href="../../../src/warp/filters/any.rs.html#47"><span class="kw">crate</span>::any</a>()
         .<a class="ident" href="../../../src/warp/filter/mod.rs.html#191-194">map</a>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-            <span class="macro">tracing::trace!</span>(<span class="string">&quot;file: {:?}&quot;</span>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#49">path</a>);
+            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;file: {:?}&quot;</span>, <span class="ident">path</span>);
             <a class="ident" href="../../../src/warp/filters/fs.rs.html#247">ArcPath</a>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#49">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
         })
         .<a class="ident" href="../../../src/warp/filter/mod.rs.html#113-118">and</a>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#198">conditionals</a>())
@@ -636,16 +635,16 @@
 ) -&gt; <span class="kw">impl</span> <span class="ident">FilterClone</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> <span class="ident">One</span><span class="op">&lt;</span><a class="ident" href="../../../src/warp/filters/fs.rs.html#247">ArcPath</a><span class="op">&gt;</span>, <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/reject.rs.html#210-212">Rejection</a><span class="op">&gt;</span> {
     <a class="ident" href="../../../src/warp/filters/path.rs.html#294"><span class="kw">crate</span>::path::tail</a>().<a class="ident" href="../../../src/warp/filter/mod.rs.html#255-260">and_then</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">tail</span>: <a class="ident" href="../../../src/warp/filters/path.rs.html#312-315"><span class="kw">crate</span>::path::Tail</a><span class="op">|</span> {
         <span class="ident">future::ready</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#111">sanitize_path</a>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#92">base</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a class="ident" href="../../../src/warp/filters/fs.rs.html#94">tail</a>.<a class="ident" href="../../../src/warp/filters/path.rs.html#319">as_str</a>())).<a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">and_then</a>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">buf</span><span class="op">|</span> <span class="kw">async</span> {
-            <span class="kw">let</span> <span class="ident">is_dir</span> <span class="op">=</span> <span class="ident">tokio::fs::metadata</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#95">buf</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+            <span class="kw">let</span> <span class="ident">is_dir</span> <span class="op">=</span> <span class="ident">tokio::fs::metadata</span>(<span class="ident">buf</span>.<span class="ident">clone</span>())
                 .<span class="kw">await</span>
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">m</span><span class="op">|</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#98">m</a>.<span class="ident">is_dir</span>())
                 .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#96">is_dir</a> {
-                <span class="macro">tracing::debug!</span>(<span class="string">&quot;dir: appending index.html to directory path&quot;</span>);
+            <span class="kw">if</span> <span class="ident">is_dir</span> {
+                <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;dir: appending index.html to directory path&quot;</span>);
                 <a class="ident" href="../../../src/warp/filters/fs.rs.html#95">buf</a>.<span class="ident">push</span>(<span class="string">&quot;index.html&quot;</span>);
             }
-            <span class="macro">tracing::trace!</span>(<span class="string">&quot;dir: {:?}&quot;</span>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#95">buf</a>);
+            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;dir: {:?}&quot;</span>, <span class="ident">buf</span>);
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#247">ArcPath</a>(<span class="ident">Arc::new</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#95">buf</a>)))
         })
     })
@@ -656,20 +655,20 @@
     <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../percent_encoding/fn.percent_decode_str.html">percent_decode_str</a>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#111">tail</a>).<span class="ident">decode_utf8</span>() {
         <span class="prelude-val">Ok</span>(<span class="ident">p</span>) =&gt; <a class="ident" href="../../../src/warp/filters/fs.rs.html#114">p</a>,
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-            <span class="macro">tracing::debug!</span>(<span class="string">&quot;dir: failed to decode route={:?}: {:?}&quot;</span>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#111">tail</a>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#115">err</a>);
+            <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;dir: failed to decode route={:?}: {:?}&quot;</span>, <span class="ident">tail</span>, <span class="ident">err</span>);
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/reject.rs.html#86">reject::not_found</a>());
         }
     };
-    <span class="macro">tracing::trace!</span>(<span class="string">&quot;dir? base={:?}, route={:?}&quot;</span>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#111">base</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>(), <a class="ident" href="../../../src/warp/filters/fs.rs.html#113">p</a>);
-    <span class="kw">for</span> <span class="ident">seg</span> <span class="kw">in</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#113">p</a>.<span class="ident">split</span>(<span class="string">&#39;/&#39;</span>) {
-        <span class="kw">if</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#121">seg</a>.<span class="ident">starts_with</span>(<span class="string">&quot;..&quot;</span>) {
+    <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;dir? base={:?}, route={:?}&quot;</span>, <span class="ident">base</span>.<span class="ident">as_ref</span>(), <span class="ident">p</span>);
+    <span class="kw">for</span> <span class="ident">seg</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">split</span>(<span class="string">&#39;/&#39;</span>) {
+        <span class="kw">if</span> <span class="ident">seg</span>.<span class="ident">starts_with</span>(<span class="string">&quot;..&quot;</span>) {
             <span class="macro">tracing::warn!</span>(<span class="string">&quot;dir: rejecting segment starting with &#39;..&#39;&quot;</span>);
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/reject.rs.html#86">reject::not_found</a>());
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#121">seg</a>.<span class="ident">contains</span>(<span class="string">&#39;\\&#39;</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">reject::not_found</span>());
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">seg</span>.<span class="ident">contains</span>(<span class="string">&#39;\\&#39;</span>) {
             <span class="macro">tracing::warn!</span>(<span class="string">&quot;dir: rejecting segment containing with backslash (\\)&quot;</span>);
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/reject.rs.html#86">reject::not_found</a>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">reject::not_found</span>());
         } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/warp/filters/fs.rs.html#112">buf</a>.<span class="ident">push</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#121">seg</a>);
+            <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">seg</span>);
         }
     }
     <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#112">buf</a>)
@@ -695,13 +694,13 @@
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">time</span><span class="op">|</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#150">since</a>.<span class="ident">precondition_passes</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#152">time</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
                 .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
 
-            <span class="macro">tracing::trace!</span>(
+            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(
                 <span class="string">&quot;if-unmodified-since? {:?} vs {:?} = {}&quot;</span>,
-                <a class="ident" href="../../../src/warp/filters/fs.rs.html#150">since</a>,
-                <a class="ident" href="../../../src/warp/filters/fs.rs.html#149">last_modified</a>,
-                <a class="ident" href="../../../src/warp/filters/fs.rs.html#151">precondition</a>
+                <span class="ident">since</span>,
+                <span class="ident">last_modified</span>,
+                <span class="ident">precondition</span>
             );
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/warp/filters/fs.rs.html#151">precondition</a> {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">precondition</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Response::new</span>(<span class="ident">Body::empty</span>());
                 <span class="kw-2">*</span><a class="ident" href="../../../src/warp/filters/fs.rs.html#162">res</a>.<span class="ident">status_mut</span>() <span class="op">=</span> <span class="ident">StatusCode::PRECONDITION_FAILED</span>;
                 <span class="kw">return</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#144">Cond::NoBody</a>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#162">res</a>);
@@ -709,16 +708,16 @@
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">since</span>) <span class="op">=</span> <a class="self" href="../../../src/warp/filters/fs.rs.html#149">self</a>.<span class="ident">if_modified_since</span> {
-            <span class="macro">tracing::trace!</span>(
+            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(
                 <span class="string">&quot;if-modified-since? header = {:?}, file = {:?}&quot;</span>,
-                <a class="ident" href="../../../src/warp/filters/fs.rs.html#168">since</a>,
-                <a class="ident" href="../../../src/warp/filters/fs.rs.html#149">last_modified</a>
+                <span class="ident">since</span>,
+                <span class="ident">last_modified</span>
             );
             <span class="kw">let</span> <span class="ident">unmodified</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#149">last_modified</a>
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">time</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/warp/filters/fs.rs.html#168">since</a>.<span class="ident">is_modified</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#175">time</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
                 <span class="comment">// no last_modified means its always modified</span>
                 .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
-            <span class="kw">if</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#174">unmodified</a> {
+            <span class="kw">if</span> <span class="ident">unmodified</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Response::new</span>(<span class="ident">Body::empty</span>());
                 <span class="kw-2">*</span><a class="ident" href="../../../src/warp/filters/fs.rs.html#179">res</a>.<span class="ident">status_mut</span>() <span class="op">=</span> <span class="ident">StatusCode::NOT_MODIFIED</span>;
                 <span class="kw">return</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#144">Cond::NoBody</a>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#179">res</a>);
@@ -726,10 +725,10 @@
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">if_range</span>) <span class="op">=</span> <a class="self" href="../../../src/warp/filters/fs.rs.html#149">self</a>.<span class="ident">if_range</span> {
-            <span class="macro">tracing::trace!</span>(<span class="string">&quot;if-range? {:?} vs {:?}&quot;</span>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#185">if_range</a>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#149">last_modified</a>);
+            <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;if-range? {:?} vs {:?}&quot;</span>, <span class="ident">if_range</span>, <span class="ident">last_modified</span>);
             <span class="kw">let</span> <span class="ident">can_range</span> <span class="op">=</span> <span class="op">!</span><a class="ident" href="../../../src/warp/filters/fs.rs.html#185">if_range</a>.<span class="ident">is_modified</span>(<span class="prelude-val">None</span>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#149">last_modified</a>.<span class="ident">as_ref</span>());
 
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/warp/filters/fs.rs.html#187">can_range</a> {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">can_range</span> {
                 <span class="kw">return</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#145">Cond::WithBody</a>(<span class="prelude-val">None</span>);
             }
         }
@@ -810,18 +809,18 @@
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">rej</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#267">err</a>.<span class="ident">kind</span>() {
                 <span class="ident">io::ErrorKind::NotFound</span> =&gt; {
-                    <span class="macro">tracing::debug!</span>(<span class="string">&quot;file not found: {:?}&quot;</span>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#262">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">display</span>());
+                    <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;file not found: {:?}&quot;</span>, <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">display</span>());
                     <a class="ident" href="../../../src/warp/reject.rs.html#86">reject::not_found</a>()
                 }
                 <span class="ident">io::ErrorKind::PermissionDenied</span> =&gt; {
-                    <span class="macro">tracing::warn!</span>(<span class="string">&quot;file permission denied: {:?}&quot;</span>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#262">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">display</span>());
+                    <a class="macro" href="../../../tracing/tracing/macro.warn.html">tracing::warn!</a>(<span class="string">&quot;file permission denied: {:?}&quot;</span>, <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">display</span>());
                     <a class="ident" href="../../../src/warp/reject.rs.html#203">reject::known</a>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#496-498">FilePermissionError</a> { <span class="ident">_p</span>: () })
                 }
                 <span class="kw">_</span> =&gt; {
-                    <span class="macro">tracing::error!</span>(
+                    <a class="macro" href="../../../tracing/tracing/macro.error.html">tracing::error!</a>(
                         <span class="string">&quot;file open error (path={:?}): {} &quot;</span>,
-                        <a class="ident" href="../../../src/warp/filters/fs.rs.html#262">path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>().<span class="ident">display</span>(),
-                        <a class="ident" href="../../../src/warp/filters/fs.rs.html#267">err</a>
+                        <span class="ident">path</span>.<span class="ident">as_ref</span>().<span class="ident">display</span>(),
+                        <span class="ident">err</span>
                     );
                     <a class="ident" href="../../../src/warp/reject.rs.html#203">reject::known</a>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#492-494">FileOpenError</a> { <span class="ident">_p</span>: () })
                 }
@@ -832,11 +831,11 @@
 }
 
 <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">file_metadata</span>(<span class="ident">f</span>: <a class="ident" href="../../../tokio/fs/file/struct.File.html">TkFile</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<a class="ident" href="../../../tokio/fs/file/struct.File.html">TkFile</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.Metadata.html">Metadata</a>), <a class="ident" href="../../../src/warp/reject.rs.html#210-212">Rejection</a><span class="op">&gt;</span> {
-    <span class="kw">match</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#291">f</a>.<span class="ident">metadata</span>().<span class="kw">await</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">meta</span>) =&gt; <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/warp/filters/fs.rs.html#291">f</a>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#293">meta</a>)),
+    <span class="kw">match</span> <span class="ident">f</span>.<span class="ident">metadata</span>().<span class="kw">await</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">meta</span>) =&gt; <span class="prelude-val">Ok</span>((<span class="ident">f</span>, <span class="ident">meta</span>)),
         <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-            <span class="macro">tracing::debug!</span>(<span class="string">&quot;file metadata error: {}&quot;</span>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#294">err</a>);
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/reject.rs.html#86">reject::not_found</a>())
+            <span class="macro">tracing::debug!</span>(<span class="string">&quot;file metadata error: {}&quot;</span>, <span class="ident">err</span>);
+            <span class="prelude-val">Err</span>(<span class="ident">reject::not_found</span>())
         }
     }
 }
@@ -862,7 +861,7 @@
 
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">resp</span> <span class="op">=</span> <span class="ident">Response::new</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#318">body</a>);
 
-                        <span class="kw">if</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#315">sub_len</a> <span class="op">!</span><span class="op">=</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#307">len</a> {
+                        <span class="kw">if</span> <span class="ident">sub_len</span> <span class="op">!</span><span class="op">=</span> <span class="ident">len</span> {
                             <span class="kw-2">*</span><a class="ident" href="../../../src/warp/filters/fs.rs.html#320">resp</a>.<span class="ident">status_mut</span>() <span class="op">=</span> <span class="ident">StatusCode::PARTIAL_CONTENT</span>;
                             <a class="ident" href="../../../src/warp/filters/fs.rs.html#320">resp</a>.<span class="ident">headers_mut</span>().<a class="ident" href="../../../headers/map_ext/trait.HeaderMapExt.html">typed_insert</a>(
                                 <span class="ident">ContentRange::bytes</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#314">start</a>..<a class="ident" href="../../../src/warp/filters/fs.rs.html#314">end</a>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#307">len</a>).<span class="ident">expect</span>(<span class="string">&quot;valid ContentRange&quot;</span>),
@@ -922,7 +921,7 @@
                 <span class="ident">Bound::Unbounded</span> =&gt; <a class="ident" href="../../../src/warp/filters/fs.rs.html#360">max_len</a>,
                 <span class="ident">Bound::Included</span>(<span class="ident">s</span>) =&gt; {
                     <span class="comment">// For the special case where s == the file size</span>
-                    <span class="kw">if</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#380">s</a> <span class="op">==</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#360">max_len</a> {
+                    <span class="kw">if</span> <span class="ident">s</span> <span class="op">==</span> <span class="ident">max_len</span> {
                         <a class="ident" href="../../../src/warp/filters/fs.rs.html#380">s</a>
                     } <span class="kw">else</span> {
                         <a class="ident" href="../../../src/warp/filters/fs.rs.html#380">s</a> <span class="op">+</span> <span class="number">1</span>
@@ -931,10 +930,10 @@
                 <span class="ident">Bound::Excluded</span>(<span class="ident">s</span>) =&gt; <a class="ident" href="../../../src/warp/filters/fs.rs.html#388">s</a>,
             };
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#372">start</a> <span class="op">&lt;</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#378">end</a> <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#378">end</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#360">max_len</a> {
+            <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">end</span> <span class="op">&amp;&amp;</span> <span class="ident">end</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max_len</span> {
                 <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/warp/filters/fs.rs.html#372">start</a>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#378">end</a>))
             } <span class="kw">else</span> {
-                <span class="macro">tracing::trace!</span>(<span class="string">&quot;unsatisfiable byte range: {}-{}/{}&quot;</span>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#372">start</a>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#378">end</a>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#360">max_len</a>);
+                <a class="macro" href="../../../tracing/tracing/macro.trace.html">tracing::trace!</a>(<span class="string">&quot;unsatisfiable byte range: {}-{}/{}&quot;</span>, <span class="ident">start</span>, <span class="ident">end</span>, <span class="ident">max_len</span>);
                 <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#358">BadRange</a>)
             }
         })
@@ -951,8 +950,8 @@
     <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">std::io::SeekFrom</a>;
 
     <span class="kw">let</span> <span class="ident">seek</span> <span class="op">=</span> <span class="kw">async</span> <span class="kw">move</span> {
-        <span class="kw">if</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#406">start</a> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <a class="ident" href="../../../src/warp/filters/fs.rs.html#404">file</a>.<a class="ident" href="../../../tokio/io/util/async_seek_ext/trait.AsyncSeekExt.html">seek</a>(<span class="ident">SeekFrom::Start</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#406">start</a>)).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="ident">start</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="ident">file</span>.<span class="ident">seek</span>(<span class="ident">SeekFrom::Start</span>(<span class="ident">start</span>)).<span class="kw">await</span><span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#404">file</a>)
     };
@@ -967,26 +966,26 @@
             };
 
             <span class="ident">Either::Right</span>(<span class="ident">stream::poll_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">cx</span><span class="op">|</span> {
-                <span class="kw">if</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#420">len</a> <span class="op">==</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">0</span> {
                     <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>);
                 }
                 <a class="ident" href="../../../src/warp/filters/fs.rs.html#459">reserve_at_least</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#419">buf</a>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#405">buf_size</a>);
 
-                <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../../tokio_util/util/fn.poll_read_buf.html">poll_read_buf</a>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#421">f</a>), <a class="ident" href="../../../src/warp/filters/fs.rs.html#426">cx</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#419">buf</a>)) {
+                <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="kw">match</span> <a class="macro" href="../../../futures_core/macro.ready.html">ready!</a>(<span class="ident">poll_read_buf</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">f</span>), <span class="ident">cx</span>, <span class="kw-2">&amp;mut</span> <span class="ident">buf</span>)) {
                     <span class="prelude-val">Ok</span>(<span class="ident">n</span>) =&gt; <a class="ident" href="../../../src/warp/filters/fs.rs.html#433">n</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
                     <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
-                        <span class="macro">tracing::debug!</span>(<span class="string">&quot;file read error: {}&quot;</span>, <a class="ident" href="../../../src/warp/filters/fs.rs.html#434">err</a>);
+                        <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;file read error: {}&quot;</span>, <span class="ident">err</span>);
                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#434">err</a>)));
                     }
                 };
 
-                <span class="kw">if</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#432">n</a> <span class="op">==</span> <span class="number">0</span> {
-                    <span class="macro">tracing::debug!</span>(<span class="string">&quot;file read found EOF before expected length&quot;</span>);
+                <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
+                    <a class="macro" href="../../../tracing/tracing/macro.debug.html">tracing::debug!</a>(<span class="string">&quot;file read found EOF before expected length&quot;</span>);
                     <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>);
                 }
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chunk</span> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#419">buf</a>.<span class="ident">split</span>().<span class="ident">freeze</span>();
-                <span class="kw">if</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#432">n</a> <span class="op">&gt;</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#420">len</a> {
+                <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="ident">len</span> {
                     <a class="ident" href="../../../src/warp/filters/fs.rs.html#445">chunk</a> <span class="op">=</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#445">chunk</a>.<span class="ident">split_to</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#420">len</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
                     <a class="ident" href="../../../src/warp/filters/fs.rs.html#420">len</a> <span class="op">=</span> <span class="number">0</span>;
                 } <span class="kw">else</span> {
@@ -1000,7 +999,7 @@
 }
 
 <span class="kw">fn</span> <span class="ident">reserve_at_least</span>(<span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>, <span class="ident">cap</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-    <span class="kw">if</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#459">buf</a>.<span class="ident">capacity</span>() <span class="op">-</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#459">buf</a>.<span class="ident">len</span>() <span class="op">&lt;</span> <a class="ident" href="../../../src/warp/filters/fs.rs.html#459">cap</a> {
+    <span class="kw">if</span> <span class="ident">buf</span>.<span class="ident">capacity</span>() <span class="op">-</span> <span class="ident">buf</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">cap</span> {
         <a class="ident" href="../../../src/warp/filters/fs.rs.html#459">buf</a>.<span class="ident">reserve</span>(<a class="ident" href="../../../src/warp/filters/fs.rs.html#459">cap</a>);
     }
 }
@@ -1032,11 +1031,11 @@
 
 <span class="comment">// ===== Rejections =====</span>
 
-<span class="macro">unit_error!</span> {
+<a class="macro" href="../../../src/warp/error.rs.html#57-79">unit_error!</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">FileOpenError</span>: <span class="string">&quot;file open error&quot;</span>
 }
 
-<span class="macro">unit_error!</span> {
+<a class="macro" href="../../../src/warp/error.rs.html#57-79">unit_error!</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">FilePermissionError</span>: <span class="string">&quot;file perimission error&quot;</span>
 }
 
@@ -1078,5 +1077,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

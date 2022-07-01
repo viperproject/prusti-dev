@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.19/src/client/client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.19/src/client/client.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>client.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../hyper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -1477,7 +1476,7 @@
 <span class="kw">use</span> <span class="ident">http::header</span>::{<a class="ident" href="../../../hyper/header/struct.HeaderValue.html">HeaderValue</a>, <a class="ident" href="../../../hyper/header/constant.HOST.html">HOST</a>};
 <span class="kw">use</span> <span class="ident">http::uri</span>::{<a class="ident" href="../../../http/uri/port/struct.Port.html">Port</a>, <a class="ident" href="../../../http/uri/scheme/struct.Scheme.html">Scheme</a>};
 <span class="kw">use</span> <span class="ident">http</span>::{<a class="ident" href="../../../hyper/struct.Method.html">Method</a>, <a class="ident" href="../../../hyper/struct.Request.html">Request</a>, <a class="ident" href="../../../hyper/struct.Response.html">Response</a>, <a class="ident" href="../../../hyper/struct.Uri.html">Uri</a>, <a class="ident" href="../../../hyper/struct.Version.html">Version</a>};
-<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>, <span class="ident">warn</span>};
+<span class="kw">use</span> <span class="ident">tracing</span>::{<a class="ident" href="../../../tracing/macro.debug.html">debug</a>, <a class="ident" href="../../../tracing/macro.trace.html">trace</a>, <a class="ident" href="../../../tracing/macro.warn.html">warn</a>};
 
 <span class="kw">use</span> <a class="ident" href="../../../src/hyper/client/mod.rs.html#64"><span class="kw">super</span>::conn</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::connect</span>::{<a class="self" href="../../../src/hyper/client/mod.rs.html#54">self</a>, <a class="ident" href="../../../src/hyper/client/connect/mod.rs.html#292-297">sealed::Connect</a>, <a class="ident" href="../../../src/hyper/client/connect/mod.rs.html#121-124">Alpn</a>, <a class="ident" href="../../../src/hyper/client/connect/mod.rs.html#112-116">Connected</a>, <a class="ident" href="../../../src/hyper/client/connect/mod.rs.html#102-105">Connection</a>};
@@ -1601,8 +1600,8 @@
         <span class="ident">B</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a>,
     {
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">B::default</span>();
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/client.rs.html#134">body</a>.<a class="ident" href="../../../hyper/body/trait.HttpBody.html">is_end_stream</a>() {
-            <span class="macro">warn!</span>(<span class="string">&quot;default HttpBody used for get() does not return true for is_end_stream&quot;</span>);
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">body</span>.<span class="ident">is_end_stream</span>() {
+            <a class="macro" href="../../../tracing/macro.warn.html">warn!</a>(<span class="string">&quot;default HttpBody used for get() does not return true for is_end_stream&quot;</span>);
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">req</span> <span class="op">=</span> <span class="ident">Request::new</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#134">body</a>);
@@ -1636,8 +1635,8 @@
         <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#165">req</a>.<span class="ident">version</span>() {
             <span class="ident">Version::HTTP_11</span> =&gt; (),
             <span class="ident">Version::HTTP_10</span> =&gt; {
-                <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#166">is_http_connect</a> {
-                    <span class="macro">warn!</span>(<span class="string">&quot;CONNECT is not allowed for HTTP/1.0&quot;</span>);
+                <span class="kw">if</span> <span class="ident">is_http_connect</span> {
+                    <a class="macro" href="../../../tracing/macro.warn.html">warn!</a>(<span class="string">&quot;CONNECT is not allowed for HTTP/1.0&quot;</span>);
                     <span class="kw">return</span> <span class="ident">ResponseFuture::new</span>(<span class="ident">future::err</span>(
                         <span class="ident"><span class="kw">crate</span>::Error::new_user_unsupported_request_method</span>(),
                     ));
@@ -1663,29 +1662,29 @@
         <span class="kw-2">mut</span> <span class="ident">req</span>: <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
         <span class="ident">pool_key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#58">PoolKey</a>,
     ) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/body/body.rs.html#36-41">Body</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">uri</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#194">req</a>.<span class="ident">uri</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <span class="kw">let</span> <span class="ident">uri</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">clone</span>();
 
         <span class="kw">loop</span> {
-            <a class="ident" href="../../../src/hyper/client/client.rs.html#194">req</a> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/hyper/client/client.rs.html#193">self</a>.<a class="ident" href="../../../src/hyper/client/client.rs.html#225-229">send_request</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#194">req</a>, <a class="ident" href="../../../src/hyper/client/client.rs.html#195">pool_key</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<span class="kw">await</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">resp</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#201">resp</a>),
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#730">ClientError::Normal</a>(<span class="ident">err</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#202">err</a>),
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#731-735">ClientError::Canceled</a> {
+            <span class="ident">req</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">send_request</span>(<span class="ident">req</span>, <span class="ident">pool_key</span>.<span class="ident">clone</span>()).<span class="kw">await</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">resp</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">resp</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">ClientError::Normal</span>(<span class="ident">err</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">ClientError::Canceled</span> {
                     <span class="ident">connection_reused</span>,
                     <span class="kw-2">mut</span> <span class="ident">req</span>,
                     <span class="ident">reason</span>,
                 }) =&gt; {
-                    <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../src/hyper/client/client.rs.html#193">self</a>.<span class="ident">config</span>.<span class="ident">retry_canceled_requests</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/client.rs.html#204">connection_reused</a> {
+                    <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">config</span>.<span class="ident">retry_canceled_requests</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">connection_reused</span> {
                         <span class="comment">// if client disabled, don&#39;t retry</span>
                         <span class="comment">// a fresh connection means we definitely can&#39;t retry</span>
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#206">reason</a>);
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">reason</span>);
                     }
 
                     <span class="macro">trace!</span>(
                         <span class="string">&quot;unstarted request canceled, trying again (reason={:?})&quot;</span>,
-                        <a class="ident" href="../../../src/hyper/client/client.rs.html#206">reason</a>
+                        <span class="ident">reason</span>
                     );
-                    <span class="kw-2">*</span><a class="ident" href="../../../src/hyper/client/client.rs.html#205">req</a>.<span class="ident">uri_mut</span>() <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#197">uri</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                    <a class="ident" href="../../../src/hyper/client/client.rs.html#205">req</a>
+                    <span class="kw-2">*</span><span class="ident">req</span>.<span class="ident">uri_mut</span>() <span class="op">=</span> <span class="ident">uri</span>.<span class="ident">clone</span>();
+                    <span class="ident">req</span>
                 }
             }
         }
@@ -1696,63 +1695,63 @@
         <span class="kw-2">mut</span> <span class="ident">req</span>: <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
         <span class="ident">pool_key</span>: <a class="ident" href="../../../src/hyper/client/pool.rs.html#58">PoolKey</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&lt;</span><a class="ident" href="../../../src/hyper/body/body.rs.html#36-41">Body</a><span class="op">&gt;</span>, <span class="ident">ClientError</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pooled</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/hyper/client/client.rs.html#226">self</a>.<a class="ident" href="../../../src/hyper/client/client.rs.html#335-338">connection_for</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#228">pool_key</a>).<span class="kw">await</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">pooled</span>) =&gt; <a class="ident" href="../../../src/hyper/client/client.rs.html#231">pooled</a>,
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#755">ClientConnectError::Normal</a>(<span class="ident">err</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#730">ClientError::Normal</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#232">err</a>)),
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#756">ClientConnectError::H2CheckoutIsClosed</a>(<span class="ident">reason</span>)) =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#731-735">ClientError::Canceled</a> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pooled</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">connection_for</span>(<span class="ident">pool_key</span>).<span class="kw">await</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">pooled</span>) =&gt; <span class="ident">pooled</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">ClientConnectError::Normal</span>(<span class="ident">err</span>)) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ClientError::Normal</span>(<span class="ident">err</span>)),
+            <span class="prelude-val">Err</span>(<span class="ident">ClientConnectError::H2CheckoutIsClosed</span>(<span class="ident">reason</span>)) =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ClientError::Canceled</span> {
                     <span class="ident">connection_reused</span>: <span class="bool-val">true</span>,
-                    <a class="ident" href="../../../src/hyper/client/client.rs.html#227">req</a>,
-                    <a class="ident" href="../../../src/hyper/client/client.rs.html#233">reason</a>,
+                    <span class="ident">req</span>,
+                    <span class="ident">reason</span>,
                 })
             }
         };
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#230">pooled</a>.<a class="ident" href="../../../src/hyper/client/client.rs.html#639">is_http1</a>() {
-            <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#227">req</a>.<span class="ident">version</span>() <span class="op">==</span> <span class="ident">Version::HTTP_2</span> {
+        <span class="kw">if</span> <span class="ident">pooled</span>.<span class="ident">is_http1</span>() {
+            <span class="kw">if</span> <span class="ident">req</span>.<span class="ident">version</span>() <span class="op">==</span> <span class="ident">Version::HTTP_2</span> {
                 <span class="macro">warn!</span>(<span class="string">&quot;Connection is HTTP/1, but request requires HTTP/2&quot;</span>);
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#730">ClientError::Normal</a>(
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ClientError::Normal</span>(
                     <span class="ident"><span class="kw">crate</span>::Error::new_user_unsupported_version</span>(),
                 ));
             }
 
-            <span class="kw">if</span> <a class="self" href="../../../src/hyper/client/client.rs.html#226">self</a>.<span class="ident">config</span>.<span class="ident">set_host</span> {
-                <span class="kw">let</span> <span class="ident">uri</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#227">req</a>.<span class="ident">uri</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                <a class="ident" href="../../../src/hyper/client/client.rs.html#227">req</a>.<span class="ident">headers_mut</span>().<span class="ident">entry</span>(<a class="ident" href="../../../hyper/header/constant.HOST.html">HOST</a>).<span class="ident">or_insert_with</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="kw">let</span> <span class="ident">hostname</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#251">uri</a>.<span class="ident">host</span>().<span class="ident">expect</span>(<span class="string">&quot;authority implies host&quot;</span>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">port</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#860">get_non_default_port</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/client.rs.html#251">uri</a>) {
-                        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}:{}&quot;</span>, <a class="ident" href="../../../src/hyper/client/client.rs.html#253">hostname</a>, <a class="ident" href="../../../src/hyper/client/client.rs.html#254">port</a>);
-                        <span class="ident">HeaderValue::from_str</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/client.rs.html#255">s</a>)
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">set_host</span> {
+                <span class="kw">let</span> <span class="ident">uri</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">uri</span>().<span class="ident">clone</span>();
+                <span class="ident">req</span>.<span class="ident">headers_mut</span>().<span class="ident">entry</span>(<span class="ident">HOST</span>).<span class="ident">or_insert_with</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="kw">let</span> <span class="ident">hostname</span> <span class="op">=</span> <span class="ident">uri</span>.<span class="ident">host</span>().<span class="ident">expect</span>(<span class="string">&quot;authority implies host&quot;</span>);
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">port</span>) <span class="op">=</span> <span class="ident">get_non_default_port</span>(<span class="kw-2">&amp;</span><span class="ident">uri</span>) {
+                        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}:{}&quot;</span>, <span class="ident">hostname</span>, <span class="ident">port</span>);
+                        <span class="ident">HeaderValue::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>)
                     } <span class="kw">else</span> {
-                        <span class="ident">HeaderValue::from_str</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#253">hostname</a>)
+                        <span class="ident">HeaderValue::from_str</span>(<span class="ident">hostname</span>)
                     }
                     .<span class="ident">expect</span>(<span class="string">&quot;uri host is valid header value&quot;</span>)
                 });
             }
 
             <span class="comment">// CONNECT always sends authority-form, so check it first...</span>
-            <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#227">req</a>.<span class="ident">method</span>() <span class="op">==</span> <span class="ident">Method::CONNECT</span> {
-                <a class="ident" href="../../../src/hyper/client/client.rs.html#795">authority_form</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#227">req</a>.<span class="ident">uri_mut</span>());
-            } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#230">pooled</a>.<span class="ident">conn_info</span>.<span class="ident">is_proxied</span> {
-                <a class="ident" href="../../../src/hyper/client/client.rs.html#781">absolute_form</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#227">req</a>.<span class="ident">uri_mut</span>());
+            <span class="kw">if</span> <span class="ident">req</span>.<span class="ident">method</span>() <span class="op">==</span> <span class="ident">Method::CONNECT</span> {
+                <span class="ident">authority_form</span>(<span class="ident">req</span>.<span class="ident">uri_mut</span>());
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">pooled</span>.<span class="ident">conn_info</span>.<span class="ident">is_proxied</span> {
+                <span class="ident">absolute_form</span>(<span class="ident">req</span>.<span class="ident">uri_mut</span>());
             } <span class="kw">else</span> {
-                <a class="ident" href="../../../src/hyper/client/client.rs.html#766">origin_form</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#227">req</a>.<span class="ident">uri_mut</span>());
+                <span class="ident">origin_form</span>(<span class="ident">req</span>.<span class="ident">uri_mut</span>());
             }
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#227">req</a>.<span class="ident">method</span>() <span class="op">==</span> <span class="ident">Method::CONNECT</span> {
-            <a class="ident" href="../../../src/hyper/client/client.rs.html#795">authority_form</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#227">req</a>.<span class="ident">uri_mut</span>());
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">req</span>.<span class="ident">method</span>() <span class="op">==</span> <span class="ident">Method::CONNECT</span> {
+            <span class="ident">authority_form</span>(<span class="ident">req</span>.<span class="ident">uri_mut</span>());
         }
 
-        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#230">pooled</a>
-            .<a class="ident" href="../../../src/hyper/client/client.rs.html#669-674">send_request_retryable</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#227">req</a>)
-            .<a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">map_err</a>(<span class="ident">ClientError::map_with_reused</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#230">pooled</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#496">is_reused</a>()));
+        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">pooled</span>
+            .<span class="ident">send_request_retryable</span>(<span class="ident">req</span>)
+            .<span class="ident">map_err</span>(<span class="ident">ClientError::map_with_reused</span>(<span class="ident">pooled</span>.<span class="ident">is_reused</span>()));
 
         <span class="comment">// If the Connector included &#39;extra&#39; info, add to Response...</span>
-        <span class="kw">let</span> <span class="ident">extra_info</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#230">pooled</a>.<span class="ident">conn_info</span>.<span class="ident">extra</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#276">fut</a>.<a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">map_ok</a>(<span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">res</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">extra</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#281">extra_info</a> {
-                <a class="ident" href="../../../src/hyper/client/client.rs.html#283">extra</a>.<a class="ident" href="../../../src/hyper/client/connect/mod.rs.html#207">set</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#282">res</a>.<span class="ident">extensions_mut</span>());
+        <span class="kw">let</span> <span class="ident">extra_info</span> <span class="op">=</span> <span class="ident">pooled</span>.<span class="ident">conn_info</span>.<span class="ident">extra</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">fut</span>.<span class="ident">map_ok</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">res</span><span class="op">|</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">extra</span>) <span class="op">=</span> <span class="ident">extra_info</span> {
+                <span class="ident">extra</span>.<span class="ident">set</span>(<span class="ident">res</span>.<span class="ident">extensions_mut</span>());
             }
-            <a class="ident" href="../../../src/hyper/client/client.rs.html#282">res</a>
+            <span class="ident">res</span>
         });
 
         <span class="comment">// As of futures@0.1.21, there is a race condition in the mpsc</span>
@@ -1762,11 +1761,11 @@
         <span class="comment">//</span>
         <span class="comment">// To counteract this, we must check if our senders &#39;want&#39; channel</span>
         <span class="comment">// has been closed after having tried to send. If so, error out...</span>
-        <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#230">pooled</a>.<a class="ident" href="../../../src/hyper/client/client.rs.html#659">is_closed</a>() {
-            <span class="kw">return</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#282">fut</a>.<span class="kw">await</span>;
+        <span class="kw">if</span> <span class="ident">pooled</span>.<span class="ident">is_closed</span>() {
+            <span class="kw">return</span> <span class="ident">fut</span>.<span class="kw">await</span>;
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#282">fut</a>.<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">fut</span>.<span class="kw">await</span><span class="question-mark">?</span>;
 
         <span class="comment">// If pooled is HTTP/2, we can toss this reference immediately.</span>
         <span class="comment">//</span>
@@ -1778,27 +1777,27 @@
         <span class="comment">// for a new request to start.</span>
         <span class="comment">//</span>
         <span class="comment">// It won&#39;t be ready if there is a body to stream.</span>
-        <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#230">pooled</a>.<a class="ident" href="../../../src/hyper/client/client.rs.html#643">is_http2</a>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/client.rs.html#230">pooled</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#500">is_pool_enabled</a>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#230">pooled</a>.<a class="ident" href="../../../src/hyper/client/client.rs.html#651">is_ready</a>() {
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#230">pooled</a>);
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/client.rs.html#300">res</a>.<span class="ident">body</span>().<a class="ident" href="../../../hyper/body/trait.HttpBody.html">is_end_stream</a>() {
+        <span class="kw">if</span> <span class="ident">pooled</span>.<span class="ident">is_http2</span>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">pooled</span>.<span class="ident">is_pool_enabled</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">pooled</span>.<span class="ident">is_ready</span>() {
+            <span class="ident">drop</span>(<span class="ident">pooled</span>);
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">res</span>.<span class="ident">body</span>().<span class="ident">is_end_stream</span>() {
             <span class="kw">let</span> (<span class="ident">delayed_tx</span>, <span class="ident">delayed_rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-            <a class="ident" href="../../../src/hyper/client/client.rs.html#300">res</a>.<span class="ident">body_mut</span>().<a class="ident" href="../../../src/hyper/body/body.rs.html#226">delayed_eof</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#315">delayed_rx</a>);
-            <span class="kw">let</span> <span class="ident">on_idle</span> <span class="op">=</span> <span class="ident">future::poll_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#230">pooled</a>.<a class="ident" href="../../../src/hyper/client/client.rs.html#631">poll_ready</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#317">cx</a>)).<a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">map</a>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+            <span class="ident">res</span>.<span class="ident">body_mut</span>().<span class="ident">delayed_eof</span>(<span class="ident">delayed_rx</span>);
+            <span class="kw">let</span> <span class="ident">on_idle</span> <span class="op">=</span> <span class="ident">future::poll_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <span class="ident">pooled</span>.<span class="ident">poll_ready</span>(<span class="ident">cx</span>)).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
                 <span class="comment">// At this point, `pooled` is dropped, and had a chance</span>
                 <span class="comment">// to insert into the pool (if conn was idle)</span>
-                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#315">delayed_tx</a>);
+                <span class="ident">drop</span>(<span class="ident">delayed_tx</span>);
             });
 
-            <a class="self" href="../../../src/hyper/client/client.rs.html#226">self</a>.<span class="ident">conn_builder</span>.<span class="ident">exec</span>.<a class="ident" href="../../../src/hyper/common/exec.rs.html#41-43">execute</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#317">on_idle</a>);
+            <span class="self">self</span>.<span class="ident">conn_builder</span>.<span class="ident">exec</span>.<span class="ident">execute</span>(<span class="ident">on_idle</span>);
         } <span class="kw">else</span> {
             <span class="comment">// There&#39;s no body to delay, but the connection isn&#39;t</span>
             <span class="comment">// ready yet. Only re-insert when it&#39;s ready</span>
-            <span class="kw">let</span> <span class="ident">on_idle</span> <span class="op">=</span> <span class="ident">future::poll_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#230">pooled</a>.<a class="ident" href="../../../src/hyper/client/client.rs.html#631">poll_ready</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#327">cx</a>)).<a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">map</a>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ());
+            <span class="kw">let</span> <span class="ident">on_idle</span> <span class="op">=</span> <span class="ident">future::poll_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">cx</span><span class="op">|</span> <span class="ident">pooled</span>.<span class="ident">poll_ready</span>(<span class="ident">cx</span>)).<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ());
 
-            <a class="self" href="../../../src/hyper/client/client.rs.html#226">self</a>.<span class="ident">conn_builder</span>.<span class="ident">exec</span>.<a class="ident" href="../../../src/hyper/common/exec.rs.html#41-43">execute</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#327">on_idle</a>);
+            <span class="self">self</span>.<span class="ident">conn_builder</span>.<span class="ident">exec</span>.<span class="ident">execute</span>(<span class="ident">on_idle</span>);
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#300">res</a>)
+        <span class="prelude-val">Ok</span>(<span class="ident">res</span>)
     }
 
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">connection_for</span>(
@@ -1818,13 +1817,13 @@
         <span class="comment">//   (an idle connection became available first), the started</span>
         <span class="comment">//   connection future is spawned into the runtime to complete,</span>
         <span class="comment">//   and then be inserted into the pool as an idle connection.</span>
-        <span class="kw">let</span> <span class="ident">checkout</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/client.rs.html#336">self</a>.<span class="ident">pool</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#145">checkout</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#337">pool_key</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <span class="kw">let</span> <span class="ident">connect</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/client.rs.html#336">self</a>.<a class="ident" href="../../../src/hyper/client/client.rs.html#422-425">connect_to</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#337">pool_key</a>);
-        <span class="kw">let</span> <span class="ident">is_ver_h2</span> <span class="op">=</span> <a class="self" href="../../../src/hyper/client/client.rs.html#336">self</a>.<span class="ident">config</span>.<span class="ident">ver</span> <span class="op">==</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#763">Ver::Http2</a>;
+        <span class="kw">let</span> <span class="ident">checkout</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pool</span>.<span class="ident">checkout</span>(<span class="ident">pool_key</span>.<span class="ident">clone</span>());
+        <span class="kw">let</span> <span class="ident">connect</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">connect_to</span>(<span class="ident">pool_key</span>);
+        <span class="kw">let</span> <span class="ident">is_ver_h2</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">config</span>.<span class="ident">ver</span> <span class="op">==</span> <span class="ident">Ver::Http2</span>;
 
         <span class="comment">// The order of the `select` is depended on below...</span>
 
-        <span class="kw">match</span> <span class="ident">future::select</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#352">checkout</a>, <a class="ident" href="../../../src/hyper/client/client.rs.html#353">connect</a>).<span class="kw">await</span> {
+        <span class="kw">match</span> <span class="ident">future::select</span>(<span class="ident">checkout</span>, <span class="ident">connect</span>).<span class="kw">await</span> {
             <span class="comment">// Checkout won, connect future may have been started or not.</span>
             <span class="comment">//</span>
             <span class="comment">// If it has, let it finish and insert back into the pool,</span>
@@ -1837,23 +1836,23 @@
                 <span class="comment">//</span>
                 <span class="comment">// If it *wasn&#39;t* ready yet, then the connect future will</span>
                 <span class="comment">// have been started...</span>
-                <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#363">connecting</a>.<a class="ident" href="../../../src/hyper/common/lazy.rs.html#6">started</a>() {
-                    <span class="kw">let</span> <span class="ident">bg</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#363">connecting</a>
-                        .<a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">map_err</a>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                            <span class="macro">trace!</span>(<span class="string">&quot;background connect error: {}&quot;</span>, <a class="ident" href="../../../src/hyper/client/client.rs.html#373">err</a>);
+                <span class="kw">if</span> <span class="ident">connecting</span>.<span class="ident">started</span>() {
+                    <span class="kw">let</span> <span class="ident">bg</span> <span class="op">=</span> <span class="ident">connecting</span>
+                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                            <span class="macro">trace!</span>(<span class="string">&quot;background connect error: {}&quot;</span>, <span class="ident">err</span>);
                         })
-                        .<a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">map</a>(<span class="op">|</span><span class="ident">_pooled</span><span class="op">|</span> {
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">_pooled</span><span class="op">|</span> {
                             <span class="comment">// dropping here should just place it in</span>
                             <span class="comment">// the Pool for us...</span>
                         });
                     <span class="comment">// An execute error here isn&#39;t important, we&#39;re just trying</span>
                     <span class="comment">// to prevent a waste of a socket...</span>
-                    <a class="self" href="../../../src/hyper/client/client.rs.html#336">self</a>.<span class="ident">conn_builder</span>.<span class="ident">exec</span>.<a class="ident" href="../../../src/hyper/common/exec.rs.html#41-43">execute</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#372">bg</a>);
+                    <span class="self">self</span>.<span class="ident">conn_builder</span>.<span class="ident">exec</span>.<span class="ident">execute</span>(<span class="ident">bg</span>);
                 }
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#363">checked_out</a>)
+                <span class="prelude-val">Ok</span>(<span class="ident">checked_out</span>)
             }
             <span class="comment">// Connect won, checkout can just be dropped.</span>
-            <span class="ident">Either::Right</span>((<span class="prelude-val">Ok</span>(<span class="ident">connected</span>), <span class="ident">_checkout</span>)) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#387">connected</a>),
+            <span class="ident">Either::Right</span>((<span class="prelude-val">Ok</span>(<span class="ident">connected</span>), <span class="ident">_checkout</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">connected</span>),
             <span class="comment">// Either checkout or connect could get canceled:</span>
             <span class="comment">//</span>
             <span class="comment">// 1. Connect is canceled if this is HTTP/2 and there is</span>
@@ -1863,26 +1862,26 @@
             <span class="comment">//</span>
             <span class="comment">// In both cases, we should just wait for the other future.</span>
             <span class="ident">Either::Left</span>((<span class="prelude-val">Err</span>(<span class="ident">err</span>), <span class="ident">connecting</span>)) =&gt; {
-                <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#396">err</a>.<a class="ident" href="../../../src/hyper/error.rs.html#175">is_canceled</a>() {
-                    <a class="ident" href="../../../src/hyper/client/client.rs.html#396">connecting</a>.<span class="kw">await</span>.<span class="ident">map_err</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#755">ClientConnectError::Normal</a>)
+                <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">is_canceled</span>() {
+                    <span class="ident">connecting</span>.<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="ident">ClientConnectError::Normal</span>)
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#755">ClientConnectError::Normal</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#396">err</a>))
+                    <span class="prelude-val">Err</span>(<span class="ident">ClientConnectError::Normal</span>(<span class="ident">err</span>))
                 }
             }
             <span class="ident">Either::Right</span>((<span class="prelude-val">Err</span>(<span class="ident">err</span>), <span class="ident">checkout</span>)) =&gt; {
-                <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#403">err</a>.<a class="ident" href="../../../src/hyper/error.rs.html#175">is_canceled</a>() {
-                    <a class="ident" href="../../../src/hyper/client/client.rs.html#403">checkout</a>.<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-                        <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#354">is_ver_h2</a>
-                            <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#405">err</a>.<a class="ident" href="../../../src/hyper/error.rs.html#175">is_canceled</a>()
-                            <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#405">err</a>.<a class="ident" href="../../../src/hyper/error.rs.html#225">find_source</a>::<span class="op">&lt;</span><a class="ident" href="../../../src/hyper/client/pool.rs.html#568">CheckoutIsClosedError</a><span class="op">&gt;</span>().<span class="ident">is_some</span>()
+                <span class="kw">if</span> <span class="ident">err</span>.<span class="ident">is_canceled</span>() {
+                    <span class="ident">checkout</span>.<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+                        <span class="kw">if</span> <span class="ident">is_ver_h2</span>
+                            <span class="op">&amp;&amp;</span> <span class="ident">err</span>.<span class="ident">is_canceled</span>()
+                            <span class="op">&amp;&amp;</span> <span class="ident">err</span>.<span class="ident">find_source</span>::<span class="op">&lt;</span><span class="ident">CheckoutIsClosedError</span><span class="op">&gt;</span>().<span class="ident">is_some</span>()
                         {
-                            <a class="ident" href="../../../src/hyper/client/client.rs.html#756">ClientConnectError::H2CheckoutIsClosed</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#405">err</a>)
+                            <span class="ident">ClientConnectError::H2CheckoutIsClosed</span>(<span class="ident">err</span>)
                         } <span class="kw">else</span> {
-                            <a class="ident" href="../../../src/hyper/client/client.rs.html#755">ClientConnectError::Normal</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#405">err</a>)
+                            <span class="ident">ClientConnectError::Normal</span>(<span class="ident">err</span>)
                         }
                     })
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#755">ClientConnectError::Normal</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#403">err</a>))
+                    <span class="prelude-val">Err</span>(<span class="ident">ClientConnectError::Normal</span>(<span class="ident">err</span>))
                 }
             }
         }
@@ -1925,10 +1924,10 @@
                         <span class="comment">// If ALPN is h2 and we aren&#39;t http2_only already,</span>
                         <span class="comment">// then we need to convert our pool checkout into</span>
                         <span class="comment">// a single HTTP2 one.</span>
-                        <span class="kw">let</span> <span class="ident">connecting</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#455">connected</a>.<span class="ident">alpn</span> <span class="op">==</span> <a class="ident" href="../../../src/hyper/client/connect/mod.rs.html#122">Alpn::H2</a> <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/client.rs.html#433">is_ver_h2</a> {
+                        <span class="kw">let</span> <span class="ident">connecting</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">connected</span>.<span class="ident">alpn</span> <span class="op">==</span> <span class="ident">Alpn::H2</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">is_ver_h2</span> {
                             <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#442">connecting</a>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#696">alpn_h2</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/hyper/client/client.rs.html#427">pool</a>) {
                                 <span class="prelude-val">Some</span>(<span class="ident">lock</span>) =&gt; {
-                                    <span class="macro">trace!</span>(<span class="string">&quot;ALPN negotiated h2, updating pool&quot;</span>);
+                                    <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;ALPN negotiated h2, updating pool&quot;</span>);
                                     <a class="ident" href="../../../src/hyper/client/client.rs.html#461">lock</a>
                                 }
                                 <span class="prelude-val">None</span> =&gt; {
@@ -1951,22 +1950,22 @@
                         }
 
                         <span class="ident">Either::Left</span>(<span class="ident">Box::pin</span>(<span class="kw">async</span> <span class="kw">move</span> {
-                            <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">conn</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#431">conn_builder</a>.<a class="ident" href="../../../src/hyper/client/conn.rs.html#939-947">handshake</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#454">io</a>).<span class="kw">await</span><span class="question-mark">?</span>;
+                            <span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">conn</span>) <span class="op">=</span> <span class="ident">conn_builder</span>.<span class="ident">handshake</span>(<span class="ident">io</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 
-                            <span class="macro">trace!</span>(<span class="string">&quot;handshake complete, spawning background dispatcher task&quot;</span>);
+                            <a class="macro" href="../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;handshake complete, spawning background dispatcher task&quot;</span>);
                             <a class="ident" href="../../../src/hyper/client/client.rs.html#426">executor</a>.<a class="ident" href="../../../src/hyper/common/exec.rs.html#41-43">execute</a>(
-                                <a class="ident" href="../../../src/hyper/client/client.rs.html#485">conn</a>.<a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">map_err</a>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">debug!</span>(<span class="string">&quot;client connection error: {}&quot;</span>, <a class="ident" href="../../../src/hyper/client/client.rs.html#489">e</a>))
+                                <a class="ident" href="../../../src/hyper/client/client.rs.html#485">conn</a>.<a class="ident" href="../../../futures_util/future/try_future/trait.TryFutureExt.html">map_err</a>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="macro" href="../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;client connection error: {}&quot;</span>, <span class="ident">e</span>))
                                     .<a class="ident" href="../../../futures_util/future/future/trait.FutureExt.html">map</a>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ()),
                             );
 
                             <span class="comment">// Wait for &#39;conn&#39; to ready up before we</span>
                             <span class="comment">// declare this tx as usable</span>
-                            <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#485">tx</a>.<a class="ident" href="../../../src/hyper/client/conn.rs.html#232">when_ready</a>().<span class="kw">await</span><span class="question-mark">?</span>;
+                            <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <span class="ident">tx</span>.<span class="ident">when_ready</span>().<span class="kw">await</span><span class="question-mark">?</span>;
 
                             <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> {
                                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)]</span>
                                 {
-                                    <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#478">is_h2</a> {
+                                    <span class="kw">if</span> <span class="ident">is_h2</span> {
                                         <a class="ident" href="../../../src/hyper/client/client.rs.html#627">PoolTx::Http2</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#495">tx</a>.<a class="ident" href="../../../src/hyper/client/conn.rs.html#250">into_http2</a>())
                                     } <span class="kw">else</span> {
                                         <a class="ident" href="../../../src/hyper/client/client.rs.html#625">PoolTx::Http1</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#495">tx</a>)
@@ -2060,7 +2059,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">error_version</span>(<span class="ident">ver</span>: <a class="ident" href="../../../hyper/struct.Version.html">Version</a>) -&gt; <span class="self">Self</span> {
-        <span class="macro">warn!</span>(<span class="string">&quot;Request has unsupported version \&quot;{:?}\&quot;&quot;</span>, <a class="ident" href="../../../src/hyper/client/client.rs.html#593">ver</a>);
+        <a class="macro" href="../../../tracing/macro.warn.html">warn!</a>(<span class="string">&quot;Request has unsupported version \&quot;{:?}\&quot;&quot;</span>, <span class="ident">ver</span>);
         <span class="ident">ResponseFuture::new</span>(<span class="ident">Box::pin</span>(<span class="ident">future::err</span>(
             <span class="ident"><span class="kw">crate</span>::Error::new_user_unsupported_version</span>(),
         )))
@@ -2240,7 +2239,7 @@
             <span class="ident">Uri::from_parts</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#769">parts</a>).<span class="ident">expect</span>(<span class="string">&quot;path is valid uri&quot;</span>)
         }
         <span class="ident">_none_or_just_slash</span> =&gt; {
-            <span class="macro">debug_assert!</span>(<span class="ident">Uri::default</span>() <span class="op">==</span> <span class="string">&quot;/&quot;</span>);
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">Uri::default</span>() <span class="op">==</span> <span class="string">&quot;/&quot;</span>);
             <span class="ident">Uri::default</span>()
         }
     };
@@ -2248,15 +2247,15 @@
 }
 
 <span class="kw">fn</span> <span class="ident">absolute_form</span>(<span class="ident">uri</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../hyper/struct.Uri.html">Uri</a>) {
-    <span class="macro">debug_assert!</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#781">uri</a>.<span class="ident">scheme</span>().<span class="ident">is_some</span>(), <span class="string">&quot;absolute_form needs a scheme&quot;</span>);
-    <span class="macro">debug_assert!</span>(
-        <a class="ident" href="../../../src/hyper/client/client.rs.html#781">uri</a>.<span class="ident">authority</span>().<span class="ident">is_some</span>(),
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">uri</span>.<span class="ident">scheme</span>().<span class="ident">is_some</span>(), <span class="string">&quot;absolute_form needs a scheme&quot;</span>);
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+        <span class="ident">uri</span>.<span class="ident">authority</span>().<span class="ident">is_some</span>(),
         <span class="string">&quot;absolute_form needs an authority&quot;</span>
     );
     <span class="comment">// If the URI is to HTTPS, and the connector claimed to be a proxy,</span>
     <span class="comment">// then it *should* have tunneled, and so we don&#39;t want to send</span>
     <span class="comment">// absolute-form in that case.</span>
-    <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#781">uri</a>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme::HTTPS</span>) {
+    <span class="kw">if</span> <span class="ident">uri</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme::HTTPS</span>) {
         <a class="ident" href="../../../src/hyper/client/client.rs.html#766">origin_form</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#781">uri</a>);
     }
 }
@@ -2265,8 +2264,8 @@
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#795">uri</a>.<span class="ident">path_and_query</span>() {
         <span class="comment">// `https://hyper.rs` would parse with `/` path, don&#39;t</span>
         <span class="comment">// annoy people about that...</span>
-        <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#796">path</a> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;/&quot;</span> {
-            <span class="macro">warn!</span>(<span class="string">&quot;HTTP/1.1 CONNECT request stripping path: {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/client.rs.html#796">path</a>);
+        <span class="kw">if</span> <span class="ident">path</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;/&quot;</span> {
+            <a class="macro" href="../../../tracing/macro.warn.html">warn!</a>(<span class="string">&quot;HTTP/1.1 CONNECT request stripping path: {:?}&quot;</span>, <span class="ident">path</span>);
         }
     }
     <span class="kw-2">*</span><a class="ident" href="../../../src/hyper/client/client.rs.html#795">uri</a> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#795">uri</a>.<span class="ident">authority</span>() {
@@ -2276,7 +2275,7 @@
             <span class="ident">Uri::from_parts</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#805">parts</a>).<span class="ident">expect</span>(<span class="string">&quot;authority is valid&quot;</span>)
         }
         <span class="prelude-val">None</span> =&gt; {
-            <span class="macro">unreachable!</span>(<span class="string">&quot;authority_form with relative uri&quot;</span>);
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;authority_form with relative uri&quot;</span>);
         }
     };
 }
@@ -2299,7 +2298,7 @@
             <span class="prelude-val">Ok</span>((<a class="ident" href="../../../src/hyper/client/client.rs.html#820">scheme</a>, <a class="ident" href="../../../src/hyper/client/client.rs.html#819">auth</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
         }
         <span class="kw">_</span> =&gt; {
-            <span class="macro">debug!</span>(<span class="string">&quot;Client requires absolute-form URIs, received: {:?}&quot;</span>, <a class="ident" href="../../../src/hyper/client/client.rs.html#815">uri</a>);
+            <a class="macro" href="../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;Client requires absolute-form URIs, received: {:?}&quot;</span>, <span class="ident">uri</span>);
             <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_user_absolute_uri_required</span>())
         }
     }
@@ -2315,11 +2314,11 @@
 }
 
 <span class="kw">fn</span> <span class="ident">set_scheme</span>(<span class="ident">uri</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../hyper/struct.Uri.html">Uri</a>, <span class="ident">scheme</span>: <a class="ident" href="../../../http/uri/scheme/struct.Scheme.html">Scheme</a>) {
-    <span class="macro">debug_assert!</span>(
-        <a class="ident" href="../../../src/hyper/client/client.rs.html#848">uri</a>.<span class="ident">scheme</span>().<span class="ident">is_none</span>(),
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
+        <span class="ident">uri</span>.<span class="ident">scheme</span>().<span class="ident">is_none</span>(),
         <span class="string">&quot;set_scheme expects no existing scheme&quot;</span>
     );
-    <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#848">uri</a>, <span class="ident">Uri::default</span>());
+    <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.replace.html">mem::replace</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#848">uri</a>, <span class="ident">Uri::default</span>());
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parts</span>: <a class="ident" href="../../../http/uri/struct.Parts.html">::http::uri::Parts</a> <span class="op">=</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#853">old</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
     <a class="ident" href="../../../src/hyper/client/client.rs.html#854">parts</a>.<span class="ident">scheme</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#848">scheme</a>);
     <a class="ident" href="../../../src/hyper/client/client.rs.html#854">parts</a>.<span class="ident">path_and_query</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="string">&quot;/&quot;</span>.<span class="ident">parse</span>().<span class="ident">expect</span>(<span class="string">&quot;slash is a valid path&quot;</span>));
@@ -2336,7 +2335,7 @@
 
 <span class="kw">fn</span> <span class="ident">is_schema_secure</span>(<span class="ident">uri</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../hyper/struct.Uri.html">Uri</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <a class="ident" href="../../../src/hyper/client/client.rs.html#868">uri</a>.<span class="ident">scheme_str</span>()
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">scheme_str</span><span class="op">|</span> <span class="macro">matches!</span>(<a class="ident" href="../../../src/hyper/client/client.rs.html#870">scheme_str</a>, <span class="string">&quot;wss&quot;</span> <span class="op">|</span> <span class="string">&quot;https&quot;</span>))
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">scheme_str</span><span class="op">|</span> <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="ident">scheme_str</span>, <span class="string">&quot;wss&quot;</span> <span class="op">|</span> <span class="string">&quot;https&quot;</span>))
         .<span class="ident">unwrap_or_default</span>()
 }
 
@@ -2390,10 +2389,10 @@
         <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;name is confusing, to disable the connection pool, call pool_max_idle_per_host(0)&quot;</span>
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">keep_alive</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../src/hyper/client/client.rs.html#923">val</a> {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">val</span> {
             <span class="comment">// disable</span>
             <a class="self" href="../../../src/hyper/client/client.rs.html#923">self</a>.<a class="ident" href="../../../src/hyper/client/client.rs.html#968">pool_max_idle_per_host</a>(<span class="number">0</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="self" href="../../../src/hyper/client/client.rs.html#923">self</a>.<span class="ident">pool_config</span>.<span class="ident">max_idle_per_host</span> <span class="op">==</span> <span class="number">0</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">pool_config</span>.<span class="ident">max_idle_per_host</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="comment">// enable</span>
             <a class="self" href="../../../src/hyper/client/client.rs.html#923">self</a>.<a class="ident" href="../../../src/hyper/client/client.rs.html#968">pool_max_idle_per_host</a>(<span class="ident">std::usize::MAX</span>)
         } <span class="kw">else</span> {
@@ -2599,7 +2598,7 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;http2&quot;</span>)))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">http2_only</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <a class="self" href="../../../src/hyper/client/client.rs.html#1132">self</a>.<span class="ident">client_config</span>.<span class="ident">ver</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../src/hyper/client/client.rs.html#1132">val</a> { <a class="ident" href="../../../src/hyper/client/client.rs.html#763">Ver::Http2</a> } <span class="kw">else</span> { <a class="ident" href="../../../src/hyper/client/client.rs.html#762">Ver::Auto</a> };
+        <a class="self" href="../../../src/hyper/client/client.rs.html#1132">self</a>.<span class="ident">client_config</span>.<span class="ident">ver</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">val</span> { <a class="ident" href="../../../src/hyper/client/client.rs.html#763">Ver::Http2</a> } <span class="kw">else</span> { <a class="ident" href="../../../src/hyper/client/client.rs.html#762">Ver::Auto</a> };
         <a class="self" href="../../../src/hyper/client/client.rs.html#1132">self</a>
     }
 
@@ -2793,7 +2792,7 @@
         <span class="ident">B::Data</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">connector</span> <span class="op">=</span> <span class="ident">HttpConnector::new</span>();
-        <span class="kw">if</span> <a class="self" href="../../../src/hyper/client/client.rs.html#1321">self</a>.<span class="ident">pool_config</span>.<a class="ident" href="../../../src/hyper/client/pool.rs.html#99">is_enabled</a>() {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">pool_config</span>.<span class="ident">is_enabled</span>() {
             <a class="ident" href="../../../src/hyper/client/client.rs.html#1326">connector</a>.<a class="ident" href="../../../src/hyper/client/connect/http.rs.html#143">set_keepalive</a>(<a class="self" href="../../../src/hyper/client/client.rs.html#1321">self</a>.<span class="ident">pool_config</span>.<span class="ident">idle_timeout</span>);
         }
         <a class="self" href="../../../src/hyper/client/client.rs.html#1321">self</a>.<a class="ident" href="../../../src/hyper/client/client.rs.html#1334-1338">build</a>(<a class="ident" href="../../../src/hyper/client/client.rs.html#1326">connector</a>)
@@ -2930,5 +2929,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

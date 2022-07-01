@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.19/src/proto/h1/conn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>conn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.19/src/proto/h1/conn.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>conn.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -1437,7 +1436,7 @@
 <span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>))]</span>
 <span class="kw">use</span> <a class="ident" href="../../../../tokio/time/driver/sleep/struct.Sleep.html">tokio::time::Sleep</a>;
-<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">error</span>, <span class="ident">trace</span>};
+<span class="kw">use</span> <span class="ident">tracing</span>::{<a class="ident" href="../../../../tracing/macro.debug.html">debug</a>, <a class="ident" href="../../../../tracing/macro.error.html">error</a>, <a class="ident" href="../../../../tracing/macro.trace.html">trace</a>};
 
 <span class="kw">use</span> <a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#39-46"><span class="kw">super</span>::io::Buffered</a>;
 <span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#21-23">Decoder</a>, <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#96-103">Encode</a>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#20-22">EncodedBuf</a>, <a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#14-17">Encoder</a>, <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#35-61">Http1Transaction</a>, <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#75-93">ParseContext</a>, <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#107">Wants</a>};
@@ -1581,7 +1580,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">can_read_head</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#157">self</a>.<span class="ident">state</span>.<span class="ident">reading</span>, <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#853">Reading::Init</a>) {
+        <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">state</span>.<span class="ident">reading</span>, <span class="ident">Reading::Init</span>) {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
 
@@ -1589,7 +1588,7 @@
             <span class="kw">return</span> <span class="bool-val">true</span>;
         }
 
-        <span class="op">!</span><span class="macro">matches!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#157">self</a>.<span class="ident">state</span>.<span class="ident">writing</span>, <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#861">Writing::Init</a>)
+        <span class="op">!</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="ident">state</span>.<span class="ident">writing</span>, <span class="ident">Writing::Init</span>)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">can_read_body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
@@ -1613,25 +1612,25 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>(<span class="ident">MessageHead</span><span class="op">&lt;</span><span class="ident">T::Incoming</span><span class="op">&gt;</span>, <a class="ident" href="../../../../src/hyper/body/length.rs.html#4">DecodedLength</a>, <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#107">Wants</a>)<span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#157">can_read_head</a>());
-        <span class="macro">trace!</span>(<span class="string">&quot;Conn::read_head&quot;</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">can_read_head</span>());
+        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;Conn::read_head&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="kw">match</span> <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#175-181">parse</a>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
-            <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#188">cx</a>,
-            <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#75-93">ParseContext</a> {
-                <span class="ident">cached_headers</span>: <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<span class="ident">state</span>.<span class="ident">cached_headers</span>,
-                <span class="ident">req_method</span>: <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<span class="ident">state</span>.<span class="ident">method</span>,
-                <span class="ident">h1_parser_config</span>: <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<span class="ident">state</span>.<span class="ident">h1_parser_config</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="kw">match</span> <a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.<span class="ident">io</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(
+            <span class="ident">cx</span>,
+            <span class="ident">ParseContext</span> {
+                <span class="ident">cached_headers</span>: <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">cached_headers</span>,
+                <span class="ident">req_method</span>: <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">method</span>,
+                <span class="ident">h1_parser_config</span>: <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">h1_parser_config</span>.<span class="ident">clone</span>(),
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>))]</span>
-                <span class="ident">h1_header_read_timeout</span>: <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<span class="ident">state</span>.<span class="ident">h1_header_read_timeout</span>,
+                <span class="ident">h1_header_read_timeout</span>: <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">h1_header_read_timeout</span>,
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>))]</span>
-                <span class="ident">h1_header_read_timeout_fut</span>: <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<span class="ident">state</span>.<span class="ident">h1_header_read_timeout_fut</span>,
+                <span class="ident">h1_header_read_timeout_fut</span>: <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">h1_header_read_timeout_fut</span>,
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime&quot;</span>))]</span>
-                <span class="ident">h1_header_read_timeout_running</span>: <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<span class="ident">state</span>.<span class="ident">h1_header_read_timeout_running</span>,
-                <span class="ident">preserve_header_case</span>: <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<span class="ident">state</span>.<span class="ident">preserve_header_case</span>,
+                <span class="ident">h1_header_read_timeout_running</span>: <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">h1_header_read_timeout_running</span>,
+                <span class="ident">preserve_header_case</span>: <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">preserve_header_case</span>,
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
                 <span class="ident">preserve_header_order</span>: <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">preserve_header_order</span>,
-                <span class="ident">h09_responses</span>: <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<span class="ident">state</span>.<span class="ident">h09_responses</span>,
+                <span class="ident">h09_responses</span>: <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">h09_responses</span>,
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
                 <span class="ident">on_informational</span>: <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">on_informational</span>,
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
@@ -1645,7 +1644,7 @@
         <span class="comment">// Note: don&#39;t deconstruct `msg` into local variables, it appears</span>
         <span class="comment">// the optimizer doesn&#39;t remove the extra copies.</span>
 
-        <span class="macro">debug!</span>(<span class="string">&quot;incoming body is {}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#193">msg</a>.<span class="ident">decode</span>);
+        <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;incoming body is {}&quot;</span>, <span class="ident">msg</span>.<span class="ident">decode</span>);
 
         <span class="comment">// Prevent accepting HTTP/0.9 responses after the initial one, if any.</span>
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<span class="ident">state</span>.<span class="ident">h09_responses</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -1660,21 +1659,21 @@
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<span class="ident">state</span>.<span class="ident">keep_alive</span> <span class="op">&amp;=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#193">msg</a>.<span class="ident">keep_alive</span>;
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<span class="ident">state</span>.<span class="ident">version</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#193">msg</a>.<span class="ident">head</span>.<span class="ident">version</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wants</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#193">msg</a>.<span class="ident">wants_upgrade</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wants</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">msg</span>.<span class="ident">wants_upgrade</span> {
             <span class="ident">Wants::UPGRADE</span>
         } <span class="kw">else</span> {
             <span class="ident">Wants::EMPTY</span>
         };
 
-        <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#193">msg</a>.<span class="ident">decode</span> <span class="op">==</span> <span class="ident">DecodedLength::ZERO</span> {
-            <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#193">msg</a>.<span class="ident">expect_continue</span> {
-                <span class="macro">debug!</span>(<span class="string">&quot;ignoring expect-continue since body is empty&quot;</span>);
+        <span class="kw">if</span> <span class="ident">msg</span>.<span class="ident">decode</span> <span class="op">==</span> <span class="ident">DecodedLength::ZERO</span> {
+            <span class="kw">if</span> <span class="ident">msg</span>.<span class="ident">expect_continue</span> {
+                <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;ignoring expect-continue since body is empty&quot;</span>);
             }
             <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<span class="ident">state</span>.<span class="ident">reading</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#856">Reading::KeepAlive</a>;
             <span class="kw">if</span> <span class="op">!</span><span class="ident">T::should_read_first</span>() {
                 <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#486">try_keep_alive</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#188">cx</a>);
             }
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#193">msg</a>.<span class="ident">expect_continue</span> {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">msg</span>.<span class="ident">expect_continue</span> {
             <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#187">self</a>.<span class="ident">state</span>.<span class="ident">reading</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#854">Reading::Continue</a>(<span class="ident">Decoder::new</span>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#193">msg</a>.<span class="ident">decode</span>));
             <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#237">wants</a> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#237">wants</a>.<a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#115">add</a>(<span class="ident">Wants::EXPECT</span>);
         } <span class="kw">else</span> {
@@ -1692,19 +1691,19 @@
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#261">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#760">close_read</a>();
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#261">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#162">consume_leading_lines</a>();
         <span class="kw">let</span> <span class="ident">was_mid_parse</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#261">e</a>.<a class="ident" href="../../../../src/hyper/error.rs.html#151">is_parse</a>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#261">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#120">read_buf</a>().<span class="ident">is_empty</span>();
-        <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#268">was_mid_parse</a> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#265">must_error</a> {
+        <span class="kw">if</span> <span class="ident">was_mid_parse</span> <span class="op">|</span><span class="op">|</span> <span class="ident">must_error</span> {
             <span class="comment">// We check if the buf contains the h2 Preface</span>
-            <span class="macro">debug!</span>(
+            <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(
                 <span class="string">&quot;parse error ({}) with {} bytes&quot;</span>,
-                <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#261">e</a>,
-                <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#261">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#120">read_buf</a>().<span class="ident">len</span>()
+                <span class="ident">e</span>,
+                <span class="self">self</span>.<span class="ident">io</span>.<span class="ident">read_buf</span>().<span class="ident">len</span>()
             );
             <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#261">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#710">on_parse_error</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#261">e</a>) {
                 <span class="prelude-val">Ok</span>(()) =&gt; <span class="ident">Poll::Pending</span>, <span class="comment">// XXX: wat?</span>
                 <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#278">e</a>))),
             }
         } <span class="kw">else</span> {
-            <span class="macro">debug!</span>(<span class="string">&quot;read eof&quot;</span>);
+            <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;read eof&quot;</span>);
             <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#261">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#764">close_write</a>();
             <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>)
         }
@@ -1714,24 +1713,24 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../../hyper/body/struct.Bytes.html">Bytes</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#288">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#169">can_read_body</a>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">can_read_body</span>());
 
         <span class="kw">let</span> (<span class="ident">reading</span>, <span class="ident">ret</span>) <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#288">self</a>.<span class="ident">state</span>.<span class="ident">reading</span> {
             <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#855">Reading::Body</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">decoder</span>) =&gt; {
-                <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#294">decoder</a>.<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#101-105">decode</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#289">cx</a>, <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#288">self</a>.<span class="ident">io</span>)) {
+                <span class="kw">match</span> <a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="ident">decoder</span>.<span class="ident">decode</span>(<span class="ident">cx</span>, <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">io</span>)) {
                     <span class="prelude-val">Ok</span>(<span class="ident">slice</span>) =&gt; {
-                        <span class="kw">let</span> (<span class="ident">reading</span>, <span class="ident">chunk</span>) <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#294">decoder</a>.<a class="ident" href="../../../../src/hyper/proto/h1/decode.rs.html#97">is_eof</a>() {
-                            <span class="macro">debug!</span>(<span class="string">&quot;incoming body completed&quot;</span>);
+                        <span class="kw">let</span> (<span class="ident">reading</span>, <span class="ident">chunk</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">decoder</span>.<span class="ident">is_eof</span>() {
+                            <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;incoming body completed&quot;</span>);
                             (
                                 <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#856">Reading::KeepAlive</a>,
-                                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#296">slice</a>.<span class="ident">is_empty</span>() {
+                                <span class="kw">if</span> <span class="op">!</span><span class="ident">slice</span>.<span class="ident">is_empty</span>() {
                                     <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#296">slice</a>))
                                 } <span class="kw">else</span> {
                                     <span class="prelude-val">None</span>
                                 },
                             )
-                        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#296">slice</a>.<span class="ident">is_empty</span>() {
-                            <span class="macro">error!</span>(<span class="string">&quot;incoming body unexpectedly ended&quot;</span>);
+                        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">slice</span>.<span class="ident">is_empty</span>() {
+                            <a class="macro" href="../../../../tracing/macro.error.html">error!</a>(<span class="string">&quot;incoming body unexpectedly ended&quot;</span>);
                             <span class="comment">// This should be unreachable, since all 3 decoders</span>
                             <span class="comment">// either set eof=true or return an Err when reading</span>
                             <span class="comment">// an empty slice...</span>
@@ -1742,7 +1741,7 @@
                         (<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#297">reading</a>, <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#297">chunk</a>))
                     }
                     <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                        <span class="macro">debug!</span>(<span class="string">&quot;incoming body decode error: {}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#318">e</a>);
+                        <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;incoming body decode error: {}&quot;</span>, <span class="ident">e</span>);
                         (<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#857">Reading::Closed</a>, <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#318">e</a>))))
                     }
                 }
@@ -1750,7 +1749,7 @@
             <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#854">Reading::Continue</a>(<span class="kw-2">ref</span> <span class="ident">decoder</span>) =&gt; {
                 <span class="comment">// Write the 100 Continue if not already responded...</span>
                 <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#861">Writing::Init</a> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#288">self</a>.<span class="ident">state</span>.<span class="ident">writing</span> {
-                    <span class="macro">trace!</span>(<span class="string">&quot;automatically sending 100 Continue&quot;</span>);
+                    <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;automatically sending 100 Continue&quot;</span>);
                     <span class="kw">let</span> <span class="ident">cont</span> <span class="op">=</span> <span class="string">b&quot;HTTP/1.1 100 Continue\r\n\r\n&quot;</span>;
                     <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#288">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#145">headers_buf</a>().<span class="ident">extend_from_slice</span>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#328">cont</a>);
                 }
@@ -1759,7 +1758,7 @@
                 <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#288">self</a>.<span class="ident">state</span>.<span class="ident">reading</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#855">Reading::Body</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#324">decoder</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                 <span class="kw">return</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#288">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#287-290">poll_read_body</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#289">cx</a>);
             }
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;poll_read_body invalid state: {:?}&quot;</span>, <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#288">self</a>.<span class="ident">state</span>.<span class="ident">reading</span>),
+            <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;poll_read_body invalid state: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">reading</span>),
         };
 
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#288">self</a>.<span class="ident">state</span>.<span class="ident">reading</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#293">reading</a>;
@@ -1777,11 +1776,11 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert!</span>(<span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#351">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#157">can_read_head</a>() <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#351">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#169">can_read_body</a>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="op">!</span><span class="self">self</span>.<span class="ident">can_read_head</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">can_read_body</span>());
 
-        <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#351">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#149">is_read_closed</a>() {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_read_closed</span>() {
             <span class="ident">Poll::Pending</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#351">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#365">is_mid_message</a>() {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_mid_message</span>() {
             <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#351">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#409">mid_message_detect_eof</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#352">cx</a>)
         } <span class="kw">else</span> {
             <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#351">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#376">require_empty_read</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#352">cx</a>)
@@ -1789,9 +1788,9 @@
     }
 
     <span class="kw">fn</span> <span class="ident">is_mid_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="op">!</span><span class="macro">matches!</span>(
-            (<span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#365">self</a>.<span class="ident">state</span>.<span class="ident">reading</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#365">self</a>.<span class="ident">state</span>.<span class="ident">writing</span>),
-            (<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#853">Reading::Init</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#861">Writing::Init</a>)
+        <span class="op">!</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(
+            (<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>.<span class="ident">reading</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">state</span>.<span class="ident">writing</span>),
+            (<span class="kw-2">&amp;</span><span class="ident">Reading::Init</span>, <span class="kw-2">&amp;</span><span class="ident">Writing::Init</span>)
         )
     }
 
@@ -1800,23 +1799,23 @@
     <span class="comment">// This should only be called for Clients wanting to enter the idle</span>
     <span class="comment">// state.</span>
     <span class="kw">fn</span> <span class="ident">require_empty_read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert!</span>(<span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#376">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#157">can_read_head</a>() <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#376">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#169">can_read_body</a>() <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#376">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#149">is_read_closed</a>());
-        <span class="macro">debug_assert!</span>(<span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#376">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#365">is_mid_message</a>());
-        <span class="macro">debug_assert!</span>(<span class="ident">T::is_client</span>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="op">!</span><span class="self">self</span>.<span class="ident">can_read_head</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">can_read_body</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_read_closed</span>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="op">!</span><span class="self">self</span>.<span class="ident">is_mid_message</span>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">T::is_client</span>());
 
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#376">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#120">read_buf</a>().<span class="ident">is_empty</span>() {
-            <span class="macro">debug!</span>(<span class="string">&quot;received an unexpected {} bytes&quot;</span>, <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#376">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#120">read_buf</a>().<span class="ident">len</span>());
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">io</span>.<span class="ident">read_buf</span>().<span class="ident">is_empty</span>() {
+            <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;received an unexpected {} bytes&quot;</span>, <span class="self">self</span>.<span class="ident">io</span>.<span class="ident">read_buf</span>().<span class="ident">len</span>());
             <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_unexpected_message</span>()));
         }
 
-        <span class="kw">let</span> <span class="ident">num_read</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#376">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#428">force_io_read</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#376">cx</a>)).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_io</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">num_read</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">force_io_read</span>(<span class="ident">cx</span>)).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_io</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#386">num_read</a> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#376">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#176">should_error_on_eof</a>() {
-                <span class="macro">trace!</span>(<span class="string">&quot;found unexpected EOF on busy connection: {:?}&quot;</span>, <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#376">self</a>.<span class="ident">state</span>);
+        <span class="kw">if</span> <span class="ident">num_read</span> <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">should_error_on_eof</span>() {
+                <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;found unexpected EOF on busy connection: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">state</span>);
                 <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_incomplete</span>()))
             } <span class="kw">else</span> {
-                <span class="macro">trace!</span>(<span class="string">&quot;found EOF on idle connection, closing&quot;</span>);
+                <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;found EOF on idle connection, closing&quot;</span>);
                 <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
             };
 
@@ -1825,25 +1824,25 @@
             <span class="kw">return</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#389">ret</a>;
         }
 
-        <span class="macro">debug!</span>(
+        <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(
             <span class="string">&quot;received unexpected {} bytes on an idle connection&quot;</span>,
-            <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#386">num_read</a>
+            <span class="ident">num_read</span>
         );
         <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_unexpected_message</span>()))
     }
 
     <span class="kw">fn</span> <span class="ident">mid_message_detect_eof</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert!</span>(<span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#409">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#157">can_read_head</a>() <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#409">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#169">can_read_body</a>() <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#409">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#149">is_read_closed</a>());
-        <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#409">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#365">is_mid_message</a>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="op">!</span><span class="self">self</span>.<span class="ident">can_read_head</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">can_read_body</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_read_closed</span>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">is_mid_message</span>());
 
-        <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#409">self</a>.<span class="ident">state</span>.<span class="ident">allow_half_close</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#409">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#120">read_buf</a>().<span class="ident">is_empty</span>() {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">allow_half_close</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">io</span>.<span class="ident">read_buf</span>().<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">num_read</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#409">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#428">force_io_read</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#409">cx</a>)).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_io</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">num_read</span> <span class="op">=</span> <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">force_io_read</span>(<span class="ident">cx</span>)).<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_io</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#417">num_read</a> <span class="op">==</span> <span class="number">0</span> {
-            <span class="macro">trace!</span>(<span class="string">&quot;found unexpected EOF on busy connection: {:?}&quot;</span>, <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#409">self</a>.<span class="ident">state</span>);
+        <span class="kw">if</span> <span class="ident">num_read</span> <span class="op">==</span> <span class="number">0</span> {
+            <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;found unexpected EOF on busy connection: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">state</span>);
             <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#409">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#949">close_read</a>();
             <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_incomplete</span>()))
         } <span class="kw">else</span> {
@@ -1852,11 +1851,11 @@
     }
 
     <span class="kw">fn</span> <span class="ident">force_io_read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert!</span>(<span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#428">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#1029">is_read_closed</a>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="op">!</span><span class="self">self</span>.<span class="ident">state</span>.<span class="ident">is_read_closed</span>());
 
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#428">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#253-256">poll_read_from_io</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#428">cx</a>));
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="self">self</span>.<span class="ident">io</span>.<span class="ident">poll_read_from_io</span>(<span class="ident">cx</span>));
         <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#431">result</a>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-            <span class="macro">trace!</span>(<span class="string">&quot;force_io_read; io error = {:?}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#432">e</a>);
+            <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;force_io_read; io error = {:?}&quot;</span>, <span class="ident">e</span>);
             <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#428">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#942">close</a>();
             <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#432">e</a>
         }))
@@ -1880,13 +1879,13 @@
             <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#861">Writing::Init</a> <span class="op">|</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#863">Writing::KeepAlive</a> <span class="op">|</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#864">Writing::Closed</a> =&gt; (),
         }
 
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#439">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#295">is_read_blocked</a>() {
-            <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#439">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#120">read_buf</a>().<span class="ident">is_empty</span>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">io</span>.<span class="ident">is_read_blocked</span>() {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">io</span>.<span class="ident">read_buf</span>().<span class="ident">is_empty</span>() {
                 <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#439">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#253-256">poll_read_from_io</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#439">cx</a>) {
                     <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">n</span>)) =&gt; {
-                        <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#460">n</a> <span class="op">==</span> <span class="number">0</span> {
-                            <span class="macro">trace!</span>(<span class="string">&quot;maybe_notify; read eof&quot;</span>);
-                            <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#439">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#1025">is_idle</a>() {
+                        <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
+                            <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;maybe_notify; read eof&quot;</span>);
+                            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">is_idle</span>() {
                                 <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#439">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#942">close</a>();
                             } <span class="kw">else</span> {
                                 <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#439">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#760">close_read</a>()
@@ -1895,11 +1894,11 @@
                         }
                     }
                     <span class="ident">Poll::Pending</span> =&gt; {
-                        <span class="macro">trace!</span>(<span class="string">&quot;maybe_notify; read_from_io blocked&quot;</span>);
+                        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;maybe_notify; read_from_io blocked&quot;</span>);
                         <span class="kw">return</span>;
                     }
                     <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; {
-                        <span class="macro">trace!</span>(<span class="string">&quot;maybe_notify; read_from_io error: {}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#475">e</a>);
+                        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;maybe_notify; read_from_io error: {}&quot;</span>, <span class="ident">e</span>);
                         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#439">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#942">close</a>();
                         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#439">self</a>.<span class="ident">state</span>.<span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">crate</span>::Error::new_io</span>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#475">e</a>));
                     }
@@ -1915,7 +1914,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">can_write_head</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">T::should_read_first</span>() <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#491">self</a>.<span class="ident">state</span>.<span class="ident">reading</span>, <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#857">Reading::Closed</a>) {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">T::should_read_first</span>() <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">state</span>.<span class="ident">reading</span>, <span class="ident">Reading::Closed</span>) {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
 
@@ -1938,9 +1937,9 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">write_head</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">head</span>: <span class="ident">MessageHead</span><span class="op">&lt;</span><span class="ident">T::Outgoing</span><span class="op">&gt;</span>, <span class="ident">body</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/mod.rs.html#46-51">BodyLength</a><span class="op">&gt;</span>) {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">encoder</span>) <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#513">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#543-547">encode_head</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#513">head</a>, <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#513">body</a>) {
-            <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#513">self</a>.<span class="ident">state</span>.<span class="ident">writing</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#514">encoder</a>.<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#71">is_eof</a>() {
+            <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#513">self</a>.<span class="ident">state</span>.<span class="ident">writing</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">encoder</span>.<span class="ident">is_eof</span>() {
                 <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#862">Writing::Body</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#514">encoder</a>)
-            } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#514">encoder</a>.<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#81">is_last</a>() {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">encoder</span>.<span class="ident">is_last</span>() {
                 <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#864">Writing::Closed</a>
             } <span class="kw">else</span> {
                 <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#863">Writing::KeepAlive</a>
@@ -1955,10 +1954,10 @@
             <span class="kw">let</span> <span class="ident">is_last</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#526">encoder</a>.<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#81">is_last</a>();
             <span class="comment">// Make sure we don&#39;t write a body if we weren&#39;t actually allowed</span>
             <span class="comment">// to do so, like because its a HEAD request.</span>
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#526">encoder</a>.<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#71">is_eof</a>() {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">encoder</span>.<span class="ident">is_eof</span>() {
                 <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#526">encoder</a>.<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#189-191">danger_full_buf</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#525">body</a>, <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#525">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#150">write_buf</a>());
             }
-            <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#525">self</a>.<span class="ident">state</span>.<span class="ident">writing</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#529">is_last</a> {
+            <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#525">self</a>.<span class="ident">state</span>.<span class="ident">writing</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_last</span> {
                 <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#864">Writing::Closed</a>
             } <span class="kw">else</span> {
                 <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#863">Writing::KeepAlive</a>
@@ -1971,7 +1970,7 @@
         <span class="kw-2">mut</span> <span class="ident">head</span>: <span class="ident">MessageHead</span><span class="op">&lt;</span><span class="ident">T::Outgoing</span><span class="op">&gt;</span>,
         <span class="ident">body</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/mod.rs.html#46-51">BodyLength</a><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#14-17">Encoder</a><span class="op">&gt;</span> {
-        <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#544">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#491">can_write_head</a>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">can_write_head</span>());
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">T::should_read_first</span>() {
             <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#544">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#994">busy</a>();
@@ -1992,8 +1991,8 @@
             <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#556">buf</a>,
         ) {
             <span class="prelude-val">Ok</span>(<span class="ident">encoder</span>) =&gt; {
-                <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#544">self</a>.<span class="ident">state</span>.<span class="ident">cached_headers</span>.<span class="ident">is_none</span>());
-                <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#545">head</a>.<span class="ident">headers</span>.<span class="ident">is_empty</span>());
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">state</span>.<span class="ident">cached_headers</span>.<span class="ident">is_none</span>());
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">head</span>.<span class="ident">headers</span>.<span class="ident">is_empty</span>());
                 <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#544">self</a>.<span class="ident">state</span>.<span class="ident">cached_headers</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#545">head</a>.<span class="ident">headers</span>);
 
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;ffi&quot;</span>)]</span>
@@ -2020,7 +2019,7 @@
             .<span class="ident">map</span>(<a class="ident" href="../../../../src/hyper/headers.rs.html#10">connection_keep_alive</a>)
             .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
 
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#591">outgoing_is_keep_alive</a> {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">outgoing_is_keep_alive</span> {
             <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#590">head</a>.<span class="ident">version</span> {
                 <span class="comment">// If response is version 1.0 and keep-alive is not present in the response,</span>
                 <span class="comment">// disable keep-alive so the server closes the connection</span>
@@ -2028,7 +2027,7 @@
                 <span class="comment">// If response is version 1.1 and keep-alive is wanted, add</span>
                 <span class="comment">// Connection: keep-alive header when not present</span>
                 <span class="ident">Version::HTTP_11</span> =&gt; {
-                    <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#590">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#961">wants_keep_alive</a>() {
+                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">wants_keep_alive</span>() {
                         <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#590">head</a>.<span class="ident">headers</span>
                             .<span class="ident">insert</span>(<a class="ident" href="../../../../hyper/header/constant.CONNECTION.html">CONNECTION</a>, <span class="ident">HeaderValue::from_static</span>(<span class="string">&quot;keep-alive&quot;</span>));
                     }
@@ -2054,52 +2053,52 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">write_body</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="ident">B</span>) {
-        <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#630">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#502">can_write_body</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#630">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#509">can_buffer_body</a>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">can_write_body</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">can_buffer_body</span>());
         <span class="comment">// empty chunks should be discarded at Dispatcher level</span>
-        <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#630">chunk</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">chunk</span>.<span class="ident">remaining</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span>);
 
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#630">self</a>.<span class="ident">state</span>.<span class="ident">writing</span> {
             <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#862">Writing::Body</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">encoder</span>) =&gt; {
                 <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#630">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#154">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#636">encoder</a>.<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#105-107">encode</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#630">chunk</a>));
 
-                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#636">encoder</a>.<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#71">is_eof</a>() {
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">encoder</span>.<span class="ident">is_eof</span>() {
                     <span class="kw">return</span>;
                 }
 
-                <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#636">encoder</a>.<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#81">is_last</a>() {
+                <span class="kw">if</span> <span class="ident">encoder</span>.<span class="ident">is_last</span>() {
                     <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#864">Writing::Closed</a>
                 } <span class="kw">else</span> {
                     <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#863">Writing::KeepAlive</a>
                 }
             }
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;write_body invalid state: {:?}&quot;</span>, <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#630">self</a>.<span class="ident">state</span>.<span class="ident">writing</span>),
+            <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;write_body invalid state: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">writing</span>),
         };
 
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#630">self</a>.<span class="ident">state</span>.<span class="ident">writing</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#635">state</a>;
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">write_body_and_end</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">chunk</span>: <span class="ident">B</span>) {
-        <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#655">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#502">can_write_body</a>() <span class="op">&amp;&amp;</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#655">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#509">can_buffer_body</a>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">can_write_body</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">can_buffer_body</span>());
         <span class="comment">// empty chunks should be discarded at Dispatcher level</span>
-        <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#655">chunk</a>.<a class="ident" href="../../../../hyper/body/trait.Buf.html">remaining</a>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">chunk</span>.<span class="ident">remaining</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span>);
 
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#655">self</a>.<span class="ident">state</span>.<span class="ident">writing</span> {
             <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#862">Writing::Body</a>(<span class="kw-2">ref</span> <span class="ident">encoder</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">can_keep_alive</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#661">encoder</a>.<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#140-142">encode_and_end</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#655">chunk</a>, <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#655">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#150">write_buf</a>());
-                <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#662">can_keep_alive</a> {
+                <span class="kw">if</span> <span class="ident">can_keep_alive</span> {
                     <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#863">Writing::KeepAlive</a>
                 } <span class="kw">else</span> {
                     <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#864">Writing::Closed</a>
                 }
             }
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;write_body invalid state: {:?}&quot;</span>, <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#655">self</a>.<span class="ident">state</span>.<span class="ident">writing</span>),
+            <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;write_body invalid state: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">writing</span>),
         };
 
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#655">self</a>.<span class="ident">state</span>.<span class="ident">writing</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#660">state</a>;
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">end_body</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">debug_assert!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#675">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#502">can_write_body</a>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="self">self</span>.<span class="ident">can_write_body</span>());
 
         <span class="kw">let</span> <span class="ident">encoder</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#675">self</a>.<span class="ident">state</span>.<span class="ident">writing</span> {
             <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#862">Writing::Body</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">enc</span>) =&gt; <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#679">enc</a>,
@@ -2113,7 +2112,7 @@
                     <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#675">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#154">buffer</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#686">end</a>);
                 }
 
-                <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#675">self</a>.<span class="ident">state</span>.<span class="ident">writing</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#678">encoder</a>.<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#81">is_last</a>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#678">encoder</a>.<a class="ident" href="../../../../src/hyper/proto/h1/encode.rs.html#85">is_close_delimited</a>() {
+                <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#675">self</a>.<span class="ident">state</span>.<span class="ident">writing</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">encoder</span>.<span class="ident">is_last</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">encoder</span>.<span class="ident">is_close_delimited</span>() {
                     <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#864">Writing::Closed</a>
                 } <span class="kw">else</span> {
                     <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#863">Writing::KeepAlive</a>
@@ -2135,7 +2134,7 @@
     <span class="comment">// - Server: if Response hasn&#39;t been written yet, we can send a 4xx response</span>
     <span class="kw">fn</span> <span class="ident">on_parse_error</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">err</span>: <a class="ident" href="../../../../src/hyper/error.rs.html#11-13"><span class="kw">crate</span>::Error</a>) -&gt; <span class="ident"><span class="kw">crate</span>::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#861">Writing::Init</a> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#710">self</a>.<span class="ident">state</span>.<span class="ident">writing</span> {
-            <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#710">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#181">has_h2_prefix</a>() {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_h2_prefix</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::new_version_h2</span>());
             }
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">msg</span>) <span class="op">=</span> <span class="ident">T::on_error</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#710">err</a>) {
@@ -2153,20 +2152,20 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#729">self</a>.<span class="ident">io</span>).<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#299">poll_flush</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#729">cx</a>))<span class="question-mark">?</span>;
+        <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">io</span>).<span class="ident">poll_flush</span>(<span class="ident">cx</span>))<span class="question-mark">?</span>;
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#729">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#486">try_keep_alive</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#729">cx</a>);
-        <span class="macro">trace!</span>(<span class="string">&quot;flushed({}): {:?}&quot;</span>, <span class="ident">T::LOG</span>, <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#729">self</a>.<span class="ident">state</span>);
+        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;flushed({}): {:?}&quot;</span>, <span class="ident">T::LOG</span>, <span class="self">self</span>.<span class="ident">state</span>);
         <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">poll_shutdown</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="macro">ready!</span>(<span class="ident">Pin::new</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#736">self</a>.<span class="ident">io</span>.<a class="ident" href="../../../../src/hyper/proto/h1/io.rs.html#291">io_mut</a>()).<a class="ident" href="../../../../tokio/io/async_write/trait.AsyncWrite.html">poll_shutdown</a>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#736">cx</a>)) {
+        <span class="kw">match</span> <a class="macro" href="../../../../src/hyper/common/mod.rs.html#1-8">ready!</a>(<span class="ident">Pin::new</span>(<span class="self">self</span>.<span class="ident">io</span>.<span class="ident">io_mut</span>()).<span class="ident">poll_shutdown</span>(<span class="ident">cx</span>)) {
             <span class="prelude-val">Ok</span>(()) =&gt; {
-                <span class="macro">trace!</span>(<span class="string">&quot;shut down IO complete&quot;</span>);
+                <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;shut down IO complete&quot;</span>);
                 <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
             }
             <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                <span class="macro">debug!</span>(<span class="string">&quot;error shutting down IO: {}&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#742">e</a>);
+                <a class="macro" href="../../../../tracing/macro.debug.html">debug!</a>(<span class="string">&quot;error shutting down IO: {}&quot;</span>, <span class="ident">e</span>);
                 <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#742">e</a>))
             }
         }
@@ -2178,7 +2177,7 @@
 
         <span class="comment">// If still in Reading::Body, just give up</span>
         <span class="kw">match</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#750">self</a>.<span class="ident">state</span>.<span class="ident">reading</span> {
-            <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#853">Reading::Init</a> <span class="op">|</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#856">Reading::KeepAlive</a> =&gt; <span class="macro">trace!</span>(<span class="string">&quot;body drained&quot;</span>),
+            <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#853">Reading::Init</a> <span class="op">|</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#856">Reading::KeepAlive</a> =&gt; <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;body drained&quot;</span>),
             <span class="kw">_</span> =&gt; <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#750">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#760">close_read</a>(),
         }
     }
@@ -2193,11 +2192,11 @@
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;server&quot;</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">disable_keep_alive</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#769">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#1025">is_idle</a>() {
-            <span class="macro">trace!</span>(<span class="string">&quot;disable_keep_alive; closing idle connection&quot;</span>);
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">is_idle</span>() {
+            <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;disable_keep_alive; closing idle connection&quot;</span>);
             <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#769">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#942">close</a>();
         } <span class="kw">else</span> {
-            <span class="macro">trace!</span>(<span class="string">&quot;disable_keep_alive; in-progress connection&quot;</span>);
+            <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;disable_keep_alive; in-progress connection&quot;</span>);
             <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#769">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#990">disable_keep_alive</a>();
         }
     }
@@ -2211,7 +2210,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">on_upgrade</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/hyper/upgrade.rs.html#72-74"><span class="kw">crate</span>::upgrade::OnUpgrade</a> {
-        <span class="macro">trace!</span>(<span class="string">&quot;{}: prepare possible HTTP upgrade&quot;</span>, <span class="ident">T::LOG</span>);
+        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;{}: prepare possible HTTP upgrade&quot;</span>, <span class="ident">T::LOG</span>);
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#787">self</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#1037">prepare_upgrade</a>()
     }
 }
@@ -2303,7 +2302,7 @@
             <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#869">builder</a>.<span class="ident">field</span>(<span class="string">&quot;error&quot;</span>, <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#876">error</a>);
         }
 
-        <span class="kw">if</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#868">self</a>.<span class="ident">allow_half_close</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_half_close</span> {
             <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#869">builder</a>.<span class="ident">field</span>(<span class="string">&quot;allow_half_close&quot;</span>, <span class="kw-2">&amp;</span><span class="bool-val">true</span>);
         }
 
@@ -2326,8 +2325,8 @@
 
 <span class="kw">impl</span> <span class="ident">std::ops::BitAndAssign</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#911-915">KA</a> {
     <span class="kw">fn</span> <span class="ident">bitand_assign</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">enabled</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) {
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#902">enabled</a> {
-            <span class="macro">trace!</span>(<span class="string">&quot;remote disabling keep-alive&quot;</span>);
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">enabled</span> {
+            <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;remote disabling keep-alive&quot;</span>);
             <span class="kw-2">*</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#902">self</a> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#914">KA::Disabled</a>;
         }
     }
@@ -2366,20 +2365,20 @@
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#805-849">State</a> {
     <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="macro">trace!</span>(<span class="string">&quot;State::close()&quot;</span>);
+        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;State::close()&quot;</span>);
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#942">self</a>.<span class="ident">reading</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#857">Reading::Closed</a>;
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#942">self</a>.<span class="ident">writing</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#864">Writing::Closed</a>;
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#942">self</a>.<span class="ident">keep_alive</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#932">disable</a>();
     }
 
     <span class="kw">fn</span> <span class="ident">close_read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="macro">trace!</span>(<span class="string">&quot;State::close_read()&quot;</span>);
+        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;State::close_read()&quot;</span>);
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#949">self</a>.<span class="ident">reading</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#857">Reading::Closed</a>;
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#949">self</a>.<span class="ident">keep_alive</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#932">disable</a>();
     }
 
     <span class="kw">fn</span> <span class="ident">close_write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="macro">trace!</span>(<span class="string">&quot;State::close_write()&quot;</span>);
+        <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(<span class="string">&quot;State::close_write()&quot;</span>);
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#955">self</a>.<span class="ident">writing</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#864">Writing::Closed</a>;
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#955">self</a>.<span class="ident">keep_alive</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#932">disable</a>();
     }
@@ -2398,10 +2397,10 @@
                 <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#913">KA::Busy</a> <span class="op">=</span> <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#969">self</a>.<span class="ident">keep_alive</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#936">status</a>() {
                     <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#969">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#1001">idle</a>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
                 } <span class="kw">else</span> {
-                    <span class="macro">trace!</span>(
+                    <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(
                         <span class="string">&quot;try_keep_alive({}): could keep-alive, but status = {:?}&quot;</span>,
                         <span class="ident">T::LOG</span>,
-                        <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#969">self</a>.<span class="ident">keep_alive</span>
+                        <span class="self">self</span>.<span class="ident">keep_alive</span>
                     );
                     <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#969">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#942">close</a>();
                 }
@@ -2425,12 +2424,12 @@
     }
 
     <span class="kw">fn</span> <span class="ident">idle</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../../src/hyper/proto/h1/mod.rs.html#35-61">Http1Transaction</a><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="macro">debug_assert!</span>(<span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#1001">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#1025">is_idle</a>(), <span class="string">&quot;State::idle() called while idle&quot;</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="op">!</span><span class="self">self</span>.<span class="ident">is_idle</span>(), <span class="string">&quot;State::idle() called while idle&quot;</span>);
 
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#1001">self</a>.<span class="ident">method</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#1001">self</a>.<span class="ident">keep_alive</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#924">idle</a>();
 
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#1001">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#1025">is_idle</a>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_idle</span>() {
             <a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#1001">self</a>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#942">close</a>();
             <span class="kw">return</span>;
         }
@@ -2449,15 +2448,15 @@
     }
 
     <span class="kw">fn</span> <span class="ident">is_idle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="macro">matches!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#1025">self</a>.<span class="ident">keep_alive</span>.<a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#936">status</a>(), <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#912">KA::Idle</a>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="ident">keep_alive</span>.<span class="ident">status</span>(), <span class="ident">KA::Idle</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">is_read_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="macro">matches!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#1029">self</a>.<span class="ident">reading</span>, <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#857">Reading::Closed</a>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="ident">reading</span>, <span class="ident">Reading::Closed</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">is_write_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="macro">matches!</span>(<a class="self" href="../../../../src/hyper/proto/h1/conn.rs.html#1033">self</a>.<span class="ident">writing</span>, <a class="ident" href="../../../../src/hyper/proto/h1/conn.rs.html#864">Writing::Closed</a>)
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="self">self</span>.<span class="ident">writing</span>, <span class="ident">Writing::Closed</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">prepare_upgrade</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/hyper/upgrade.rs.html#72-74"><span class="kw">crate</span>::upgrade::OnUpgrade</a> {
@@ -2844,5 +2843,5 @@
     */</span>
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

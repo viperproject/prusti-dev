@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["BitVector",""],["BitVectorSize",""],["Float",""],["Type",""]],"mod":[["visitors",""]],"struct":[["Domain",""],["Map",""],["Seq",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["BitVector",""],["BitVectorSize",""],["Float",""],["Type",""]],"mod":[["visitors",""]],"struct":[["Domain",""],["Map",""],["Seq",""]]};

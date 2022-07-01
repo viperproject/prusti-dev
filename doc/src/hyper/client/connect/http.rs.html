@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.19/src/client/connect/http.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>http.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hyper-0.14.19/src/client/connect/http.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>http.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../hyper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../hyper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -1025,10 +1024,10 @@
 
 <span class="kw">use</span> <span class="ident">futures_util::future::Either</span>;
 <span class="kw">use</span> <span class="ident">http::uri</span>::{<a class="ident" href="../../../../http/uri/scheme/struct.Scheme.html">Scheme</a>, <a class="ident" href="../../../../hyper/struct.Uri.html">Uri</a>};
-<span class="kw">use</span> <span class="ident">pin_project_lite::pin_project</span>;
+<span class="kw">use</span> <a class="ident" href="../../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 <span class="kw">use</span> <span class="ident">tokio::net</span>::{<a class="ident" href="../../../../tokio/net/tcp/socket/struct.TcpSocket.html">TcpSocket</a>, <a class="ident" href="../../../../tokio/net/tcp/stream/struct.TcpStream.html">TcpStream</a>};
 <span class="kw">use</span> <a class="ident" href="../../../../tokio/time/driver/sleep/struct.Sleep.html">tokio::time::Sleep</a>;
-<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">debug</span>, <span class="ident">trace</span>, <span class="ident">warn</span>};
+<span class="kw">use</span> <span class="ident">tracing</span>::{<a class="ident" href="../../../../tracing/macro.debug.html">debug</a>, <a class="ident" href="../../../../tracing/macro.trace.html">trace</a>, <a class="ident" href="../../../../tracing/macro.warn.html">warn</a>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::dns</span>::{<a class="self" href="../../../../src/hyper/client/connect/mod.rs.html#91">self</a>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#355-357">resolve</a>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#46-48">GaiResolver</a>, <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#326-333">Resolve</a>};
 <span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/hyper/client/connect/mod.rs.html#112-116">Connected</a>, <a class="ident" href="../../../../src/hyper/client/connect/mod.rs.html#102-105">Connection</a>};
@@ -1275,35 +1274,35 @@ impl HttpConnector&lt;TokioThreadpoolGaiResolver&gt; {
     <span class="kw">type</span> <span class="ident">Future</span> <span class="op">=</span> <span class="ident">HttpConnecting</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">poll_ready</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">ready!</span>(<a class="self" href="../../../../src/hyper/client/connect/http.rs.html#263">self</a>.<span class="ident">resolver</span>.<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#331">poll_ready</a>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#263">cx</a>)).<span class="ident">map_err</span>(<span class="ident">ConnectError::dns</span>)<span class="question-mark">?</span>;
+        <span class="macro">ready!</span>(<span class="self">self</span>.<span class="ident">resolver</span>.<span class="ident">poll_ready</span>(<span class="ident">cx</span>)).<span class="ident">map_err</span>(<span class="ident">ConnectError::dns</span>)<span class="question-mark">?</span>;
         <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
     }
 
     <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <a class="ident" href="../../../../hyper/struct.Uri.html">Uri</a>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">self_</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/client/connect/http.rs.html#268">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#384-397">HttpConnecting</a> {
-            <span class="ident">fut</span>: <span class="ident">Box::pin</span>(<span class="kw">async</span> <span class="kw">move</span> { <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#269">self_</a>.<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#326">call_async</a>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#268">dst</a>).<span class="kw">await</span> }),
+            <span class="ident">fut</span>: <span class="ident">Box::pin</span>(<span class="kw">async</span> <span class="kw">move</span> { <span class="ident">self_</span>.<span class="ident">call_async</span>(<span class="ident">dst</span>).<span class="kw">await</span> }),
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
         }
     }
 }
 
 <span class="kw">fn</span> <span class="ident">get_host_port</span><span class="op">&lt;</span><span class="lifetime">&#39;u</span><span class="op">&gt;</span>(<span class="ident">config</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#73-84">Config</a>, <span class="ident">dst</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;u</span> <a class="ident" href="../../../../hyper/struct.Uri.html">Uri</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;u</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a>), <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#411-414">ConnectError</a><span class="op">&gt;</span> {
-    <span class="macro">trace!</span>(
+    <a class="macro" href="../../../../tracing/macro.trace.html">trace!</a>(
         <span class="string">&quot;Http::connect; scheme={:?}, host={:?}, port={:?}&quot;</span>,
-        <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#277">dst</a>.<span class="ident">scheme</span>(),
-        <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#277">dst</a>.<span class="ident">host</span>(),
-        <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#277">dst</a>.<span class="ident">port</span>(),
+        <span class="ident">dst</span>.<span class="ident">scheme</span>(),
+        <span class="ident">dst</span>.<span class="ident">host</span>(),
+        <span class="ident">dst</span>.<span class="ident">port</span>(),
     );
 
-    <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#277">config</a>.<span class="ident">enforce_http</span> {
-        <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#277">dst</a>.<span class="ident">scheme</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme::HTTP</span>) {
+    <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">enforce_http</span> {
+        <span class="kw">if</span> <span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme::HTTP</span>) {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#411-414">ConnectError</a> {
                 <span class="ident">msg</span>: <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#243">INVALID_NOT_HTTP</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
                 <span class="ident">cause</span>: <span class="prelude-val">None</span>,
             });
         }
-    } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#277">dst</a>.<span class="ident">scheme</span>().<span class="ident">is_none</span>() {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">dst</span>.<span class="ident">scheme</span>().<span class="ident">is_none</span>() {
         <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#411-414">ConnectError</a> {
             <span class="ident">msg</span>: <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#244">INVALID_MISSING_SCHEME</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             <span class="ident">cause</span>: <span class="prelude-val">None</span>,
@@ -1322,7 +1321,7 @@ impl HttpConnector&lt;TokioThreadpoolGaiResolver&gt; {
     <span class="kw">let</span> <span class="ident">port</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#277">dst</a>.<span class="ident">port</span>() {
         <span class="prelude-val">Some</span>(<span class="ident">port</span>) =&gt; <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#309">port</a>.<span class="ident">as_u16</span>(),
         <span class="prelude-val">None</span> =&gt; {
-            <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#277">dst</a>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme::HTTPS</span>) {
+            <span class="kw">if</span> <span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme::HTTPS</span>) {
                 <span class="number">443</span>
             } <span class="kw">else</span> {
                 <span class="number">80</span>
@@ -1338,37 +1337,37 @@ impl HttpConnector&lt;TokioThreadpoolGaiResolver&gt; {
     <span class="ident">R</span>: <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#326-333">Resolve</a>,
 {
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">call_async</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <a class="ident" href="../../../../hyper/struct.Uri.html">Uri</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../tokio/net/tcp/stream/struct.TcpStream.html">TcpStream</a>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#411-414">ConnectError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/client/connect/http.rs.html#326">self</a>.<span class="ident">config</span>;
+        <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">config</span>;
 
-        <span class="kw">let</span> (<span class="ident">host</span>, <span class="ident">port</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#277">get_host_port</a>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#327">config</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#326">dst</a>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#329">host</a>.<span class="ident">trim_start_matches</span>(<span class="string">&#39;[&#39;</span>).<span class="ident">trim_end_matches</span>(<span class="string">&#39;]&#39;</span>);
+        <span class="kw">let</span> (<span class="ident">host</span>, <span class="ident">port</span>) <span class="op">=</span> <span class="ident">get_host_port</span>(<span class="ident">config</span>, <span class="kw-2">&amp;</span><span class="ident">dst</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <span class="ident">host</span>.<span class="ident">trim_start_matches</span>(<span class="string">&#39;[&#39;</span>).<span class="ident">trim_end_matches</span>(<span class="string">&#39;]&#39;</span>);
 
         <span class="comment">// If the host is already an IP addr (v4 or v6),</span>
         <span class="comment">// skip resolving the dns and start connecting right away.</span>
-        <span class="kw">let</span> <span class="ident">addrs</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">addrs</span>) <span class="op">=</span> <span class="ident">dns::SocketAddrs::try_parse</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#330">host</a>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#329">port</a>) {
-            <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#334">addrs</a>
+        <span class="kw">let</span> <span class="ident">addrs</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">addrs</span>) <span class="op">=</span> <span class="ident">dns::SocketAddrs::try_parse</span>(<span class="ident">host</span>, <span class="ident">port</span>) {
+            <span class="ident">addrs</span>
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">addrs</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#355-357">resolve</a>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/client/connect/http.rs.html#326">self</a>.<span class="ident">resolver</span>, <span class="ident">dns::Name::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#330">host</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
+            <span class="kw">let</span> <span class="ident">addrs</span> <span class="op">=</span> <span class="ident">resolve</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">resolver</span>, <span class="ident">dns::Name::new</span>(<span class="ident">host</span>.<span class="ident">into</span>()))
                 .<span class="kw">await</span>
                 .<span class="ident">map_err</span>(<span class="ident">ConnectError::dns</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">addrs</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#337">addrs</a>
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">addr</span><span class="op">|</span> {
-                    <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#341">addr</a>.<span class="ident">set_port</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#329">port</a>);
-                    <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#341">addr</a>
+            <span class="kw">let</span> <span class="ident">addrs</span> <span class="op">=</span> <span class="ident">addrs</span>
+                .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">addr</span><span class="op">|</span> {
+                    <span class="ident">addr</span>.<span class="ident">set_port</span>(<span class="ident">port</span>);
+                    <span class="ident">addr</span>
                 })
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-            <span class="ident">dns::SocketAddrs::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#340">addrs</a>)
+                .<span class="ident">collect</span>();
+            <span class="ident">dns::SocketAddrs::new</span>(<span class="ident">addrs</span>)
         };
 
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">ConnectingTcp::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#334">addrs</a>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#327">config</a>);
+        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">ConnectingTcp::new</span>(<span class="ident">addrs</span>, <span class="ident">config</span>);
 
-        <span class="kw">let</span> <span class="ident">sock</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#349">c</a>.<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#676">connect</a>().<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">sock</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">connect</span>().<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#351">sock</a>.<span class="ident">set_nodelay</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#327">config</a>.<span class="ident">nodelay</span>) {
-            <span class="macro">warn!</span>(<span class="string">&quot;tcp set_nodelay error: {}&quot;</span>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#353">e</a>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">sock</span>.<span class="ident">set_nodelay</span>(<span class="ident">config</span>.<span class="ident">nodelay</span>) {
+            <span class="macro">warn!</span>(<span class="string">&quot;tcp set_nodelay error: {}&quot;</span>, <span class="ident">e</span>);
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#351">sock</a>)
+        <span class="prelude-val">Ok</span>(<span class="ident">sock</span>)
     }
 }
 
@@ -1395,7 +1394,7 @@ impl HttpConnector&lt;TokioThreadpoolGaiResolver&gt; {
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="comment">// Not publicly exported (so missing_docs doesn&#39;t trigger).</span>
     <span class="comment">//</span>
     <span class="comment">// We return this `Future` instead of the `Pin&lt;Box&lt;dyn Future&gt;&gt;` directly</span>
@@ -1470,10 +1469,10 @@ impl HttpConnector&lt;TokioThreadpoolGaiResolver&gt; {
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#411-414">ConnectError</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#458">f</a>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/hyper/client/connect/http.rs.html#458">self</a>.<span class="ident">msg</span>)<span class="question-mark">?</span>;
+        <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">msg</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">cause</span>) <span class="op">=</span> <a class="self" href="../../../../src/hyper/client/connect/http.rs.html#458">self</a>.<span class="ident">cause</span> {
-            <span class="macro">write!</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#458">f</a>, <span class="string">&quot;: {}&quot;</span>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#461">cause</a>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;: {}&quot;</span>, <span class="ident">cause</span>)<span class="question-mark">?</span>;
         }
 
         <span class="prelude-val">Ok</span>(())
@@ -1497,7 +1496,7 @@ impl HttpConnector&lt;TokioThreadpoolGaiResolver&gt; {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">fallback_timeout</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#482">config</a>.<span class="ident">happy_eyeballs_timeout</span> {
             <span class="kw">let</span> (<span class="ident">preferred_addrs</span>, <span class="ident">fallback_addrs</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#482">remote_addrs</a>
                 .<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#214-218">split_by_preference</a>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#482">config</a>.<span class="ident">local_address_ipv4</span>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#482">config</a>.<span class="ident">local_address_ipv6</span>);
-            <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#484">fallback_addrs</a>.<a class="ident" href="../../../../src/hyper/client/connect/dns.rs.html#239">is_empty</a>() {
+            <span class="kw">if</span> <span class="ident">fallback_addrs</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">return</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#475-479">ConnectingTcp</a> {
                     <span class="ident">preferred</span>: <span class="ident">ConnectingTcpRemote::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#484">preferred_addrs</a>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#482">config</a>.<span class="ident">connect_timeout</span>),
                     <span class="ident">fallback</span>: <span class="prelude-val">None</span>,
@@ -1547,22 +1546,22 @@ impl HttpConnector&lt;TokioThreadpoolGaiResolver&gt; {
 <span class="kw">impl</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#517-520">ConnectingTcpRemote</a> {
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">connect</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">config</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#73-84">Config</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../tokio/net/tcp/stream/struct.TcpStream.html">TcpStream</a>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#411-414">ConnectError</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">err</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">for</span> <span class="ident">addr</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../src/hyper/client/connect/http.rs.html#534">self</a>.<span class="ident">addrs</span> {
-            <span class="macro">debug!</span>(<span class="string">&quot;connecting to {}&quot;</span>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#536">addr</a>);
-            <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#588-592">connect</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#536">addr</a>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#534">config</a>, <a class="self" href="../../../../src/hyper/client/connect/http.rs.html#534">self</a>.<span class="ident">connect_timeout</span>)<span class="question-mark">?</span>.<span class="kw">await</span> {
+        <span class="kw">for</span> <span class="ident">addr</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">addrs</span> {
+            <span class="macro">debug!</span>(<span class="string">&quot;connecting to {}&quot;</span>, <span class="ident">addr</span>);
+            <span class="kw">match</span> <span class="ident">connect</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>, <span class="ident">config</span>, <span class="self">self</span>.<span class="ident">connect_timeout</span>)<span class="question-mark">?</span>.<span class="kw">await</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">tcp</span>) =&gt; {
-                    <span class="macro">debug!</span>(<span class="string">&quot;connected to {}&quot;</span>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#536">addr</a>);
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#539">tcp</a>);
+                    <span class="macro">debug!</span>(<span class="string">&quot;connected to {}&quot;</span>, <span class="ident">addr</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">tcp</span>);
                 }
                 <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
-                    <span class="macro">trace!</span>(<span class="string">&quot;connect error for {}: {:?}&quot;</span>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#536">addr</a>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#543">e</a>);
-                    <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#535">err</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#543">e</a>);
+                    <span class="macro">trace!</span>(<span class="string">&quot;connect error for {}: {:?}&quot;</span>, <span class="ident">addr</span>, <span class="ident">e</span>);
+                    <span class="ident">err</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">e</span>);
                 }
             }
         }
 
-        <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#535">err</a> {
-            <span class="prelude-val">Some</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#551">e</a>),
+        <span class="kw">match</span> <span class="ident">err</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">e</span>),
             <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ConnectError::new</span>(
                 <span class="string">&quot;tcp connect error&quot;</span>,
                 <span class="ident">std::io::Error::new</span>(<span class="ident">std::io::ErrorKind::NotConnected</span>, <span class="string">&quot;Network unreachable&quot;</span>),
@@ -1579,19 +1578,19 @@ impl HttpConnector&lt;TokioThreadpoolGaiResolver&gt; {
 ) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">match</span> (<span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#562">dst_addr</a>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#563">local_addr_ipv4</a>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#564">local_addr_ipv6</a>) {
         (<span class="ident">SocketAddr::V4</span>(<span class="kw">_</span>), <span class="prelude-val">Some</span>(<span class="ident">addr</span>), <span class="kw">_</span>) =&gt; {
-            <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#561">socket</a>.<span class="ident">bind</span>(<span class="kw-2">&amp;</span><span class="ident">SocketAddr::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#567">addr</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="number">0</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())<span class="question-mark">?</span>;
+            <span class="ident">socket</span>.<span class="ident">bind</span>(<span class="kw-2">&amp;</span><span class="ident">SocketAddr::new</span>(<span class="ident">addr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="number">0</span>).<span class="ident">into</span>())<span class="question-mark">?</span>;
         }
         (<span class="ident">SocketAddr::V6</span>(<span class="kw">_</span>), <span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="ident">addr</span>)) =&gt; {
-            <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#561">socket</a>.<span class="ident">bind</span>(<span class="kw-2">&amp;</span><span class="ident">SocketAddr::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#570">addr</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="number">0</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())<span class="question-mark">?</span>;
+            <span class="ident">socket</span>.<span class="ident">bind</span>(<span class="kw-2">&amp;</span><span class="ident">SocketAddr::new</span>(<span class="ident">addr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="number">0</span>).<span class="ident">into</span>())<span class="question-mark">?</span>;
         }
         <span class="kw">_</span> =&gt; {
-            <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">windows</span>) {
+            <span class="kw">if</span> <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.cfg.html">cfg!</a>(<span class="ident">windows</span>) {
                 <span class="comment">// Windows requires a socket be bound before calling connect</span>
                 <span class="kw">let</span> <span class="ident">any</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#562">dst_addr</a> {
                     <span class="ident">SocketAddr::V4</span>(<span class="kw">_</span>) =&gt; ([<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>], <span class="number">0</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
                     <span class="ident">SocketAddr::V6</span>(<span class="kw">_</span>) =&gt; ([<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>], <span class="number">0</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
                 };
-                <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#561">socket</a>.<span class="ident">bind</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#576">any</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())<span class="question-mark">?</span>;
+                <span class="ident">socket</span>.<span class="ident">bind</span>(<span class="kw-2">&amp;</span><span class="ident">any</span>.<span class="ident">into</span>())<span class="question-mark">?</span>;
             }
         }
     }
@@ -1611,27 +1610,27 @@ impl HttpConnector&lt;TokioThreadpoolGaiResolver&gt; {
     <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">std::convert::TryInto</a>;
 
     <span class="kw">let</span> <span class="ident">domain</span> <span class="op">=</span> <span class="ident">Domain::for_address</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#589">addr</a>);
-    <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="ident">Socket::new</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#599">domain</a>, <span class="ident">Type::STREAM</span>, <span class="prelude-val">Some</span>(<span class="ident">Protocol::TCP</span>))
+    <span class="kw">let</span> <span class="ident">socket</span> <span class="op">=</span> <span class="ident">Socket::new</span>(<span class="ident">domain</span>, <span class="ident">Type::STREAM</span>, <span class="prelude-val">Some</span>(<span class="ident">Protocol::TCP</span>))
         .<span class="ident">map_err</span>(<span class="ident">ConnectError::m</span>(<span class="string">&quot;tcp open error&quot;</span>))<span class="question-mark">?</span>;
 
     <span class="comment">// When constructing a Tokio `TcpSocket` from a raw fd/socket, the user is</span>
     <span class="comment">// responsible for ensuring O_NONBLOCK is set.</span>
-    <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#600">socket</a>
+    <span class="ident">socket</span>
         .<span class="ident">set_nonblocking</span>(<span class="bool-val">true</span>)
         .<span class="ident">map_err</span>(<span class="ident">ConnectError::m</span>(<span class="string">&quot;tcp set_nonblocking error&quot;</span>))<span class="question-mark">?</span>;
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">dur</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#590">config</a>.<span class="ident">keep_alive_timeout</span> {
         <span class="kw">let</span> <span class="ident">conf</span> <span class="op">=</span> <span class="ident">TcpKeepalive::new</span>().<span class="ident">with_time</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#609">dur</a>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#600">socket</a>.<span class="ident">set_tcp_keepalive</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#610">conf</a>) {
-            <span class="macro">warn!</span>(<span class="string">&quot;tcp set_keepalive error: {}&quot;</span>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#611">e</a>);
+            <a class="macro" href="../../../../tracing/macro.warn.html">warn!</a>(<span class="string">&quot;tcp set_keepalive error: {}&quot;</span>, <span class="ident">e</span>);
         }
     }
 
-    <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#560-565">bind_local_address</a>(
-        <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#600">socket</a>,
-        <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#589">addr</a>,
-        <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#590">config</a>.<span class="ident">local_address_ipv4</span>,
-        <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#590">config</a>.<span class="ident">local_address_ipv6</span>,
+    <span class="ident">bind_local_address</span>(
+        <span class="kw-2">&amp;</span><span class="ident">socket</span>,
+        <span class="ident">addr</span>,
+        <span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">local_address_ipv4</span>,
+        <span class="kw-2">&amp;</span><span class="ident">config</span>.<span class="ident">local_address_ipv6</span>,
     )
     .<span class="ident">map_err</span>(<span class="ident">ConnectError::m</span>(<span class="string">&quot;tcp bind local error&quot;</span>))<span class="question-mark">?</span>;
 
@@ -1654,33 +1653,33 @@ impl HttpConnector&lt;TokioThreadpoolGaiResolver&gt; {
         <span class="ident">TcpSocket::from_raw_socket</span>(<span class="ident">socket</span>.<span class="ident">into_raw_socket</span>())
     };
 
-    <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#590">config</a>.<span class="ident">reuse_address</span> {
+    <span class="kw">if</span> <span class="ident">config</span>.<span class="ident">reuse_address</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#625">socket</a>.<span class="ident">set_reuseaddr</span>(<span class="bool-val">true</span>) {
-            <span class="macro">warn!</span>(<span class="string">&quot;tcp set_reuse_address error: {}&quot;</span>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#644">e</a>);
+            <a class="macro" href="../../../../tracing/macro.warn.html">warn!</a>(<span class="string">&quot;tcp set_reuse_address error: {}&quot;</span>, <span class="ident">e</span>);
         }
     }
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">size</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#590">config</a>.<span class="ident">send_buffer_size</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#625">socket</a>.<span class="ident">set_send_buffer_size</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#649">size</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().<span class="ident">unwrap_or</span>(<span class="ident">std::u32::MAX</span>)) {
-            <span class="macro">warn!</span>(<span class="string">&quot;tcp set_buffer_size error: {}&quot;</span>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#650">e</a>);
+            <a class="macro" href="../../../../tracing/macro.warn.html">warn!</a>(<span class="string">&quot;tcp set_buffer_size error: {}&quot;</span>, <span class="ident">e</span>);
         }
     }
 
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">size</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#590">config</a>.<span class="ident">recv_buffer_size</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#625">socket</a>.<span class="ident">set_recv_buffer_size</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#655">size</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().<span class="ident">unwrap_or</span>(<span class="ident">std::u32::MAX</span>)) {
-            <span class="macro">warn!</span>(<span class="string">&quot;tcp set_recv_buffer_size error: {}&quot;</span>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#656">e</a>);
+            <a class="macro" href="../../../../tracing/macro.warn.html">warn!</a>(<span class="string">&quot;tcp set_recv_buffer_size error: {}&quot;</span>, <span class="ident">e</span>);
         }
     }
 
     <span class="kw">let</span> <span class="ident">connect</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#625">socket</a>.<span class="ident">connect</span>(<span class="kw-2">*</span><a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#589">addr</a>);
     <span class="prelude-val">Ok</span>(<span class="kw">async</span> <span class="kw">move</span> {
         <span class="kw">match</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#591">connect_timeout</a> {
-            <span class="prelude-val">Some</span>(<span class="ident">dur</span>) =&gt; <span class="kw">match</span> <span class="ident">tokio::time::timeout</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#664">dur</a>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#661">connect</a>).<span class="kw">await</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">dur</span>) =&gt; <span class="kw">match</span> <span class="ident">tokio::time::timeout</span>(<span class="ident">dur</span>, <span class="ident">connect</span>).<span class="kw">await</span> {
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="ident">s</span>)) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#665">s</a>),
                 <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#666">e</a>),
                 <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(<span class="ident">io::ErrorKind::TimedOut</span>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#667">e</a>)),
             },
-            <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#661">connect</a>.<span class="kw">await</span>,
+            <span class="prelude-val">None</span> =&gt; <span class="ident">connect</span>.<span class="kw">await</span>,
         }
         .<span class="ident">map_err</span>(<span class="ident">ConnectError::m</span>(<span class="string">&quot;tcp connect error&quot;</span>))
     })
@@ -1688,37 +1687,37 @@ impl HttpConnector&lt;TokioThreadpoolGaiResolver&gt; {
 
 <span class="kw">impl</span> <span class="ident">ConnectingTcp</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">connect</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../tokio/net/tcp/stream/struct.TcpStream.html">TcpStream</a>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#411-414">ConnectError</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../../../src/hyper/client/connect/http.rs.html#676">self</a>.<span class="ident">fallback</span> {
-            <span class="prelude-val">None</span> =&gt; <a class="self" href="../../../../src/hyper/client/connect/http.rs.html#676">self</a>.<span class="ident">preferred</span>.<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#534">connect</a>(<a class="self" href="../../../../src/hyper/client/connect/http.rs.html#676">self</a>.<span class="ident">config</span>).<span class="kw">await</span>,
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">fallback</span> {
+            <span class="prelude-val">None</span> =&gt; <span class="self">self</span>.<span class="ident">preferred</span>.<span class="ident">connect</span>(<span class="self">self</span>.<span class="ident">config</span>).<span class="kw">await</span>,
             <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">fallback</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">preferred_fut</span> <span class="op">=</span> <a class="self" href="../../../../src/hyper/client/connect/http.rs.html#676">self</a>.<span class="ident">preferred</span>.<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#534">connect</a>(<a class="self" href="../../../../src/hyper/client/connect/http.rs.html#676">self</a>.<span class="ident">config</span>);
+                <span class="kw">let</span> <span class="ident">preferred_fut</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">preferred</span>.<span class="ident">connect</span>(<span class="self">self</span>.<span class="ident">config</span>);
                 <span class="macro">futures_util::pin_mut!</span>(<span class="ident">preferred_fut</span>);
 
-                <span class="kw">let</span> <span class="ident">fallback_fut</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#679">fallback</a>.<span class="ident">remote</span>.<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#534">connect</a>(<a class="self" href="../../../../src/hyper/client/connect/http.rs.html#676">self</a>.<span class="ident">config</span>);
+                <span class="kw">let</span> <span class="ident">fallback_fut</span> <span class="op">=</span> <span class="ident">fallback</span>.<span class="ident">remote</span>.<span class="ident">connect</span>(<span class="self">self</span>.<span class="ident">config</span>);
                 <span class="macro">futures_util::pin_mut!</span>(<span class="ident">fallback_fut</span>);
 
-                <span class="kw">let</span> <span class="ident">fallback_delay</span> <span class="op">=</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#679">fallback</a>.<span class="ident">delay</span>;
+                <span class="kw">let</span> <span class="ident">fallback_delay</span> <span class="op">=</span> <span class="ident">fallback</span>.<span class="ident">delay</span>;
                 <span class="macro">futures_util::pin_mut!</span>(<span class="ident">fallback_delay</span>);
 
                 <span class="kw">let</span> (<span class="ident">result</span>, <span class="ident">future</span>) <span class="op">=</span>
-                    <span class="kw">match</span> <span class="ident">futures_util::future::select</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#681">preferred_fut</a>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#687">fallback_delay</a>).<span class="kw">await</span> {
+                    <span class="kw">match</span> <span class="ident">futures_util::future::select</span>(<span class="ident">preferred_fut</span>, <span class="ident">fallback_delay</span>).<span class="kw">await</span> {
                         <span class="ident">Either::Left</span>((<span class="ident">result</span>, <span class="ident">_fallback_delay</span>)) =&gt; {
-                            (<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#691">result</a>, <span class="ident">Either::Right</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#684">fallback_fut</a>))
+                            (<span class="ident">result</span>, <span class="ident">Either::Right</span>(<span class="ident">fallback_fut</span>))
                         }
                         <span class="ident">Either::Right</span>(((), <span class="ident">preferred_fut</span>)) =&gt; {
                             <span class="comment">// Delay is done, start polling both the preferred and the fallback</span>
-                            <span class="ident">futures_util::future::select</span>(<a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#694">preferred_fut</a>, <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#684">fallback_fut</a>)
+                            <span class="ident">futures_util::future::select</span>(<span class="ident">preferred_fut</span>, <span class="ident">fallback_fut</span>)
                                 .<span class="kw">await</span>
                                 .<span class="ident">factor_first</span>()
                         }
                     };
 
-                <span class="kw">if</span> <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#689">result</a>.<span class="ident">is_err</span>() {
+                <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">is_err</span>() {
                     <span class="comment">// Fallback to the remaining future (could be preferred or fallback)</span>
                     <span class="comment">// if we get an error</span>
-                    <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#689">future</a>.<span class="kw">await</span>
+                    <span class="ident">future</span>.<span class="kw">await</span>
                 } <span class="kw">else</span> {
-                    <a class="ident" href="../../../../src/hyper/client/connect/http.rs.html#689">result</a>
+                    <span class="ident">result</span>
                 }
             }
         }
@@ -2020,5 +2019,5 @@ impl HttpConnector&lt;TokioThreadpoolGaiResolver&gt; {
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="hyper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

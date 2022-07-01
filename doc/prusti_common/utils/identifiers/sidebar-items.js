@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["encode_identifier",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["encode_identifier",""]]};

@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.5.6/src/backtrack.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backtrack.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.5.6/src/backtrack.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>backtrack.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../regex/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -355,7 +354,7 @@
 <span class="kw">impl</span> <a class="ident" href="../../src/regex/backtrack.rs.html#55-58">Cache</a> {
     <span class="doccomment">/// Create new empty cache for the backtracking engine.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">_prog</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/prog.rs.html#18-75">Program</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/regex/backtrack.rs.html#55-58">Cache</a> { <span class="ident">jobs</span>: <span class="macro">vec!</span>[], <span class="ident">visited</span>: <span class="macro">vec!</span>[] }
+        <a class="ident" href="../../src/regex/backtrack.rs.html#55-58">Cache</a> { <span class="ident">jobs</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], <span class="ident">visited</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[] }
     }
 }
 
@@ -418,14 +417,14 @@
             (<a class="self" href="../../src/regex/backtrack.rs.html#108">self</a>.<span class="ident">prog</span>.<span class="ident">len</span>() <span class="op">*</span> (<a class="self" href="../../src/regex/backtrack.rs.html#108">self</a>.<span class="ident">input</span>.<a class="ident" href="../../src/regex/input.rs.html#93">len</a>() <span class="op">+</span> <span class="number">1</span>) <span class="op">+</span> <a class="ident" href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a> <span class="op">-</span> <span class="number">1</span>)
                 <span class="op">/</span> <a class="ident" href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a>;
         <a class="self" href="../../src/regex/backtrack.rs.html#108">self</a>.<span class="ident">m</span>.<span class="ident">visited</span>.<span class="ident">truncate</span>(<a class="ident" href="../../src/regex/backtrack.rs.html#122">visited_len</a>);
-        <span class="kw">for</span> <span class="ident">v</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../src/regex/backtrack.rs.html#108">self</a>.<span class="ident">m</span>.<span class="ident">visited</span> {
-            <span class="kw-2">*</span><a class="ident" href="../../src/regex/backtrack.rs.html#126">v</a> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">for</span> <span class="ident">v</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">visited</span> {
+            <span class="kw-2">*</span><span class="ident">v</span> <span class="op">=</span> <span class="number">0</span>;
         }
-        <span class="kw">if</span> <a class="ident" href="../../src/regex/backtrack.rs.html#122">visited_len</a> <span class="op">&gt;</span> <a class="self" href="../../src/regex/backtrack.rs.html#108">self</a>.<span class="ident">m</span>.<span class="ident">visited</span>.<span class="ident">len</span>() {
+        <span class="kw">if</span> <span class="ident">visited_len</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">visited</span>.<span class="ident">len</span>() {
             <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="self" href="../../src/regex/backtrack.rs.html#108">self</a>.<span class="ident">m</span>.<span class="ident">visited</span>.<span class="ident">len</span>();
             <a class="self" href="../../src/regex/backtrack.rs.html#108">self</a>.<span class="ident">m</span>.<span class="ident">visited</span>.<span class="ident">reserve_exact</span>(<a class="ident" href="../../src/regex/backtrack.rs.html#122">visited_len</a> <span class="op">-</span> <a class="ident" href="../../src/regex/backtrack.rs.html#130">len</a>);
-            <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..(<a class="ident" href="../../src/regex/backtrack.rs.html#122">visited_len</a> <span class="op">-</span> <a class="ident" href="../../src/regex/backtrack.rs.html#130">len</a>) {
-                <a class="self" href="../../src/regex/backtrack.rs.html#108">self</a>.<span class="ident">m</span>.<span class="ident">visited</span>.<span class="ident">push</span>(<span class="number">0</span>);
+            <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..(<span class="ident">visited_len</span> <span class="op">-</span> <span class="ident">len</span>) {
+                <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">visited</span>.<span class="ident">push</span>(<span class="number">0</span>);
             }
         }
     }
@@ -436,22 +435,22 @@
         <a class="self" href="../../src/regex/backtrack.rs.html#140">self</a>.<a class="ident" href="../../src/regex/backtrack.rs.html#108">clear</a>();
         <span class="comment">// If this is an anchored regex at the beginning of the input, then</span>
         <span class="comment">// we&#39;re either already done or we only need to try backtracking once.</span>
-        <span class="kw">if</span> <a class="self" href="../../src/regex/backtrack.rs.html#140">self</a>.<span class="ident">prog</span>.<span class="ident">is_anchored_start</span> {
-            <span class="kw">return</span> <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/regex/backtrack.rs.html#140">at</a>.<a class="ident" href="../../src/regex/input.rs.html#22">is_start</a>() { <span class="bool-val">false</span> } <span class="kw">else</span> { <a class="self" href="../../src/regex/backtrack.rs.html#140">self</a>.<a class="ident" href="../../src/regex/backtrack.rs.html#168">backtrack</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#140">at</a>) };
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">is_anchored_start</span> {
+            <span class="kw">return</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">at</span>.<span class="ident">is_start</span>() { <span class="bool-val">false</span> } <span class="kw">else</span> { <a class="self" href="../../src/regex/backtrack.rs.html#140">self</a>.<a class="ident" href="../../src/regex/backtrack.rs.html#168">backtrack</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#140">at</a>) };
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matched</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">loop</span> {
-            <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/regex/backtrack.rs.html#140">self</a>.<span class="ident">prog</span>.<span class="ident">prefixes</span>.<a class="ident" href="../../src/regex/literal/imp.rs.html#142">is_empty</a>() {
+            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">prefixes</span>.<span class="ident">is_empty</span>() {
                 <a class="ident" href="../../src/regex/backtrack.rs.html#140">at</a> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/regex/backtrack.rs.html#140">self</a>.<span class="ident">input</span>.<a class="ident" href="../../src/regex/input.rs.html#86-90">prefix_at</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/regex/backtrack.rs.html#140">self</a>.<span class="ident">prog</span>.<span class="ident">prefixes</span>, <a class="ident" href="../../src/regex/backtrack.rs.html#140">at</a>) {
                     <span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
                     <span class="prelude-val">Some</span>(<span class="ident">at</span>) =&gt; <a class="ident" href="../../src/regex/backtrack.rs.html#152">at</a>,
                 };
             }
             <a class="ident" href="../../src/regex/backtrack.rs.html#147">matched</a> <span class="op">=</span> <a class="self" href="../../src/regex/backtrack.rs.html#140">self</a>.<a class="ident" href="../../src/regex/backtrack.rs.html#168">backtrack</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#140">at</a>) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/regex/backtrack.rs.html#147">matched</a>;
-            <span class="kw">if</span> <a class="ident" href="../../src/regex/backtrack.rs.html#147">matched</a> <span class="op">&amp;&amp;</span> <a class="self" href="../../src/regex/backtrack.rs.html#140">self</a>.<span class="ident">prog</span>.<span class="ident">matches</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
+            <span class="kw">if</span> <span class="ident">matched</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">matches</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
                 <span class="kw">return</span> <span class="bool-val">true</span>;
             }
-            <span class="kw">if</span> <a class="ident" href="../../src/regex/backtrack.rs.html#140">at</a>.<a class="ident" href="../../src/regex/input.rs.html#56">pos</a>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#140">end</a> {
+            <span class="kw">if</span> <span class="ident">at</span>.<span class="ident">pos</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">end</span> {
                 <span class="kw">break</span>;
             }
             <a class="ident" href="../../src/regex/backtrack.rs.html#140">at</a> <span class="op">=</span> <a class="self" href="../../src/regex/backtrack.rs.html#140">self</a>.<span class="ident">input</span>.<a class="ident" href="../../src/regex/input.rs.html#69">at</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#140">at</a>.<a class="ident" href="../../src/regex/input.rs.html#61">next_pos</a>());
@@ -467,22 +466,22 @@
         <span class="comment">// there&#39;s a capture or a branch.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matched</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <a class="self" href="../../src/regex/backtrack.rs.html#168">self</a>.<span class="ident">m</span>.<span class="ident">jobs</span>.<span class="ident">push</span>(<a class="ident" href="../../src/regex/backtrack.rs.html#75">Job::Inst</a> { <span class="ident">ip</span>: <span class="number">0</span>, <span class="ident">at</span>: <a class="ident" href="../../src/regex/backtrack.rs.html#168">start</a> });
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">job</span>) <span class="op">=</span> <a class="self" href="../../src/regex/backtrack.rs.html#168">self</a>.<span class="ident">m</span>.<span class="ident">jobs</span>.<span class="ident">pop</span>() {
-            <span class="kw">match</span> <a class="ident" href="../../src/regex/backtrack.rs.html#175">job</a> {
-                <a class="ident" href="../../src/regex/backtrack.rs.html#75">Job::Inst</a> { <span class="ident">ip</span>, <span class="ident">at</span> } =&gt; {
-                    <span class="kw">if</span> <a class="self" href="../../src/regex/backtrack.rs.html#168">self</a>.<a class="ident" href="../../src/regex/backtrack.rs.html#198">step</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#177">ip</a>, <a class="ident" href="../../src/regex/backtrack.rs.html#177">at</a>) {
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">job</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">jobs</span>.<span class="ident">pop</span>() {
+            <span class="kw">match</span> <span class="ident">job</span> {
+                <span class="ident">Job::Inst</span> { <span class="ident">ip</span>, <span class="ident">at</span> } =&gt; {
+                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">step</span>(<span class="ident">ip</span>, <span class="ident">at</span>) {
                         <span class="comment">// Only quit if we&#39;re matching one regex.</span>
                         <span class="comment">// If we&#39;re matching a regex set, then mush on and</span>
                         <span class="comment">// try to find other matches (if we want them).</span>
-                        <span class="kw">if</span> <a class="self" href="../../src/regex/backtrack.rs.html#168">self</a>.<span class="ident">prog</span>.<span class="ident">matches</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
+                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">prog</span>.<span class="ident">matches</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
                             <span class="kw">return</span> <span class="bool-val">true</span>;
                         }
-                        <a class="ident" href="../../src/regex/backtrack.rs.html#173">matched</a> <span class="op">=</span> <span class="bool-val">true</span>;
+                        <span class="ident">matched</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     }
                 }
-                <a class="ident" href="../../src/regex/backtrack.rs.html#76">Job::SaveRestore</a> { <span class="ident">slot</span>, <span class="ident">old_pos</span> } =&gt; {
-                    <span class="kw">if</span> <a class="ident" href="../../src/regex/backtrack.rs.html#188">slot</a> <span class="op">&lt;</span> <a class="self" href="../../src/regex/backtrack.rs.html#168">self</a>.<span class="ident">slots</span>.<span class="ident">len</span>() {
-                        <a class="self" href="../../src/regex/backtrack.rs.html#168">self</a>.<span class="ident">slots</span>[<a class="ident" href="../../src/regex/backtrack.rs.html#188">slot</a>] <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#188">old_pos</a>;
+                <span class="ident">Job::SaveRestore</span> { <span class="ident">slot</span>, <span class="ident">old_pos</span> } =&gt; {
+                    <span class="kw">if</span> <span class="ident">slot</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">slots</span>.<span class="ident">len</span>() {
+                        <span class="self">self</span>.<span class="ident">slots</span>[<span class="ident">slot</span>] <span class="op">=</span> <span class="ident">old_pos</span>;
                     }
                 }
             }
@@ -497,12 +496,12 @@
             <span class="comment">// from the stack. Namely, if we&#39;re pushing a job only to run it</span>
             <span class="comment">// next, avoid the push and just mutate `ip` (and possibly `at`)</span>
             <span class="comment">// in place.</span>
-            <span class="kw">if</span> <a class="self" href="../../src/regex/backtrack.rs.html#198">self</a>.<a class="ident" href="../../src/regex/backtrack.rs.html#270">has_visited</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#198">ip</a>, <a class="ident" href="../../src/regex/backtrack.rs.html#198">at</a>) {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_visited</span>(<span class="ident">ip</span>, <span class="ident">at</span>) {
                 <span class="kw">return</span> <span class="bool-val">false</span>;
             }
             <span class="kw">match</span> <a class="self" href="../../src/regex/backtrack.rs.html#198">self</a>.<span class="ident">prog</span>[<a class="ident" href="../../src/regex/backtrack.rs.html#198">ip</a>] {
                 <a class="ident" href="../../src/regex/prog.rs.html#276">Match</a>(<span class="ident">slot</span>) =&gt; {
-                    <span class="kw">if</span> <a class="ident" href="../../src/regex/backtrack.rs.html#209">slot</a> <span class="op">&lt;</span> <a class="self" href="../../src/regex/backtrack.rs.html#198">self</a>.<span class="ident">matches</span>.<span class="ident">len</span>() {
+                    <span class="kw">if</span> <span class="ident">slot</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">matches</span>.<span class="ident">len</span>() {
                         <a class="self" href="../../src/regex/backtrack.rs.html#198">self</a>.<span class="ident">matches</span>[<a class="ident" href="../../src/regex/backtrack.rs.html#209">slot</a>] <span class="op">=</span> <span class="bool-val">true</span>;
                     }
                     <span class="kw">return</span> <span class="bool-val">true</span>;
@@ -526,14 +525,14 @@
                     <a class="ident" href="../../src/regex/backtrack.rs.html#198">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#229">inst</a>.<span class="ident">goto1</span>;
                 }
                 <a class="ident" href="../../src/regex/prog.rs.html#285">EmptyLook</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) =&gt; {
-                    <span class="kw">if</span> <a class="self" href="../../src/regex/backtrack.rs.html#198">self</a>.<span class="ident">input</span>.<a class="ident" href="../../src/regex/input.rs.html#83">is_empty_match</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#198">at</a>, <a class="ident" href="../../src/regex/backtrack.rs.html#233">inst</a>) {
+                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">is_empty_match</span>(<span class="ident">at</span>, <span class="ident">inst</span>) {
                         <a class="ident" href="../../src/regex/backtrack.rs.html#198">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#233">inst</a>.<span class="ident">goto</span>;
                     } <span class="kw">else</span> {
                         <span class="kw">return</span> <span class="bool-val">false</span>;
                     }
                 }
                 <a class="ident" href="../../src/regex/prog.rs.html#288">Char</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) =&gt; {
-                    <span class="kw">if</span> <a class="ident" href="../../src/regex/backtrack.rs.html#240">inst</a>.<span class="ident">c</span> <span class="op">==</span> <a class="ident" href="../../src/regex/backtrack.rs.html#198">at</a>.<a class="ident" href="../../src/regex/input.rs.html#35">char</a>() {
+                    <span class="kw">if</span> <span class="ident">inst</span>.<span class="ident">c</span> <span class="op">==</span> <span class="ident">at</span>.<span class="ident">char</span>() {
                         <a class="ident" href="../../src/regex/backtrack.rs.html#198">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#240">inst</a>.<span class="ident">goto</span>;
                         <a class="ident" href="../../src/regex/backtrack.rs.html#198">at</a> <span class="op">=</span> <a class="self" href="../../src/regex/backtrack.rs.html#198">self</a>.<span class="ident">input</span>.<a class="ident" href="../../src/regex/input.rs.html#69">at</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#198">at</a>.<a class="ident" href="../../src/regex/input.rs.html#61">next_pos</a>());
                     } <span class="kw">else</span> {
@@ -541,7 +540,7 @@
                     }
                 }
                 <a class="ident" href="../../src/regex/prog.rs.html#291">Ranges</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) =&gt; {
-                    <span class="kw">if</span> <a class="ident" href="../../src/regex/backtrack.rs.html#248">inst</a>.<a class="ident" href="../../src/regex/prog.rs.html#382">matches</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#198">at</a>.<a class="ident" href="../../src/regex/input.rs.html#35">char</a>()) {
+                    <span class="kw">if</span> <span class="ident">inst</span>.<span class="ident">matches</span>(<span class="ident">at</span>.<span class="ident">char</span>()) {
                         <a class="ident" href="../../src/regex/backtrack.rs.html#198">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#248">inst</a>.<span class="ident">goto</span>;
                         <a class="ident" href="../../src/regex/backtrack.rs.html#198">at</a> <span class="op">=</span> <a class="self" href="../../src/regex/backtrack.rs.html#198">self</a>.<span class="ident">input</span>.<a class="ident" href="../../src/regex/input.rs.html#69">at</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#198">at</a>.<a class="ident" href="../../src/regex/input.rs.html#61">next_pos</a>());
                     } <span class="kw">else</span> {
@@ -550,7 +549,7 @@
                 }
                 <a class="ident" href="../../src/regex/prog.rs.html#295">Bytes</a>(<span class="kw-2">ref</span> <span class="ident">inst</span>) =&gt; {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#198">at</a>.<a class="ident" href="../../src/regex/input.rs.html#40">byte</a>() {
-                        <span class="kw">if</span> <a class="ident" href="../../src/regex/backtrack.rs.html#256">inst</a>.<a class="ident" href="../../src/regex/prog.rs.html#431">matches</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#257">b</a>) {
+                        <span class="kw">if</span> <span class="ident">inst</span>.<span class="ident">matches</span>(<span class="ident">b</span>) {
                             <a class="ident" href="../../src/regex/backtrack.rs.html#198">ip</a> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#256">inst</a>.<span class="ident">goto</span>;
                             <a class="ident" href="../../src/regex/backtrack.rs.html#198">at</a> <span class="op">=</span> <a class="self" href="../../src/regex/backtrack.rs.html#198">self</a>.<span class="ident">input</span>.<a class="ident" href="../../src/regex/input.rs.html#69">at</a>(<a class="ident" href="../../src/regex/backtrack.rs.html#198">at</a>.<a class="ident" href="../../src/regex/input.rs.html#61">next_pos</a>());
                             <span class="kw">continue</span>;
@@ -566,7 +565,7 @@
         <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#270">ip</a> <span class="op">*</span> (<a class="self" href="../../src/regex/backtrack.rs.html#270">self</a>.<span class="ident">input</span>.<a class="ident" href="../../src/regex/input.rs.html#93">len</a>() <span class="op">+</span> <span class="number">1</span>) <span class="op">+</span> <a class="ident" href="../../src/regex/backtrack.rs.html#270">at</a>.<a class="ident" href="../../src/regex/input.rs.html#56">pos</a>();
         <span class="kw">let</span> <span class="ident">k1</span> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#271">k</a> <span class="op">/</span> <a class="ident" href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a>;
         <span class="kw">let</span> <span class="ident">k2</span> <span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#283">usize_to_u32</a>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> (<a class="ident" href="../../src/regex/backtrack.rs.html#271">k</a> <span class="op">&amp;</span> (<a class="ident" href="../../src/regex/backtrack.rs.html#26">BIT_SIZE</a> <span class="op">-</span> <span class="number">1</span>)));
-        <span class="kw">if</span> <a class="self" href="../../src/regex/backtrack.rs.html#270">self</a>.<span class="ident">m</span>.<span class="ident">visited</span>[<a class="ident" href="../../src/regex/backtrack.rs.html#272">k1</a>] <span class="op">&amp;</span> <a class="ident" href="../../src/regex/backtrack.rs.html#273">k2</a> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">m</span>.<span class="ident">visited</span>[<span class="ident">k1</span>] <span class="op">&amp;</span> <span class="ident">k2</span> <span class="op">==</span> <span class="number">0</span> {
             <a class="self" href="../../src/regex/backtrack.rs.html#270">self</a>.<span class="ident">m</span>.<span class="ident">visited</span>[<a class="ident" href="../../src/regex/backtrack.rs.html#272">k1</a>] <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/regex/backtrack.rs.html#273">k2</a>;
             <span class="bool-val">false</span>
         } <span class="kw">else</span> {
@@ -576,11 +575,11 @@
 }
 
 <span class="kw">fn</span> <span class="ident">usize_to_u32</span>(<span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-    <span class="kw">if</span> (<a class="ident" href="../../src/regex/backtrack.rs.html#283">n</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="op">&gt;</span> (<span class="ident">::std::u32::MAX</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) {
-        <span class="macro">panic!</span>(<span class="string">&quot;BUG: {} is too big to fit into u32&quot;</span>, <a class="ident" href="../../src/regex/backtrack.rs.html#283">n</a>)
+    <span class="kw">if</span> (<span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&gt;</span> (<span class="ident">::std::u32::MAX</span> <span class="kw">as</span> <span class="ident">u64</span>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;BUG: {} is too big to fit into u32&quot;</span>, <span class="ident">n</span>)
     }
     <a class="ident" href="../../src/regex/backtrack.rs.html#283">n</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

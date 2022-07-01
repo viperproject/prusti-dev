@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["emitter",""],["parser",""],["scanner",""],["yaml",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["emitter",""],["parser",""],["scanner",""],["yaml",""]]};

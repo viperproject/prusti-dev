@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["local_set",""],["place_set",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["local_set",""],["place_set",""]]};

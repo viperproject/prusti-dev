@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["deserialize","Deserialize a `[u8; 16]` as a `Uuid`"],["serialize","Serialize from a `Uuid` as a `[u8; 16]`"]]});
+window.SIDEBAR_ITEMS = {"fn":[["deserialize","Deserialize a `[u8; 16]` as a `Uuid`"],["serialize","Serialize from a `Uuid` as a `[u8; 16]`"]]};

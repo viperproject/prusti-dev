@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["identifiers",""],["to_string",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["identifiers",""],["to_string",""]]};

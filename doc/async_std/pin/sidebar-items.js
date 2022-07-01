@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Pin","A pinned pointer."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Pin","A pinned pointer."]]};

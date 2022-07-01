@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Connect","Creates a connection via `SendRequest`."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Connect","Creates a connection via `SendRequest`."]]};

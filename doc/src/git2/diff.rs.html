@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/diff.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>diff.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/git2-0.14.4/src/diff.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>diff.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../git2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../git2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -1994,7 +1993,7 @@
     <span class="doccomment">/// pending DELETE in the middle, then it will show as deleted).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">merge</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">from</span>: <span class="kw-2">&amp;</span><span class="ident">Diff</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12-16">Error</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_diff_merge</span>(<a class="self" href="../../src/git2/diff.rs.html#138">self</a>.<span class="ident">raw</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../src/git2/diff.rs.html#138">from</a>.<span class="ident">raw</span>));
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_diff_merge</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">from</span>.<span class="ident">raw</span>));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -2033,7 +2032,7 @@
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#175">cb</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
         <span class="kw">let</span> <span class="ident">print</span>: <span class="ident">raw::git_diff_line_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/diff.rs.html#326-331">print_cb</a>);
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_diff_print</span>(<a class="self" href="../../src/git2/diff.rs.html#171">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/diff.rs.html#171">format</a>, <a class="ident" href="../../src/git2/diff.rs.html#177">print</a>, <a class="ident" href="../../src/git2/diff.rs.html#176">ptr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>));
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_diff_print</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">format</span>, <span class="ident">print</span>, <span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>));
             <span class="prelude-val">Ok</span>(())
         }
     }
@@ -2057,29 +2056,29 @@
         };
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#195">cbs</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>;
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">binary_cb_c</span>: <span class="ident">raw::git_diff_binary_cb</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/git2/diff.rs.html#195">cbs</a>.<span class="ident">binary</span>.<span class="ident">is_some</span>() {
+            <span class="kw">let</span> <span class="ident">binary_cb_c</span>: <span class="ident">raw::git_diff_binary_cb</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">cbs</span>.<span class="ident">binary</span>.<span class="ident">is_some</span>() {
                 <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/diff.rs.html#372-376">binary_cb_c</a>)
             } <span class="kw">else</span> {
                 <span class="prelude-val">None</span>
             };
-            <span class="kw">let</span> <span class="ident">hunk_cb_c</span>: <span class="ident">raw::git_diff_hunk_cb</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/git2/diff.rs.html#195">cbs</a>.<span class="ident">hunk</span>.<span class="ident">is_some</span>() {
+            <span class="kw">let</span> <span class="ident">hunk_cb_c</span>: <span class="ident">raw::git_diff_hunk_cb</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">cbs</span>.<span class="ident">hunk</span>.<span class="ident">is_some</span>() {
                 <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/diff.rs.html#396-400">hunk_cb_c</a>)
             } <span class="kw">else</span> {
                 <span class="prelude-val">None</span>
             };
-            <span class="kw">let</span> <span class="ident">line_cb_c</span>: <span class="ident">raw::git_diff_line_cb</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../src/git2/diff.rs.html#195">cbs</a>.<span class="ident">line</span>.<span class="ident">is_some</span>() {
+            <span class="kw">let</span> <span class="ident">line_cb_c</span>: <span class="ident">raw::git_diff_line_cb</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">cbs</span>.<span class="ident">line</span>.<span class="ident">is_some</span>() {
                 <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/diff.rs.html#420-425">line_cb_c</a>)
             } <span class="kw">else</span> {
                 <span class="prelude-val">None</span>
             };
             <span class="kw">let</span> <span class="ident">file_cb</span>: <span class="ident">raw::git_diff_file_cb</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/git2/diff.rs.html#349-353">file_cb_c</a>);
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_diff_foreach</span>(
-                <a class="self" href="../../src/git2/diff.rs.html#189">self</a>.<span class="ident">raw</span>,
-                <a class="ident" href="../../src/git2/diff.rs.html#218">file_cb</a>,
-                <a class="ident" href="../../src/git2/diff.rs.html#203">binary_cb_c</a>,
-                <a class="ident" href="../../src/git2/diff.rs.html#208">hunk_cb_c</a>,
-                <a class="ident" href="../../src/git2/diff.rs.html#213">line_cb_c</a>,
-                <a class="ident" href="../../src/git2/diff.rs.html#201">ptr</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_diff_foreach</span>(
+                <span class="self">self</span>.<span class="ident">raw</span>,
+                <span class="ident">file_cb</span>,
+                <span class="ident">binary_cb_c</span>,
+                <span class="ident">hunk_cb_c</span>,
+                <span class="ident">line_cb_c</span>,
+                <span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
             ));
             <span class="prelude-val">Ok</span>(())
         }
@@ -2089,7 +2088,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stats</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/diff.rs.html#85-87">DiffStats</a>, <a class="ident" href="../../src/git2/error.rs.html#12-16">Error</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>();
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_diff_get_stats</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#233">ret</a>, <a class="self" href="../../src/git2/diff.rs.html#232">self</a>.<span class="ident">raw</span>));
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_diff_get_stats</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ret</span>, <span class="self">self</span>.<span class="ident">raw</span>));
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<a class="ident" href="../../src/git2/diff.rs.html#233">ret</a>))
         }
     }
@@ -2103,7 +2102,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find_similar</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opts</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#52-54">DiffFindOptions</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/git2/error.rs.html#12-16">Error</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">opts</span> <span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#246">opts</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">opts</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/diff.rs.html#247">opts</a>.<span class="ident">raw</span>);
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_diff_find_similar</span>(<a class="self" href="../../src/git2/diff.rs.html#246">self</a>.<span class="ident">raw</span>, <a class="ident" href="../../src/git2/diff.rs.html#247">opts</a>));
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_diff_find_similar</span>(<span class="self">self</span>.<span class="ident">raw</span>, <span class="ident">opts</span>));
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -2118,13 +2117,13 @@
         <span class="ident">commit</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Commit</span><span class="op">&lt;</span><span class="lifetime">&#39;repo</span><span class="op">&gt;</span>,
         <span class="ident">opts</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#57-59">DiffFormatEmailOptions</a><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/buf.rs.html#13-15">Buf</a>, <a class="ident" href="../../src/git2/error.rs.html#12-16">Error</a><span class="op">&gt;</span> {
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/git2/diff.rs.html#259">patch_no</a> <span class="op">&gt;</span> <span class="number">0</span>);
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/git2/diff.rs.html#259">patch_no</a> <span class="op">&lt;</span><span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#260">total_patches</a>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">patch_no</span> <span class="op">&gt;</span> <span class="number">0</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">patch_no</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">total_patches</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">default</span> <span class="op">=</span> <span class="ident">DiffFormatEmailOptions::default</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">raw_opts</span> <span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#262">opts</a>.<span class="ident">map_or</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#266">default</a>.<span class="ident">raw</span>, <span class="op">|</span><span class="ident">opts</span><span class="op">|</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#267">opts</a>.<span class="ident">raw</span>);
         <span class="kw">let</span> <span class="ident">summary</span> <span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#261">commit</a>.<a class="ident" href="../../src/git2/commit.rs.html#144">summary_bytes</a>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">message</span> <span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#261">commit</a>.<a class="ident" href="../../src/git2/commit.rs.html#76">message_bytes</a>();
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/git2/diff.rs.html#269">message</a>.<span class="ident">starts_with</span>(<a class="ident" href="../../src/git2/diff.rs.html#268">summary</a>));
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">message</span>.<span class="ident">starts_with</span>(<span class="ident">summary</span>));
         <a class="ident" href="../../src/git2/diff.rs.html#269">message</a> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/diff.rs.html#269">message</a>[<a class="ident" href="../../src/git2/diff.rs.html#268">summary</a>.<span class="ident">len</span>()..];
         <a class="ident" href="../../src/git2/diff.rs.html#267">raw_opts</a>.<span class="ident">patch_no</span> <span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#259">patch_no</a>;
         <a class="ident" href="../../src/git2/diff.rs.html#267">raw_opts</a>.<span class="ident">total_patches</span> <span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#260">total_patches</a>;
@@ -2135,7 +2134,7 @@
         <a class="ident" href="../../src/git2/diff.rs.html#267">raw_opts</a>.<span class="ident">author</span> <span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#261">commit</a>.<a class="ident" href="../../src/git2/commit.rs.html#202">author</a>().<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>();
         <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Buf::new</span>();
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_diff_format_email</span>(<a class="ident" href="../../src/git2/diff.rs.html#279">buf</a>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>(), <a class="self" href="../../src/git2/diff.rs.html#258">self</a>.<span class="ident">raw</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../src/git2/diff.rs.html#267">raw_opts</a>));
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_diff_format_email</span>(<span class="ident">buf</span>.<span class="ident">raw</span>(), <span class="self">self</span>.<span class="ident">raw</span>, <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">raw_opts</span>));
         }
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/diff.rs.html#279">buf</a>)
     }
@@ -2146,10 +2145,10 @@
             <span class="ident">id</span>: [<span class="number">0</span>; <span class="ident">raw::GIT_OID_RAWSZ</span>],
         };
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_diff_patchid</span>(
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#288">raw</a>,
-                <a class="self" href="../../src/git2/diff.rs.html#287">self</a>.<span class="ident">raw</span>,
-                <a class="ident" href="../../src/git2/diff.rs.html#287">opts</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#295">o</a>.<span class="ident">raw</span>)
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_diff_patchid</span>(
+                <span class="kw-2">&amp;mut</span> <span class="ident">raw</span>,
+                <span class="self">self</span>.<span class="ident">raw</span>,
+                <span class="ident">opts</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="kw-2">&amp;mut</span> <span class="ident">o</span>.<span class="ident">raw</span>)
             ));
             <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/util.rs.html#28">Binding::from_raw</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/git2/diff.rs.html#288">raw</a> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>))
         }
@@ -2170,10 +2169,10 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">diff</span>: <span class="kw-2">*mut</span> <a class="ident" href="../../libgit2_sys/enum.git_diff.html">raw::git_diff</a> <span class="op">=</span> <span class="ident">std::ptr::null_mut</span>();
         <span class="kw">unsafe</span> {
             <span class="comment">// NOTE: Doesn&#39;t depend on repo, so lifetime can be &#39;static</span>
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_diff_from_buffer</span>(
-                <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#313">diff</a>,
-                <a class="ident" href="../../src/git2/diff.rs.html#311">buffer</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/gnu/b64/x86_64/type.c_char.html">c_char</a>,
-                <a class="ident" href="../../src/git2/diff.rs.html#311">buffer</a>.<span class="ident">len</span>()
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_diff_from_buffer</span>(
+                <span class="kw-2">&amp;mut</span> <span class="ident">diff</span>,
+                <span class="ident">buffer</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">c_char</span>,
+                <span class="ident">buffer</span>.<span class="ident">len</span>()
             ));
             <span class="prelude-val">Ok</span>(<span class="ident">Diff::from_raw</span>(<a class="ident" href="../../src/git2/diff.rs.html#313">diff</a>))
         }
@@ -2195,7 +2194,7 @@
             <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#330">data</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw-2">&amp;mut</span> <span class="ident">PrintCb</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
             (<span class="kw-2">*</span><a class="ident" href="../../src/git2/diff.rs.html#338">data</a>)(<a class="ident" href="../../src/git2/diff.rs.html#333">delta</a>, <a class="ident" href="../../src/git2/diff.rs.html#334">hunk</a>, <a class="ident" href="../../src/git2/diff.rs.html#335">line</a>)
         });
-        <span class="kw">if</span> <a class="ident" href="../../src/git2/diff.rs.html#337">r</a> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+        <span class="kw">if</span> <span class="ident">r</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
             <span class="ident">raw::GIT_OK</span>
         } <span class="kw">else</span> {
             <span class="ident">raw::GIT_EUSER</span>
@@ -2218,7 +2217,7 @@
                 <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
             }
         });
-        <span class="kw">if</span> <a class="ident" href="../../src/git2/diff.rs.html#357">r</a> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+        <span class="kw">if</span> <span class="ident">r</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
             <span class="ident">raw::GIT_OK</span>
         } <span class="kw">else</span> {
             <span class="ident">raw::GIT_EUSER</span>
@@ -2242,7 +2241,7 @@
                 <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
             }
         });
-        <span class="kw">if</span> <a class="ident" href="../../src/git2/diff.rs.html#381">r</a> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+        <span class="kw">if</span> <span class="ident">r</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
             <span class="ident">raw::GIT_OK</span>
         } <span class="kw">else</span> {
             <span class="ident">raw::GIT_EUSER</span>
@@ -2266,7 +2265,7 @@
                 <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
             }
         });
-        <span class="kw">if</span> <a class="ident" href="../../src/git2/diff.rs.html#405">r</a> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+        <span class="kw">if</span> <span class="ident">r</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
             <span class="ident">raw::GIT_OK</span>
         } <span class="kw">else</span> {
             <span class="ident">raw::GIT_EUSER</span>
@@ -2292,7 +2291,7 @@
                 <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
             }
         });
-        <span class="kw">if</span> <a class="ident" href="../../src/git2/diff.rs.html#431">r</a> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
+        <span class="kw">if</span> <span class="ident">r</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) {
             <span class="ident">raw::GIT_OK</span>
         } <span class="kw">else</span> {
             <span class="ident">raw::GIT_EUSER</span>
@@ -2336,16 +2335,16 @@
             <a class="ident" href="../../src/git2/diff.rs.html#478">flag</a>
         }
 
-        <span class="kw">if</span> (<a class="ident" href="../../src/git2/diff.rs.html#470">flags</a> <span class="op">&amp;</span> <a class="ident" href="../../src/git2/diff.rs.html#478">as_u32</a>(<span class="ident">raw::GIT_DIFF_FLAG_BINARY</span>)) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> (<span class="ident">flags</span> <span class="op">&amp;</span> <span class="ident">as_u32</span>(<span class="ident">raw::GIT_DIFF_FLAG_BINARY</span>)) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <a class="ident" href="../../src/git2/diff.rs.html#471">result</a> <span class="op">|</span><span class="op">=</span> <span class="ident">DiffFlags::BINARY</span>;
         }
-        <span class="kw">if</span> (<a class="ident" href="../../src/git2/diff.rs.html#470">flags</a> <span class="op">&amp;</span> <a class="ident" href="../../src/git2/diff.rs.html#478">as_u32</a>(<span class="ident">raw::GIT_DIFF_FLAG_NOT_BINARY</span>)) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> (<span class="ident">flags</span> <span class="op">&amp;</span> <span class="ident">as_u32</span>(<span class="ident">raw::GIT_DIFF_FLAG_NOT_BINARY</span>)) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <a class="ident" href="../../src/git2/diff.rs.html#471">result</a> <span class="op">|</span><span class="op">=</span> <span class="ident">DiffFlags::NOT_BINARY</span>;
         }
-        <span class="kw">if</span> (<a class="ident" href="../../src/git2/diff.rs.html#470">flags</a> <span class="op">&amp;</span> <a class="ident" href="../../src/git2/diff.rs.html#478">as_u32</a>(<span class="ident">raw::GIT_DIFF_FLAG_VALID_ID</span>)) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> (<span class="ident">flags</span> <span class="op">&amp;</span> <span class="ident">as_u32</span>(<span class="ident">raw::GIT_DIFF_FLAG_VALID_ID</span>)) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <a class="ident" href="../../src/git2/diff.rs.html#471">result</a> <span class="op">|</span><span class="op">=</span> <span class="ident">DiffFlags::VALID_ID</span>;
         }
-        <span class="kw">if</span> (<a class="ident" href="../../src/git2/diff.rs.html#470">flags</a> <span class="op">&amp;</span> <a class="ident" href="../../src/git2/diff.rs.html#478">as_u32</a>(<span class="ident">raw::GIT_DIFF_FLAG_EXISTS</span>)) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+        <span class="kw">if</span> (<span class="ident">flags</span> <span class="op">&amp;</span> <span class="ident">as_u32</span>(<span class="ident">raw::GIT_DIFF_FLAG_EXISTS</span>)) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <a class="ident" href="../../src/git2/diff.rs.html#471">result</a> <span class="op">|</span><span class="op">=</span> <span class="ident">DiffFlags::EXISTS</span>;
         }
         <a class="ident" href="../../src/git2/diff.rs.html#471">result</a>
@@ -2377,7 +2376,7 @@
             <span class="ident">raw::GIT_DELTA_TYPECHANGE</span> =&gt; <a class="ident" href="../../src/git2/lib.rs.html#1081">Delta::Typechange</a>,
             <span class="ident">raw::GIT_DELTA_UNREADABLE</span> =&gt; <a class="ident" href="../../src/git2/lib.rs.html#1083">Delta::Unreadable</a>,
             <span class="ident">raw::GIT_DELTA_CONFLICTED</span> =&gt; <a class="ident" href="../../src/git2/lib.rs.html#1085">Delta::Conflicted</a>,
-            <span class="ident">n</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown diff status: {}&quot;</span>, <a class="ident" href="../../src/git2/diff.rs.html#523">n</a>),
+            <span class="ident">n</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unknown diff status: {}&quot;</span>, <span class="ident">n</span>),
         }
     }
 
@@ -2478,7 +2477,7 @@
             <span class="ident">raw::GIT_FILEMODE_BLOB_EXECUTABLE</span> =&gt; <a class="ident" href="../../src/git2/lib.rs.html#1098">FileMode::BlobExecutable</a>,
             <span class="ident">raw::GIT_FILEMODE_LINK</span> =&gt; <a class="ident" href="../../src/git2/lib.rs.html#1100">FileMode::Link</a>,
             <span class="ident">raw::GIT_FILEMODE_COMMIT</span> =&gt; <a class="ident" href="../../src/git2/lib.rs.html#1102">FileMode::Commit</a>,
-            <span class="ident">mode</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;unknown mode: {}&quot;</span>, <a class="ident" href="../../src/git2/diff.rs.html#624">mode</a>),
+            <span class="ident">mode</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;unknown mode: {}&quot;</span>, <span class="ident">mode</span>),
         }
     }
 }
@@ -2529,13 +2528,13 @@
             <span class="ident">old_prefix</span>: <span class="prelude-val">None</span>,
             <span class="ident">new_prefix</span>: <span class="prelude-val">None</span>,
         };
-        <span class="macro">assert_eq!</span>(<span class="kw">unsafe</span> { <span class="ident">raw::git_diff_init_options</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#668">opts</a>.<span class="ident">raw</span>, <span class="number">1</span>) }, <span class="number">0</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="kw">unsafe</span> { <span class="ident">raw::git_diff_init_options</span>(<span class="kw-2">&amp;mut</span> <span class="ident">opts</span>.<span class="ident">raw</span>, <span class="number">1</span>) }, <span class="number">0</span>);
         <a class="ident" href="../../src/git2/diff.rs.html#668">opts</a>
     }
 
     <span class="kw">fn</span> <span class="ident">flag</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#43-49">DiffOptions</a> {
         <span class="kw">let</span> <span class="ident">opt</span> <span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#679">opt</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
-        <span class="kw">if</span> <a class="ident" href="../../src/git2/diff.rs.html#679">val</a> {
+        <span class="kw">if</span> <span class="ident">val</span> {
             <a class="self" href="../../src/git2/diff.rs.html#679">self</a>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#680">opt</a>;
         } <span class="kw">else</span> {
             <a class="self" href="../../src/git2/diff.rs.html#679">self</a>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">&amp;=</span> <span class="op">!</span><a class="ident" href="../../src/git2/diff.rs.html#680">opt</a>;
@@ -2851,7 +2850,7 @@
             <span class="ident">raw::GIT_DIFF_LINE_FILE_HDR</span> =&gt; <a class="ident" href="../../src/git2/diff.rs.html#977">DiffLineType::FileHeader</a>,
             <span class="ident">raw::GIT_DIFF_LINE_HUNK_HDR</span> =&gt; <a class="ident" href="../../src/git2/diff.rs.html#979">DiffLineType::HunkHeader</a>,
             <span class="ident">raw::GIT_DIFF_LINE_BINARY</span> =&gt; <a class="ident" href="../../src/git2/diff.rs.html#981">DiffLineType::Binary</a>,
-            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unknown git diff line type&quot;</span>),
+            <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Unknown git diff line type&quot;</span>),
         }
     }
     <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../libgit2_sys/type.git_diff_line_t.html">raw::git_diff_line_t</a> {
@@ -3046,11 +3045,11 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_buf</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">format</span>: <a class="ident" href="../../src/git2/lib.rs.html#1352-1367">DiffStatsFormat</a>, <span class="ident">width</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/git2/buf.rs.html#13-15">Buf</a>, <a class="ident" href="../../src/git2/error.rs.html#12-16">Error</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">Buf::new</span>();
         <span class="kw">unsafe</span> {
-            <span class="macro">try_call!</span>(<span class="ident">raw::git_diff_stats_to_buf</span>(
-                <a class="ident" href="../../src/git2/diff.rs.html#1190">buf</a>.<a class="ident" href="../../src/git2/util.rs.html#29">raw</a>(),
-                <a class="self" href="../../src/git2/diff.rs.html#1189">self</a>.<span class="ident">raw</span>,
-                <a class="ident" href="../../src/git2/diff.rs.html#1189">format</a>.<a class="ident" href="../../src/git2/lib.rs.html#1352-1367">bits</a>(),
-                <a class="ident" href="../../src/git2/diff.rs.html#1189">width</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.size_t.html">size_t</a>
+            <a class="macro" href="../../src/git2/call.rs.html#12-19">try_call!</a>(<span class="ident">raw::git_diff_stats_to_buf</span>(
+                <span class="ident">buf</span>.<span class="ident">raw</span>(),
+                <span class="self">self</span>.<span class="ident">raw</span>,
+                <span class="ident">format</span>.<span class="ident">bits</span>(),
+                <span class="ident">width</span> <span class="kw">as</span> <span class="ident">size_t</span>
             ));
         }
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/git2/diff.rs.html#1190">buf</a>)
@@ -3158,7 +3157,7 @@
             <span class="ident">raw::GIT_DIFF_BINARY_NONE</span> =&gt; <a class="ident" href="../../src/git2/diff.rs.html#108">DiffBinaryKind::None</a>,
             <span class="ident">raw::GIT_DIFF_BINARY_LITERAL</span> =&gt; <a class="ident" href="../../src/git2/diff.rs.html#110">DiffBinaryKind::Literal</a>,
             <span class="ident">raw::GIT_DIFF_BINARY_DELTA</span> =&gt; <a class="ident" href="../../src/git2/diff.rs.html#112">DiffBinaryKind::Delta</a>,
-            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unknown git diff binary kind&quot;</span>),
+            <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Unknown git diff binary kind&quot;</span>),
         }
     }
     <span class="kw">fn</span> <span class="ident">raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../libgit2_sys/type.git_diff_binary_t.html">raw::git_diff_binary_t</a> {
@@ -3185,15 +3184,15 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#52-54">DiffFindOptions</a> {
             <span class="ident">raw</span>: <span class="kw">unsafe</span> { <span class="ident">mem::zeroed</span>() },
         };
-        <span class="macro">assert_eq!</span>(
-            <span class="kw">unsafe</span> { <span class="ident">raw::git_diff_find_init_options</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#1328">opts</a>.<span class="ident">raw</span>, <span class="number">1</span>) },
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
+            <span class="kw">unsafe</span> { <span class="ident">raw::git_diff_find_init_options</span>(<span class="kw-2">&amp;mut</span> <span class="ident">opts</span>.<span class="ident">raw</span>, <span class="number">1</span>) },
             <span class="number">0</span>
         );
         <a class="ident" href="../../src/git2/diff.rs.html#1328">opts</a>
     }
 
     <span class="kw">fn</span> <span class="ident">flag</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#52-54">DiffFindOptions</a> {
-        <span class="kw">if</span> <a class="ident" href="../../src/git2/diff.rs.html#1338">val</a> {
+        <span class="kw">if</span> <span class="ident">val</span> {
             <a class="self" href="../../src/git2/diff.rs.html#1338">self</a>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#1338">opt</a>;
         } <span class="kw">else</span> {
             <a class="self" href="../../src/git2/diff.rs.html#1338">self</a>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">&amp;=</span> <span class="op">!</span><a class="ident" href="../../src/git2/diff.rs.html#1338">opt</a>;
@@ -3352,15 +3351,15 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#57-59">DiffFormatEmailOptions</a> {
             <span class="ident">raw</span>: <span class="kw">unsafe</span> { <span class="ident">mem::zeroed</span>() },
         };
-        <span class="macro">assert_eq!</span>(
-            <span class="kw">unsafe</span> { <span class="ident">raw::git_diff_format_email_options_init</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#1495">opts</a>.<span class="ident">raw</span>, <span class="number">1</span>) },
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
+            <span class="kw">unsafe</span> { <span class="ident">raw::git_diff_format_email_options_init</span>(<span class="kw-2">&amp;mut</span> <span class="ident">opts</span>.<span class="ident">raw</span>, <span class="number">1</span>) },
             <span class="number">0</span>
         );
         <a class="ident" href="../../src/git2/diff.rs.html#1495">opts</a>
     }
 
     <span class="kw">fn</span> <span class="ident">flag</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">opt</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="kw">if</span> <a class="ident" href="../../src/git2/diff.rs.html#1505">val</a> {
+        <span class="kw">if</span> <span class="ident">val</span> {
             <a class="self" href="../../src/git2/diff.rs.html#1505">self</a>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#1505">opt</a>;
         } <span class="kw">else</span> {
             <a class="self" href="../../src/git2/diff.rs.html#1505">self</a>.<span class="ident">raw</span>.<span class="ident">flags</span> <span class="op">&amp;=</span> <span class="op">!</span><a class="ident" href="../../src/git2/diff.rs.html#1505">opt</a>;
@@ -3384,10 +3383,10 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts</span> <span class="op">=</span> <a class="ident" href="../../src/git2/diff.rs.html#62-64">DiffPatchidOptions</a> {
             <span class="ident">raw</span>: <span class="kw">unsafe</span> { <span class="ident">mem::zeroed</span>() },
         };
-        <span class="macro">assert_eq!</span>(
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
             <span class="kw">unsafe</span> {
                 <span class="ident">raw::git_diff_patchid_options_init</span>(
-                    <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/git2/diff.rs.html#1527">opts</a>.<span class="ident">raw</span>,
+                    <span class="kw-2">&amp;mut</span> <span class="ident">opts</span>.<span class="ident">raw</span>,
                     <span class="ident">raw::GIT_DIFF_PATCHID_OPTIONS_VERSION</span>,
                 )
             },
@@ -3706,5 +3705,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="git2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

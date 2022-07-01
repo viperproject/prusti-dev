@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["memfd_create","Creates an anonymous file that lives in memory, and return a file-descriptor to it."]],"struct":[["MemFdCreateFlag","Options that change the behavior of [`memfd_create`]."]]});
+window.SIDEBAR_ITEMS = {"fn":[["memfd_create","Creates an anonymous file that lives in memory, and return a file-descriptor to it."]],"struct":[["MemFdCreateFlag","Options that change the behavior of [`memfd_create`]."]]};

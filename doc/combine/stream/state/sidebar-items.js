@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Stream",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["Stream",""]]};

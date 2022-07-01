@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["io",""],["lang",""],["math",""],["nio",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["io",""],["lang",""],["math",""],["nio",""]]};

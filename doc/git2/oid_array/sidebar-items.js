@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["OidArray","An oid array structure used by libgit2"]]});
+window.SIDEBAR_ITEMS = {"struct":[["OidArray","An oid array structure used by libgit2"]]};

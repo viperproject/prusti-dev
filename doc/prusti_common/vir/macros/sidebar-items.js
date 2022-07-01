@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["high",""],["polymorphic",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["high",""],["polymorphic",""]]};

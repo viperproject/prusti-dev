@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.11/src/connect.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connect.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/reqwest-0.11.11/src/connect.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>connect.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../reqwest/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../reqwest/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../reqwest/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -1371,7 +1370,7 @@
 <span class="kw">use</span> <span class="ident">native_tls_crate</span>::{<a class="ident" href="../../native_tls/struct.TlsConnector.html">TlsConnector</a>, <a class="ident" href="../../native_tls/struct.TlsConnectorBuilder.html">TlsConnectorBuilder</a>};
 <span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>, <a class="ident" href="../../tokio/io/read_buf/struct.ReadBuf.html">ReadBuf</a>};
 
-<span class="kw">use</span> <span class="ident">pin_project_lite::pin_project</span>;
+<span class="kw">use</span> <a class="ident" href="../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">std::io::IoSlice</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">std::net::IpAddr</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
@@ -1453,7 +1452,7 @@
     };
 }
 
-<span class="macro">impl_http_connector!</span> {
+<a class="macro" href="../../src/reqwest/connect.rs.html#77-95">impl_http_connector!</a> {
     <span class="kw">fn</span> <span class="ident">set_local_address</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">addr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">IpAddr</a><span class="op">&gt;</span>);
     <span class="kw">fn</span> <span class="ident">enforce_http</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">is_enforced</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>);
     <span class="kw">fn</span> <span class="ident">set_nodelay</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">nodelay</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>);
@@ -1576,7 +1575,7 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/ip/enum.IpAddr.html">IpAddr</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> <span class="ident">tls</span> <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#211">tls</a>.<span class="ident">build</span>().<span class="ident">map_err</span>(<a class="ident" href="../../src/reqwest/error.rs.html#243"><span class="kw">crate</span>::error::builder</a>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">tls</span> <span class="op">=</span> <span class="ident">tls</span>.<span class="ident">build</span>().<span class="ident">map_err</span>(<span class="ident"><span class="kw">crate</span>::error::builder</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::from_built_default_tls</span>(
             <a class="ident" href="../../src/reqwest/connect.rs.html#210">http</a>, <a class="ident" href="../../src/reqwest/connect.rs.html#220">tls</a>, <a class="ident" href="../../src/reqwest/connect.rs.html#212">proxies</a>, <a class="ident" href="../../src/reqwest/connect.rs.html#213">user_agent</a>, <a class="ident" href="../../src/reqwest/connect.rs.html#214">local_addr</a>, <a class="ident" href="../../src/reqwest/connect.rs.html#215">nodelay</a>,
         ))
@@ -1712,7 +1711,7 @@
     }
 
     <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">connect_with_maybe_proxy</span>(<span class="self">self</span>, <span class="ident">dst</span>: <a class="ident" href="../../http/uri/struct.Uri.html">Uri</a>, <span class="ident">is_proxy</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/reqwest/connect.rs.html#587-597">Conn</a>, <a class="ident" href="../../src/reqwest/error.rs.html#20">BoxError</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/reqwest/connect.rs.html#355">self</a>.<span class="ident">inner</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">inner</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__tls&quot;</span>))]</span>
             <span class="ident">Inner::Http</span>(<span class="kw-2">mut</span> <span class="ident">http</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">http</span>.<span class="ident">call</span>(<span class="ident">dst</span>).<span class="kw">await</span><span class="question-mark">?</span>;
@@ -1722,32 +1721,32 @@
                 })
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)]</span>
-            <a class="ident" href="../../src/reqwest/connect.rs.html#178">Inner::DefaultTls</a>(<span class="ident">http</span>, <span class="ident">tls</span>) =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">http</span> <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#366">http</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <span class="ident">Inner::DefaultTls</span>(<span class="ident">http</span>, <span class="ident">tls</span>) =&gt; {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">http</span> <span class="op">=</span> <span class="ident">http</span>.<span class="ident">clone</span>();
 
                 <span class="comment">// Disable Nagle&#39;s algorithm for TLS handshake</span>
                 <span class="comment">//</span>
                 <span class="comment">// https://www.openssl.org/docs/man1.1.1/man3/SSL_connect.html#NOTES</span>
-                <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/reqwest/connect.rs.html#355">self</a>.<span class="ident">nodelay</span> <span class="op">&amp;&amp;</span> (<a class="ident" href="../../src/reqwest/connect.rs.html#355">dst</a>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme::HTTPS</span>)) {
-                    <a class="ident" href="../../src/reqwest/connect.rs.html#367">http</a>.<a class="ident" href="../../src/reqwest/connect.rs.html#97-102">set_nodelay</a>(<span class="bool-val">true</span>);
+                <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">nodelay</span> <span class="op">&amp;&amp;</span> (<span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme::HTTPS</span>)) {
+                    <span class="ident">http</span>.<span class="ident">set_nodelay</span>(<span class="bool-val">true</span>);
                 }
 
-                <span class="kw">let</span> <span class="ident">tls_connector</span> <span class="op">=</span> <span class="ident">tokio_native_tls::TlsConnector::from</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#366">tls</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">http</span> <span class="op">=</span> <span class="ident">hyper_tls::HttpsConnector::from</span>((<a class="ident" href="../../src/reqwest/connect.rs.html#367">http</a>, <a class="ident" href="../../src/reqwest/connect.rs.html#376">tls_connector</a>));
-                <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#377">http</a>.<a class="ident" href="../../tower_service/trait.Service.html">call</a>(<a class="ident" href="../../src/reqwest/connect.rs.html#355">dst</a>).<span class="kw">await</span><span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">tls_connector</span> <span class="op">=</span> <span class="ident">tokio_native_tls::TlsConnector::from</span>(<span class="ident">tls</span>.<span class="ident">clone</span>());
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">http</span> <span class="op">=</span> <span class="ident">hyper_tls::HttpsConnector::from</span>((<span class="ident">http</span>, <span class="ident">tls_connector</span>));
+                <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">http</span>.<span class="ident">call</span>(<span class="ident">dst</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">hyper_tls::MaybeHttpsStream::Https</span>(<span class="ident">stream</span>) <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#378">io</a> {
-                    <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../src/reqwest/connect.rs.html#355">self</a>.<span class="ident">nodelay</span> {
-                        <a class="ident" href="../../src/reqwest/connect.rs.html#380">stream</a>.<span class="ident">get_ref</span>().<span class="ident">get_ref</span>().<span class="ident">get_ref</span>().<span class="ident">set_nodelay</span>(<span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">hyper_tls::MaybeHttpsStream::Https</span>(<span class="ident">stream</span>) <span class="op">=</span> <span class="ident">io</span> {
+                    <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">nodelay</span> {
+                        <span class="ident">stream</span>.<span class="ident">get_ref</span>().<span class="ident">get_ref</span>().<span class="ident">get_ref</span>().<span class="ident">set_nodelay</span>(<span class="bool-val">false</span>)<span class="question-mark">?</span>;
                     }
-                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#587-597">Conn</a> {
-                        <span class="ident">inner</span>: <a class="self" href="../../src/reqwest/connect.rs.html#355">self</a>.<span class="ident">verbose</span>.<a class="ident" href="../../src/reqwest/connect.rs.html#1074">wrap</a>(<a class="ident" href="../../src/reqwest/connect.rs.html#739-743">NativeTlsConn</a> { <span class="ident">inner</span>: <a class="ident" href="../../src/reqwest/connect.rs.html#380">stream</a> }),
-                        <a class="ident" href="../../src/reqwest/connect.rs.html#355">is_proxy</a>,
+                    <span class="prelude-val">Ok</span>(<span class="ident">Conn</span> {
+                        <span class="ident">inner</span>: <span class="self">self</span>.<span class="ident">verbose</span>.<span class="ident">wrap</span>(<span class="ident">NativeTlsConn</span> { <span class="ident">inner</span>: <span class="ident">stream</span> }),
+                        <span class="ident">is_proxy</span>,
                     })
                 } <span class="kw">else</span> {
-                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#587-597">Conn</a> {
-                        <span class="ident">inner</span>: <a class="self" href="../../src/reqwest/connect.rs.html#355">self</a>.<span class="ident">verbose</span>.<a class="ident" href="../../src/reqwest/connect.rs.html#1074">wrap</a>(<a class="ident" href="../../src/reqwest/connect.rs.html#378">io</a>),
-                        <a class="ident" href="../../src/reqwest/connect.rs.html#355">is_proxy</a>,
+                    <span class="prelude-val">Ok</span>(<span class="ident">Conn</span> {
+                        <span class="ident">inner</span>: <span class="self">self</span>.<span class="ident">verbose</span>.<span class="ident">wrap</span>(<span class="ident">io</span>),
+                        <span class="ident">is_proxy</span>,
                     })
                 }
             }
@@ -1789,43 +1788,43 @@
         <span class="ident">dst</span>: <a class="ident" href="../../http/uri/struct.Uri.html">Uri</a>,
         <span class="ident">proxy_scheme</span>: <a class="ident" href="../../src/reqwest/proxy.rs.html#86-101">ProxyScheme</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/reqwest/connect.rs.html#587-597">Conn</a>, <a class="ident" href="../../src/reqwest/error.rs.html#20">BoxError</a><span class="op">&gt;</span> {
-        <span class="macro">log::debug!</span>(<span class="string">&quot;proxy({:?}) intercepts &#39;{:?}&#39;&quot;</span>, <a class="ident" href="../../src/reqwest/connect.rs.html#431">proxy_scheme</a>, <a class="ident" href="../../src/reqwest/connect.rs.html#430">dst</a>);
+        <span class="macro">log::debug!</span>(<span class="string">&quot;proxy({:?}) intercepts &#39;{:?}&#39;&quot;</span>, <span class="ident">proxy_scheme</span>, <span class="ident">dst</span>);
 
-        <span class="kw">let</span> (<span class="ident">proxy_dst</span>, <span class="ident">_auth</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/reqwest/connect.rs.html#431">proxy_scheme</a> {
-            <a class="ident" href="../../src/reqwest/proxy.rs.html#87-90">ProxyScheme::Http</a> { <span class="ident">host</span>, <span class="ident">auth</span> } =&gt; (<a class="ident" href="../../src/reqwest/connect.rs.html#525">into_uri</a>(<span class="ident">Scheme::HTTP</span>, <a class="ident" href="../../src/reqwest/connect.rs.html#436">host</a>), <a class="ident" href="../../src/reqwest/connect.rs.html#436">auth</a>),
-            <a class="ident" href="../../src/reqwest/proxy.rs.html#91-94">ProxyScheme::Https</a> { <span class="ident">host</span>, <span class="ident">auth</span> } =&gt; (<a class="ident" href="../../src/reqwest/connect.rs.html#525">into_uri</a>(<span class="ident">Scheme::HTTPS</span>, <a class="ident" href="../../src/reqwest/connect.rs.html#437">host</a>), <a class="ident" href="../../src/reqwest/connect.rs.html#437">auth</a>),
+        <span class="kw">let</span> (<span class="ident">proxy_dst</span>, <span class="ident">_auth</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">proxy_scheme</span> {
+            <span class="ident">ProxyScheme::Http</span> { <span class="ident">host</span>, <span class="ident">auth</span> } =&gt; (<span class="ident">into_uri</span>(<span class="ident">Scheme::HTTP</span>, <span class="ident">host</span>), <span class="ident">auth</span>),
+            <span class="ident">ProxyScheme::Https</span> { <span class="ident">host</span>, <span class="ident">auth</span> } =&gt; (<span class="ident">into_uri</span>(<span class="ident">Scheme::HTTPS</span>, <span class="ident">host</span>), <span class="ident">auth</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;socks&quot;</span>)]</span>
             <span class="ident">ProxyScheme::Socks5</span> { .. } =&gt; <span class="kw">return</span> <span class="self">self</span>.<span class="ident">connect_socks</span>(<span class="ident">dst</span>, <span class="ident">proxy_scheme</span>).<span class="kw">await</span>,
         };
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;__tls&quot;</span>)]</span>
-        <span class="kw">let</span> <span class="ident">auth</span> <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#435">_auth</a>;
+        <span class="kw">let</span> <span class="ident">auth</span> <span class="op">=</span> <span class="ident">_auth</span>;
 
-        <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/reqwest/connect.rs.html#429">self</a>.<span class="ident">inner</span> {
+        <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)]</span>
-            <a class="ident" href="../../src/reqwest/connect.rs.html#178">Inner::DefaultTls</a>(<span class="ident">http</span>, <span class="ident">tls</span>) =&gt; {
-                <span class="kw">if</span> <a class="ident" href="../../src/reqwest/connect.rs.html#430">dst</a>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme::HTTPS</span>) {
-                    <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#430">dst</a>.<span class="ident">host</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>();
-                    <span class="kw">let</span> <span class="ident">port</span> <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#430">dst</a>.<span class="ident">port</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../src/reqwest/connect.rs.html#450">p</a>.<span class="ident">as_u16</span>()).<span class="ident">unwrap_or</span>(<span class="number">443</span>);
-                    <span class="kw">let</span> <span class="ident">http</span> <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#447">http</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-                    <span class="kw">let</span> <span class="ident">tls_connector</span> <span class="op">=</span> <span class="ident">tokio_native_tls::TlsConnector::from</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#447">tls</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">http</span> <span class="op">=</span> <span class="ident">hyper_tls::HttpsConnector::from</span>((<a class="ident" href="../../src/reqwest/connect.rs.html#451">http</a>, <a class="ident" href="../../src/reqwest/connect.rs.html#452">tls_connector</a>));
-                    <span class="kw">let</span> <span class="ident">conn</span> <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#453">http</a>.<a class="ident" href="../../tower_service/trait.Service.html">call</a>(<a class="ident" href="../../src/reqwest/connect.rs.html#435">proxy_dst</a>).<span class="kw">await</span><span class="question-mark">?</span>;
+            <span class="ident">Inner::DefaultTls</span>(<span class="ident">http</span>, <span class="ident">tls</span>) =&gt; {
+                <span class="kw">if</span> <span class="ident">dst</span>.<span class="ident">scheme</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">Scheme::HTTPS</span>) {
+                    <span class="kw">let</span> <span class="ident">host</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">host</span>().<span class="ident">to_owned</span>();
+                    <span class="kw">let</span> <span class="ident">port</span> <span class="op">=</span> <span class="ident">dst</span>.<span class="ident">port</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">as_u16</span>()).<span class="ident">unwrap_or</span>(<span class="number">443</span>);
+                    <span class="kw">let</span> <span class="ident">http</span> <span class="op">=</span> <span class="ident">http</span>.<span class="ident">clone</span>();
+                    <span class="kw">let</span> <span class="ident">tls_connector</span> <span class="op">=</span> <span class="ident">tokio_native_tls::TlsConnector::from</span>(<span class="ident">tls</span>.<span class="ident">clone</span>());
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">http</span> <span class="op">=</span> <span class="ident">hyper_tls::HttpsConnector::from</span>((<span class="ident">http</span>, <span class="ident">tls_connector</span>));
+                    <span class="kw">let</span> <span class="ident">conn</span> <span class="op">=</span> <span class="ident">http</span>.<span class="ident">call</span>(<span class="ident">proxy_dst</span>).<span class="kw">await</span><span class="question-mark">?</span>;
                     <span class="macro">log::trace!</span>(<span class="string">&quot;tunneling HTTPS over proxy&quot;</span>);
-                    <span class="kw">let</span> <span class="ident">tunneled</span> <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#653-661">tunnel</a>(
-                        <a class="ident" href="../../src/reqwest/connect.rs.html#454">conn</a>,
-                        <a class="ident" href="../../src/reqwest/connect.rs.html#449">host</a>.<span class="ident">ok_or</span>(<span class="string">&quot;no host in url&quot;</span>)<span class="question-mark">?</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
-                        <a class="ident" href="../../src/reqwest/connect.rs.html#450">port</a>,
-                        <a class="self" href="../../src/reqwest/connect.rs.html#429">self</a>.<span class="ident">user_agent</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
-                        <a class="ident" href="../../src/reqwest/connect.rs.html#443">auth</a>,
+                    <span class="kw">let</span> <span class="ident">tunneled</span> <span class="op">=</span> <span class="ident">tunnel</span>(
+                        <span class="ident">conn</span>,
+                        <span class="ident">host</span>.<span class="ident">ok_or</span>(<span class="string">&quot;no host in url&quot;</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>(),
+                        <span class="ident">port</span>,
+                        <span class="self">self</span>.<span class="ident">user_agent</span>.<span class="ident">clone</span>(),
+                        <span class="ident">auth</span>,
                     )
                     .<span class="kw">await</span><span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">tls_connector</span> <span class="op">=</span> <span class="ident">tokio_native_tls::TlsConnector::from</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#447">tls</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-                    <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#464">tls_connector</a>
-                        .<span class="ident">connect</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#449">host</a>.<span class="ident">ok_or</span>(<span class="string">&quot;no host in url&quot;</span>)<span class="question-mark">?</span>, <a class="ident" href="../../src/reqwest/connect.rs.html#456">tunneled</a>)
+                    <span class="kw">let</span> <span class="ident">tls_connector</span> <span class="op">=</span> <span class="ident">tokio_native_tls::TlsConnector::from</span>(<span class="ident">tls</span>.<span class="ident">clone</span>());
+                    <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">tls_connector</span>
+                        .<span class="ident">connect</span>(<span class="ident">host</span>.<span class="ident">ok_or</span>(<span class="string">&quot;no host in url&quot;</span>)<span class="question-mark">?</span>, <span class="ident">tunneled</span>)
                         .<span class="kw">await</span><span class="question-mark">?</span>;
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#587-597">Conn</a> {
-                        <span class="ident">inner</span>: <a class="self" href="../../src/reqwest/connect.rs.html#429">self</a>.<span class="ident">verbose</span>.<a class="ident" href="../../src/reqwest/connect.rs.html#1074">wrap</a>(<a class="ident" href="../../src/reqwest/connect.rs.html#739-743">NativeTlsConn</a> { <span class="ident">inner</span>: <a class="ident" href="../../src/reqwest/connect.rs.html#465">io</a> }),
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Conn</span> {
+                        <span class="ident">inner</span>: <span class="self">self</span>.<span class="ident">verbose</span>.<span class="ident">wrap</span>(<span class="ident">NativeTlsConn</span> { <span class="ident">inner</span>: <span class="ident">io</span> }),
                         <span class="ident">is_proxy</span>: <span class="bool-val">false</span>,
                     });
                 }
@@ -1866,7 +1865,7 @@
             <span class="ident">Inner::Http</span>(<span class="kw">_</span>) =&gt; (),
         }
 
-        <a class="self" href="../../src/reqwest/connect.rs.html#429">self</a>.<a class="ident" href="../../src/reqwest/connect.rs.html#355">connect_with_maybe_proxy</a>(<a class="ident" href="../../src/reqwest/connect.rs.html#435">proxy_dst</a>, <span class="bool-val">true</span>).<span class="kw">await</span>
+        <span class="self">self</span>.<span class="ident">connect_with_maybe_proxy</span>(<span class="ident">proxy_dst</span>, <span class="bool-val">true</span>).<span class="kw">await</span>
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_keepalive</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dur</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) {
@@ -1895,14 +1894,14 @@
 <span class="kw">where</span>
     <span class="ident">F</span>: <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/reqwest/error.rs.html#20">BoxError</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">to</span>) <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#535">timeout</a> {
-        <span class="kw">match</span> <span class="ident">tokio::time::timeout</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#539">to</a>, <a class="ident" href="../../src/reqwest/connect.rs.html#535">f</a>).<span class="kw">await</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">_elapsed</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/reqwest/error.rs.html#299"><span class="kw">crate</span>::error::TimedOut</a>) <span class="kw">as</span> <a class="ident" href="../../src/reqwest/error.rs.html#20">BoxError</a>),
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="ident">try_res</span>)) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#542">try_res</a>),
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#543">e</a>),
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">to</span>) <span class="op">=</span> <span class="ident">timeout</span> {
+        <span class="kw">match</span> <span class="ident">tokio::time::timeout</span>(<span class="ident">to</span>, <span class="ident">f</span>).<span class="kw">await</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">_elapsed</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">Box::new</span>(<span class="ident"><span class="kw">crate</span>::error::TimedOut</span>) <span class="kw">as</span> <span class="ident">BoxError</span>),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="ident">try_res</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">try_res</span>),
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="prelude-val">Err</span>(<span class="ident">e</span>),
         }
     } <span class="kw">else</span> {
-        <a class="ident" href="../../src/reqwest/connect.rs.html#535">f</a>.<span class="kw">await</span>
+        <span class="ident">f</span>.<span class="kw">await</span>
     }
 }
 
@@ -1916,13 +1915,13 @@
     }
 
     <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dst</span>: <a class="ident" href="../../http/uri/struct.Uri.html">Uri</a>) -&gt; <span class="ident"><span class="self">Self</span>::Future</span> {
-        <span class="macro">log::debug!</span>(<span class="string">&quot;starting new connection: {:?}&quot;</span>, <a class="ident" href="../../src/reqwest/connect.rs.html#559">dst</a>);
+        <a class="macro" href="../../log/macro.debug.html">log::debug!</a>(<span class="string">&quot;starting new connection: {:?}&quot;</span>, <span class="ident">dst</span>);
         <span class="kw">let</span> <span class="ident">timeout</span> <span class="op">=</span> <a class="self" href="../../src/reqwest/connect.rs.html#559">self</a>.<span class="ident">timeout</span>;
-        <span class="kw">for</span> <span class="ident">prox</span> <span class="kw">in</span> <a class="self" href="../../src/reqwest/connect.rs.html#559">self</a>.<span class="ident">proxies</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">proxy_scheme</span>) <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#562">prox</a>.<a class="ident" href="../../src/reqwest/proxy.rs.html#330">intercept</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/reqwest/connect.rs.html#559">dst</a>) {
-                <span class="kw">return</span> <span class="ident">Box::pin</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#535-537">with_timeout</a>(
-                    <a class="self" href="../../src/reqwest/connect.rs.html#559">self</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="../../src/reqwest/connect.rs.html#428-432">connect_via_proxy</a>(<a class="ident" href="../../src/reqwest/connect.rs.html#559">dst</a>, <a class="ident" href="../../src/reqwest/connect.rs.html#563">proxy_scheme</a>),
-                    <a class="ident" href="../../src/reqwest/connect.rs.html#561">timeout</a>,
+        <span class="kw">for</span> <span class="ident">prox</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">proxies</span>.<span class="ident">iter</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">proxy_scheme</span>) <span class="op">=</span> <span class="ident">prox</span>.<span class="ident">intercept</span>(<span class="kw-2">&amp;</span><span class="ident">dst</span>) {
+                <span class="kw">return</span> <span class="ident">Box::pin</span>(<span class="ident">with_timeout</span>(
+                    <span class="self">self</span>.<span class="ident">clone</span>().<span class="ident">connect_via_proxy</span>(<span class="ident">dst</span>, <span class="ident">proxy_scheme</span>),
+                    <span class="ident">timeout</span>,
                 ));
             }
         }
@@ -1943,7 +1942,7 @@
 
 <span class="kw">type</span> <span class="ident">BoxConn</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/reqwest/connect.rs.html#578-581">AsyncConn</a><span class="op">&gt;</span>;
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Note: the `is_proxy` member means *is plain text HTTP proxy*.</span>
     <span class="doccomment">/// This tells hyper whether the URI should be written in</span>
     <span class="doccomment">/// * origin-form (`GET /just/a/path HTTP/1.1`), when `is_proxy == false`, or</span>
@@ -2019,61 +2018,61 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a> <span class="op">+</span> <a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a>,
 {
-    <span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../tokio/io/util/async_read_ext/trait.AsyncReadExt.html">AsyncReadExt</a>, <a class="ident" href="../../tokio/io/util/async_write_ext/trait.AsyncWriteExt.html">AsyncWriteExt</a>};
+    <span class="kw">use</span> <span class="ident">tokio::io</span>::{<span class="ident">AsyncReadExt</span>, <span class="ident">AsyncWriteExt</span>};
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">format!</span>(
         <span class="string">&quot;\
          CONNECT {0}:{1} HTTP/1.1\r\n\
          Host: {0}:{1}\r\n\
          &quot;</span>,
-        <a class="ident" href="../../src/reqwest/connect.rs.html#655">host</a>, <a class="ident" href="../../src/reqwest/connect.rs.html#656">port</a>
+        <span class="ident">host</span>, <span class="ident">port</span>
     )
     .<span class="ident">into_bytes</span>();
 
     <span class="comment">// user-agent</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">user_agent</span>) <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#657">user_agent</a> {
-        <a class="ident" href="../../src/reqwest/connect.rs.html#665">buf</a>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;User-Agent: &quot;</span>);
-        <a class="ident" href="../../src/reqwest/connect.rs.html#665">buf</a>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#675">user_agent</a>.<span class="ident">as_bytes</span>());
-        <a class="ident" href="../../src/reqwest/connect.rs.html#665">buf</a>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;\r\n&quot;</span>);
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">user_agent</span>) <span class="op">=</span> <span class="ident">user_agent</span> {
+        <span class="ident">buf</span>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;User-Agent: &quot;</span>);
+        <span class="ident">buf</span>.<span class="ident">extend_from_slice</span>(<span class="ident">user_agent</span>.<span class="ident">as_bytes</span>());
+        <span class="ident">buf</span>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;\r\n&quot;</span>);
     }
 
     <span class="comment">// proxy-authorization</span>
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#658">auth</a> {
-        <span class="macro">log::debug!</span>(<span class="string">&quot;tunnel to {}:{} using basic auth&quot;</span>, <a class="ident" href="../../src/reqwest/connect.rs.html#655">host</a>, <a class="ident" href="../../src/reqwest/connect.rs.html#656">port</a>);
-        <a class="ident" href="../../src/reqwest/connect.rs.html#665">buf</a>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;Proxy-Authorization: &quot;</span>);
-        <a class="ident" href="../../src/reqwest/connect.rs.html#665">buf</a>.<span class="ident">extend_from_slice</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#682">value</a>.<span class="ident">as_bytes</span>());
-        <a class="ident" href="../../src/reqwest/connect.rs.html#665">buf</a>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;\r\n&quot;</span>);
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">auth</span> {
+        <span class="macro">log::debug!</span>(<span class="string">&quot;tunnel to {}:{} using basic auth&quot;</span>, <span class="ident">host</span>, <span class="ident">port</span>);
+        <span class="ident">buf</span>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;Proxy-Authorization: &quot;</span>);
+        <span class="ident">buf</span>.<span class="ident">extend_from_slice</span>(<span class="ident">value</span>.<span class="ident">as_bytes</span>());
+        <span class="ident">buf</span>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;\r\n&quot;</span>);
     }
 
     <span class="comment">// headers end</span>
-    <a class="ident" href="../../src/reqwest/connect.rs.html#665">buf</a>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;\r\n&quot;</span>);
+    <span class="ident">buf</span>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;\r\n&quot;</span>);
 
-    <a class="ident" href="../../src/reqwest/connect.rs.html#654">conn</a>.<a class="ident" href="../../tokio/io/util/async_write_ext/trait.AsyncWriteExt.html">write_all</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/reqwest/connect.rs.html#665">buf</a>).<span class="kw">await</span><span class="question-mark">?</span>;
+    <span class="ident">conn</span>.<span class="ident">write_all</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>).<span class="kw">await</span><span class="question-mark">?</span>;
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">8192</span>];
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pos</span> <span class="op">=</span> <span class="number">0</span>;
 
     <span class="kw">loop</span> {
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#654">conn</a>.<a class="ident" href="../../tokio/io/util/async_read_ext/trait.AsyncReadExt.html">read</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/reqwest/connect.rs.html#694">buf</a>[<a class="ident" href="../../src/reqwest/connect.rs.html#695">pos</a>..]).<span class="kw">await</span><span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">conn</span>.<span class="ident">read</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>[<span class="ident">pos</span>..]).<span class="kw">await</span><span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <a class="ident" href="../../src/reqwest/connect.rs.html#698">n</a> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#723">tunnel_eof</a>());
+        <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">tunnel_eof</span>());
         }
-        <a class="ident" href="../../src/reqwest/connect.rs.html#695">pos</a> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../src/reqwest/connect.rs.html#698">n</a>;
+        <span class="ident">pos</span> <span class="op">+</span><span class="op">=</span> <span class="ident">n</span>;
 
-        <span class="kw">let</span> <span class="ident">recvd</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/reqwest/connect.rs.html#694">buf</a>[..<a class="ident" href="../../src/reqwest/connect.rs.html#695">pos</a>];
-        <span class="kw">if</span> <a class="ident" href="../../src/reqwest/connect.rs.html#705">recvd</a>.<span class="ident">starts_with</span>(<span class="string">b&quot;HTTP/1.1 200&quot;</span>) <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/reqwest/connect.rs.html#705">recvd</a>.<span class="ident">starts_with</span>(<span class="string">b&quot;HTTP/1.0 200&quot;</span>) {
-            <span class="kw">if</span> <a class="ident" href="../../src/reqwest/connect.rs.html#705">recvd</a>.<span class="ident">ends_with</span>(<span class="string">b&quot;\r\n\r\n&quot;</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#654">conn</a>);
+        <span class="kw">let</span> <span class="ident">recvd</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">buf</span>[..<span class="ident">pos</span>];
+        <span class="kw">if</span> <span class="ident">recvd</span>.<span class="ident">starts_with</span>(<span class="string">b&quot;HTTP/1.1 200&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">recvd</span>.<span class="ident">starts_with</span>(<span class="string">b&quot;HTTP/1.0 200&quot;</span>) {
+            <span class="kw">if</span> <span class="ident">recvd</span>.<span class="ident">ends_with</span>(<span class="string">b&quot;\r\n\r\n&quot;</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">conn</span>);
             }
-            <span class="kw">if</span> <a class="ident" href="../../src/reqwest/connect.rs.html#695">pos</a> <span class="op">==</span> <a class="ident" href="../../src/reqwest/connect.rs.html#694">buf</a>.<span class="ident">len</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;proxy headers too long for tunnel&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="kw">if</span> <span class="ident">pos</span> <span class="op">==</span> <span class="ident">buf</span>.<span class="ident">len</span>() {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;proxy headers too long for tunnel&quot;</span>.<span class="ident">into</span>());
             }
         <span class="comment">// else read more</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/reqwest/connect.rs.html#705">recvd</a>.<span class="ident">starts_with</span>(<span class="string">b&quot;HTTP/1.1 407&quot;</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;proxy authentication required&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">recvd</span>.<span class="ident">starts_with</span>(<span class="string">b&quot;HTTP/1.1 407&quot;</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;proxy authentication required&quot;</span>.<span class="ident">into</span>());
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;unsuccessful tunnel&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;unsuccessful tunnel&quot;</span>.<span class="ident">into</span>());
         }
     }
 }
@@ -2086,7 +2085,7 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;default-tls&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">native_tls_conn</span> {
     <span class="kw">use</span> <span class="ident">hyper::client::connect</span>::{<a class="ident" href="../../hyper/client/connect/struct.Connected.html">Connected</a>, <a class="ident" href="../../hyper/client/connect/trait.Connection.html">Connection</a>};
-    <span class="kw">use</span> <span class="ident">pin_project_lite::pin_project</span>;
+    <span class="kw">use</span> <a class="ident" href="../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
     <span class="kw">use</span> <span class="ident">std</span>::{
         <span class="ident">io</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/io/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/struct.IoSlice.html">IoSlice</a>},
         <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">pin::Pin</a>,
@@ -2095,7 +2094,7 @@
     <span class="kw">use</span> <span class="ident">tokio::io</span>::{<a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">AsyncRead</a>, <a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">AsyncWrite</a>, <a class="ident" href="../../tokio/io/read_buf/struct.ReadBuf.html">ReadBuf</a>};
     <span class="kw">use</span> <a class="ident" href="../../tokio_native_tls/struct.TlsStream.html">tokio_native_tls::TlsStream</a>;
 
-    <span class="macro">pin_project!</span> {
+    <a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
         <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">NativeTlsConn</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
             <span class="attribute">#[<span class="ident">pin</span>]</span> <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">inner</span>: <span class="ident">TlsStream</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
         }
@@ -2341,7 +2340,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">WrappedResolverFuture</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">pin</span>]</span>
         <span class="ident">fut</span>: <span class="ident">Fut</span>,
@@ -2431,7 +2430,7 @@
 
     <span class="kw">impl</span> <a class="ident" href="../../src/reqwest/connect.rs.html#1071">Wrapper</a> {
         <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">wrap</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../src/reqwest/connect.rs.html#578-581"><span class="kw">super</span>::AsyncConn</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">conn</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../src/reqwest/connect.rs.html#585"><span class="kw">super</span>::BoxConn</a> {
-            <span class="kw">if</span> <a class="self" href="../../src/reqwest/connect.rs.html#1074">self</a>.<span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="macro">log::log_enabled!</span>(<span class="ident">log::Level::Trace</span>) {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="macro">log::log_enabled!</span>(<span class="ident">log::Level::Trace</span>) {
                 <span class="ident">Box::new</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#1087-1090">Verbose</a> {
                     <span class="comment">// truncate is fine</span>
                     <span class="ident">id</span>: <a class="ident" href="../../src/reqwest/util.rs.html#5"><span class="kw">crate</span>::util::fast_random</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
@@ -2462,7 +2461,7 @@
         ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/reqwest/connect.rs.html#1100">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../tokio/io/async_read/trait.AsyncRead.html">poll_read</a>(<a class="ident" href="../../src/reqwest/connect.rs.html#1101">cx</a>, <a class="ident" href="../../src/reqwest/connect.rs.html#1102">buf</a>) {
                 <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(())) =&gt; {
-                    <span class="macro">log::trace!</span>(<span class="string">&quot;{:08x} read: {:?}&quot;</span>, <a class="self" href="../../src/reqwest/connect.rs.html#1100">self</a>.<span class="ident">id</span>, <a class="ident" href="../../src/reqwest/connect.rs.html#1158">Escape</a>(<a class="ident" href="../../src/reqwest/connect.rs.html#1102">buf</a>.<span class="ident">filled</span>()));
+                    <a class="macro" href="../../log/macro.trace.html">log::trace!</a>(<span class="string">&quot;{:08x} read: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">id</span>, <span class="ident">Escape</span>(<span class="ident">buf</span>.<span class="ident">filled</span>()));
                     <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
                 }
                 <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#1109">e</a>)),
@@ -2479,7 +2478,7 @@
         ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span><span class="op">&gt;</span> {
             <span class="kw">match</span> <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/reqwest/connect.rs.html#1117">self</a>.<span class="ident">inner</span>).<a class="ident" href="../../tokio/io/async_write/trait.AsyncWrite.html">poll_write</a>(<a class="ident" href="../../src/reqwest/connect.rs.html#1118">cx</a>, <a class="ident" href="../../src/reqwest/connect.rs.html#1119">buf</a>) {
                 <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">n</span>)) =&gt; {
-                    <span class="macro">log::trace!</span>(<span class="string">&quot;{:08x} write: {:?}&quot;</span>, <a class="self" href="../../src/reqwest/connect.rs.html#1117">self</a>.<span class="ident">id</span>, <a class="ident" href="../../src/reqwest/connect.rs.html#1158">Escape</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/reqwest/connect.rs.html#1119">buf</a>[..<a class="ident" href="../../src/reqwest/connect.rs.html#1122">n</a>]));
+                    <a class="macro" href="../../log/macro.trace.html">log::trace!</a>(<span class="string">&quot;{:08x} write: {:?}&quot;</span>, <span class="self">self</span>.<span class="ident">id</span>, <span class="ident">Escape</span>(<span class="kw-2">&amp;</span><span class="ident">buf</span>[..<span class="ident">n</span>]));
                     <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#1122">n</a>))
                 }
                 <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#1126">e</a>)),
@@ -2518,27 +2517,27 @@
 
     <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">Escape</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-            <span class="macro">write!</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#1161">f</a>, <span class="string">&quot;b\&quot;&quot;</span>)<span class="question-mark">?</span>;
-            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">c</span> <span class="kw">in</span> <a class="self" href="../../src/reqwest/connect.rs.html#1161">self</a>.<span class="number">0</span> {
+            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;b\&quot;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">c</span> <span class="kw">in</span> <span class="self">self</span>.<span class="number">0</span> {
                 <span class="comment">// https://doc.rust-lang.org/reference.html#byte-escapes</span>
-                <span class="kw">if</span> <a class="ident" href="../../src/reqwest/connect.rs.html#1163">c</a> <span class="op">==</span> <span class="string">b&#39;\n&#39;</span> {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#1161">f</a>, <span class="string">&quot;\\n&quot;</span>)<span class="question-mark">?</span>;
-                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/reqwest/connect.rs.html#1163">c</a> <span class="op">==</span> <span class="string">b&#39;\r&#39;</span> {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#1161">f</a>, <span class="string">&quot;\\r&quot;</span>)<span class="question-mark">?</span>;
-                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/reqwest/connect.rs.html#1163">c</a> <span class="op">==</span> <span class="string">b&#39;\t&#39;</span> {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#1161">f</a>, <span class="string">&quot;\\t&quot;</span>)<span class="question-mark">?</span>;
-                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/reqwest/connect.rs.html#1163">c</a> <span class="op">==</span> <span class="string">b&#39;\\&#39;</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/reqwest/connect.rs.html#1163">c</a> <span class="op">==</span> <span class="string">b&#39;&quot;&#39;</span> {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#1161">f</a>, <span class="string">&quot;\\{}&quot;</span>, <a class="ident" href="../../src/reqwest/connect.rs.html#1163">c</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)<span class="question-mark">?</span>;
-                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/reqwest/connect.rs.html#1163">c</a> <span class="op">==</span> <span class="string">b&#39;\0&#39;</span> {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#1161">f</a>, <span class="string">&quot;\\0&quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;\n&#39;</span> {
+                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\\n&quot;</span>)<span class="question-mark">?</span>;
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;\r&#39;</span> {
+                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\\r&quot;</span>)<span class="question-mark">?</span>;
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;\t&#39;</span> {
+                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\\t&quot;</span>)<span class="question-mark">?</span>;
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;\\&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;&quot;&#39;</span> {
+                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\\{}&quot;</span>, <span class="ident">c</span> <span class="kw">as</span> <span class="ident">char</span>)<span class="question-mark">?</span>;
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">b&#39;\0&#39;</span> {
+                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\\0&quot;</span>)<span class="question-mark">?</span>;
                 <span class="comment">// ASCII printable</span>
-                } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../src/reqwest/connect.rs.html#1163">c</a> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0x20</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/reqwest/connect.rs.html#1163">c</a> <span class="op">&lt;</span> <span class="number">0x7f</span> {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#1161">f</a>, <span class="string">&quot;{}&quot;</span>, <a class="ident" href="../../src/reqwest/connect.rs.html#1163">c</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)<span class="question-mark">?</span>;
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">c</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0x20</span> <span class="op">&amp;&amp;</span> <span class="ident">c</span> <span class="op">&lt;</span> <span class="number">0x7f</span> {
+                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">c</span> <span class="kw">as</span> <span class="ident">char</span>)<span class="question-mark">?</span>;
                 } <span class="kw">else</span> {
-                    <span class="macro">write!</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#1161">f</a>, <span class="string">&quot;\\x{:02x}&quot;</span>, <a class="ident" href="../../src/reqwest/connect.rs.html#1163">c</a>)<span class="question-mark">?</span>;
+                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\\x{:02x}&quot;</span>, <span class="ident">c</span>)<span class="question-mark">?</span>;
                 }
             }
-            <span class="macro">write!</span>(<a class="ident" href="../../src/reqwest/connect.rs.html#1161">f</a>, <span class="string">&quot;\&quot;&quot;</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\&quot;&quot;</span>)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(())
         }
     }
@@ -2710,5 +2709,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="reqwest" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

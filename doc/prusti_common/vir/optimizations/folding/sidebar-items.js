@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["FoldingOptimizer",""]]});
+window.SIDEBAR_ITEMS = {"trait":[["FoldingOptimizer",""]]};

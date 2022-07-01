@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-lite-1.12.0/src/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_lite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-lite-1.12.0/src/stream.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>stream.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../futures_lite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../futures_lite/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_lite/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../futures_lite/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -3056,9 +3055,9 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">core::pin::Pin</a>;
 <span class="kw">use</span> <span class="ident">core::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
 
-<span class="kw">use</span> <span class="ident">pin_project_lite::pin_project</span>;
+<span class="kw">use</span> <a class="ident" href="../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ready</span>;
+<span class="kw">use</span> <a class="ident" href="../../src/futures_lite/lib.rs.html#90-97"><span class="kw">crate</span>::ready</a>;
 
 <span class="doccomment">/// Converts a stream into a blocking iterator.</span>
 <span class="doccomment">///</span>
@@ -3191,7 +3190,7 @@
     <a class="ident" href="../../src/futures_lite/stream.rs.html#169-176">Once</a> { <span class="ident">value</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#165">t</a>) }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`once()`] function.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -3208,7 +3207,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        <span class="kw">if</span> <a class="self" href="../../src/futures_lite/stream.rs.html#185">self</a>.<span class="ident">value</span>.<span class="ident">is_some</span>() {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">value</span>.<span class="ident">is_some</span>() {
             (<span class="number">1</span>, <span class="prelude-val">Some</span>(<span class="number">1</span>))
         } <span class="kw">else</span> {
             (<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="number">0</span>))
@@ -3423,7 +3422,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`unfold()`] function.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -3462,12 +3461,12 @@
             <a class="ident" href="../../src/futures_lite/stream.rs.html#434">this</a>.<span class="ident">fut</span>.<span class="ident">set</span>(<span class="prelude-val">Some</span>((<a class="ident" href="../../src/futures_lite/stream.rs.html#434">this</a>.<span class="ident">f</span>)(<a class="ident" href="../../src/futures_lite/stream.rs.html#436">state</a>)));
         }
 
-        <span class="kw">let</span> <span class="ident">step</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#434">this</a>
+        <span class="kw">let</span> <span class="ident">step</span> <span class="op">=</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>
             .<span class="ident">fut</span>
             .<span class="ident">as_mut</span>()
             .<span class="ident">as_pin_mut</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;`Unfold` must not be polled after it returned `Poll::Ready(None)`&quot;</span>)
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#433">cx</a>));
+            .<span class="ident">poll</span>(<span class="ident">cx</span>));
         <a class="ident" href="../../src/futures_lite/stream.rs.html#434">this</a>.<span class="ident">fut</span>.<span class="ident">set</span>(<span class="prelude-val">None</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">item</span>, <span class="ident">next_state</span>)) <span class="op">=</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#440">step</a> {
@@ -3512,7 +3511,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`try_unfold()`] function.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -3557,7 +3556,7 @@
                 <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>)
             }
             <span class="prelude-val">Some</span>(<span class="ident">future</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">step</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#534">future</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#522">cx</a>));
+                <span class="kw">let</span> <span class="ident">step</span> <span class="op">=</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">future</span>.<span class="ident">poll</span>(<span class="ident">cx</span>));
                 <a class="ident" href="../../src/futures_lite/stream.rs.html#523">this</a>.<span class="ident">fut</span>.<span class="ident">set</span>(<span class="prelude-val">None</span>);
 
                 <span class="kw">match</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#535">step</a> {
@@ -3951,7 +3950,7 @@
     <span class="kw">where</span>
         <span class="self">Self</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a>,
     {
-        <span class="macro">assert!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#925">step</a> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;`step` must be greater than zero&quot;</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">step</span> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;`step` must be greater than zero&quot;</span>);
         <a class="ident" href="../../src/futures_lite/stream.rs.html#2478-2488">StepBy</a> {
             <span class="ident">stream</span>: <a class="self" href="../../src/futures_lite/stream.rs.html#925">self</a>,
             <a class="ident" href="../../src/futures_lite/stream.rs.html#925">step</a>,
@@ -4784,12 +4783,12 @@
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">E</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="self" href="../../src/futures_lite/stream.rs.html#1761">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../src/futures_lite/stream.rs.html#554-556">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1761">cx</a>));
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>));
         <span class="ident">Poll::Ready</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1762">res</a>.<span class="ident">transpose</span>())
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Future for the [`StreamExt::count()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
@@ -4805,7 +4804,7 @@
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="self" href="../../src/futures_lite/stream.rs.html#1781">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../src/futures_lite/stream.rs.html#1767-1776">project</a>().<span class="ident">stream</span>.<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1781">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">project</span>().<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<a class="self" href="../../src/futures_lite/stream.rs.html#1781">self</a>.<span class="ident">count</span>),
                 <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw-2">*</span><a class="self" href="../../src/futures_lite/stream.rs.html#1781">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../src/futures_lite/stream.rs.html#1767-1776">project</a>().<span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>,
             }
@@ -4813,7 +4812,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Future for the [`StreamExt::collect()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
@@ -4834,7 +4833,7 @@
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#1809">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../src/futures_lite/stream.rs.html#1791-1800">project</a>();
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1810">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1809">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">e</span>) =&gt; <a class="ident" href="../../src/futures_lite/stream.rs.html#1810">this</a>.<span class="ident">collection</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1813">e</a>)),
                 <span class="prelude-val">None</span> =&gt; {
                     <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="ident">mem::replace</span>(<a class="self" href="../../src/futures_lite/stream.rs.html#1809">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#1791-1800">project</a>().<span class="ident">collection</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>()))
@@ -4844,7 +4843,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Future for the [`StreamExt::try_collect()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
@@ -4865,7 +4864,7 @@
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#1840">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#1822-1831">project</a>();
         <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1841">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1840">cx</a>)<span class="question-mark">?</span>) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)<span class="question-mark">?</span>) {
                 <span class="prelude-val">Some</span>(<span class="ident">x</span>) =&gt; <a class="ident" href="../../src/futures_lite/stream.rs.html#1841">this</a>.<span class="ident">items</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1844">x</a>)),
                 <span class="prelude-val">None</span> =&gt; <span class="kw">break</span> <span class="ident">mem::replace</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1841">this</a>.<span class="ident">items</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>()),
             }
@@ -4873,7 +4872,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Future for the [`StreamExt::partition()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
@@ -4896,10 +4895,10 @@
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#1871">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#1851-1861">project</a>();
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1872">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1871">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#1872">this</a>.<span class="ident">res</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>();
-                    <span class="kw">if</span> (<a class="ident" href="../../src/futures_lite/stream.rs.html#1872">this</a>.<span class="ident">predicate</span>)(<span class="kw-2">&amp;</span><a class="ident" href="../../src/futures_lite/stream.rs.html#1875">v</a>) {
+                    <span class="kw">if</span> (<span class="ident">this</span>.<span class="ident">predicate</span>)(<span class="kw-2">&amp;</span><span class="ident">v</span>) {
                         <a class="ident" href="../../src/futures_lite/stream.rs.html#1876">res</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1875">v</a>))
                     } <span class="kw">else</span> {
                         <a class="ident" href="../../src/futures_lite/stream.rs.html#1876">res</a>.<span class="number">1</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1875">v</a>))
@@ -4911,7 +4910,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Future for the [`StreamExt::fold()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
@@ -4933,7 +4932,7 @@
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#1908">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#1889-1899">project</a>();
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1909">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1908">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#1909">this</a>.<span class="ident">acc</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
                     <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> (<a class="ident" href="../../src/futures_lite/stream.rs.html#1909">this</a>.<span class="ident">f</span>)(<a class="ident" href="../../src/futures_lite/stream.rs.html#1913">old</a>, <a class="ident" href="../../src/futures_lite/stream.rs.html#1912">v</a>);
@@ -4965,7 +4964,7 @@
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="self" href="../../src/futures_lite/stream.rs.html#1941">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../src/futures_lite/stream.rs.html#554-556">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1941">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#1944">e</a>)),
                 <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">t</span>)) =&gt; {
                     <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#1941">self</a>.<span class="ident">acc</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
@@ -4982,7 +4981,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::scan()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5011,7 +5010,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::fuse()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5028,11 +5027,11 @@
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2003">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#1989-1998">project</a>();
 
-        <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2004">this</a>.<span class="ident">done</span> {
+        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">done</span> {
             <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>)
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2004">this</a>.<span class="ident">stream</span>.<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2003">cx</a>));
-            <span class="kw">if</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2009">next</a>.<span class="ident">is_none</span>() {
+            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>));
+            <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">is_none</span>() {
                 <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2004">this</a>.<span class="ident">done</span> <span class="op">=</span> <span class="bool-val">true</span>;
             }
             <span class="ident">Poll::Ready</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2009">next</a>)
@@ -5040,7 +5039,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::map()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5060,7 +5059,7 @@
 
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2036">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2018-2027">project</a>();
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2037">this</a>.<span class="ident">stream</span>.<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2036">cx</a>));
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>));
         <span class="ident">Poll::Ready</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2038">next</a>.<span class="ident">map</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2037">this</a>.<span class="ident">f</span>))
     }
 
@@ -5069,7 +5068,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::flat_map()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5093,13 +5092,13 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2067">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2047-2057">project</a>();
         <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2068">this</a>.<span class="ident">inner_stream</span>.<span class="ident">as_mut</span>().<span class="ident">as_pin_mut</span>() {
-                <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2070">inner</a>.<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2067">cx</a>)) {
+                <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">inner</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                     <span class="prelude-val">Some</span>(<span class="ident">item</span>) =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2072">item</a>)),
                     <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../src/futures_lite/stream.rs.html#2068">this</a>.<span class="ident">inner_stream</span>.<span class="ident">set</span>(<span class="prelude-val">None</span>),
                 }
             }
 
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2068">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2067">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">stream</span>) =&gt; <a class="ident" href="../../src/futures_lite/stream.rs.html#2068">this</a>.<span class="ident">inner_stream</span>.<span class="ident">set</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2078">stream</a>)),
                 <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
             }
@@ -5107,7 +5106,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::flat_map()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5130,13 +5129,13 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2104">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2085-2095">project</a>();
         <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">inner</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2105">this</a>.<span class="ident">inner_stream</span>.<span class="ident">as_mut</span>().<span class="ident">as_pin_mut</span>() {
-                <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2107">inner</a>.<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2104">cx</a>)) {
+                <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">inner</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                     <span class="prelude-val">Some</span>(<span class="ident">item</span>) =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2109">item</a>)),
                     <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../src/futures_lite/stream.rs.html#2105">this</a>.<span class="ident">inner_stream</span>.<span class="ident">set</span>(<span class="prelude-val">None</span>),
                 }
             }
 
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2105">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2104">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">inner</span>) =&gt; <a class="ident" href="../../src/futures_lite/stream.rs.html#2105">this</a>.<span class="ident">inner_stream</span>.<span class="ident">set</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2115">inner</a>)),
                 <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
             }
@@ -5144,7 +5143,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::then()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5170,10 +5169,10 @@
 
         <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">fut</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2144">this</a>.<span class="ident">future</span>.<span class="ident">as_mut</span>().<span class="ident">as_pin_mut</span>() {
-                <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2147">fut</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2143">cx</a>));
+                <span class="kw">let</span> <span class="ident">item</span> <span class="op">=</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">fut</span>.<span class="ident">poll</span>(<span class="ident">cx</span>));
                 <a class="ident" href="../../src/futures_lite/stream.rs.html#2144">this</a>.<span class="ident">future</span>.<span class="ident">set</span>(<span class="prelude-val">None</span>);
                 <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2148">item</a>));
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">item</span>) <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2144">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2143">cx</a>)) {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">item</span>) <span class="op">=</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <a class="ident" href="../../src/futures_lite/stream.rs.html#2144">this</a>.<span class="ident">future</span>.<span class="ident">set</span>(<span class="prelude-val">Some</span>((<a class="ident" href="../../src/futures_lite/stream.rs.html#2144">this</a>.<span class="ident">f</span>)(<a class="ident" href="../../src/futures_lite/stream.rs.html#2151">item</a>)));
             } <span class="kw">else</span> {
                 <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>);
@@ -5182,7 +5181,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>) {
-        <span class="kw">let</span> <span class="ident">future_len</span> <span class="op">=</span> <span class="kw">if</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2159">self</a>.<span class="ident">future</span>.<span class="ident">is_some</span>() { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> };
+        <span class="kw">let</span> <span class="ident">future_len</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">future</span>.<span class="ident">is_some</span>() { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> };
         <span class="kw">let</span> (<span class="ident">lower</span>, <span class="ident">upper</span>) <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2159">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../futures_core/stream/trait.Stream.html">size_hint</a>();
         <span class="kw">let</span> <span class="ident">lower</span> <span class="op">=</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2161">lower</a>.<span class="ident">saturating_add</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2160">future_len</a>);
         <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2161">upper</a>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">u</span><span class="op">|</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2163">u</a>.<span class="ident">checked_add</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2160">future_len</a>));
@@ -5190,7 +5189,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::filter()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5211,7 +5210,7 @@
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2186">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2168-2177">project</a>();
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2187">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2186">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
                 <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="kw">if</span> (<a class="ident" href="../../src/futures_lite/stream.rs.html#2187">this</a>.<span class="ident">predicate</span>)(<span class="kw-2">&amp;</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2191">v</a>) =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2191">v</a>)),
                 <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
@@ -5243,7 +5242,7 @@
     <a class="ident" href="../../src/futures_lite/stream.rs.html#2221-2231">Or</a> { <a class="ident" href="../../src/futures_lite/stream.rs.html#2213">stream1</a>, <a class="ident" href="../../src/futures_lite/stream.rs.html#2213">stream2</a> }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`or()`] function and the [`StreamExt::or()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5296,7 +5295,7 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`race()`] function and the [`StreamExt::race()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5338,7 +5337,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::filter_map()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5359,7 +5358,7 @@
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2334">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2316-2325">project</a>();
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2335">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2334">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
                 <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> (<a class="ident" href="../../src/futures_lite/stream.rs.html#2335">this</a>.<span class="ident">f</span>)(<a class="ident" href="../../src/futures_lite/stream.rs.html#2339">v</a>) {
@@ -5371,7 +5370,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::take()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5388,10 +5387,10 @@
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">S::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2363">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2349-2358">project</a>();
 
-        <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2364">this</a>.<span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>)
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2364">this</a>.<span class="ident">stream</span>.<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2363">cx</a>));
+            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>));
             <span class="kw">match</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2369">next</a> {
                 <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2364">this</a>.<span class="ident">n</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>,
                 <span class="prelude-val">None</span> =&gt; <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2364">this</a>.<span class="ident">n</span> <span class="op">=</span> <span class="number">0</span>,
@@ -5401,7 +5400,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::take_while()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5422,9 +5421,9 @@
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2397">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2379-2388">project</a>();
 
-        <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2398">this</a>.<span class="ident">stream</span>.<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2397">cx</a>)) {
+        <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
             <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; {
-                <span class="kw">if</span> (<a class="ident" href="../../src/futures_lite/stream.rs.html#2398">this</a>.<span class="ident">predicate</span>)(<span class="kw-2">&amp;</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2401">v</a>) {
+                <span class="kw">if</span> (<span class="ident">this</span>.<span class="ident">predicate</span>)(<span class="kw-2">&amp;</span><span class="ident">v</span>) {
                     <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2401">v</a>))
                 } <span class="kw">else</span> {
                     <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>)
@@ -5435,7 +5434,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::skip()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5452,7 +5451,7 @@
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2427">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2413-2422">project</a>();
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2428">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2427">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2428">this</a>.<span class="ident">n</span> {
                     <span class="number">0</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2431">v</a>)),
                     <span class="kw">_</span> =&gt; <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2428">this</a>.<span class="ident">n</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>,
@@ -5463,7 +5462,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::skip_while()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5484,10 +5483,10 @@
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2459">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2441-2450">project</a>();
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2460">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2459">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2460">this</a>.<span class="ident">predicate</span> {
                     <span class="prelude-val">Some</span>(<span class="ident">p</span>) =&gt; {
-                        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2464">p</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2463">v</a>) {
+                        <span class="kw">if</span> <span class="op">!</span><span class="ident">p</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>) {
                             <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2460">this</a>.<span class="ident">predicate</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                             <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2463">v</a>));
                         }
@@ -5500,7 +5499,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::step_by()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5518,9 +5517,9 @@
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2493">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2478-2488">project</a>();
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2494">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2493">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; {
-                    <span class="kw">if</span> <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2494">this</a>.<span class="ident">i</span> <span class="op">==</span> <span class="number">0</span> {
+                    <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">this</span>.<span class="ident">i</span> <span class="op">==</span> <span class="number">0</span> {
                         <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2494">this</a>.<span class="ident">i</span> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2494">this</a>.<span class="ident">step</span> <span class="op">-</span> <span class="number">1</span>;
                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2497">v</a>));
                     } <span class="kw">else</span> {
@@ -5533,7 +5532,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::chain()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5551,21 +5550,21 @@
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2526">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2511-2521">project</a>();
 
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2527">this</a>.<span class="ident">first</span>.<span class="ident">done</span> {
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2527">this</a>.<span class="ident">first</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2526">cx</a>));
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">this</span>.<span class="ident">first</span>.<span class="ident">done</span> {
+            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">first</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>));
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2530">next</a> {
                 <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2531">next</a>));
             }
         }
 
-        <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2527">this</a>.<span class="ident">second</span>.<span class="ident">done</span> {
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2527">this</a>.<span class="ident">second</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2526">cx</a>));
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">this</span>.<span class="ident">second</span>.<span class="ident">done</span> {
+            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">second</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>));
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2537">next</a> {
                 <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2538">next</a>));
             }
         }
 
-        <span class="kw">if</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2527">this</a>.<span class="ident">first</span>.<span class="ident">done</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2527">this</a>.<span class="ident">second</span>.<span class="ident">done</span> {
+        <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">first</span>.<span class="ident">done</span> <span class="op">&amp;&amp;</span> <span class="ident">this</span>.<span class="ident">second</span>.<span class="ident">done</span> {
             <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>)
         } <span class="kw">else</span> {
             <span class="ident">Poll::Pending</span>
@@ -5573,7 +5572,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::cloned()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5592,12 +5591,12 @@
 
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2568">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2551-2559">project</a>();
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2569">this</a>.<span class="ident">stream</span>.<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2568">cx</a>));
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>));
         <span class="ident">Poll::Ready</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2570">next</a>.<span class="ident">cloned</span>())
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::copied()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5616,12 +5615,12 @@
 
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2592">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2575-2583">project</a>();
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2593">this</a>.<span class="ident">stream</span>.<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2592">cx</a>));
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>));
         <span class="ident">Poll::Ready</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2594">next</a>.<span class="ident">copied</span>())
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::cycle()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5639,7 +5638,7 @@
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">S::Item</span>;
 
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="macro">ready!</span>(<a class="self" href="../../src/futures_lite/stream.rs.html#2616">self</a>.<span class="ident">as_mut</span>().<a class="ident" href="../../src/futures_lite/stream.rs.html#2599-2608">project</a>().<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2616">cx</a>)) {
+        <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="self">self</span>.<span class="ident">as_mut</span>().<span class="ident">project</span>().<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
             <span class="prelude-val">Some</span>(<span class="ident">item</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2618">item</a>)),
             <span class="prelude-val">None</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2616">self</a>.<span class="ident">as_mut</span>().<span class="ident">orig</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
@@ -5650,7 +5649,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::cycle()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5670,7 +5669,7 @@
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2645">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2628-2637">project</a>();
 
-        <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2646">this</a>.<span class="ident">stream</span>.<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2645">cx</a>)) {
+        <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
             <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> (<span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2646">this</a>.<span class="ident">i</span>, <a class="ident" href="../../src/futures_lite/stream.rs.html#2649">v</a>);
                 <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2646">this</a>.<span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -5681,7 +5680,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::inspect()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5701,7 +5700,7 @@
 
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2677">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2659-2668">project</a>();
-        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2678">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2677">cx</a>));
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>));
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2679">next</a> {
             (<a class="ident" href="../../src/futures_lite/stream.rs.html#2678">this</a>.<span class="ident">f</span>)(<a class="ident" href="../../src/futures_lite/stream.rs.html#2680">x</a>);
         }
@@ -5727,7 +5726,7 @@
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="self" href="../../src/futures_lite/stream.rs.html#2703">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../src/futures_lite/stream.rs.html#554-556">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2703">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; <span class="kw">match</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2703">self</a>.<span class="ident">n</span> {
                     <span class="number">0</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2706">v</a>)),
                     <span class="kw">_</span> =&gt; <a class="self" href="../../src/futures_lite/stream.rs.html#2703">self</a>.<span class="ident">n</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>,
@@ -5738,7 +5737,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Future for the [`StreamExt::last()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
@@ -5755,7 +5754,7 @@
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2730">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2716-2725">project</a>();
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2731">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2730">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">new</span>) =&gt; <span class="kw-2">*</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2731">this</a>.<span class="ident">last</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2734">new</a>),
                 <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2731">this</a>.<span class="ident">last</span>.<span class="ident">take</span>()),
             }
@@ -5782,7 +5781,7 @@
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="self" href="../../src/futures_lite/stream.rs.html#2758">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../src/futures_lite/stream.rs.html#554-556">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2758">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="kw">if</span> (<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2758">self</a>.<span class="ident">predicate</span>)(<span class="kw-2">&amp;</span><a class="ident" href="../../src/futures_lite/stream.rs.html#2761">v</a>) =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2761">v</a>)),
                 <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
                 <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
@@ -5810,7 +5809,7 @@
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="self" href="../../src/futures_lite/stream.rs.html#2786">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../src/futures_lite/stream.rs.html#554-556">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2786">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">v</span>) <span class="op">=</span> (<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2786">self</a>.<span class="ident">f</span>)(<a class="ident" href="../../src/futures_lite/stream.rs.html#2789">v</a>) {
                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2790">v</a>));
@@ -5842,9 +5841,9 @@
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="self" href="../../src/futures_lite/stream.rs.html#2818">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../src/futures_lite/stream.rs.html#554-556">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2818">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; {
-                    <span class="kw">if</span> (<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2818">self</a>.<span class="ident">predicate</span>)(<a class="ident" href="../../src/futures_lite/stream.rs.html#2821">v</a>) {
+                    <span class="kw">if</span> (<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">predicate</span>)(<span class="ident">v</span>) {
                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<a class="self" href="../../src/futures_lite/stream.rs.html#2818">self</a>.<span class="ident">index</span>));
                     } <span class="kw">else</span> {
                         <a class="self" href="../../src/futures_lite/stream.rs.html#2818">self</a>.<span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -5875,9 +5874,9 @@
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="self" href="../../src/futures_lite/stream.rs.html#2851">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../src/futures_lite/stream.rs.html#554-556">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2851">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; {
-                    <span class="kw">if</span> <span class="op">!</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2851">self</a>.<span class="ident">predicate</span>)(<a class="ident" href="../../src/futures_lite/stream.rs.html#2854">v</a>) {
+                    <span class="kw">if</span> <span class="op">!</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">predicate</span>)(<span class="ident">v</span>) {
                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="bool-val">false</span>);
                     }
                 }
@@ -5906,9 +5905,9 @@
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="self" href="../../src/futures_lite/stream.rs.html#2882">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../src/futures_lite/stream.rs.html#554-556">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2882">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; {
-                    <span class="kw">if</span> (<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2882">self</a>.<span class="ident">predicate</span>)(<a class="ident" href="../../src/futures_lite/stream.rs.html#2885">v</a>) {
+                    <span class="kw">if</span> (<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">predicate</span>)(<span class="ident">v</span>) {
                         <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="bool-val">true</span>);
                     }
                 }
@@ -5918,7 +5917,7 @@
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Future for the [`StreamExt::for_each()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
@@ -5939,7 +5938,7 @@
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2914">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2896-2905">project</a>();
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2915">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2914">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; (<a class="ident" href="../../src/futures_lite/stream.rs.html#2915">this</a>.<span class="ident">f</span>)(<a class="ident" href="../../src/futures_lite/stream.rs.html#2918">v</a>),
                 <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(()),
             }
@@ -5966,15 +5965,15 @@
 
     <span class="kw">fn</span> <span class="ident">poll</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="self" href="../../src/futures_lite/stream.rs.html#2942">self</a>.<span class="ident">stream</span>.<a class="ident" href="../../src/futures_lite/stream.rs.html#554-556">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2942">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="self">self</span>.<span class="ident">stream</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(())),
-                <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; (<span class="kw-2">&amp;mut</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2942">self</a>.<span class="ident">f</span>)(<a class="ident" href="../../src/futures_lite/stream.rs.html#2946">v</a>)<span class="question-mark">?</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">v</span>) =&gt; (<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">f</span>)(<span class="ident">v</span>)<span class="question-mark">?</span>,
             }
         }
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Stream for the [`StreamExt::zip()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;streams do nothing unless polled&quot;</span>]</span>
@@ -5993,7 +5992,7 @@
     <span class="kw">fn</span> <span class="ident">poll_next</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#2968">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2952-2963">project</a>();
 
-        <span class="kw">if</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2969">this</a>.<span class="ident">item_slot</span>.<span class="ident">is_none</span>() {
+        <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">item_slot</span>.<span class="ident">is_none</span>() {
             <span class="kw">match</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2969">this</a>.<span class="ident">first</span>.<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2968">cx</a>) {
                 <span class="ident">Poll::Pending</span> =&gt; <span class="kw">return</span> <span class="ident">Poll::Pending</span>,
                 <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>) =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>),
@@ -6001,13 +6000,13 @@
             }
         }
 
-        <span class="kw">let</span> <span class="ident">second_item</span> <span class="op">=</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2969">this</a>.<span class="ident">second</span>.<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2968">cx</a>));
+        <span class="kw">let</span> <span class="ident">second_item</span> <span class="op">=</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">second</span>.<span class="ident">poll_next</span>(<span class="ident">cx</span>));
         <span class="kw">let</span> <span class="ident">first_item</span> <span class="op">=</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#2969">this</a>.<span class="ident">item_slot</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
         <span class="ident">Poll::Ready</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#2979">second_item</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">second_item</span><span class="op">|</span> (<a class="ident" href="../../src/futures_lite/stream.rs.html#2980">first_item</a>, <a class="ident" href="../../src/futures_lite/stream.rs.html#2981">second_item</a>)))
     }
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="doccomment">/// Future for the [`StreamExt::unzip()`] method.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;futures do nothing unless you `.await` or poll them&quot;</span>]</span>
@@ -6030,7 +6029,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <a class="self" href="../../src/futures_lite/stream.rs.html#3004">self</a>.<a class="ident" href="../../src/futures_lite/stream.rs.html#2985-2994">project</a>();
 
         <span class="kw">loop</span> {
-            <span class="kw">match</span> <span class="macro">ready!</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#3005">this</a>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<a class="ident" href="../../futures_core/stream/trait.Stream.html">poll_next</a>(<a class="ident" href="../../src/futures_lite/stream.rs.html#3004">cx</a>)) {
+            <span class="kw">match</span> <a class="macro" href="../../src/futures_lite/lib.rs.html#90-97">ready!</a>(<span class="ident">this</span>.<span class="ident">stream</span>.<span class="ident">as_mut</span>().<span class="ident">poll_next</span>(<span class="ident">cx</span>)) {
                 <span class="prelude-val">Some</span>((<span class="ident">a</span>, <span class="ident">b</span>)) =&gt; {
                     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../src/futures_lite/stream.rs.html#3005">this</a>.<span class="ident">res</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>();
                     <a class="ident" href="../../src/futures_lite/stream.rs.html#3010">res</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/futures_lite/stream.rs.html#3009">a</a>));
@@ -6042,5 +6041,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_lite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="futures_lite" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

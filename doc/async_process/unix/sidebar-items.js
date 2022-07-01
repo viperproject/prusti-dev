@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["CommandExt","Unix-specific extensions to the [`Command`] builder."]]});
+window.SIDEBAR_ITEMS = {"trait":[["CommandExt","Unix-specific extensions to the [`Command`] builder."]]};

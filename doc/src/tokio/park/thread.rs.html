@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/park/thread.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>thread.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/park/thread.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>thread.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -384,8 +383,8 @@
 <span class="kw">const</span> <span class="ident">PARKED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">1</span>;
 <span class="kw">const</span> <span class="ident">NOTIFIED</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">2</span>;
 
-<span class="macro">thread_local!</span> {
-    <span class="kw">static</span> <span class="ident">CURRENT_PARKER</span>: <a class="ident" href="../../../src/tokio/park/thread.rs.html#11-13">ParkThread</a> <span class="op">=</span> <span class="ident">ParkThread::new</span>();
+<a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local!</a> {
+    <span class="kw">static</span> <span class="ident">CURRENT_PARKER</span>: <span class="ident">ParkThread</span> <span class="op">=</span> <span class="ident">ParkThread::new</span>();
 }
 
 <span class="comment">// ==== impl ParkThread ====</span>
@@ -433,9 +432,9 @@
     <span class="kw">fn</span> <span class="ident">park</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="comment">// If we were previously notified then we consume this notification and</span>
         <span class="comment">// return quickly.</span>
-        <span class="kw">if</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#80">self</a>
+        <span class="kw">if</span> <span class="self">self</span>
             .<span class="ident">state</span>
-            .<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>)
+            .<span class="ident">compare_exchange</span>(<span class="ident">NOTIFIED</span>, <span class="ident">EMPTY</span>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>)
             .<span class="ident">is_ok</span>()
         {
             <span class="kw">return</span>;
@@ -454,19 +453,19 @@
                 <span class="comment">// any writes it made before the call to unpark. To do that we must</span>
                 <span class="comment">// read from the write it made to `state`.</span>
                 <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#80">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, <span class="ident">SeqCst</span>);
-                <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#103">old</a>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a>, <span class="string">&quot;park state changed unexpectedly&quot;</span>);
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">old</span>, <span class="ident">NOTIFIED</span>, <span class="string">&quot;park state changed unexpectedly&quot;</span>);
 
                 <span class="kw">return</span>;
             }
-            <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;inconsistent park state; actual = {}&quot;</span>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#108">actual</a>),
+            <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent park state; actual = {}&quot;</span>, <span class="ident">actual</span>),
         }
 
         <span class="kw">loop</span> {
             <a class="ident" href="../../../src/tokio/park/thread.rs.html#92">m</a> <span class="op">=</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#80">self</a>.<span class="ident">condvar</span>.<span class="ident">wait</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#92">m</a>).<span class="ident">unwrap</span>();
 
-            <span class="kw">if</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#80">self</a>
+            <span class="kw">if</span> <span class="self">self</span>
                 .<span class="ident">state</span>
-                .<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>)
+                .<span class="ident">compare_exchange</span>(<span class="ident">NOTIFIED</span>, <span class="ident">EMPTY</span>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>)
                 .<span class="ident">is_ok</span>()
             {
                 <span class="comment">// got a notification</span>
@@ -480,15 +479,15 @@
     <span class="kw">fn</span> <span class="ident">park_timeout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">dur</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) {
         <span class="comment">// Like `park` above we have a fast path for an already-notified thread,</span>
         <span class="comment">// and afterwards we start coordinating for a sleep. Return quickly.</span>
-        <span class="kw">if</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#127">self</a>
+        <span class="kw">if</span> <span class="self">self</span>
             .<span class="ident">state</span>
-            .<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>)
+            .<span class="ident">compare_exchange</span>(<span class="ident">NOTIFIED</span>, <span class="ident">EMPTY</span>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>)
             .<span class="ident">is_ok</span>()
         {
             <span class="kw">return</span>;
         }
 
-        <span class="kw">if</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#127">dur</a> <span class="op">==</span> <span class="ident">Duration::from_millis</span>(<span class="number">0</span>) {
+        <span class="kw">if</span> <span class="ident">dur</span> <span class="op">==</span> <span class="ident">Duration::from_millis</span>(<span class="number">0</span>) {
             <span class="kw">return</span>;
         }
 
@@ -499,11 +498,11 @@
             <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a>) =&gt; {
                 <span class="comment">// We must read again here, see `park`.</span>
                 <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#127">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, <span class="ident">SeqCst</span>);
-                <span class="macro">debug_assert_eq!</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#148">old</a>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a>, <span class="string">&quot;park state changed unexpectedly&quot;</span>);
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">old</span>, <span class="ident">NOTIFIED</span>, <span class="string">&quot;park state changed unexpectedly&quot;</span>);
 
                 <span class="kw">return</span>;
             }
-            <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;inconsistent park_timeout state; actual = {}&quot;</span>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#153">actual</a>),
+            <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent park_timeout state; actual = {}&quot;</span>, <span class="ident">actual</span>),
         }
 
         <span class="comment">// Wait with a timeout, and if we spuriously wake up or otherwise wake up</span>
@@ -515,7 +514,7 @@
         <span class="kw">match</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#127">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a>, <span class="ident">SeqCst</span>) {
             <a class="ident" href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a> =&gt; {} <span class="comment">// got a notification, hurray!</span>
             <a class="ident" href="../../../src/tokio/park/thread.rs.html#31">PARKED</a> =&gt; {}   <span class="comment">// no notification, alas</span>
-            <span class="ident">n</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;inconsistent park_timeout state: {}&quot;</span>, <a class="ident" href="../../../src/tokio/park/thread.rs.html#165">n</a>),
+            <span class="ident">n</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent park_timeout state: {}&quot;</span>, <span class="ident">n</span>),
         }
     }
 
@@ -529,7 +528,7 @@
             <a class="ident" href="../../../src/tokio/park/thread.rs.html#30">EMPTY</a> =&gt; <span class="kw">return</span>,    <span class="comment">// no one was waiting</span>
             <a class="ident" href="../../../src/tokio/park/thread.rs.html#32">NOTIFIED</a> =&gt; <span class="kw">return</span>, <span class="comment">// already unparked</span>
             <a class="ident" href="../../../src/tokio/park/thread.rs.html#31">PARKED</a> =&gt; {}        <span class="comment">// gotta go wake someone up</span>
-            <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;inconsistent state in unpark&quot;</span>),
+            <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent state in unpark&quot;</span>),
         }
 
         <span class="comment">// There is a period between when the parked thread sets `state` to</span>
@@ -607,17 +606,17 @@
         <span class="kw">use</span> <span class="ident">std::task::Poll::Ready</span>;
 
         <span class="comment">// `get_unpark()` should not return a Result</span>
-        <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/park/thread.rs.html#252">self</a>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#240">get_unpark</a>()<span class="question-mark">?</span>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#296">into_waker</a>();
+        <span class="kw">let</span> <span class="ident">waker</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_unpark</span>()<span class="question-mark">?</span>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#296">into_waker</a>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cx</span> <span class="op">=</span> <span class="ident">Context::from_waker</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/park/thread.rs.html#257">waker</a>);
 
-        <span class="macro">pin!</span>(<span class="ident">f</span>);
+        <a class="macro" href="../../../src/tokio/macros/pin.rs.html#125-144">pin!</a>(<span class="ident">f</span>);
 
         <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Ready</span>(<span class="ident">v</span>) <span class="op">=</span> <a class="ident" href="../../../src/tokio/coop.rs.html#71"><span class="kw">crate</span>::coop::budget</a>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#260">f</a>.<span class="ident">as_mut</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">poll</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#258">cx</a>)) {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#263">v</a>);
             }
 
-            <a class="self" href="../../../src/tokio/park/thread.rs.html#252">self</a>.<a class="ident" href="../../../src/tokio/park/mod.rs.html#70">park</a>()<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">park</span>()<span class="question-mark">?</span>;
         }
     }
 }
@@ -631,12 +630,12 @@
     }
 
     <span class="kw">fn</span> <span class="ident">park</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/park/thread.rs.html#280">self</a>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#245-247">with_current</a>(<span class="op">|</span><span class="ident">park_thread</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#281">park_thread</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#80">park</a>())<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">with_current</span>(<span class="op">|</span><span class="ident">park_thread</span><span class="op">|</span> <span class="ident">park_thread</span>.<span class="ident">inner</span>.<span class="ident">park</span>())<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn</span> <span class="ident">park_timeout</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">duration</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/park/thread.rs.html#285">self</a>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#245-247">with_current</a>(<span class="op">|</span><span class="ident">park_thread</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/park/thread.rs.html#286">park_thread</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/tokio/park/thread.rs.html#127">park_timeout</a>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#285">duration</a>))<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">with_current</span>(<span class="op">|</span><span class="ident">park_thread</span><span class="op">|</span> <span class="ident">park_thread</span>.<span class="ident">inner</span>.<span class="ident">park_timeout</span>(<span class="ident">duration</span>))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -698,5 +697,5 @@
     <span class="ident">mem::forget</span>(<a class="ident" href="../../../src/tokio/park/thread.rs.html#341">unparker</a>);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

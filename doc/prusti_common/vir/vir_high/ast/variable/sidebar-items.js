@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["VariableDecl",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["VariableDecl",""]]};

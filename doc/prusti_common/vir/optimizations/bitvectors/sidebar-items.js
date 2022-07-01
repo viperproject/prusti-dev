@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["replace_all_ints",""],["uses_bit_operations",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["replace_all_ints",""],["uses_bit_operations",""]]};

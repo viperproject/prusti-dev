@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["BigInt",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["BigInt",""]]};

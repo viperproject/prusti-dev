@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["main",""]],"struct":[["Args","A verification server to handle Prusti verification requests."]]});
+window.SIDEBAR_ITEMS = {"fn":[["main",""]],"struct":[["Args","A verification server to handle Prusti verification requests."]]};

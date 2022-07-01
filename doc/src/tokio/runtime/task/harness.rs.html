@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/runtime/task/harness.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>harness.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/runtime/task/harness.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>harness.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -501,7 +500,7 @@
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/manually_drop/struct.ManuallyDrop.html">std::mem::ManuallyDrop</a>;
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/panic/index.html">std::panic</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">std::panic</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">std::ptr::NonNull</a>;
 <span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
 
@@ -598,7 +597,7 @@
                 <span class="kw">let</span> <span class="ident">core</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#95">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>();
                 <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#456">poll_future</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#103">core</a>.<span class="ident">stage</span>, <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#103">core</a>.<span class="ident">task_id</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#102">cx</a>);
 
-                <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#104">res</a> <span class="op">==</span> <span class="ident">Poll::Ready</span>(()) {
+                <span class="kw">if</span> <span class="ident">res</span> <span class="op">==</span> <span class="ident">Poll::Ready</span>(()) {
                     <span class="comment">// The future completed. Move on to complete the task.</span>
                     <span class="kw">return</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#431">PollFuture::Complete</a>;
                 }
@@ -633,7 +632,7 @@
     <span class="doccomment">/// there is nothing further to do. When the task completes running, it will</span>
     <span class="doccomment">/// notice the `CANCELLED` bit and finalize the task.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">shutdown</span>(<span class="self">self</span>) {
-        <span class="kw">if</span> <span class="op">!</span><a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#140">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>().<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#312">transition_to_shutdown</a>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">header</span>().<span class="ident">state</span>.<span class="ident">transition_to_shutdown</span>() {
             <span class="comment">// The task is concurrently running. No further work needed.</span>
             <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#140">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#279">drop_reference</a>();
             <span class="kw">return</span>;
@@ -662,7 +661,7 @@
 
     <span class="doccomment">/// Read the task output into `dst`.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">try_read_output</span>(<span class="self">self</span>, <span class="ident">dst</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident"><span class="kw">super</span>::Result</span><span class="op">&lt;</span><span class="ident">T::Output</span><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">waker</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) {
-        <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#352">can_read_output</a>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#169">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>(), <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#169">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#37">trailer</a>(), <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#169">waker</a>) {
+        <span class="kw">if</span> <span class="ident">can_read_output</span>(<span class="self">self</span>.<span class="ident">header</span>(), <span class="self">self</span>.<span class="ident">trailer</span>(), <span class="ident">waker</span>) {
             <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#169">dst</a> <span class="op">=</span> <span class="ident">Poll::Ready</span>(<a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#169">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>().<span class="ident">stage</span>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#205">take_output</a>());
         }
     }
@@ -677,7 +676,7 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">drop_join_handle_slow</span>(<span class="self">self</span>) {
         <span class="comment">// Try to unset `JOIN_INTEREST`. This must be done as a first step in</span>
         <span class="comment">// case the task concurrently completed.</span>
-        <span class="kw">if</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#182">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>().<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#359">unset_join_interested</a>().<span class="ident">is_err</span>() {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">header</span>().<span class="ident">state</span>.<span class="ident">unset_join_interested</span>().<span class="ident">is_err</span>() {
             <span class="comment">// It is our responsibility to drop the output. This is critical as</span>
             <span class="comment">// the task output may not be `Send` and as such must remain with</span>
             <span class="comment">// the scheduler or `JoinHandle`. i.e. if the output remains in the</span>
@@ -704,7 +703,7 @@
     <span class="doccomment">/// the shutdown. This is necessary to avoid the shutdown happening in the</span>
     <span class="doccomment">/// wrong thread for non-Send tasks.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">remote_abort</span>(<span class="self">self</span>) {
-        <span class="kw">if</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#211">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>().<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#277">transition_to_notified_and_cancel</a>() {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">header</span>().<span class="ident">state</span>.<span class="ident">transition_to_notified_and_cancel</span>() {
             <span class="comment">// The transition has created a new ref-count, which we turn into</span>
             <span class="comment">// a Notified and pass to the task.</span>
             <span class="comment">//</span>
@@ -772,7 +771,7 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">drop_reference</span>(<span class="self">self</span>) {
-        <span class="kw">if</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#279">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>().<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#438">ref_dec</a>() {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">header</span>().<span class="ident">state</span>.<span class="ident">ref_dec</span>() {
             <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#279">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#154">dealloc</a>();
         }
     }
@@ -794,12 +793,12 @@
         <span class="comment">// We catch panics here in case dropping the future or waking the</span>
         <span class="comment">// JoinHandle panics.</span>
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">panic::catch_unwind</span>(<span class="ident">panic::AssertUnwindSafe</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#297">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#541">is_join_interested</a>() {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">snapshot</span>.<span class="ident">is_join_interested</span>() {
                 <span class="comment">// The `JoinHandle` is not interested in the output of</span>
                 <span class="comment">// this task. It is our responsibility to drop the</span>
                 <span class="comment">// output.</span>
                 <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#293">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#41">core</a>().<span class="ident">stage</span>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#181">drop_future_or_output</a>();
-            } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#297">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#549">has_join_waker</a>() {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">snapshot</span>.<span class="ident">has_join_waker</span>() {
                 <span class="comment">// Notify the join handle. The previous transition obtains the</span>
                 <span class="comment">// lock on the waker cell.</span>
                 <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#293">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#37">trailer</a>().<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#257">wake_join</a>();
@@ -809,7 +808,7 @@
         <span class="comment">// The task has completed execution and will no longer be scheduled.</span>
         <span class="kw">let</span> <span class="ident">num_release</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#293">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#324">release</a>();
 
-        <span class="kw">if</span> <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#293">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#33">header</a>().<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#197">transition_to_terminal</a>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#315">num_release</a>) {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">header</span>().<span class="ident">state</span>.<span class="ident">transition_to_terminal</span>(<span class="ident">num_release</span>) {
             <a class="self" href="../../../../src/tokio/runtime/task/harness.rs.html#293">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#154">dealloc</a>();
         }
     }
@@ -848,11 +847,11 @@
     <span class="comment">// Load a snapshot of the current task state</span>
     <span class="kw">let</span> <span class="ident">snapshot</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#352">header</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#109">load</a>();
 
-    <span class="macro">debug_assert!</span>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#354">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#541">is_join_interested</a>());
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">snapshot</span>.<span class="ident">is_join_interested</span>());
 
-    <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#354">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#537">is_complete</a>() {
+    <span class="kw">if</span> <span class="op">!</span><span class="ident">snapshot</span>.<span class="ident">is_complete</span>() {
         <span class="comment">// The waker must be stored in the task struct.</span>
-        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#354">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#549">has_join_waker</a>() {
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">snapshot</span>.<span class="ident">has_join_waker</span>() {
             <span class="comment">// There already is a waker stored in the struct. If it matches</span>
             <span class="comment">// the provided waker, then there is no further work to do.</span>
             <span class="comment">// Otherwise, the waker must be swapped.</span>
@@ -862,7 +861,7 @@
                 <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#352">trailer</a>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#252">will_wake</a>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#352">waker</a>)
             };
 
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#364">will_wake</a> {
+            <span class="kw">if</span> <span class="ident">will_wake</span> {
                 <span class="comment">// The task is not complete **and** the waker is up to date,</span>
                 <span class="comment">// there is nothing further that needs to be done.</span>
                 <span class="kw">return</span> <span class="bool-val">false</span>;
@@ -887,7 +886,7 @@
         <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#360">res</a> {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
             <span class="prelude-val">Err</span>(<span class="ident">snapshot</span>) =&gt; {
-                <span class="macro">assert!</span>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#394">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#537">is_complete</a>());
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">snapshot</span>.<span class="ident">is_complete</span>());
             }
         }
     }
@@ -900,8 +899,8 @@
     <span class="ident">waker</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>,
     <span class="ident">snapshot</span>: <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#13">Snapshot</a>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#13">Snapshot</a>, <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#13">Snapshot</a><span class="op">&gt;</span> {
-    <span class="macro">assert!</span>(<a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#406">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#541">is_join_interested</a>());
-    <span class="macro">assert!</span>(<span class="op">!</span><a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#406">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#549">has_join_waker</a>());
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">snapshot</span>.<span class="ident">is_join_interested</span>());
+    <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">snapshot</span>.<span class="ident">has_join_waker</span>());
 
     <span class="comment">// Safety: Only the `JoinHandle` may set the `waker` field. When</span>
     <span class="comment">// `JOIN_INTEREST` is **not** set, nothing else will touch the field.</span>
@@ -913,7 +912,7 @@
     <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#403">header</a>.<span class="ident">state</span>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#378">set_join_waker</a>();
 
     <span class="comment">// If the state could not be updated, then clear the join waker</span>
-    <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#418">res</a>.<span class="ident">is_err</span>() {
+    <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">is_err</span>() {
         <span class="kw">unsafe</span> {
             <a class="ident" href="../../../../src/tokio/runtime/task/harness.rs.html#404">trailer</a>.<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#246">set_waker</a>(<span class="prelude-val">None</span>);
         }
@@ -982,5 +981,5 @@
     <span class="ident">Poll::Ready</span>(())
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

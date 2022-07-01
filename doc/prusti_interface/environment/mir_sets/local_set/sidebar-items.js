@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["LocalSet","A set of MIR places."]]});
+window.SIDEBAR_ITEMS = {"struct":[["LocalSet","A set of MIR places."]]};

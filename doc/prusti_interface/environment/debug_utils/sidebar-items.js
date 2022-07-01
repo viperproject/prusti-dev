@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["to_text",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["to_text",""]]};

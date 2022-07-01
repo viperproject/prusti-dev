@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["cancel","Cancel an previously set alarm signal."],["set","Schedule an alarm signal."]]});
+window.SIDEBAR_ITEMS = {"fn":[["cancel","Cancel an previously set alarm signal."],["set","Schedule an alarm signal."]]};

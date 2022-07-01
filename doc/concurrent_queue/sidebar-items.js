@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["PopError","Error which occurs when popping from an empty queue."],["PushError","Error which occurs when pushing into a full or closed queue."]],"struct":[["ConcurrentQueue","A concurrent queue."]]});
+window.SIDEBAR_ITEMS = {"enum":[["PopError","Error which occurs when popping from an empty queue."],["PushError","Error which occurs when pushing into a full or closed queue."]],"struct":[["ConcurrentQueue","A concurrent queue."]]};

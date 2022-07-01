@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["define_vir",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["define_vir",""]]};

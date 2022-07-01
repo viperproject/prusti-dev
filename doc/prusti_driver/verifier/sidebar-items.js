@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["verify",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["verify",""]]};

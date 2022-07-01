@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["ArchiveKind","The kind of archive format."]],"struct":[["ArchiveFile","A partially parsed archive file."],["ArchiveMember","A partially parsed archive member."],["ArchiveMemberIterator","An iterator over the members of an archive."]]});
+window.SIDEBAR_ITEMS = {"enum":[["ArchiveKind","The kind of archive format."]],"struct":[["ArchiveFile","A partially parsed archive file."],["ArchiveMember","A partially parsed archive member."],["ArchiveMemberIterator","An iterator over the members of an archive."]]};

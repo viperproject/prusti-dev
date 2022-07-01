@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["PrintStream",""],["PrintWriter",""],["StringWriter",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["PrintStream",""],["PrintWriter",""],["StringWriter",""]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["CarbonVerifier",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["CarbonVerifier",""]]};

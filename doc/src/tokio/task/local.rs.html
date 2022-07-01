@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/task/local.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>local.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/task/local.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>local.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../tokio/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -744,7 +743,7 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">std::task::Poll</a>;
 
-<span class="kw">use</span> <span class="ident">pin_project_lite::pin_project</span>;
+<span class="kw">use</span> <a class="ident" href="../../../pin_project_lite/macro.pin_project.html">pin_project_lite::pin_project</a>;
 
 <span class="macro">cfg_rt!</span> {
     <span class="doccomment">/// A set of tasks which are executed on the same thread.</span>
@@ -975,7 +974,7 @@
     <span class="ident">waker</span>: <a class="ident" href="../../../src/tokio/sync/task/atomic_waker.rs.html#27-30">AtomicWaker</a>,
 }
 
-<span class="macro">pin_project!</span> {
+<a class="macro" href="../../../pin_project_lite/macro.pin_project.html">pin_project!</a> {
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
     <span class="kw">struct</span> <span class="ident">RunUntil</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">F</span><span class="op">&gt;</span> {
         <span class="ident">local_set</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/tokio/task/local.rs.html#213-222">LocalSet</a>,
@@ -984,7 +983,7 @@
     }
 }
 
-<span class="macro">scoped_thread_local!</span>(<span class="kw">static</span> <span class="ident">CURRENT</span>: <a class="ident" href="../../../src/tokio/task/local.rs.html#226-235">Context</a>);
+<a class="macro" href="../../../src/tokio/macros/scoped_tls.rs.html#7-21">scoped_thread_local!</a>(<span class="kw">static</span> <span class="ident">CURRENT</span>: <span class="ident">Context</span>);
 
 <span class="macro">cfg_rt!</span> {
     <span class="doccomment">/// Spawns a `!Send` future on the local task set.</span>
@@ -1216,11 +1215,11 @@
     <span class="kw">where</span>
         <span class="ident">F</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>,
     {
-        <span class="kw">let</span> <span class="ident">run_until</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/task/local.rs.html#246-253">RunUntil</a> {
-            <a class="ident" href="../../../src/tokio/task/local.rs.html#483">future</a>,
-            <span class="ident">local_set</span>: <a class="self" href="../../../src/tokio/task/local.rs.html#483">self</a>,
+        <span class="kw">let</span> <span class="ident">run_until</span> <span class="op">=</span> <span class="ident">RunUntil</span> {
+            <span class="ident">future</span>,
+            <span class="ident">local_set</span>: <span class="self">self</span>,
         };
-        <a class="ident" href="../../../src/tokio/task/local.rs.html#487">run_until</a>.<span class="kw">await</span>
+        <span class="ident">run_until</span>.<span class="kw">await</span>
     }
 
     <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::task</span>) <span class="kw">fn</span> <span class="ident">spawn_named</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(
@@ -1247,8 +1246,8 @@
     <span class="doccomment">/// Ticks the scheduler, returning whether the local future needs to be</span>
     <span class="doccomment">/// notified again.</span>
     <span class="kw">fn</span> <span class="ident">tick</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<a class="ident" href="../../../src/tokio/task/local.rs.html#317">MAX_TASKS_PER_TICK</a> {
-            <span class="kw">match</span> <a class="self" href="../../../src/tokio/task/local.rs.html#517">self</a>.<a class="ident" href="../../../src/tokio/task/local.rs.html#539">next_task</a>() {
+        <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">MAX_TASKS_PER_TICK</span> {
+            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">next_task</span>() {
                 <span class="comment">// Run the task</span>
                 <span class="comment">//</span>
                 <span class="comment">// Safety: As spawned tasks are `!Send`, `run_unchecked` must be</span>
@@ -1257,7 +1256,7 @@
                 <span class="comment">// task initially. Because `LocalSet` itself is `!Send`, and</span>
                 <span class="comment">// `spawn_local` spawns into the `LocalSet` on the current</span>
                 <span class="comment">// thread, the invariant is maintained.</span>
-                <span class="prelude-val">Some</span>(<span class="ident">task</span>) =&gt; <a class="ident" href="../../../src/tokio/coop.rs.html#71"><span class="kw">crate</span>::coop::budget</a>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../src/tokio/task/local.rs.html#528">task</a>.<a class="ident" href="../../../src/tokio/runtime/task/mod.rs.html#373">run</a>()),
+                <span class="prelude-val">Some</span>(<span class="ident">task</span>) =&gt; <span class="ident"><span class="kw">crate</span>::coop::budget</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">task</span>.<span class="ident">run</span>()),
                 <span class="comment">// We have fully drained the queue of notified tasks, so the</span>
                 <span class="comment">// local future doesn&#39;t need to be notified again — it can wait</span>
                 <span class="comment">// until something else wakes a task in the local set.</span>
@@ -1272,7 +1271,7 @@
         <span class="kw">let</span> <span class="ident">tick</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/task/local.rs.html#539">self</a>.<span class="ident">tick</span>.<span class="ident">get</span>();
         <a class="self" href="../../../src/tokio/task/local.rs.html#539">self</a>.<span class="ident">tick</span>.<span class="ident">set</span>(<a class="ident" href="../../../src/tokio/task/local.rs.html#540">tick</a>.<span class="ident">wrapping_add</span>(<span class="number">1</span>));
 
-        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">if</span> <a class="ident" href="../../../src/tokio/task/local.rs.html#540">tick</a> <span class="op">%</span> <a class="ident" href="../../../src/tokio/task/local.rs.html#320">REMOTE_FIRST_INTERVAL</a> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">tick</span> <span class="op">%</span> <span class="ident">REMOTE_FIRST_INTERVAL</span> <span class="op">==</span> <span class="number">0</span> {
             <a class="self" href="../../../src/tokio/task/local.rs.html#539">self</a>.<span class="ident">context</span>
                 .<span class="ident">shared</span>
                 .<span class="ident">queue</span>
@@ -1312,12 +1311,12 @@
         <span class="comment">// Register the waker before starting to work</span>
         <a class="self" href="../../../src/tokio/task/local.rs.html#579">self</a>.<span class="ident">context</span>.<span class="ident">shared</span>.<span class="ident">waker</span>.<a class="ident" href="../../../src/tokio/sync/task/atomic_waker.rs.html#171">register_by_ref</a>(<a class="ident" href="../../../src/tokio/task/local.rs.html#579">cx</a>.<span class="ident">waker</span>());
 
-        <span class="kw">if</span> <a class="self" href="../../../src/tokio/task/local.rs.html#579">self</a>.<a class="ident" href="../../../src/tokio/task/local.rs.html#565">with</a>(<span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/tokio/task/local.rs.html#579">self</a>.<a class="ident" href="../../../src/tokio/task/local.rs.html#517">tick</a>()) {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">with</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">tick</span>()) {
             <span class="comment">// If `tick` returns true, we need to notify the local future again:</span>
             <span class="comment">// there are still tasks remaining in the run queue.</span>
             <a class="ident" href="../../../src/tokio/task/local.rs.html#579">cx</a>.<span class="ident">waker</span>().<span class="ident">wake_by_ref</span>();
             <span class="ident">Poll::Pending</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <a class="self" href="../../../src/tokio/task/local.rs.html#579">self</a>.<span class="ident">context</span>.<span class="ident">owned</span>.<a class="ident" href="../../../src/tokio/runtime/task/list.rs.html#276">is_empty</a>() {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">owned</span>.<span class="ident">is_empty</span>() {
             <span class="comment">// If the scheduler has no remaining futures, we&#39;re done!</span>
             <span class="ident">Poll::Ready</span>(())
         } <span class="kw">else</span> {
@@ -1344,18 +1343,18 @@
 
             <span class="comment">// We already called shutdown on all tasks above, so there is no</span>
             <span class="comment">// need to call shutdown.</span>
-            <span class="kw">for</span> <span class="ident">task</span> <span class="kw">in</span> <a class="self" href="../../../src/tokio/task/local.rs.html#607">self</a>.<span class="ident">context</span>.<span class="ident">queue</span>.<a class="ident" href="../../../src/tokio/util/vec_deque_cell.rs.html#50">take</a>() {
-                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/task/local.rs.html#615">task</a>);
+            <span class="kw">for</span> <span class="ident">task</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">queue</span>.<span class="ident">take</span>() {
+                <span class="ident">drop</span>(<span class="ident">task</span>);
             }
 
             <span class="comment">// Take the queue from the Shared object to prevent pushing</span>
             <span class="comment">// notifications to it in the future.</span>
             <span class="kw">let</span> <span class="ident">queue</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/task/local.rs.html#607">self</a>.<span class="ident">context</span>.<span class="ident">shared</span>.<span class="ident">queue</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<span class="ident">take</span>().<span class="ident">unwrap</span>();
-            <span class="kw">for</span> <span class="ident">task</span> <span class="kw">in</span> <a class="ident" href="../../../src/tokio/task/local.rs.html#621">queue</a> {
-                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/task/local.rs.html#622">task</a>);
+            <span class="kw">for</span> <span class="ident">task</span> <span class="kw">in</span> <span class="ident">queue</span> {
+                <span class="ident">drop</span>(<span class="ident">task</span>);
             }
 
-            <span class="macro">assert!</span>(<a class="self" href="../../../src/tokio/task/local.rs.html#607">self</a>.<span class="ident">context</span>.<span class="ident">owned</span>.<a class="ident" href="../../../src/tokio/runtime/task/list.rs.html#276">is_empty</a>());
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="ident">context</span>.<span class="ident">owned</span>.<span class="ident">is_empty</span>());
         });
     }
 }
@@ -1404,7 +1403,7 @@
                 <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../src/tokio/task/local.rs.html#671">output</a>);
             }
 
-            <span class="kw">if</span> <a class="ident" href="../../../src/tokio/task/local.rs.html#659">me</a>.<span class="ident">local_set</span>.<a class="ident" href="../../../src/tokio/task/local.rs.html#517">tick</a>() {
+            <span class="kw">if</span> <span class="ident">me</span>.<span class="ident">local_set</span>.<span class="ident">tick</span>() {
                 <span class="comment">// If `tick` returns `true`, we need to notify the local future again:</span>
                 <span class="comment">// there are still tasks remaining in the run queue.</span>
                 <a class="ident" href="../../../src/tokio/task/local.rs.html#658">cx</a>.<span class="ident">waker</span>().<span class="ident">wake_by_ref</span>();
@@ -1446,7 +1445,7 @@
     <span class="kw">fn</span> <span class="ident">release</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">task</span>: <span class="kw-2">&amp;</span><span class="ident">Task</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Task</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../src/tokio/task/local.rs.html#255">CURRENT</a>.<a class="ident" href="../../../src/tokio/macros/scoped_tls.rs.html#65-67">with</a>(<span class="op">|</span><span class="ident">maybe_cx</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">cx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/task/local.rs.html#715">maybe_cx</a>.<span class="ident">expect</span>(<span class="string">&quot;scheduler context missing&quot;</span>);
-            <span class="macro">assert!</span>(<a class="ident" href="../../../src/tokio/task/local.rs.html#716">cx</a>.<span class="ident">shared</span>.<a class="ident" href="../../../src/tokio/task/local.rs.html#708">ptr_eq</a>(<a class="self" href="../../../src/tokio/task/local.rs.html#714">self</a>));
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">cx</span>.<span class="ident">shared</span>.<span class="ident">ptr_eq</span>(<span class="self">self</span>));
             <a class="ident" href="../../../src/tokio/task/local.rs.html#716">cx</a>.<span class="ident">owned</span>.<a class="ident" href="../../../src/tokio/runtime/task/list.rs.html#231">remove</a>(<a class="ident" href="../../../src/tokio/task/local.rs.html#714">task</a>)
         })
     }
@@ -1456,5 +1455,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

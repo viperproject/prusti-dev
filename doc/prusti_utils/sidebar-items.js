@@ -1,1 +1,1 @@
-initSidebarItems({"macro":[["force_matches",""]]});
+window.SIDEBAR_ITEMS = {"macro":[["force_matches",""]]};

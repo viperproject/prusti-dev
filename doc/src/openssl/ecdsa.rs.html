@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.40/src/ecdsa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ecdsa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.40/src/ecdsa.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ecdsa.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -231,7 +230,7 @@
 <span id="224">224</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Low level Elliptic Curve Digital Signature Algorithm (ECDSA) functions.</span>
 
-<span class="kw">use</span> <span class="ident">cfg_if::cfg_if</span>;
+<span class="kw">use</span> <a class="ident" href="../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
 <span class="kw">use</span> <span class="ident">foreign_types</span>::{<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">ForeignType</a>, <a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a>};
 <span class="kw">use</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
@@ -243,9 +242,9 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pkey</span>::{<a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>, <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>};
 <span class="kw">use</span> <a class="ident" href="../../src/openssl/util.rs.html#80-92"><span class="kw">crate</span>::util::ForeignTypeRefExt</a>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/openssl/lib.rs.html#203">cvt_n</a>, <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>};
-<span class="kw">use</span> <span class="ident">openssl_macros::corresponds</span>;
+<span class="kw">use</span> <a class="ident" href="../../openssl_macros/attr.corresponds.html">openssl_macros::corresponds</a>;
 
-<span class="macro">foreign_type_and_impl_send_sync!</span> {
+<a class="macro" href="../../src/openssl/macros.rs.html#133-162">foreign_type_and_impl_send_sync!</a> {
     <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/ec/enum.ECDSA_SIG.html">ffi::ECDSA_SIG</a>;
     <span class="kw">fn</span> <span class="ident">drop</span> <span class="op">=</span> <span class="ident">ffi::ECDSA_SIG_free</span>;
 
@@ -263,11 +262,11 @@
         <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#126">HasPrivate</a>,
     {
         <span class="kw">unsafe</span> {
-            <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/ecdsa.rs.html#30">data</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
-            <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::ECDSA_do_sign</span>(
-                <a class="ident" href="../../src/openssl/ecdsa.rs.html#30">data</a>.<span class="ident">as_ptr</span>(),
-                <a class="ident" href="../../src/openssl/ecdsa.rs.html#30">data</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
-                <a class="ident" href="../../src/openssl/ecdsa.rs.html#30">eckey</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>(),
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <span class="ident">usize</span>);
+            <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::ECDSA_do_sign</span>(
+                <span class="ident">data</span>.<span class="ident">as_ptr</span>(),
+                <span class="ident">data</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">c_int</span>,
+                <span class="ident">eckey</span>.<span class="ident">as_ptr</span>(),
             ))<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">EcdsaSig::from_ptr</span>(<a class="ident" href="../../src/openssl/ecdsa.rs.html#36">sig</a>))
         }
@@ -277,24 +276,24 @@
     <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">ECDSA_SIG_set0</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_private_components</span>(<span class="ident">r</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>, <span class="ident">s</span>: <a class="ident" href="../../src/openssl/bn.rs.html#121-153">BigNum</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/openssl/ecdsa.rs.html#17-25">EcdsaSig</a>, <a class="ident" href="../../src/openssl/error.rs.html#32">ErrorStack</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <a class="ident" href="../../src/openssl/lib.rs.html#185">cvt_p</a>(<span class="ident">ffi::ECDSA_SIG_new</span>())<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">sig</span> <span class="op">=</span> <span class="ident">cvt_p</span>(<span class="ident">ffi::ECDSA_SIG_new</span>())<span class="question-mark">?</span>;
             <a class="ident" href="../../openssl_sys/handwritten/ec/fn.ECDSA_SIG_set0.html">ECDSA_SIG_set0</a>(<a class="ident" href="../../src/openssl/ecdsa.rs.html#49">sig</a>, <a class="ident" href="../../src/openssl/ecdsa.rs.html#47">r</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>(), <a class="ident" href="../../src/openssl/ecdsa.rs.html#47">s</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignType.html">as_ptr</a>());
             <span class="ident">mem::forget</span>((<a class="ident" href="../../src/openssl/ecdsa.rs.html#47">r</a>, <a class="ident" href="../../src/openssl/ecdsa.rs.html#47">s</a>));
             <span class="prelude-val">Ok</span>(<span class="ident">EcdsaSig::from_ptr</span>(<a class="ident" href="../../src/openssl/ecdsa.rs.html#49">sig</a>))
         }
     }
 
-    <span class="macro">from_der!</span> {
+    <a class="macro" href="../../src/openssl/macros.rs.html#105-117">from_der!</a> {
         <span class="doccomment">/// Decodes a DER-encoded ECDSA signature.</span>
         <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">d2i_ECDSA_SIG</span>)]</span>
         <span class="ident">from_der</span>,
-        <a class="ident" href="../../src/openssl/ecdsa.rs.html#17-25">EcdsaSig</a>,
+        <span class="ident">EcdsaSig</span>,
         <span class="ident">ffi::d2i_ECDSA_SIG</span>
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../src/openssl/ecdsa.rs.html#17-25">EcdsaSigRef</a> {
-    <span class="macro">to_der!</span> {
+    <a class="macro" href="../../src/openssl/macros.rs.html#89-103">to_der!</a> {
         <span class="doccomment">/// Serializes the ECDSA signature into a DER-encoded ECDSASignature structure.</span>
         <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">i2d_ECDSA_SIG</span>)]</span>
         <span class="ident">to_der</span>,
@@ -308,7 +307,7 @@
         <span class="ident">T</span>: <a class="ident" href="../../src/openssl/pkey.rs.html#119">HasPublic</a>,
     {
         <span class="kw">unsafe</span> {
-            <span class="macro">assert!</span>(<a class="ident" href="../../src/openssl/ecdsa.rs.html#75">data</a>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">data</span>.<span class="ident">len</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">c_int::max_value</span>() <span class="kw">as</span> <span class="ident">usize</span>);
             <a class="ident" href="../../src/openssl/lib.rs.html#203">cvt_n</a>(<span class="ident">ffi::ECDSA_do_verify</span>(
                 <a class="ident" href="../../src/openssl/ecdsa.rs.html#75">data</a>.<span class="ident">as_ptr</span>(),
                 <a class="ident" href="../../src/openssl/ecdsa.rs.html#75">data</a>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">c_int</a>,
@@ -454,5 +453,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

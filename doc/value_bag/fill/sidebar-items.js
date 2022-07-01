@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Slot","A value slot to fill using the `Fill` trait."]],"trait":[["Fill","A type that requires extra work to convert into a `ValueBag`."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Slot","A value slot to fill using the `Fill` trait."]],"trait":[["Fill","A type that requires extra work to convert into a `ValueBag`."]]};

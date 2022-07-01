@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["procedure",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["procedure",""]]};

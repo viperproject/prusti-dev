@@ -1,1 +1,1 @@
-initSidebarItems({"macro":[["new","Create module with CPU feature detection code."]]});
+window.SIDEBAR_ITEMS = {"macro":[["new","Create module with CPU feature detection code."]]};

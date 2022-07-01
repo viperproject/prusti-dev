@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["WithIdentifier",""]]});
+window.SIDEBAR_ITEMS = {"trait":[["WithIdentifier",""]]};

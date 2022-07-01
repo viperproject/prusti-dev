@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Event","Indicates that a file descriptor or socket can read or write without blocking."],["Poller","Waits for I/O events."]],"trait":[["Source","A [`RawFd`] or a reference to a type implementing [`AsRawFd`]."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Event","Indicates that a file descriptor or socket can read or write without blocking."],["Poller","Waits for I/O events."]],"trait":[["Source","A [`RawFd`] or a reference to a type implementing [`AsRawFd`]."]]};

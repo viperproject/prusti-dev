@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["compute_definitely_initialized",""]],"struct":[["AnalysisResult",""]],"type":[["DefinitelyInitializedAnalysisResult","The result of the definitely initialized analysis."]]});
+window.SIDEBAR_ITEMS = {"fn":[["compute_definitely_initialized",""]],"struct":[["AnalysisResult",""]],"type":[["DefinitelyInitializedAnalysisResult","The result of the definitely initialized analysis."]]};

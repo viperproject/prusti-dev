@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/runtime/task/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/runtime/task/state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -717,14 +716,14 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">transition_to_running</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#68-73">TransitionToRunning</a> {
         <a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#115">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#451-453">fetch_update_action</a>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">next</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">action</span>;
-            <span class="macro">assert!</span>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#116">next</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#504">is_notified</a>());
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">next</span>.<span class="ident">is_notified</span>());
 
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#116">next</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#499">is_idle</a>() {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">next</span>.<span class="ident">is_idle</span>() {
                 <span class="comment">// This happens if the task is either currently running or if it</span>
                 <span class="comment">// has already completed, e.g. if it was cancelled during</span>
                 <span class="comment">// shutdown. Consume the ref-count and return.</span>
                 <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#116">next</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#570">ref_dec</a>();
-                <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#116">next</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#561">ref_count</a>() <span class="op">==</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">ref_count</span>() <span class="op">==</span> <span class="number">0</span> {
                     <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#117">action</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#72">TransitionToRunning::Dealloc</a>;
                 } <span class="kw">else</span> {
                     <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#117">action</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#71">TransitionToRunning::Failed</a>;
@@ -734,7 +733,7 @@
                 <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#116">next</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#520">set_running</a>();
                 <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#116">next</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#508">unset_notified</a>();
 
-                <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#116">next</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#528">is_cancelled</a>() {
+                <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">is_cancelled</span>() {
                     <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#117">action</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#70">TransitionToRunning::Cancelled</a>;
                 } <span class="kw">else</span> {
                     <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#117">action</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#69">TransitionToRunning::Success</a>;
@@ -751,9 +750,9 @@
     <span class="doccomment">/// cancelled.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">transition_to_idle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#76-81">TransitionToIdle</a> {
         <a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#150">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#451-453">fetch_update_action</a>(<span class="op">|</span><span class="ident">curr</span><span class="op">|</span> {
-            <span class="macro">assert!</span>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#151">curr</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#516">is_running</a>());
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">curr</span>.<span class="ident">is_running</span>());
 
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#151">curr</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#528">is_cancelled</a>() {
+            <span class="kw">if</span> <span class="ident">curr</span>.<span class="ident">is_cancelled</span>() {
                 <span class="kw">return</span> (<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#80">TransitionToIdle::Cancelled</a>, <span class="prelude-val">None</span>);
             }
 
@@ -761,10 +760,10 @@
             <span class="kw">let</span> <span class="ident">action</span>;
             <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#158">next</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#524">unset_running</a>();
 
-            <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#158">next</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#504">is_notified</a>() {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">next</span>.<span class="ident">is_notified</span>() {
                 <span class="comment">// Polling the future consumes the ref-count of the Notified.</span>
                 <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#158">next</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#570">ref_dec</a>();
-                <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#158">next</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#561">ref_count</a>() <span class="op">==</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">ref_count</span>() <span class="op">==</span> <span class="number">0</span> {
                     <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#159">action</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#79">TransitionToIdle::OkDealloc</a>;
                 } <span class="kw">else</span> {
                     <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#159">action</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#77">TransitionToIdle::Ok</a>;
@@ -786,8 +785,8 @@
         <span class="kw">const</span> <span class="ident">DELTA</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#18">RUNNING</a> <span class="op">|</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#23">COMPLETE</a>;
 
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#13">Snapshot</a>(<a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#183">self</a>.<span class="ident">val</span>.<span class="ident">fetch_xor</span>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#184">DELTA</a>, <span class="ident">AcqRel</span>));
-        <span class="macro">assert!</span>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#186">prev</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#516">is_running</a>());
-        <span class="macro">assert!</span>(<span class="op">!</span><a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#186">prev</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#537">is_complete</a>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">prev</span>.<span class="ident">is_running</span>());
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">prev</span>.<span class="ident">is_complete</span>());
 
         <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#13">Snapshot</a>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#186">prev</a>.<span class="number">0</span> <span class="op">^</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#184">DELTA</a>)
     }
@@ -798,11 +797,11 @@
     <span class="doccomment">/// Returns true if the task should be deallocated.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">transition_to_terminal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">count</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#13">Snapshot</a>(<a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#197">self</a>.<span class="ident">val</span>.<span class="ident">fetch_sub</span>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#197">count</a> <span class="op">*</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#53">REF_ONE</a>, <span class="ident">AcqRel</span>));
-        <span class="macro">assert!</span>(
-            <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#198">prev</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#561">ref_count</a>() <span class="op">&gt;</span><span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#197">count</a>,
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
+            <span class="ident">prev</span>.<span class="ident">ref_count</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">count</span>,
             <span class="string">&quot;current: {}, sub: {}&quot;</span>,
-            <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#198">prev</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#561">ref_count</a>(),
-            <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#197">count</a>
+            <span class="ident">prev</span>.<span class="ident">ref_count</span>(),
+            <span class="ident">count</span>
         );
         <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#198">prev</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#561">ref_count</a>() <span class="op">==</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#197">count</a>
     }
@@ -817,7 +816,7 @@
         <a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#214">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#451-453">fetch_update_action</a>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">snapshot</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">action</span>;
 
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#215">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#516">is_running</a>() {
+            <span class="kw">if</span> <span class="ident">snapshot</span>.<span class="ident">is_running</span>() {
                 <span class="comment">// If the task is running, we mark it as notified, but we should</span>
                 <span class="comment">// not submit anything as the thread currently running the</span>
                 <span class="comment">// future is responsible for that.</span>
@@ -825,15 +824,15 @@
                 <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#215">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#570">ref_dec</a>();
 
                 <span class="comment">// The thread that set the running bit also holds a ref-count.</span>
-                <span class="macro">assert!</span>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#215">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#561">ref_count</a>() <span class="op">&gt;</span> <span class="number">0</span>);
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">snapshot</span>.<span class="ident">ref_count</span>() <span class="op">&gt;</span> <span class="number">0</span>);
 
                 <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#216">action</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#85">TransitionToNotifiedByVal::DoNothing</a>;
-            } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#215">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#537">is_complete</a>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#215">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#504">is_notified</a>() {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">snapshot</span>.<span class="ident">is_complete</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">snapshot</span>.<span class="ident">is_notified</span>() {
                 <span class="comment">// We do not need to submit any notifications, but we have to</span>
                 <span class="comment">// decrement the ref-count.</span>
                 <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#215">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#570">ref_dec</a>();
 
-                <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#215">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#561">ref_count</a>() <span class="op">==</span> <span class="number">0</span> {
+                <span class="kw">if</span> <span class="ident">snapshot</span>.<span class="ident">ref_count</span>() <span class="op">==</span> <span class="number">0</span> {
                     <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#216">action</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#87">TransitionToNotifiedByVal::Dealloc</a>;
                 } <span class="kw">else</span> {
                     <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#216">action</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#85">TransitionToNotifiedByVal::DoNothing</a>;
@@ -853,10 +852,10 @@
     <span class="doccomment">/// Transitions the state to `NOTIFIED`.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">transition_to_notified_by_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#91-94">TransitionToNotifiedByRef</a> {
         <a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#252">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#451-453">fetch_update_action</a>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">snapshot</span><span class="op">|</span> {
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#253">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#537">is_complete</a>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#253">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#504">is_notified</a>() {
+            <span class="kw">if</span> <span class="ident">snapshot</span>.<span class="ident">is_complete</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">snapshot</span>.<span class="ident">is_notified</span>() {
                 <span class="comment">// There is nothing to do in this case.</span>
                 (<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#92">TransitionToNotifiedByRef::DoNothing</a>, <span class="prelude-val">None</span>)
-            } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#253">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#516">is_running</a>() {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">snapshot</span>.<span class="ident">is_running</span>() {
                 <span class="comment">// If the task is running, we mark it as notified, but we should</span>
                 <span class="comment">// not submit as the thread currently running the future is</span>
                 <span class="comment">// responsible for that.</span>
@@ -878,10 +877,10 @@
     <span class="doccomment">/// execution.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">transition_to_notified_and_cancel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#277">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#451-453">fetch_update_action</a>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">snapshot</span><span class="op">|</span> {
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#278">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#528">is_cancelled</a>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#278">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#537">is_complete</a>() {
+            <span class="kw">if</span> <span class="ident">snapshot</span>.<span class="ident">is_cancelled</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">snapshot</span>.<span class="ident">is_complete</span>() {
                 <span class="comment">// Aborts to completed or cancelled tasks are no-ops.</span>
                 (<span class="bool-val">false</span>, <span class="prelude-val">None</span>)
-            } <span class="kw">else</span> <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#278">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#516">is_running</a>() {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">snapshot</span>.<span class="ident">is_running</span>() {
                 <span class="comment">// If the task is running, we mark it as cancelled. The thread</span>
                 <span class="comment">// running the task will notice the cancelled bit when it</span>
                 <span class="comment">// stops polling and it will kill the task.</span>
@@ -897,7 +896,7 @@
                 <span class="comment">// submit a notification if the notified bit was not already</span>
                 <span class="comment">// set.</span>
                 <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#278">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#532">set_cancelled</a>();
-                <span class="kw">if</span> <span class="op">!</span><a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#278">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#504">is_notified</a>() {
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">snapshot</span>.<span class="ident">is_notified</span>() {
                     <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#278">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#512">set_notified</a>();
                     <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#278">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#565">ref_inc</a>();
                     (<span class="bool-val">true</span>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#278">snapshot</a>))
@@ -917,7 +916,7 @@
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#312">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#473-475">fetch_update</a>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">snapshot</span><span class="op">|</span> {
             <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#313">prev</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#315">snapshot</a>;
 
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#315">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#499">is_idle</a>() {
+            <span class="kw">if</span> <span class="ident">snapshot</span>.<span class="ident">is_idle</span>() {
                 <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#315">snapshot</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#520">set_running</a>();
             }
 
@@ -960,9 +959,9 @@
     <span class="doccomment">/// completed state, `Err` otherwise.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unset_join_interested</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#15">UpdateResult</a> {
         <a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#359">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#473-475">fetch_update</a>(<span class="op">|</span><span class="ident">curr</span><span class="op">|</span> {
-            <span class="macro">assert!</span>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#360">curr</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#541">is_join_interested</a>());
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">curr</span>.<span class="ident">is_join_interested</span>());
 
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#360">curr</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#537">is_complete</a>() {
+            <span class="kw">if</span> <span class="ident">curr</span>.<span class="ident">is_complete</span>() {
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
 
@@ -979,10 +978,10 @@
     <span class="doccomment">/// the task has completed.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set_join_waker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#15">UpdateResult</a> {
         <a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#378">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#473-475">fetch_update</a>(<span class="op">|</span><span class="ident">curr</span><span class="op">|</span> {
-            <span class="macro">assert!</span>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#379">curr</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#541">is_join_interested</a>());
-            <span class="macro">assert!</span>(<span class="op">!</span><a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#379">curr</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#549">has_join_waker</a>());
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">curr</span>.<span class="ident">is_join_interested</span>());
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">curr</span>.<span class="ident">has_join_waker</span>());
 
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#379">curr</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#537">is_complete</a>() {
+            <span class="kw">if</span> <span class="ident">curr</span>.<span class="ident">is_complete</span>() {
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
 
@@ -999,10 +998,10 @@
     <span class="doccomment">/// the task has completed.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unset_waker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#15">UpdateResult</a> {
         <a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#398">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#473-475">fetch_update</a>(<span class="op">|</span><span class="ident">curr</span><span class="op">|</span> {
-            <span class="macro">assert!</span>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#399">curr</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#541">is_join_interested</a>());
-            <span class="macro">assert!</span>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#399">curr</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#549">has_join_waker</a>());
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">curr</span>.<span class="ident">is_join_interested</span>());
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">curr</span>.<span class="ident">has_join_waker</span>());
 
-            <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#399">curr</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#537">is_complete</a>() {
+            <span class="kw">if</span> <span class="ident">curr</span>.<span class="ident">is_complete</span>() {
                 <span class="kw">return</span> <span class="prelude-val">None</span>;
             }
 
@@ -1031,7 +1030,7 @@
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#414">self</a>.<span class="ident">val</span>.<span class="ident">fetch_add</span>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#53">REF_ONE</a>, <span class="ident">Relaxed</span>);
 
         <span class="comment">// If the reference count overflowed, abort.</span>
-        <span class="kw">if</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#429">prev</a> <span class="op">&gt;</span> <span class="ident">isize::MAX</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">if</span> <span class="ident">prev</span> <span class="op">&gt;</span> <span class="ident">isize::MAX</span> <span class="kw">as</span> <span class="ident">usize</span> {
             <span class="ident">process::abort</span>();
         }
     }
@@ -1039,14 +1038,14 @@
     <span class="doccomment">/// Returns `true` if the task should be released.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">ref_dec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#13">Snapshot</a>(<a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#438">self</a>.<span class="ident">val</span>.<span class="ident">fetch_sub</span>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#53">REF_ONE</a>, <span class="ident">AcqRel</span>));
-        <span class="macro">assert!</span>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#439">prev</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#561">ref_count</a>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">prev</span>.<span class="ident">ref_count</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">1</span>);
         <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#439">prev</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#561">ref_count</a>() <span class="op">==</span> <span class="number">1</span>
     }
 
     <span class="doccomment">/// Returns `true` if the task should be released.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">ref_dec_twice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#13">Snapshot</a>(<a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#445">self</a>.<span class="ident">val</span>.<span class="ident">fetch_sub</span>(<span class="number">2</span> <span class="op">*</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#53">REF_ONE</a>, <span class="ident">AcqRel</span>));
-        <span class="macro">assert!</span>(<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#446">prev</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#561">ref_count</a>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">prev</span>.<span class="ident">ref_count</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span>);
         <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#446">prev</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#561">ref_count</a>() <span class="op">==</span> <span class="number">2</span>
     }
 
@@ -1165,12 +1164,12 @@
     }
 
     <span class="kw">fn</span> <span class="ident">ref_inc</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="macro">assert!</span>(<a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#565">self</a>.<span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">isize::MAX</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">isize::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>);
         <a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#565">self</a>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#53">REF_ONE</a>;
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">ref_dec</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="macro">assert!</span>(<a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#570">self</a>.<a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#561">ref_count</a>() <span class="op">&gt;</span> <span class="number">0</span>);
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="ident">ref_count</span>() <span class="op">&gt;</span> <span class="number">0</span>);
         <a class="self" href="../../../../src/tokio/runtime/task/state.rs.html#570">self</a>.<span class="number">0</span> <span class="op">-</span><span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#53">REF_ONE</a>
     }
 }
@@ -1196,5 +1195,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

@@ -1,9 +1,8 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/polling-2.2.0/src/epoll.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polling/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/polling-2.2.0/src/epoll.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>epoll.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../polling/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../polling/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polling/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><div id="settings-menu" tabindex="-1">
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../polling/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
                                 <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
                         </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -322,32 +321,32 @@
         <span class="comment">// Use `epoll_create1` with `EPOLL_CLOEXEC`.</span>
         <span class="kw">let</span> <span class="ident">epoll_fd</span> <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">syscall</span>(
             <span class="ident">libc::SYS_epoll_create1</span>,
-            <span class="ident">libc::EPOLL_CLOEXEC</span> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>
+            <span class="ident">libc::EPOLL_CLOEXEC</span> <span class="kw">as</span> <span class="ident">libc::c_int</span>
         ))
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">fd</span><span class="op">|</span> <a class="ident" href="../../src/polling/epoll.rs.html#32">fd</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>)
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">fd</span><span class="op">|</span> <span class="ident">fd</span> <span class="kw">as</span> <span class="ident">libc::c_int</span>)
         .<span class="ident">or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-            <span class="kw">match</span> <a class="ident" href="../../src/polling/epoll.rs.html#33">e</a>.<span class="ident">raw_os_error</span>() {
+            <span class="kw">match</span> <span class="ident">e</span>.<span class="ident">raw_os_error</span>() {
                 <span class="prelude-val">Some</span>(<span class="ident">libc::ENOSYS</span>) =&gt; {
                     <span class="comment">// If `epoll_create1` is not implemented, use `epoll_create`</span>
                     <span class="comment">// and manually set `FD_CLOEXEC`.</span>
                     <span class="kw">let</span> <span class="ident">fd</span> <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">epoll_create</span>(<span class="number">1024</span>))<span class="question-mark">?</span>;
 
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">flags</span>) <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">fcntl</span>(<a class="ident" href="../../src/polling/epoll.rs.html#38">fd</a>, <span class="ident">libc::F_GETFD</span>)) {
-                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">fcntl</span>(<a class="ident" href="../../src/polling/epoll.rs.html#38">fd</a>, <span class="ident">libc::F_SETFD</span>, <a class="ident" href="../../src/polling/epoll.rs.html#40">flags</a> <span class="op">|</span> <span class="ident">libc::FD_CLOEXEC</span>));
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">flags</span>) <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">fcntl</span>(<span class="ident">fd</span>, <span class="ident">libc::F_GETFD</span>)) {
+                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">fcntl</span>(<span class="ident">fd</span>, <span class="ident">libc::F_SETFD</span>, <span class="ident">flags</span> <span class="op">|</span> <span class="ident">libc::FD_CLOEXEC</span>));
                     }
 
-                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/polling/epoll.rs.html#38">fd</a>)
+                    <span class="prelude-val">Ok</span>(<span class="ident">fd</span>)
                 }
-                <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/polling/epoll.rs.html#33">e</a>),
+                <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">e</span>),
             }
         })<span class="question-mark">?</span>;
 
         <span class="comment">// Set up eventfd and timerfd.</span>
         <span class="kw">let</span> <span class="ident">event_fd</span> <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">eventfd</span>(<span class="number">0</span>, <span class="ident">libc::EFD_CLOEXEC</span> <span class="op">|</span> <span class="ident">libc::EFD_NONBLOCK</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">timer_fd</span> <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">syscall</span>(
+        <span class="kw">let</span> <span class="ident">timer_fd</span> <span class="op">=</span> <a class="macro" href="../../src/polling/lib.rs.html#65-74">syscall!</a>(<span class="ident">syscall</span>(
             <span class="ident">libc::SYS_timerfd_create</span>,
-            <span class="ident">libc::CLOCK_MONOTONIC</span> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>,
-            (<span class="ident">libc::TFD_CLOEXEC</span> <span class="op">|</span> <span class="ident">libc::TFD_NONBLOCK</span>) <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>,
+            <span class="ident">libc::CLOCK_MONOTONIC</span> <span class="kw">as</span> <span class="ident">libc::c_int</span>,
+            (<span class="ident">libc::TFD_CLOEXEC</span> <span class="op">|</span> <span class="ident">libc::TFD_NONBLOCK</span>) <span class="kw">as</span> <span class="ident">libc::c_int</span>,
         ))
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">fd</span><span class="op">|</span> <a class="ident" href="../../src/polling/epoll.rs.html#57">fd</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>)
         .<span class="ident">ok</span>();
@@ -359,48 +358,48 @@
         };
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">timer_fd</span>) <span class="op">=</span> <a class="ident" href="../../src/polling/epoll.rs.html#52">timer_fd</a> {
-            <a class="ident" href="../../src/polling/epoll.rs.html#60">poller</a>.<a class="ident" href="../../src/polling/epoll.rs.html#89">add</a>(<a class="ident" href="../../src/polling/epoll.rs.html#66">timer_fd</a>, <span class="ident">Event::none</span>(<a class="ident" href="../../src/polling/lib.rs.html#112"><span class="kw">crate</span>::NOTIFY_KEY</a>))<span class="question-mark">?</span>;
+            <span class="ident">poller</span>.<span class="ident">add</span>(<span class="ident">timer_fd</span>, <span class="ident">Event::none</span>(<span class="ident"><span class="kw">crate</span>::NOTIFY_KEY</span>))<span class="question-mark">?</span>;
         }
 
-        <a class="ident" href="../../src/polling/epoll.rs.html#60">poller</a>.<a class="ident" href="../../src/polling/epoll.rs.html#89">add</a>(
-            <a class="ident" href="../../src/polling/epoll.rs.html#51">event_fd</a>,
-            <a class="ident" href="../../src/polling/lib.rs.html#116-123">Event</a> {
-                <span class="ident">key</span>: <a class="ident" href="../../src/polling/lib.rs.html#112"><span class="kw">crate</span>::NOTIFY_KEY</a>,
+        <span class="ident">poller</span>.<span class="ident">add</span>(
+            <span class="ident">event_fd</span>,
+            <span class="ident">Event</span> {
+                <span class="ident">key</span>: <span class="ident"><span class="kw">crate</span>::NOTIFY_KEY</span>,
                 <span class="ident">readable</span>: <span class="bool-val">true</span>,
                 <span class="ident">writable</span>: <span class="bool-val">false</span>,
             },
         )<span class="question-mark">?</span>;
 
-        <span class="macro">log::trace!</span>(
+        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(
             <span class="string">&quot;new: epoll_fd={}, event_fd={}, timer_fd={:?}&quot;</span>,
-            <a class="ident" href="../../src/polling/epoll.rs.html#28">epoll_fd</a>,
-            <a class="ident" href="../../src/polling/epoll.rs.html#51">event_fd</a>,
-            <a class="ident" href="../../src/polling/epoll.rs.html#52">timer_fd</a>
+            <span class="ident">epoll_fd</span>,
+            <span class="ident">event_fd</span>,
+            <span class="ident">timer_fd</span>
         );
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/polling/epoll.rs.html#60">poller</a>)
     }
 
     <span class="doccomment">/// Adds a new file descriptor.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">ev</span>: <a class="ident" href="../../src/polling/lib.rs.html#116-123">Event</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">log::trace!</span>(<span class="string">&quot;add: epoll_fd={}, fd={}, ev={:?}&quot;</span>, <a class="self" href="../../src/polling/epoll.rs.html#89">self</a>.<span class="ident">epoll_fd</span>, <a class="ident" href="../../src/polling/epoll.rs.html#89">fd</a>, <a class="ident" href="../../src/polling/epoll.rs.html#89">ev</a>);
+        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(<span class="string">&quot;add: epoll_fd={}, fd={}, ev={:?}&quot;</span>, <span class="self">self</span>.<span class="ident">epoll_fd</span>, <span class="ident">fd</span>, <span class="ident">ev</span>);
         <a class="self" href="../../src/polling/epoll.rs.html#89">self</a>.<a class="ident" href="../../src/polling/epoll.rs.html#202">ctl</a>(<span class="ident">libc::EPOLL_CTL_ADD</span>, <a class="ident" href="../../src/polling/epoll.rs.html#89">fd</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/polling/epoll.rs.html#89">ev</a>))
     }
 
     <span class="doccomment">/// Modifies an existing file descriptor.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">modify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">ev</span>: <a class="ident" href="../../src/polling/lib.rs.html#116-123">Event</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">log::trace!</span>(<span class="string">&quot;modify: epoll_fd={}, fd={}, ev={:?}&quot;</span>, <a class="self" href="../../src/polling/epoll.rs.html#95">self</a>.<span class="ident">epoll_fd</span>, <a class="ident" href="../../src/polling/epoll.rs.html#95">fd</a>, <a class="ident" href="../../src/polling/epoll.rs.html#95">ev</a>);
+        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(<span class="string">&quot;modify: epoll_fd={}, fd={}, ev={:?}&quot;</span>, <span class="self">self</span>.<span class="ident">epoll_fd</span>, <span class="ident">fd</span>, <span class="ident">ev</span>);
         <a class="self" href="../../src/polling/epoll.rs.html#95">self</a>.<a class="ident" href="../../src/polling/epoll.rs.html#202">ctl</a>(<span class="ident">libc::EPOLL_CTL_MOD</span>, <a class="ident" href="../../src/polling/epoll.rs.html#95">fd</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/polling/epoll.rs.html#95">ev</a>))
     }
 
     <span class="doccomment">/// Deletes a file descriptor.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">delete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">log::trace!</span>(<span class="string">&quot;remove: epoll_fd={}, fd={}&quot;</span>, <a class="self" href="../../src/polling/epoll.rs.html#101">self</a>.<span class="ident">epoll_fd</span>, <a class="ident" href="../../src/polling/epoll.rs.html#101">fd</a>);
+        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(<span class="string">&quot;remove: epoll_fd={}, fd={}&quot;</span>, <span class="self">self</span>.<span class="ident">epoll_fd</span>, <span class="ident">fd</span>);
         <a class="self" href="../../src/polling/epoll.rs.html#101">self</a>.<a class="ident" href="../../src/polling/epoll.rs.html#202">ctl</a>(<span class="ident">libc::EPOLL_CTL_DEL</span>, <a class="ident" href="../../src/polling/epoll.rs.html#101">fd</a>, <span class="prelude-val">None</span>)
     }
 
     <span class="doccomment">/// Waits for I/O events with an optional timeout.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wait</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">events</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/polling/epoll.rs.html#264-267">Events</a>, <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">log::trace!</span>(<span class="string">&quot;wait: epoll_fd={}, timeout={:?}&quot;</span>, <a class="self" href="../../src/polling/epoll.rs.html#107">self</a>.<span class="ident">epoll_fd</span>, <a class="ident" href="../../src/polling/epoll.rs.html#107">timeout</a>);
+        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(<span class="string">&quot;wait: epoll_fd={}, timeout={:?}&quot;</span>, <span class="self">self</span>.<span class="ident">epoll_fd</span>, <span class="ident">timeout</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">timer_fd</span>) <span class="op">=</span> <a class="self" href="../../src/polling/epoll.rs.html#107">self</a>.<span class="ident">timer_fd</span> {
             <span class="comment">// Configure the timeout using timerfd.</span>
@@ -417,17 +416,17 @@
 
             <span class="macro">syscall!</span>(<span class="ident">syscall</span>(
                 <span class="ident">libc::SYS_timerfd_settime</span>,
-                <a class="ident" href="../../src/polling/epoll.rs.html#110">timer_fd</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>,
-                <span class="number">0</span> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>,
-                <span class="kw-2">&amp;</span><a class="ident" href="../../src/polling/epoll.rs.html#112">new_val</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../libc/unix/linux_like/linux/struct.itimerspec.html">libc::itimerspec</a>,
-                <span class="ident">ptr::null_mut</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libc/unix/linux_like/linux/struct.itimerspec.html">libc::itimerspec</a>
+                <span class="ident">timer_fd</span> <span class="kw">as</span> <span class="ident">libc::c_int</span>,
+                <span class="number">0</span> <span class="kw">as</span> <span class="ident">libc::c_int</span>,
+                <span class="kw-2">&amp;</span><span class="ident">new_val</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::itimerspec</span>,
+                <span class="ident">ptr::null_mut</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::itimerspec</span>
             ))<span class="question-mark">?</span>;
 
             <span class="comment">// Set interest in timerfd.</span>
-            <a class="self" href="../../src/polling/epoll.rs.html#107">self</a>.<a class="ident" href="../../src/polling/epoll.rs.html#95">modify</a>(
-                <a class="ident" href="../../src/polling/epoll.rs.html#110">timer_fd</a>,
-                <a class="ident" href="../../src/polling/lib.rs.html#116-123">Event</a> {
-                    <span class="ident">key</span>: <a class="ident" href="../../src/polling/lib.rs.html#112"><span class="kw">crate</span>::NOTIFY_KEY</a>,
+            <span class="self">self</span>.<span class="ident">modify</span>(
+                <span class="ident">timer_fd</span>,
+                <span class="ident">Event</span> {
+                    <span class="ident">key</span>: <span class="ident"><span class="kw">crate</span>::NOTIFY_KEY</span>,
                     <span class="ident">readable</span>: <span class="bool-val">true</span>,
                     <span class="ident">writable</span>: <span class="bool-val">false</span>,
                 },
@@ -440,7 +439,7 @@
             (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">t</span>)) =&gt; {
                 <span class="comment">// Round up to a whole millisecond.</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ms</span> <span class="op">=</span> <a class="ident" href="../../src/polling/epoll.rs.html#145">t</a>.<span class="ident">as_millis</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().<span class="ident">unwrap_or</span>(<span class="ident">std::i32::MAX</span>);
-                <span class="kw">if</span> <span class="ident">Duration::from_millis</span>(<a class="ident" href="../../src/polling/epoll.rs.html#147">ms</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="op">&lt;</span> <a class="ident" href="../../src/polling/epoll.rs.html#145">t</a> {
+                <span class="kw">if</span> <span class="ident">Duration::from_millis</span>(<span class="ident">ms</span> <span class="kw">as</span> <span class="ident">u64</span>) <span class="op">&lt;</span> <span class="ident">t</span> {
                     <a class="ident" href="../../src/polling/epoll.rs.html#147">ms</a> <span class="op">=</span> <a class="ident" href="../../src/polling/epoll.rs.html#147">ms</a>.<span class="ident">saturating_add</span>(<span class="number">1</span>);
                 }
                 <a class="ident" href="../../src/polling/epoll.rs.html#147">ms</a>
@@ -450,25 +449,25 @@
 
         <span class="comment">// Wait for I/O events.</span>
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">epoll_wait</span>(
-            <a class="self" href="../../src/polling/epoll.rs.html#107">self</a>.<span class="ident">epoll_fd</span>,
-            <a class="ident" href="../../src/polling/epoll.rs.html#107">events</a>.<span class="ident">list</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libc/unix/linux_like/struct.epoll_event.html">libc::epoll_event</a>,
-            <a class="ident" href="../../src/polling/epoll.rs.html#107">events</a>.<span class="ident">list</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>,
-            <a class="ident" href="../../src/polling/epoll.rs.html#143">timeout_ms</a> <span class="kw">as</span> <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>,
+            <span class="self">self</span>.<span class="ident">epoll_fd</span>,
+            <span class="ident">events</span>.<span class="ident">list</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::epoll_event</span>,
+            <span class="ident">events</span>.<span class="ident">list</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">libc::c_int</span>,
+            <span class="ident">timeout_ms</span> <span class="kw">as</span> <span class="ident">libc::c_int</span>,
         ))<span class="question-mark">?</span>;
         <a class="ident" href="../../src/polling/epoll.rs.html#107">events</a>.<span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/polling/epoll.rs.html#157">res</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
-        <span class="macro">log::trace!</span>(<span class="string">&quot;new events: epoll_fd={}, res={}&quot;</span>, <a class="self" href="../../src/polling/epoll.rs.html#107">self</a>.<span class="ident">epoll_fd</span>, <a class="ident" href="../../src/polling/epoll.rs.html#157">res</a>);
+        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(<span class="string">&quot;new events: epoll_fd={}, res={}&quot;</span>, <span class="self">self</span>.<span class="ident">epoll_fd</span>, <span class="ident">res</span>);
 
         <span class="comment">// Clear the notification (if received) and re-register interest in it.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">8</span>];
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">read</span>(
-            <a class="self" href="../../src/polling/epoll.rs.html#107">self</a>.<span class="ident">event_fd</span>,
-            <a class="ident" href="../../src/polling/epoll.rs.html#167">buf</a>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">libc::c_void</a>,
-            <a class="ident" href="../../src/polling/epoll.rs.html#167">buf</a>.<span class="ident">len</span>()
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="macro" href="../../src/polling/lib.rs.html#65-74">syscall!</a>(<span class="ident">read</span>(
+            <span class="self">self</span>.<span class="ident">event_fd</span>,
+            <span class="ident">buf</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+            <span class="ident">buf</span>.<span class="ident">len</span>()
         ));
-        <a class="self" href="../../src/polling/epoll.rs.html#107">self</a>.<a class="ident" href="../../src/polling/epoll.rs.html#95">modify</a>(
-            <a class="self" href="../../src/polling/epoll.rs.html#107">self</a>.<span class="ident">event_fd</span>,
-            <a class="ident" href="../../src/polling/lib.rs.html#116-123">Event</a> {
-                <span class="ident">key</span>: <a class="ident" href="../../src/polling/lib.rs.html#112"><span class="kw">crate</span>::NOTIFY_KEY</a>,
+        <span class="self">self</span>.<span class="ident">modify</span>(
+            <span class="self">self</span>.<span class="ident">event_fd</span>,
+            <span class="ident">Event</span> {
+                <span class="ident">key</span>: <span class="ident"><span class="kw">crate</span>::NOTIFY_KEY</span>,
                 <span class="ident">readable</span>: <span class="bool-val">true</span>,
                 <span class="ident">writable</span>: <span class="bool-val">false</span>,
             },
@@ -478,17 +477,17 @@
 
     <span class="doccomment">/// Sends a notification to wake up the current or next `wait()` call.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">notify</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="macro">log::trace!</span>(
+        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(
             <span class="string">&quot;notify: epoll_fd={}, event_fd={}&quot;</span>,
-            <a class="self" href="../../src/polling/epoll.rs.html#185">self</a>.<span class="ident">epoll_fd</span>,
-            <a class="self" href="../../src/polling/epoll.rs.html#185">self</a>.<span class="ident">event_fd</span>
+            <span class="self">self</span>.<span class="ident">epoll_fd</span>,
+            <span class="self">self</span>.<span class="ident">event_fd</span>
         );
 
         <span class="kw">let</span> <span class="ident">buf</span>: [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>; <span class="number">8</span>] <span class="op">=</span> <span class="number">1u64</span>.<span class="ident">to_ne_bytes</span>();
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">write</span>(
-            <a class="self" href="../../src/polling/epoll.rs.html#185">self</a>.<span class="ident">event_fd</span>,
-            <a class="ident" href="../../src/polling/epoll.rs.html#192">buf</a>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ffi/enum.c_void.html">libc::c_void</a>,
-            <a class="ident" href="../../src/polling/epoll.rs.html#192">buf</a>.<span class="ident">len</span>()
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="macro" href="../../src/polling/lib.rs.html#65-74">syscall!</a>(<span class="ident">write</span>(
+            <span class="self">self</span>.<span class="ident">event_fd</span>,
+            <span class="ident">buf</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_void</span>,
+            <span class="ident">buf</span>.<span class="ident">len</span>()
         ));
         <span class="prelude-val">Ok</span>(())
     }
@@ -497,10 +496,10 @@
     <span class="kw">fn</span> <span class="ident">ctl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">op</span>: <a class="ident" href="../../libc/unix/type.c_int.html">libc::c_int</a>, <span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>, <span class="ident">ev</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/polling/lib.rs.html#116-123">Event</a><span class="op">&gt;</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ev</span> <span class="op">=</span> <a class="ident" href="../../src/polling/epoll.rs.html#202">ev</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">ev</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">libc::EPOLLONESHOT</span>;
-            <span class="kw">if</span> <a class="ident" href="../../src/polling/epoll.rs.html#203">ev</a>.<span class="ident">readable</span> {
+            <span class="kw">if</span> <span class="ident">ev</span>.<span class="ident">readable</span> {
                 <a class="ident" href="../../src/polling/epoll.rs.html#204">flags</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/polling/epoll.rs.html#254">read_flags</a>();
             }
-            <span class="kw">if</span> <a class="ident" href="../../src/polling/epoll.rs.html#203">ev</a>.<span class="ident">writable</span> {
+            <span class="kw">if</span> <span class="ident">ev</span>.<span class="ident">writable</span> {
                 <a class="ident" href="../../src/polling/epoll.rs.html#204">flags</a> <span class="op">|</span><span class="op">=</span> <a class="ident" href="../../src/polling/epoll.rs.html#259">write_flags</a>();
             }
             <a class="ident" href="../../libc/unix/linux_like/struct.epoll_event.html">libc::epoll_event</a> {
@@ -509,11 +508,11 @@
             }
         });
         <span class="macro">syscall!</span>(<span class="ident">epoll_ctl</span>(
-            <a class="self" href="../../src/polling/epoll.rs.html#202">self</a>.<span class="ident">epoll_fd</span>,
-            <a class="ident" href="../../src/polling/epoll.rs.html#202">op</a>,
-            <a class="ident" href="../../src/polling/epoll.rs.html#202">fd</a>,
-            <a class="ident" href="../../src/polling/epoll.rs.html#203">ev</a>.<span class="ident">as_mut</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ev</span><span class="op">|</span> <a class="ident" href="../../src/polling/epoll.rs.html#221">ev</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../libc/unix/linux_like/struct.epoll_event.html">libc::epoll_event</a>)
+            <span class="self">self</span>.<span class="ident">epoll_fd</span>,
+            <span class="ident">op</span>,
+            <span class="ident">fd</span>,
+            <span class="ident">ev</span>.<span class="ident">as_mut</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ev</span><span class="op">|</span> <span class="ident">ev</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::epoll_event</span>)
                 .<span class="ident">unwrap_or</span>(<span class="ident">ptr::null_mut</span>()),
         ))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
@@ -522,20 +521,20 @@
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/polling/epoll.rs.html#13-20">Poller</a> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="macro">log::trace!</span>(
+        <a class="macro" href="../../log/log/macro.trace.html">log::trace!</a>(
             <span class="string">&quot;drop: epoll_fd={}, event_fd={}, timer_fd={:?}&quot;</span>,
-            <a class="self" href="../../src/polling/epoll.rs.html#229">self</a>.<span class="ident">epoll_fd</span>,
-            <a class="self" href="../../src/polling/epoll.rs.html#229">self</a>.<span class="ident">event_fd</span>,
-            <a class="self" href="../../src/polling/epoll.rs.html#229">self</a>.<span class="ident">timer_fd</span>
+            <span class="self">self</span>.<span class="ident">epoll_fd</span>,
+            <span class="self">self</span>.<span class="ident">event_fd</span>,
+            <span class="self">self</span>.<span class="ident">timer_fd</span>
         );
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">timer_fd</span>) <span class="op">=</span> <a class="self" href="../../src/polling/epoll.rs.html#229">self</a>.<span class="ident">timer_fd</span> {
             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="self" href="../../src/polling/epoll.rs.html#229">self</a>.<a class="ident" href="../../src/polling/epoll.rs.html#101">delete</a>(<a class="ident" href="../../src/polling/epoll.rs.html#237">timer_fd</a>);
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">close</span>(<a class="ident" href="../../src/polling/epoll.rs.html#237">timer_fd</a>));
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="macro" href="../../src/polling/lib.rs.html#65-74">syscall!</a>(<span class="ident">close</span>(<span class="ident">timer_fd</span>));
         }
         <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="self" href="../../src/polling/epoll.rs.html#229">self</a>.<a class="ident" href="../../src/polling/epoll.rs.html#101">delete</a>(<a class="self" href="../../src/polling/epoll.rs.html#229">self</a>.<span class="ident">event_fd</span>);
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">close</span>(<a class="self" href="../../src/polling/epoll.rs.html#229">self</a>.<span class="ident">event_fd</span>));
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">syscall!</span>(<span class="ident">close</span>(<a class="self" href="../../src/polling/epoll.rs.html#229">self</a>.<span class="ident">epoll_fd</span>));
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="macro" href="../../src/polling/lib.rs.html#65-74">syscall!</a>(<span class="ident">close</span>(<span class="self">self</span>.<span class="ident">event_fd</span>));
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="macro" href="../../src/polling/lib.rs.html#65-74">syscall!</a>(<span class="ident">close</span>(<span class="self">self</span>.<span class="ident">epoll_fd</span>));
     }
 }
 
@@ -567,7 +566,7 @@
     <span class="doccomment">/// Creates an empty list.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../src/polling/epoll.rs.html#264-267">Events</a> {
         <span class="kw">let</span> <span class="ident">ev</span> <span class="op">=</span> <a class="ident" href="../../libc/unix/linux_like/struct.epoll_event.html">libc::epoll_event</a> { <span class="ident">events</span>: <span class="number">0</span>, <span class="ident">u64</span>: <span class="number">0</span> };
-        <span class="kw">let</span> <span class="ident">list</span> <span class="op">=</span> <span class="macro">vec!</span>[<a class="ident" href="../../src/polling/epoll.rs.html#274">ev</a>; <span class="number">1000</span>].<span class="ident">into_boxed_slice</span>();
+        <span class="kw">let</span> <span class="ident">list</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">ev</span>; <span class="number">1000</span>].<span class="ident">into_boxed_slice</span>();
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
         <a class="ident" href="../../src/polling/epoll.rs.html#264-267">Events</a> { <a class="ident" href="../../src/polling/epoll.rs.html#275">list</a>, <a class="ident" href="../../src/polling/epoll.rs.html#276">len</a> }
     }
@@ -582,5 +581,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polling" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0-nightly (1f34da9ec 2022-06-14)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="polling" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["CachePadded","Pads and aligns data to the length of a cache line."]]});
+window.SIDEBAR_ITEMS = {"struct":[["CachePadded","Pads and aligns data to the length of a cache line."]]};
