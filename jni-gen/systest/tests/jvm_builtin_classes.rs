@@ -1,7 +1,3 @@
-extern crate error_chain;
-extern crate jni;
-extern crate systest;
-
 use jni::objects::JObject;
 use jni::InitArgsBuilder;
 use jni::JNIVersion;

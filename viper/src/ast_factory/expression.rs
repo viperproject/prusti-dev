@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ast_factory::{
+use crate::ast_factory::{
     structs::{DomainFunc, Expr, Field, LocalVarDecl, Location, Position, Trigger, Type},
     AstFactory,
 };
@@ -1288,6 +1288,16 @@ impl<'a> AstFactory<'a> {
             ast::MapLookup,
             map.to_jobject(),
             key.to_jobject()
+        )
+    }
+
+    pub fn map_contains(&self, map: Expr, key: Expr) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            ast::MapContains,
+            key.to_jobject(),
+            map.to_jobject()
         )
     }
 

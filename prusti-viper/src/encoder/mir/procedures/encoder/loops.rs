@@ -6,7 +6,7 @@ use crate::encoder::{
         specifications::SpecificationsInterface, type_layouts::MirTypeLayoutsEncoderInterface,
     },
 };
-use rustc_middle::mir;
+use prusti_rustc_interface::middle::mir;
 use vir_crate::high::{self as vir_high};
 
 impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {

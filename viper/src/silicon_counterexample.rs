@@ -1,10 +1,10 @@
 use rustc_hash::FxHashMap;
 
+use crate::jni_utils::JniUtils;
 use jni::{objects::JObject, JNIEnv};
-use jni_utils::JniUtils;
 use viper_sys::wrappers::{scala, viper::silicon};
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct SiliconCounterexample {
     //pub heap: Heap,
     //pub old_heaps: FxHashMap<String, Heap>,
@@ -32,12 +32,12 @@ trigger unfolding of certain predicates, but for now there is
 nothing to be used stored in the heap
 */
 /*
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Heap {
     pub entries: Vec<HeapEntry>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum HeapEntry {
     FieldEntry {
         recv: ModelEntry,
@@ -53,12 +53,12 @@ pub enum HeapEntry {
 */
 
 // Model Definitions
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Model {
     pub entries: FxHashMap<String, ModelEntry>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum ModelEntry {
     LitInt(String),
     LitFloat(String),

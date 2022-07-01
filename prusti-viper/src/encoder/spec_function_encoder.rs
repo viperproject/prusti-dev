@@ -18,8 +18,8 @@ use prusti_interface::{
 };
 use vir_crate::polymorphic as vir;
 use vir_crate::polymorphic::ExprIterator;
-use rustc_middle::{mir, ty::subst::SubstsRef};
-use rustc_span::Span;
+use prusti_rustc_interface::middle::{mir, ty::subst::SubstsRef};
+use prusti_rustc_interface::span::Span;
 
 pub enum SpecFunctionKind {
     Pre,

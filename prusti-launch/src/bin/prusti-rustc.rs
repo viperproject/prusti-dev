@@ -6,7 +6,7 @@
 
 #[cfg(target_family = "unix")]
 use nix::unistd::{setpgid, Pid};
-use prusti_launch::{add_to_loader_path, find_viper_home, find_z3_exe, sigint_handler};
+use prusti_launch::{add_to_loader_path, sigint_handler};
 use std::{
     env,
     io::Write,
@@ -54,29 +54,7 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
 
     add_to_loader_path(vec![compiler_lib, compiler_bin, libjvm_path], &mut cmd);
 
-    if env::var("VIPER_HOME").ok().is_none() {
-        if let Some(viper_home) = find_viper_home(&current_executable_dir) {
-            cmd.env("VIPER_HOME", viper_home);
-        } else {
-            panic!(
-                "Could not find the Viper home. \
-                Please set the VIPER_HOME environment variable, which should contain the path of \
-                the folder that contains all Viper JAR files."
-            );
-        }
-    };
-
-    if env::var("Z3_EXE").ok().is_none() {
-        if let Some(z3_exe) = find_z3_exe(&current_executable_dir) {
-            cmd.env("Z3_EXE", z3_exe);
-        } else {
-            panic!(
-                "Could not find the Z3 executable. \
-                Please set the Z3_EXE environment variable, which should contain the path of a \
-                Z3 executable."
-            );
-        }
-    };
+    prusti_launch::set_environment_settings(&mut cmd, &current_executable_dir, &java_home);
 
     // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
     // We're invoking the compiler programmatically, so we ignore this
@@ -96,7 +74,6 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         args.remove(remove_index);
         args.remove(remove_index);
     }
-
     cmd.args(&args);
 
     let has_no_sysroot_arg = !args.iter().any(|s| s == "--sysroot");

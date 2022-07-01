@@ -1,32 +1,24 @@
 #![feature(rustc_private)]
 
-/// Sources:
-/// https://github.com/rust-lang/miri/blob/master/benches/helpers/miri_helper.rs
-/// https://github.com/rust-lang/rust/blob/master/src/test/run-make-fulldeps/obtain-borrowck/driver.rs
-extern crate polonius_engine;
-extern crate rustc_ast;
-extern crate rustc_borrowck;
-extern crate rustc_driver;
-extern crate rustc_errors;
-extern crate rustc_hir;
-extern crate rustc_interface;
-extern crate rustc_middle;
-extern crate rustc_session;
-extern crate rustc_span;
+// Sources:
+// https://github.com/rust-lang/miri/blob/master/benches/helpers/miri_helper.rs
+// https://github.com/rust-lang/rust/blob/master/src/test/run-make-fulldeps/obtain-borrowck/driver.rs
 
 use analysis::domains::DefinitelyAccessibleAnalysis;
-use polonius_engine::{Algorithm, Output};
-use rustc_borrowck::BodyWithBorrowckFacts;
-use rustc_driver::Compilation;
-use rustc_hir as hir;
-use rustc_hir::def_id::LocalDefId;
-use rustc_interface::{interface, Config, Queries};
-use rustc_middle::{
-    ty,
-    ty::query::{query_values::mir_borrowck, ExternProviders, Providers},
+use prusti_rustc_interface::{
+    borrowck::BodyWithBorrowckFacts,
+    driver::Compilation,
+    hir,
+    hir::def_id::LocalDefId,
+    interface::{interface, Config, Queries},
+    middle::{
+        ty,
+        ty::query::{query_values::mir_borrowck, ExternProviders, Providers},
+    },
+    polonius_engine::{Algorithm, Output},
+    session::Session,
+    span::FileName,
 };
-use rustc_session::Session;
-use rustc_span::FileName;
 use std::{cell::RefCell, collections::HashMap, path::PathBuf, rc::Rc};
 
 struct OurCompilerCalls {
@@ -77,7 +69,7 @@ mod mir_storage {
 
 #[allow(clippy::needless_lifetimes)]
 fn mir_borrowck<'tcx>(tcx: ty::TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
-    let body_with_facts = rustc_borrowck::consumers::get_body_with_borrowck_facts(
+    let body_with_facts = prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts(
         tcx,
         ty::WithOptConstParam::unknown(def_id),
     );
@@ -87,7 +79,7 @@ fn mir_borrowck<'tcx>(tcx: ty::TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck
         mir_storage::store_mir_body(tcx, def_id, body_with_facts);
     }
     let mut providers = Providers::default();
-    rustc_borrowck::provide(&mut providers);
+    prusti_rustc_interface::borrowck::provide(&mut providers);
     let original_mir_borrowck = providers.mir_borrowck;
     original_mir_borrowck(tcx, def_id)
 }
@@ -96,7 +88,7 @@ fn override_queries(_session: &Session, local: &mut Providers, _external: &mut E
     local.mir_borrowck = mir_borrowck;
 }
 
-impl rustc_driver::Callbacks for OurCompilerCalls {
+impl prusti_rustc_interface::driver::Callbacks for OurCompilerCalls {
     // In this callback we override the mir_borrowck query.
     fn config(&mut self, config: &mut Config) {
         assert!(config.override_queries.is_none());
@@ -213,7 +205,7 @@ impl rustc_driver::Callbacks for OurCompilerCalls {
 /// Run an analysis by calling like it rustc
 fn main() {
     env_logger::init();
-    rustc_driver::init_rustc_env_logger();
+    prusti_rustc_interface::driver::init_rustc_env_logger();
     let mut compiler_args = Vec::new();
     let mut callback_args = Vec::new();
     for arg in std::env::args() {
@@ -232,8 +224,8 @@ fn main() {
         args: callback_args,
     };
     // Invoke compiler, and handle return code.
-    let exit_code = rustc_driver::catch_with_exit_code(move || {
-        rustc_driver::RunCompiler::new(&compiler_args, &mut callbacks).run()
+    let exit_code = prusti_rustc_interface::driver::catch_with_exit_code(move || {
+        prusti_rustc_interface::driver::RunCompiler::new(&compiler_args, &mut callbacks).run()
     });
     std::process::exit(exit_code)
 }

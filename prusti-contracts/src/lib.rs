@@ -136,13 +136,46 @@ mod private {
         unreachable!();
     }
 
+    use core::ops::*;
+
     /// a mathematical (unbounded) integer type
     /// it should not be constructed from running rust code, hence the private unit inside
-    #[derive(PartialEq, Eq, Copy, Clone)]
+    #[derive(Copy, Clone, PartialEq, Eq)]
     pub struct Int(());
 
     impl Int {
         pub fn new(_: i64) -> Self {
+            panic!()
+        }
+    }
+
+    macro_rules! __int_dummy_trait_impls__ {
+        ($($trait:ident $fun:ident),*) => {$(
+            impl core::ops::$trait for Int {
+                type Output = Self;
+                fn $fun(self, _other: Self) -> Self {
+                    panic!()
+                }
+            }
+        )*}
+    }
+
+    __int_dummy_trait_impls__!(Add add, Sub sub, Mul mul, Div div, Rem rem);
+
+    impl Neg for Int {
+        type Output = Self;
+        fn neg(self) -> Self {
+            panic!()
+        }
+    }
+
+    impl PartialOrd for Int {
+        fn partial_cmp(&self, _other: &Self) -> Option<core::cmp::Ordering> {
+            panic!()
+        }
+    }
+    impl Ord for Int {
+        fn cmp(&self, _other: &Self) -> core::cmp::Ordering {
             panic!()
         }
     }
@@ -161,13 +194,40 @@ mod private {
         pub fn single(_: T) -> Self {
             panic!()
         }
-        pub fn concat(_: Self, _: Self) -> Self {
+        pub fn concat(self, _: Self) -> Self {
             panic!()
         }
         pub fn lookup(self, _index: usize) -> T {
             panic!()
         }
         pub fn len(self) -> Int {
+            panic!()
+        }
+    }
+
+    #[macro_export]
+    macro_rules! seq {
+        ($val:expr) => {
+            $crate::Seq::single($val)
+        };
+        ($($val:expr),*) => {
+            $crate::Seq::empty()
+            $(
+                .concat(seq![$val])
+            )*
+        };
+    }
+
+    impl<T: Copy> Index<usize> for Seq<T> {
+        type Output = T;
+        fn index(&self, _: usize) -> &T {
+            panic!()
+        }
+    }
+
+    impl<T: Copy> Index<Int> for Seq<T> {
+        type Output = T;
+        fn index(&self, _: Int) -> &T {
             panic!()
         }
     }
@@ -194,6 +254,29 @@ mod private {
             panic!()
         }
         pub fn lookup(self, _key: K) -> V {
+            panic!()
+        }
+        pub fn contains(self, _key: K) -> bool {
+            panic!()
+        }
+    }
+
+    #[macro_export]
+    macro_rules! map {
+        ($($key:expr => $val:expr),*) => {
+            map!($crate::Map::empty(), $($key => $val),*)
+        };
+        ($existing_map:expr, $($key:expr => $val:expr),*) => {
+            $existing_map
+            $(
+                .insert($key, $val)
+            )*
+        };
+    }
+
+    impl<K, V> core::ops::Index<K> for Map<K, V> {
+        type Output = V;
+        fn index(&self, _key: K) -> &V {
             panic!()
         }
     }

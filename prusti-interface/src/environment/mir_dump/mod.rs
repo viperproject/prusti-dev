@@ -3,7 +3,7 @@ use crate::environment::{
     mir_body::{borrowck::facts::LocationTable, graphviz::to_graphviz},
     Procedure,
 };
-use rustc_span::def_id::DefId;
+use prusti_rustc_interface::span::def_id::DefId;
 use vir::common::graphviz::Graph;
 
 pub(crate) fn dump_mir_info(env: &Environment<'_>, def_id: DefId) {

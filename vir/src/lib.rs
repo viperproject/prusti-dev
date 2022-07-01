@@ -9,13 +9,6 @@
 #![deny(unused_variables)]
 #![deny(unused_doc_comments)]
 
-#[macro_use]
-extern crate log;
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate serde;
-
 #[rustfmt::skip]
 #[path = "../gen/vir_gen.rs"]
 mod gen;

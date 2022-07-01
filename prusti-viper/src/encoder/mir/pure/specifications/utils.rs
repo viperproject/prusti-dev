@@ -4,9 +4,11 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc_hir::def_id::DefId;
-use rustc_middle::{ty, ty::subst::SubstsRef};
-use rustc_span::Span;
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    middle::{ty, ty::subst::SubstsRef},
+    span::Span,
+};
 
 pub(super) fn extract_closure_from_ty<'tcx>(
     tcx: ty::TyCtxt<'tcx>,

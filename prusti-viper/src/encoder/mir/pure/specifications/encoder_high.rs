@@ -15,9 +15,11 @@ use crate::encoder::{
     Encoder,
 };
 use prusti_common::config;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{ty, ty::subst::SubstsRef};
-use rustc_span::Span;
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    middle::{ty, ty::subst::SubstsRef},
+    span::Span,
+};
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, ExpressionIterator, QuantifierHelpers},
     high as vir_high,

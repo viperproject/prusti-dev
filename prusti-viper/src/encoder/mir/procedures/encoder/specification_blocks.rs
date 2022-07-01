@@ -1,8 +1,10 @@
 use prusti_interface::environment::{
     is_loop_invariant_block, is_marked_specification_block, Procedure,
 };
-use rustc_data_structures::graph::WithSuccessors;
-use rustc_middle::{mir, ty::TyCtxt};
+use prusti_rustc_interface::{
+    data_structures::graph::WithSuccessors,
+    middle::{mir, ty::TyCtxt},
+};
 use std::collections::{BTreeMap, BTreeSet};
 
 /// Information about the specification blocks.
@@ -78,7 +80,7 @@ impl SpecificationBlocks {
         // We use reverse_postorder here because we need to make sure that we
         // preserve the order of invariants in which they were specified by the
         // user.
-        for (bb, data) in rustc_middle::mir::traversal::reverse_postorder(body) {
+        for (bb, data) in prusti_rustc_interface::middle::mir::traversal::reverse_postorder(body) {
             if specification_blocks.contains(&bb) && is_loop_invariant_block(data, tcx) {
                 let loop_head = loop_info.get_loop_head(bb).unwrap();
                 let loop_blocks = loop_invariant_blocks.entry(loop_head).or_insert_with(|| {
