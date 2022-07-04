@@ -155,6 +155,7 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                             [variant_place], root_address, [variant_snapshot]
                         )))
                     };
+                    println!("Push variant predicate");
                     variant_predicates.push(acc);
                 }
                 let discriminant_type = &decl.discriminant_type;
