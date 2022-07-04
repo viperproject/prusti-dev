@@ -254,6 +254,9 @@
 <span id="248">248</span>
 <span id="249">249</span>
 <span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait</span> <span class="ident">BuiltinFuncAppEncoder</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
@@ -370,7 +373,7 @@
                     <span class="ident">ErrorCtxt::ProcedureCall</span>,
                     <span class="ident">encoder</span>.<span class="ident">def_id</span>,
                 )<span class="question-mark">?</span>);
-                <span class="kw">let</span> <span class="ident">target_label</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#35">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/mod.rs.html#1674">encode_basic_block_label</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#39">target_block</a>);
+                <span class="kw">let</span> <span class="ident">target_label</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#35">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/mod.rs.html#1675">encode_basic_block_label</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#39">target_block</a>);
                 <span class="prelude-val">Ok</span>(<span class="ident">vir_high::Successor::Goto</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#117">target_label</a>))
             };
 
@@ -440,7 +443,7 @@
                 }
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">target</span>.<span class="ident">is_none</span>());
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cleanup</span>) <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#30">cleanup</a> {
-                    <span class="ident">vir_high::Successor::Goto</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#21">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/mod.rs.html#1674">encode_basic_block_label</a>(<span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#186">cleanup</a>))
+                    <span class="ident">vir_high::Successor::Goto</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#21">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/mod.rs.html#1675">encode_basic_block_label</a>(<span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#186">cleanup</a>))
                 } <span class="kw">else</span> {
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>();
                 }
@@ -478,17 +481,20 @@
             <span class="string">&quot;prusti_contracts::Seq::&lt;T&gt;::lookup&quot;</span> =&gt; {
                 <span class="ident">make_builtin_call</span>(<span class="self">self</span>, <span class="ident">block_builder</span>, <span class="ident">vir_high::BuiltinFunc::LookupSeq</span>)<span class="question-mark">?</span>
             }
+            <span class="string">&quot;prusti_contracts::Ghost::&lt;T&gt;::new&quot;</span> =&gt; {
+                <span class="ident">make_manual_assign</span>(<span class="self">self</span>, <span class="ident">block_builder</span>, <span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="kw">_</span>, <span class="ident">args</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">clone</span>())<span class="question-mark">?</span>
+            }
             <span class="string">&quot;std::ops::Index::index&quot;</span> <span class="op">|</span> <span class="string">&quot;core::ops::Index::index&quot;</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="self">self</span>
                     .<span class="ident">encode_statement_operand</span>(<span class="ident">location</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>[<span class="number">0</span>])<span class="question-mark">?</span>
                     .<span class="ident">expression</span>;
-                <span class="kw">let</span> <span class="ident">typ</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#226">lhs</a>.<a class="ident" href="../../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">get_type</a>() {
+                <span class="kw">let</span> <span class="ident">typ</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#229">lhs</a>.<a class="ident" href="../../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">get_type</a>() {
                     <span class="ident">vir_high::Type::Reference</span>(<a class="ident" href="../../../../../../vir/gen/high/ast/ty/struct.Reference.html">vir_high::ty::Reference</a> { <span class="ident">target_type</span>, .. }) =&gt; {
-                        <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#230">target_type</a>
+                        <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#233">target_type</a>
                     }
                     <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
                 };
-                <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#229">typ</a> {
+                <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/builtin_function_encoder.rs.html#232">typ</a> {
                     <span class="ident">vir_high::Type::Sequence</span>(..) =&gt; {
                         <span class="ident">make_builtin_call</span>(<span class="self">self</span>, <span class="ident">block_builder</span>, <span class="ident">vir_high::BuiltinFunc::LookupSeq</span>)<span class="question-mark">?</span>
                     }

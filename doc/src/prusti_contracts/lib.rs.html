@@ -313,10 +313,53 @@
 <span id="307">307</span>
 <span id="308">308</span>
 <span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">no_std</span>]</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;prusti&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">private</span> {
+    <span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
+
     <span class="doccomment">/// A macro for writing a precondition on a function.</span>
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">prusti_contracts_impl::requires</span>;
 
@@ -383,7 +426,15 @@
     <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Seq</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="ident">_phantom</span>: <span class="ident">core::marker::PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    }
+
+    <span class="doccomment">/// A map type</span>
+    <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+        <span class="ident">_key_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>,
+        <span class="ident">_val_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>,
     }
 
     <span class="doccomment">/// A macro for defining ghost blocks which will be left in for verification</span>
@@ -393,10 +444,18 @@
     <span class="doccomment">/// a mathematical (unbounded) integer type</span>
     <span class="doccomment">/// it should not be constructed from running rust code, hence the private unit inside</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Int</span>(());
+
+    <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Ghost</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;prusti&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">private</span> {
+    <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">marker::PhantomData</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/index.html">ops</a>::<span class="kw-2">*</span>};
+
     <span class="doccomment">/// A macro for writing a precondition on a function.</span>
     <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../prusti_contracts/attr.requires.html">prusti_contracts_internal::requires</a>;
 
@@ -451,14 +510,12 @@
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
     }
 
-    <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/index.html">core::ops</a>::<span class="kw-2">*</span>;
-
     <span class="doccomment">/// a mathematical (unbounded) integer type</span>
     <span class="doccomment">/// it should not be constructed from running rust code, hence the private unit inside</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Int</span>(());
 
-    <span class="kw">impl</span> <a class="ident" href="../../src/prusti_contracts/lib.rs.html#144">Int</a> {
+    <span class="kw">impl</span> <a class="ident" href="../../src/prusti_contracts/lib.rs.html#160">Int</a> {
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="kw">_</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.i64.html">i64</a>) -&gt; <span class="self">Self</span> {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>()
         }
@@ -475,21 +532,21 @@
         )<span class="kw-2">*</span>}
     }
 
-    <a class="macro" href="../../src/prusti_contracts/lib.rs.html#152-161">__int_dummy_trait_impls__!</a>(<span class="ident">Add</span> <span class="ident">add</span>, <span class="ident">Sub</span> <span class="ident">sub</span>, <span class="ident">Mul</span> <span class="ident">mul</span>, <span class="ident">Div</span> <span class="ident">div</span>, <span class="ident">Rem</span> <span class="ident">rem</span>);
+    <a class="macro" href="../../src/prusti_contracts/lib.rs.html#168-177">__int_dummy_trait_impls__!</a>(<span class="ident">Add</span> <span class="ident">add</span>, <span class="ident">Sub</span> <span class="ident">sub</span>, <span class="ident">Mul</span> <span class="ident">mul</span>, <span class="ident">Div</span> <span class="ident">div</span>, <span class="ident">Rem</span> <span class="ident">rem</span>);
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">Neg</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_contracts/lib.rs.html#144">Int</a> {
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Neg.html">Neg</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_contracts/lib.rs.html#160">Int</a> {
         <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span>;
         <span class="kw">fn</span> <span class="ident">neg</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>()
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_contracts/lib.rs.html#144">Int</a> {
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html">PartialOrd</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_contracts/lib.rs.html#160">Int</a> {
         <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">core::cmp::Ordering</a><span class="op">&gt;</span> {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>()
         }
     }
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_contracts/lib.rs.html#144">Int</a> {
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">Ord</a> <span class="kw">for</span> <a class="ident" href="../../src/prusti_contracts/lib.rs.html#160">Int</a> {
         <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html">core::cmp::Ordering</a> {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>()
         }
@@ -499,7 +556,7 @@
     <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Seq</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a><span class="op">&gt;</span> {
-        <span class="ident">_phantom</span>: <span class="ident">core::marker::PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a><span class="op">&gt;</span> <span class="ident">Seq</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -515,7 +572,7 @@
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup</span>(<span class="self">self</span>, <span class="ident">_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <span class="ident">T</span> {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>()
         }
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/prusti_contracts/lib.rs.html#144">Int</a> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/prusti_contracts/lib.rs.html#160">Int</a> {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>()
         }
     }
@@ -540,9 +597,9 @@
         }
     }
 
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a><span class="op">&gt;</span> <span class="ident">Index</span><span class="op">&lt;</span><a class="ident" href="../../src/prusti_contracts/lib.rs.html#144">Int</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Seq</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Copy.html">Copy</a><span class="op">&gt;</span> <span class="ident">Index</span><span class="op">&lt;</span><a class="ident" href="../../src/prusti_contracts/lib.rs.html#160">Int</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Seq</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span>;
-        <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a class="ident" href="../../src/prusti_contracts/lib.rs.html#144">Int</a>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
+        <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <a class="ident" href="../../src/prusti_contracts/lib.rs.html#160">Int</a>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>()
         }
     }
@@ -551,8 +608,8 @@
     <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-        <span class="ident">_key_phantom</span>: <span class="ident">core::marker::PhantomData</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>,
-        <span class="ident">_val_phantom</span>: <span class="ident">core::marker::PhantomData</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>,
+        <span class="ident">_key_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>,
+        <span class="ident">_val_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>,
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
@@ -565,7 +622,7 @@
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">delete</span>(<span class="self">self</span>, <span class="ident">_key</span>: <span class="ident">K</span>) -&gt; <span class="self">Self</span> {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>()
         }
-        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/prusti_contracts/lib.rs.html#144">Int</a> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../src/prusti_contracts/lib.rs.html#160">Int</a> {
             <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>()
         }
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup</span>(<span class="self">self</span>, <span class="ident">_key</span>: <span class="ident">K</span>) -&gt; <span class="ident">V</span> {
@@ -596,6 +653,31 @@
         }
     }
 
+    <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Ghost</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    }
+
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Ghost</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="kw">_</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>()
+        }
+    }
+
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <span class="ident">Ghost</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">T</span>;
+        <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>()
+        }
+    }
+
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.DerefMut.html">DerefMut</a> <span class="kw">for</span> <span class="ident">Ghost</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">T</span> {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.panic.html">panic!</a>()
+        }
+    }
+
     <span class="doccomment">/// A macro for defining ghost blocks which will be left in for verification</span>
     <span class="doccomment">/// but omitted during compilation.</span>
     <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../prusti_contracts/macro.ghost.html">prusti_contracts_internal::ghost</a>;
@@ -604,13 +686,13 @@
 <span class="doccomment">/// This function is used to evaluate an expression in the context just</span>
 <span class="doccomment">/// before the borrows expires.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">before_expiry</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">arg</span>: <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
-    <a class="ident" href="../../src/prusti_contracts/lib.rs.html#291">arg</a>
+    <a class="ident" href="../../src/prusti_contracts/lib.rs.html#332">arg</a>
 }
 
 <span class="doccomment">/// This function is used to evaluate an expression in the “old”</span>
 <span class="doccomment">/// context, that is at the beginning of the method call.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">old</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">arg</span>: <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
-    <a class="ident" href="../../src/prusti_contracts/lib.rs.html#297">arg</a>
+    <a class="ident" href="../../src/prusti_contracts/lib.rs.html#338">arg</a>
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">forall</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">_trigger_set</span>: <span class="ident">T</span>, <span class="ident">_closure</span>: <span class="ident">F</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a> {
@@ -621,7 +703,7 @@
     <span class="bool-val">true</span>
 }
 
-<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/prusti_contracts/lib.rs.html#84-287">private</a>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../src/prusti_contracts/lib.rs.html#100-328">private</a>::<span class="kw-2">*</span>;
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_contracts" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
 </body></html>
