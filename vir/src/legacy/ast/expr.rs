@@ -1238,10 +1238,10 @@ impl Expr {
                 }
             },
             Expr::Cond(_, box ref base1, box ref base2, _pos) => {
-                let typ1 = base1.get_type();
-                let typ2 = base2.get_type();
+                let typ1 = base1.get_maybe_type();
+                let typ2 = base2.get_maybe_type();
                 assert_eq!(typ1, typ2, "expr: {:?}", self);
-                typ1
+                typ1?
             }
             Expr::ForAll(..) | Expr::Exists(..) => &Type::Bool,
             Expr::MagicWand(..)
