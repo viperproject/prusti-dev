@@ -2,6 +2,8 @@
 
 #[cfg(not(feature = "prusti"))]
 mod private {
+    use core::marker::PhantomData;
+
     /// A macro for writing a precondition on a function.
     pub use prusti_contracts_impl::requires;
 
@@ -68,7 +70,15 @@ mod private {
     #[non_exhaustive]
     #[derive(PartialEq, Eq, Copy, Clone)]
     pub struct Seq<T> {
-        _phantom: core::marker::PhantomData<T>,
+        _phantom: PhantomData<T>,
+    }
+
+    /// A map type
+    #[non_exhaustive]
+    #[derive(PartialEq, Eq, Copy, Clone)]
+    pub struct Map<K, V> {
+        _key_phantom: PhantomData<K>,
+        _val_phantom: PhantomData<V>,
     }
 
     /// A macro for defining ghost blocks which will be left in for verification
@@ -78,10 +88,18 @@ mod private {
     /// a mathematical (unbounded) integer type
     /// it should not be constructed from running rust code, hence the private unit inside
     pub struct Int(());
+
+    #[non_exhaustive]
+    #[derive(PartialEq, Eq, Copy, Clone)]
+    pub struct Ghost<T> {
+        _phantom: PhantomData<T>,
+    }
 }
 
 #[cfg(feature = "prusti")]
 mod private {
+    use core::{marker::PhantomData, ops::*};
+
     /// A macro for writing a precondition on a function.
     pub use prusti_contracts_internal::requires;
 
@@ -136,8 +154,6 @@ mod private {
         unreachable!();
     }
 
-    use core::ops::*;
-
     /// a mathematical (unbounded) integer type
     /// it should not be constructed from running rust code, hence the private unit inside
     #[derive(Copy, Clone, PartialEq, Eq)]
@@ -184,7 +200,7 @@ mod private {
     #[non_exhaustive]
     #[derive(PartialEq, Eq, Copy, Clone)]
     pub struct Seq<T: Copy> {
-        _phantom: core::marker::PhantomData<T>,
+        _phantom: PhantomData<T>,
     }
 
     impl<T: Copy> Seq<T> {
@@ -236,8 +252,8 @@ mod private {
     #[non_exhaustive]
     #[derive(PartialEq, Eq, Copy, Clone)]
     pub struct Map<K, V> {
-        _key_phantom: core::marker::PhantomData<K>,
-        _val_phantom: core::marker::PhantomData<V>,
+        _key_phantom: PhantomData<K>,
+        _val_phantom: PhantomData<V>,
     }
 
     impl<K, V> Map<K, V> {
@@ -277,6 +293,31 @@ mod private {
     impl<K, V> core::ops::Index<K> for Map<K, V> {
         type Output = V;
         fn index(&self, _key: K) -> &V {
+            panic!()
+        }
+    }
+
+    #[non_exhaustive]
+    #[derive(PartialEq, Eq, Copy, Clone)]
+    pub struct Ghost<T> {
+        _phantom: PhantomData<T>,
+    }
+
+    impl<T> Ghost<T> {
+        pub fn new(_: T) -> Self {
+            panic!()
+        }
+    }
+
+    impl<T> Deref for Ghost<T> {
+        type Target = T;
+        fn deref(&self) -> &T {
+            panic!()
+        }
+    }
+
+    impl<T> DerefMut for Ghost<T> {
+        fn deref_mut(&mut self) -> &mut T {
             panic!()
         }
     }

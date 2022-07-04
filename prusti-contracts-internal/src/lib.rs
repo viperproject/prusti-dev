@@ -93,5 +93,5 @@ pub fn ghost_constraint(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 
 #[proc_macro]
 pub fn ghost(tokens: TokenStream) -> TokenStream {
-    tokens
+    prusti_specs::ghost(tokens.into()).into()
 }
