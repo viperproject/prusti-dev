@@ -289,6 +289,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                     )
                 },
             );
+            println!("Encoding validity axiom!");
             let axiom_top_down = vir_low::DomainAxiomDecl {
                 name: format!("{}$validity_axiom_top_down_enum", domain_name),
                 body: axiom_top_down_body,
