@@ -850,22 +850,40 @@ impl IntoLow for vir_mid::Statement {
                     reference_value.clone(),
                     statement.position,
                 )?;
-                let final_snapshot = lowerer.reference_target_final_snapshot(
-                    ty,
-                    reference_value,
-                    statement.position,
-                )?;
-                Ok(vec![stmtp! { statement.position =>
-                    call bor_shorten<ty>(
-                        lifetime,
-                        old_lifetime,
-                        [perm_amount],
-                        [deref_place],
-                        [address],
-                        [current_snapshot],
-                        [final_snapshot]
-                    )
-                }])
+                assert!(ty.is_reference(), "{:?}", ty);
+                if let vir_mid::Type::Reference(vir_mid::ty::Reference {
+                    uniqueness: vir_mid::ty::Uniqueness::Unique,
+                    ..
+                }) = ty
+                {
+                    let final_snapshot = lowerer.reference_target_final_snapshot(
+                        ty,
+                        reference_value,
+                        statement.position,
+                    )?;
+                    Ok(vec![stmtp! { statement.position =>
+                        call bor_shorten<ty>(
+                            lifetime,
+                            old_lifetime,
+                            [perm_amount],
+                            [deref_place],
+                            [address],
+                            [current_snapshot],
+                            [final_snapshot]
+                        )
+                    }])
+                } else {
+                    Ok(vec![stmtp! { statement.position =>
+                        call bor_shorten<ty>(
+                            lifetime,
+                            old_lifetime,
+                            [perm_amount],
+                            [deref_place],
+                            [address],
+                            [current_snapshot]
+                        )
+                    }])
+                }
             }
         }
     }

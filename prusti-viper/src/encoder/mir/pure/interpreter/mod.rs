@@ -234,27 +234,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .with_span(span)?;
                 state.substitute_value(&encoded_lhs, expr);
             }
-            &mir::Rvalue::Ref(_, mir::BorrowKind::Unique, place)
-            | &mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, place)
-            | &mir::Rvalue::Ref(_, mir::BorrowKind::Shared, place) => {
+            &mir::Rvalue::Ref(_, kind, place) => {
+                if !matches!(
+                    kind,
+                    mir::BorrowKind::Unique | mir::BorrowKind::Mut { .. } | mir::BorrowKind::Shared
+                ) {
+                    return Err(SpannedEncodingError::unsupported(
+                        format!("unsupported kind of reference: {:?}", kind),
+                        span,
+                    ));
+                }
                 let encoded_place = self.encoder.encode_place_high(self.mir, place, None)?;
                 let ty = self
                     .encoder
                     .encode_type_of_place_high(self.mir, place)
                     .with_span(span)?;
                 let pure_lifetime = vir_high::ty::LifetimeConst::erased();
+                let uniqueness = if matches!(kind, mir::BorrowKind::Mut { .. }) {
+                    vir_high::ty::Uniqueness::Unique
+                } else {
+                    vir_high::ty::Uniqueness::Shared
+                };
                 let encoded_ref = vir_high::Expression::addr_of_no_pos(
                     encoded_place,
-                    vir_high::Type::reference(pure_lifetime, vir_high::ty::Uniqueness::Shared, ty),
+                    vir_high::Type::reference(pure_lifetime, uniqueness, ty),
                 );
                 // Substitute the place
                 state.substitute_value(&encoded_lhs, encoded_ref);
-            }
-            mir::Rvalue::Ref(_, kind, _) => {
-                return Err(SpannedEncodingError::unsupported(
-                    format!("unsupported kind of reference: {:?}", kind),
-                    span,
-                ));
             }
             mir::Rvalue::Cast(mir::CastKind::Misc, operand, dst_ty) => {
                 let encoded_rhs = self.encoder.encode_cast_expression_high(
@@ -577,6 +583,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             assert!(type_arguments.is_empty());
             return match proc_name {
                 "new" => builtin((NewInt, Type::Int(Int::Unbounded))),
+                "new_usize" => builtin((NewInt, Type::Int(Int::Unbounded))),
                 _ => unreachable!("no further int functions"),
             };
         } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Ghost::<T>::") {
