@@ -197,10 +197,16 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Conditional {
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::MethodCall {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
-        ast.method_call(
+        assert!(
+            !self.position.is_default(),
+            "Statement with default position: {}",
+            self
+        );
+        ast.method_call_with_pos(
             &self.method_name,
             &self.arguments.to_viper(context, ast),
             &self.targets.to_viper(context, ast),
+            self.position.to_viper(context, ast),
         )
     }
 }
