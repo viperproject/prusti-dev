@@ -2,7 +2,7 @@ use bencher::Bencher;
 use viper::*;
 
 lazy_static::lazy_static! {
-    static ref VIPER: Viper = Viper::new();
+    static ref VIPER: Viper = Viper::new_for_tests();
 }
 
 bencher::benchmark_main!(ast_factory);

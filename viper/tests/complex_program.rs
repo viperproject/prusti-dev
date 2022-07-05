@@ -1,7 +1,7 @@
 use viper::*;
 
 lazy_static::lazy_static! {
-    static ref VIPER: Viper = Viper::new();
+    static ref VIPER: Viper = Viper::new_for_tests();
 }
 
 #[test]
