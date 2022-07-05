@@ -51,7 +51,10 @@ where
     F: FnOnce(SocketAddr),
 {
     let stopwatch = Stopwatch::start("prusti-server", "JVM startup");
-    let viper = Arc::new(Viper::new_with_args(config::extra_jvm_args()));
+    let viper = Arc::new(Viper::new_with_args(
+        &config::viper_home(),
+        config::extra_jvm_args(),
+    ));
     stopwatch.finish();
 
     let cache_data = PersistentCache::load_cache(config::cache_path());

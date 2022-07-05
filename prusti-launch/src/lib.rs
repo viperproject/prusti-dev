@@ -18,6 +18,14 @@ use std::{
     process::Command,
 };
 
+pub fn get_current_executable_dir() -> PathBuf {
+    env::current_exe()
+        .expect("current executable path invalid")
+        .parent()
+        .expect("failed to obtain the folder of the current executable")
+        .to_path_buf()
+}
+
 /// Append paths to the loader environment variable
 pub fn add_to_loader_path(paths: Vec<PathBuf>, cmd: &mut Command) {
     #[cfg(target_os = "windows")]
@@ -154,6 +162,12 @@ pub fn find_viper_home(base_dir: &Path) -> Option<PathBuf> {
             .join("server"),
         base_dir.join("viper_tools").join("backends"),
         base_dir
+            .join("..")
+            .join("..")
+            .join("viper_tools")
+            .join("backends"),
+        base_dir
+            .join("..")
             .join("..")
             .join("..")
             .join("viper_tools")
