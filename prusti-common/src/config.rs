@@ -10,6 +10,7 @@ pub mod commandline;
 use self::commandline::CommandLine;
 use ::config::{Config, Environment, File};
 use log::warn;
+use prusti_launch::{get_current_executable_dir, find_viper_home};
 use serde::Deserialize;
 use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
@@ -294,9 +295,18 @@ pub fn boogie_path() -> Option<String> {
 /// The path to the Viper JARs. `prusti-rustc` is expected to set this
 /// configuration flag to the correct path.
 pub fn viper_home() -> String {
-    read_setting::<Option<String>>("viper_home")
-        .expect("please set the viper_home configuration flag")
-
+    if let Some(path) = read_setting::<Option<String>>("viper_home") {
+        path
+    } else {
+        // If we are running tests, the VIPER_HOME should be in a directory
+        // relative to us.
+        let current_executable_dir = get_current_executable_dir();
+        if let Some(path) = find_viper_home(&current_executable_dir) {
+            path.to_str().unwrap().to_owned()
+        } else {
+            panic!("Failed to detect Vipe home, please set viper_home configuration flag")
+        }
+    }
 }
 
 /// The path to the Viper JARs. `prusti-rustc` is expected to set this
