@@ -113,7 +113,11 @@ lazy_static::lazy_static! {
         settings.set_default("enable_purification_optimization", false).unwrap();
         // settings.set_default("enable_manual_axiomatization", false).unwrap();
         settings.set_default("unsafe_core_proof", false).unwrap();
-        settings.set_default("only_memory_safety", false).unwrap();
+        settings.set_default("verify_core_proof", true).unwrap();
+        settings.set_default("verify_specifications", true).unwrap();
+        settings.set_default("verify_specifications_with_core_proof", false).unwrap();
+        settings.set_default("verify_specifications_backend", "Silicon").unwrap();
+        settings.set_default("inline_caller_for", false).unwrap();
         settings.set_default("check_no_drops", false).unwrap();
         settings.set_default("enable_type_invariants", false).unwrap();
         settings.set_default("use_new_encoder", true).unwrap();
@@ -273,11 +277,12 @@ pub fn check_foldunfold_state() -> bool {
 ///   [Carbon](https://github.com/viperproject/carbon).
 /// - `Silicon` - symbolic-execution-based backend
 ///   [Silicon](https://github.com/viperproject/silicon/).
-pub fn viper_backend() -> String {
-    read_setting::<String>("viper_backend")
+pub fn viper_backend() -> viper::VerificationBackend {
+    let verification_backend_name = read_setting::<String>("viper_backend")
         .to_lowercase()
         .trim()
-        .to_string()
+        .to_string();
+    <viper::VerificationBackend as std::str::FromStr>::from_str(&verification_backend_name).unwrap()
 }
 
 /// The path to the SMT solver to use. `prusti-rustc` is expected to set this
@@ -755,18 +760,50 @@ pub fn unsafe_core_proof() -> bool {
     read_setting("unsafe_core_proof")
 }
 
+/// Whether the core proof (memory safety) should be verified.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` to
+/// be true.
+pub fn verify_core_proof() -> bool {
+    read_setting("verify_core_proof")
+}
+
+/// Whether the functional specifications should be verified.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` to
+/// be true.
+pub fn verify_specifications() -> bool {
+    read_setting("verify_specifications")
+}
+
+/// Whether when verifying functional specifications, the core proof should be
+/// also included.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` to
+/// be true.
+pub fn verify_specifications_with_core_proof() -> bool {
+    read_setting("verify_specifications_with_core_proof")
+}
+
+/// Verification backend to use for functional specification only.
+pub fn verify_specifications_backend() -> viper::VerificationBackend {
+    let verification_backend_name = read_setting::<String>("verify_specifications_backend")
+        .to_lowercase()
+        .trim()
+        .to_string();
+    <viper::VerificationBackend as std::str::FromStr>::from_str(&verification_backend_name).unwrap()
+}
+
+/// When enabled, inlines `caller_for` heap dependent functions.
+pub fn inline_caller_for() -> bool {
+    read_setting("inline_caller_for")
+}
+
 /// When enabled, replaces calls to the drop function with `assert false`.
 ///
 /// **Note:** This option is used only for testing.
 pub fn check_no_drops() -> bool {
     read_setting("check_no_drops")
-}
-
-/// When enabled, only the core proof is verified.
-///
-/// **Note:** This should be used only when `UNSAFE_CORE_PROOF` is enabled.
-pub fn only_memory_safety() -> bool {
-    read_setting("only_memory_safety")
 }
 
 /// When enabled, Prusti uses the new VIR encoder.

@@ -91,17 +91,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesOwnedInterface for Lowerer<'p, 'v, 'tcx> {
     fn collect_owned_predicate_decls(
         &mut self,
     ) -> SpannedEncodingResult<Vec<vir_low::PredicateDecl>> {
-        let unfolded_predicates = std::mem::take(
-            &mut self
-                .predicates_encoding_state
-                .owned
-                .unfolded_owned_non_aliased_predicates,
-        );
-        let mut predicate_encoder = PredicateEncoder::new(self, &unfolded_predicates);
-        for ty in &unfolded_predicates {
-            predicate_encoder.encode_owned_non_aliased(ty)?;
+        if self.only_check_specs() {
+            Ok(Vec::new())
+        } else {
+            let unfolded_predicates = std::mem::take(
+                &mut self
+                    .predicates_encoding_state
+                    .owned
+                    .unfolded_owned_non_aliased_predicates,
+            );
+            let mut predicate_encoder = PredicateEncoder::new(self, &unfolded_predicates);
+            for ty in &unfolded_predicates {
+                predicate_encoder.encode_owned_non_aliased(ty)?;
+            }
+            Ok(predicate_encoder.into_predicates())
         }
-        Ok(predicate_encoder.into_predicates())
     }
 
     fn acc_owned_non_aliased(

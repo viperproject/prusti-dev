@@ -15,7 +15,7 @@ use super::{
     cfg::{method::MethodDecl, procedure::ProcedureDecl},
     domain::DomainDecl,
 };
-use crate::common::display;
+use crate::common::{check_mode::CheckMode, display};
 
 #[display(
     fmt = "program_name: {}\n{}\n{}\n{}\n{}\n{}\n",
@@ -28,6 +28,7 @@ use crate::common::display;
 )]
 pub struct Program {
     pub name: String,
+    pub check_mode: CheckMode,
     pub domains: Vec<DomainDecl>,
     pub predicates: Vec<PredicateDecl>,
     pub functions: Vec<FunctionDecl>,

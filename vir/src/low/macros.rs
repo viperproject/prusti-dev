@@ -412,6 +412,7 @@ pub macro stmts {
 
 pub macro method {
     (
+        $kind:ident =>
         $method_name:ident<$ty:tt>( $( $parameter_name:ident : $parameter_type:tt ),* )
             returns ( $( $result_name:ident : $result_type:tt ),* )
         $( raw_code { $( $statement:stmt; )+ } )?
@@ -427,6 +428,7 @@ pub macro method {
             $( $( $statement; )+ )?
             $crate::low::cfg::method::MethodDecl::new(
                 $crate::low::macros::method_name!{ $method_name<$ty> },
+                $crate::low::cfg::method::MethodKind::$kind,
                 vec![ $($parameter_name.clone()),* ],
                 vec![ $($result_name.clone()),* ],
                 vec![ $( $crate::low::macros::expr!( $pre ) ),* ],
@@ -436,6 +438,7 @@ pub macro method {
         }
     },
     (
+        $kind:ident =>
         $method_name:ident<$ty:tt>(
             $( $parameter_name:ident : $parameter_type:tt ),*
             $(,* $parameter_list:ident )?
@@ -453,6 +456,7 @@ pub macro method {
             $( parameters.extend($parameter_list); )?
             $crate::low::cfg::method::MethodDecl::new(
                 $crate::low::macros::method_name!{ $method_name<$ty> },
+                $crate::low::cfg::method::MethodKind::$kind,
                 parameters,
                 vec![ $($result_name.clone()),* ],
                 vec![ $( $crate::low::macros::expr!( $pre ) ),* ],
@@ -465,6 +469,7 @@ pub macro method {
 
 pub macro function {
     (
+        $kind:ident =>
         $function_name:ident(
             $( $parameter_name:ident : $parameter_type:tt ),*
         ): $result_type:tt
@@ -477,6 +482,7 @@ pub macro function {
             let result = $crate::low::macros::var! { result: $result_type };
             $crate::low::ast::function::FunctionDecl::new(
                 stringify!($function_name).to_string(),
+                $crate::low::ast::function::FunctionKind::$kind,
                 $crate::low::macros::vars!{ $( $parameter_name : $parameter_type ),* },
                 $crate::low::macros::ty! { $result_type },
                 vec![ $( $crate::low::macros::expr!( $pre ) ),* ],
@@ -486,6 +492,7 @@ pub macro function {
         }
     },
     (
+        $kind:ident =>
         $function_name:ident(
             $( $parameter_name:ident : $parameter_type:tt ),*
         ): $result_type:tt
@@ -497,6 +504,7 @@ pub macro function {
             let result = $crate::low::macros::var! { result: $result_type };
             $crate::low::ast::function::FunctionDecl::new(
                 stringify!($function_name).to_string(),
+                $crate::low::ast::function::FunctionKind::$kind,
                 vars!{ $( $parameter_name : $parameter_type ),* },
                 $crate::low::macros::ty! { $result_type },
                 vec![ $( $crate::low::macros::expr!( $pre ) ),* ],

@@ -2,6 +2,7 @@ use lazy_static::lazy_static;
 use prusti_common::vir::*;
 use prusti_server::{
     spawn_server_thread, tokio::runtime::Builder, PrustiClient, VerificationRequest,
+    ViperBackendConfig,
 };
 use viper::VerificationResult;
 
@@ -60,7 +61,7 @@ where
 
     let request = VerificationRequest {
         program: prusti_common::vir::program::Program::Legacy(program),
-        backend_config: Default::default(),
+        backend_config: ViperBackendConfig::new(prusti_common::config::viper_backend()),
     };
 
     Builder::new_current_thread()
