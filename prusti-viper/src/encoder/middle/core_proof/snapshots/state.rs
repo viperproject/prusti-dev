@@ -1,8 +1,11 @@
 use super::variables::{AllVariablesMap, VariableVersionMap};
 
-use rustc_hash::FxHashSet;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::collections::BTreeMap;
-use vir_crate::middle::{self as vir_mid};
+use vir_crate::{
+    low::{self as vir_low},
+    middle::{self as vir_mid},
+};
 
 #[derive(Default)]
 pub(in super::super) struct SnapshotsState {
@@ -16,4 +19,6 @@ pub(in super::super) struct SnapshotsState {
     pub(super) variables: BTreeMap<vir_mid::BasicBlockId, VariableVersionMap>,
     pub(super) variables_at_label: BTreeMap<String, VariableVersionMap>,
     pub(super) current_variables: Option<VariableVersionMap>,
+    /// Mapping from low types to their domain names.
+    pub(super) type_domains: FxHashMap<vir_low::Type, String>,
 }
