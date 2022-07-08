@@ -24,11 +24,20 @@ fn test3(map: Map) {
 }
 
 #[requires(map.contains(2))]
-fn test4(map: Map) {
+unsafe fn test4(map: Map) {
     let x = map.lookup(2);
 }
 
+#[requires(map.contains(2))]
 fn test5(map: Map) {
+    if map.contains(2) {
+        let x = map.lookup(2);
+    } else {
+        unreachable!();
+    }
+}
+
+fn test6(map: Map) {
     let x = map.lookup(2); //~ ERROR: the key might not be in the map
 }
 

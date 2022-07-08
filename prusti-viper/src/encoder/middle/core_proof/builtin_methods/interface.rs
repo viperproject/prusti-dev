@@ -495,6 +495,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             let body = if encode_body { Some(statements) } else { None };
             let method = vir_low::MethodDecl::new(
                 method_name,
+                vir_low::MethodKind::MirOperation,
                 parameters,
                 vec![result_value],
                 pres,
@@ -534,8 +535,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             let ty = operand.expression.get_type();
             let lifetimes_ty = self.extract_lifetime_variables(ty)?;
             parameters.extend(lifetimes_ty);
-            let method =
-                vir_low::MethodDecl::new(method_name, parameters, Vec::new(), pres, posts, None);
+            let method = vir_low::MethodDecl::new(
+                method_name,
+                vir_low::MethodKind::MirOperation,
+                parameters,
+                Vec::new(),
+                pres,
+                posts,
+                None,
+            );
             self.declare_method(method)?;
             self.builtin_methods_state
                 .encoded_consume_operand_methods
@@ -1024,6 +1032,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         parameters.extend(place_lifetimes);
         let method = vir_low::MethodDecl::new(
             method_name,
+            vir_low::MethodKind::MirOperation,
             parameters,
             vec![result_value],
             pres,
@@ -1138,6 +1147,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
 
         let method = vir_low::MethodDecl::new(
             method_name,
+            vir_low::MethodKind::MirOperation,
             parameters,
             vec![result_value],
             pres,
@@ -1304,7 +1314,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 .conjoin();
             let size_of = self.encode_type_size_expression(ty)?;
             let to_bytes = ty! { Bytes };
-            let method = method! {
+            let method = method! { LowMemoryOperation =>
                 write_address<ty>(
                     address: Address,
                     value: {ty.to_snapshot(self)?},
@@ -1600,6 +1610,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             };
             let method = vir_low::MethodDecl::new(
                 method_name! { move_place<ty> },
+                vir_low::MethodKind::LowMemoryOperation,
                 arguments,
                 Vec::new(),
                 preconditions,
@@ -1634,7 +1645,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             let mut statements = Vec::new();
             if ty.is_reference() {
                 // TODO: fix copy_place for references
-                let mut method = method! {
+                let mut method = method! { MirOperation =>
                     copy_place<ty>(
                         target_place: Place,
                         target_address: Address,
@@ -1656,7 +1667,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     .insert(ty.clone());
                 return Ok(());
             }
-            let mut method = method! {
+            let mut method = method! { MirOperation =>
                 copy_place<ty>(
                     target_place: Place,
                     target_address: Address,
@@ -2026,6 +2037,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             pres.push(validity);
             let method = vir_low::MethodDecl::new(
                 method_name! { write_place<ty> },
+                vir_low::MethodKind::MirOperation,
                 parameters,
                 Vec::new(),
                 pres,
@@ -2065,6 +2077,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             parameters.extend(lifetimes_ty);
             let method = vir_low::MethodDecl::new(
                 method_name,
+                vir_low::MethodKind::Havoc,
                 parameters,
                 vec![fresh_value.clone()],
                 vec![
@@ -2140,6 +2153,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         }
                         Some(vir_low::MethodDecl::new(
                             method_name! { memory_block_split<ty> },
+                            vir_low::MethodKind::LowMemoryOperation,
                             vec![address, permission_amount.clone(), discriminant],
                             Vec::new(),
                             vec![
@@ -2179,6 +2193,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         }
                         Some(vir_low::MethodDecl::new(
                             method_name! { memory_block_split<ty> },
+                            vir_low::MethodKind::LowMemoryOperation,
                             vec![address, permission_amount.clone(), discriminant],
                             Vec::new(),
                             vec![
@@ -2212,6 +2227,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 helper.postconditions.push(bytes_quantifier);
                 Some(vir_low::MethodDecl::new(
                     method_name! { memory_block_split<ty> },
+                    vir_low::MethodKind::LowMemoryOperation,
                     vars! { address: Address, permission_amount: Perm },
                     Vec::new(),
                     helper.preconditions,
@@ -2344,6 +2360,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         };
                         vir_low::MethodDecl::new(
                             method_name! { memory_block_join<ty> },
+                            vir_low::MethodKind::LowMemoryOperation,
                             vec![address, permission_amount, discriminant],
                             Vec::new(),
                             preconditions,
@@ -2425,6 +2442,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                         };
                         vir_low::MethodDecl::new(
                             method_name! { memory_block_join<ty> },
+                            vir_low::MethodKind::LowMemoryOperation,
                             vec![address, permission_amount, discriminant],
                             Vec::new(),
                             preconditions,
@@ -2455,6 +2473,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 helper.postconditions.push(bytes_quantifier);
                 vir_low::MethodDecl::new(
                     method_name! { memory_block_join<ty> },
+                    vir_low::MethodKind::LowMemoryOperation,
                     vars! { address: Address, permission_amount: Perm },
                     Vec::new(),
                     helper.preconditions,
@@ -2482,7 +2501,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             use vir_low::macros::*;
             self.encode_snapshot_to_bytes_function(ty)?;
             let size_of = self.encode_type_size_expression(&ty_without_lifetime)?;
-            let method = method! {
+            let method = method! { LowMemoryOperation =>
                 havoc_memory_block<ty>(
                     address: Address
                 ) returns ()
@@ -2537,7 +2556,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             let arguments2 = arguments.clone();
             let lifetime_params = self.extract_lifetime_variables(ty)?;
             parameters.extend(lifetime_params);
-            let mut method = method! {
+            let mut method = method! { LowMemoryOperation =>
                 into_memory_block<ty>(
                     place: Place,
                     root_address: Address,
@@ -2867,6 +2886,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             };
             let method = vir_low::MethodDecl::new(
                 self.encode_open_frac_bor_atomic_method_name(target_type)?,
+                vir_low::MethodKind::MirOperation,
                 vec![
                     lifetime,
                     lifetime_perm.clone(),
@@ -2962,8 +2982,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             ];
 
             // Create Method
-            let method =
-                vir_low::MethodDecl::new(method_name, parameters, vec![lft], pres, posts, None);
+            let method = vir_low::MethodDecl::new(
+                method_name,
+                vir_low::MethodKind::MirOperation,
+                parameters,
+                vec![lft],
+                pres,
+                posts,
+                None,
+            );
             self.declare_method(method)?;
         }
         Ok(())
@@ -3032,8 +3059,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 .collect();
 
             // Create Method
-            let method =
-                vir_low::MethodDecl::new(method_name, parameters, vec![], pres, posts, None);
+            let method = vir_low::MethodDecl::new(
+                method_name,
+                vir_low::MethodKind::MirOperation,
+                parameters,
+                vec![],
+                pres,
+                posts,
+                None,
+            );
             self.declare_method(method)?;
         }
         Ok(())
@@ -3046,6 +3080,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             var_decls!(bw: Lifetime);
             let method = vir_low::MethodDecl::new(
                 "newlft",
+                vir_low::MethodKind::MirOperation,
                 Vec::new(),
                 vec![bw.clone()],
                 Vec::new(),
@@ -3077,6 +3112,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             ];
             let method = vir_low::MethodDecl::new(
                 "dead_inclusion",
+                vir_low::MethodKind::MirOperation,
                 vec![lft_1, lft_2],
                 vec![],
                 pres,
@@ -3095,6 +3131,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             var_decls!(bw: Lifetime);
             let method = vir_low::MethodDecl::new(
                 "endlft",
+                vir_low::MethodKind::MirOperation,
                 vec![bw.clone()],
                 Vec::new(),
                 vec![expr! { acc(LifetimeToken(bw)) }],
@@ -3130,6 +3167,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             };
             let open_method = vir_low::MethodDecl::new(
                 method_name! { open_mut_ref<target_type> },
+                vir_low::MethodKind::MirOperation,
                 vec![
                     lifetime.clone(),
                     lifetime_perm.clone(),
@@ -3204,6 +3242,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 // Apply the viewshift encoded in the `CloseMutRef` predicate.
                 let close_method = vir_low::MethodDecl::new(
                     method_name! { close_mut_ref<target_type> },
+                    vir_low::MethodKind::MirOperation,
                     vec![
                         lifetime.clone(),
                         lifetime_perm.clone(),
@@ -3334,6 +3373,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             parameters.extend(lifetimes_target_type);
             let method = vir_low::MethodDecl::new(
                 method_name! { bor_shorten<ty> },
+                vir_low::MethodKind::MirOperation,
                 parameters,
                 vec![],
                 pres,
