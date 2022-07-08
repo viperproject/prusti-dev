@@ -94,7 +94,6 @@
 <span id="88">88</span>
 <span id="89">89</span>
 <span id="90">90</span>
-<span id="91">91</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>,
     <span class="ident">mir</span>::{
@@ -133,15 +132,14 @@
         <span class="ident">count</span>: <a class="ident" href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
         <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoded_ty</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encode_type_high</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#39">encoded_ty</a>.<span class="ident">erase_lifetime</span>();
+        <span class="kw">let</span> <span class="ident">encoded_ty</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encode_type_high</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>.<span class="ident">erase_lifetimes</span>();
         <span class="kw">let</span> <span class="ident">usize</span> <span class="op">=</span> <span class="ident">vir_high::Type::Int</span>(<span class="ident">vir_high::ty::Int::Usize</span>);
         <span class="kw">let</span> <span class="ident">function_call</span> <span class="op">=</span> <span class="ident">vir_high::expression::FuncApp::new</span>(
             <span class="string">&quot;size&quot;</span>,
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">encoded_ty</span>.<span class="ident">clone</span>()],
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">count</span>],
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">vir_high::VariableDecl::new</span>(<span class="string">&quot;count&quot;</span>, <span class="ident">usize</span>.<span class="ident">clone</span>())],
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#41">usize</a>,
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#40">usize</a>,
         );
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>
             .<span class="ident">mir_type_layouts_encoder_state</span>
@@ -170,19 +168,19 @@
                 .<span class="ident">borrow_mut</span>()
                 .<span class="ident">insert</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#39">encoded_ty</a>);
         }
-        <span class="prelude-val">Ok</span>(<span class="ident">vir_high::Expression::FuncApp</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#42">function_call</a>))
+        <span class="prelude-val">Ok</span>(<span class="ident">vir_high::Expression::FuncApp</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#41">function_call</a>))
     }
 
     <span class="kw">fn</span> <span class="ident">encode_type_size_expression</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#81">ty</a>.<span class="ident">kind</span>() {
+        <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#80">ty</a>.<span class="ident">kind</span>() {
             <span class="ident">ty::TyKind::Array</span>(<span class="ident">elem_ty</span>, <span class="ident">size</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">array_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#80">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#16">compute_array_len</a>(<span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#84">size</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().<span class="ident">unwrap</span>();
-                <a class="self" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#80">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#22-26">encode_type_size_expression_with_reps</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#85">array_len</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#84">elem_ty</a>)
+                <span class="kw">let</span> <span class="ident">array_len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#79">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/constants/interface.rs.html#16">compute_array_len</a>(<span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#83">size</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryInto.html">try_into</a>().<span class="ident">unwrap</span>();
+                <a class="self" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#79">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#22-26">encode_type_size_expression_with_reps</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#84">array_len</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#83">elem_ty</a>)
             }
-            <span class="kw">_</span> =&gt; <a class="self" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#80">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#22-26">encode_type_size_expression_with_reps</a>(<span class="number">1usize</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#81">ty</a>),
+            <span class="kw">_</span> =&gt; <a class="self" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#79">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#22-26">encode_type_size_expression_with_reps</a>(<span class="number">1usize</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/type_layouts/interface.rs.html#80">ty</a>),
         }
     }
 }
