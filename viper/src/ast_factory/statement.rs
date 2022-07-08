@@ -65,6 +65,24 @@ impl<'a> AstFactory<'a> {
         )
     }
 
+    pub fn method_call_with_pos(
+        &self,
+        method_name: &str,
+        args: &[Expr],
+        targets: &[Expr],
+        pos: Position,
+    ) -> Stmt<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Stmt,
+            ast::MethodCall,
+            self.jni.new_string(method_name),
+            self.jni.new_seq(&map_to_jobjects!(args)),
+            self.jni.new_seq(&map_to_jobjects!(targets)),
+            pos.to_jobject()
+        )
+    }
+
     pub fn exhale(&self, expr: Expr, pos: Position) -> Stmt<'a> {
         let obj = self.jni.unwrap_result(ast::Exhale::with(self.env).new(
             expr.to_jobject(),

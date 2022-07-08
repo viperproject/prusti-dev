@@ -190,7 +190,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                 self.encode_snapshot_valid_call(domain_name, snapshot.clone().into())?;
             let mut triggers = Vec::new();
             for parameter in &parameters {
-                if let Some(parameter_domain) = get_non_primitive_domain(&parameter.ty) {
+                if get_non_primitive_domain(&parameter.ty).is_some() {
                     let field = self.snapshot_destructor_struct_call(
                         domain_name,
                         &parameter.name,
@@ -199,10 +199,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                     )?;
                     top_down_validity_expression = top_down_validity_expression
                         .replace_place(&parameter.clone().into(), &field);
-                    let valid_field = self.encode_snapshot_valid_call(parameter_domain, field)?;
                     triggers.push(vir_low::Trigger::new(vec![
                         valid_constructor.clone(),
-                        valid_field.clone(),
+                        field,
                     ]));
                 }
             }
@@ -214,7 +213,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                 },
             );
             let axiom_top_down = vir_low::DomainAxiomDecl {
-                name: format!("{}${}$validity_axiom_top_down", domain_name, variant_name),
+                name: format!(
+                    "{}${}$validity_axiom_top_down_alternative",
+                    domain_name, variant_name
+                ),
                 body: axiom_top_down_body,
             };
             self.declare_axiom(domain_name, axiom_top_down)?;
@@ -265,10 +267,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                     variant_type,
                     snapshot.clone().into(),
                 )?;
-                let valid_variant = self.encode_snapshot_valid_call(variant_domain, variant)?;
+                let valid_variant =
+                    self.encode_snapshot_valid_call(variant_domain, variant.clone())?;
                 triggers.push(vir_low::Trigger::new(vec![
                     valid_constructor.clone(),
-                    valid_variant.clone(),
+                    variant, // FIXME: Check whether a more restrictive triggers works: valid_variant.clone(),
                 ]));
                 valid_variants.push(expr! {
                     ([ discriminant_call.clone() ] == [ discriminant.clone() ]) ==> [ valid_variant ]
@@ -290,7 +293,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
                 },
             );
             let axiom_top_down = vir_low::DomainAxiomDecl {
-                name: format!("{}$validity_axiom_top_down", domain_name),
+                name: format!("{}$validity_axiom_top_down_enum", domain_name),
                 body: axiom_top_down_body,
             };
             self.declare_axiom(domain_name, axiom_top_down)?;
@@ -411,7 +414,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValidityInterface for Lowerer<'p, 'v, 'tcx> {
             },
         );
         let axiom_top_down = vir_low::DomainAxiomDecl {
-            name: format!("{}$validity_axiom_top_down", domain_name),
+            name: format!("{}$validity_axiom_top_down_sequence", domain_name),
             body: axiom_top_down_body,
         };
         self.declare_axiom(domain_name, axiom_top_down)?;

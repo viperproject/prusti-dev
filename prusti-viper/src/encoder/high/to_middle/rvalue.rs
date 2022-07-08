@@ -43,4 +43,11 @@ impl<'v, 'tcx> ToMiddleRvalueLowerer for crate::encoder::Encoder<'v, 'tcx> {
             name: lifetime.name,
         })
     }
+
+    fn to_middle_rvalue_variable_decl(
+        &self,
+        variable: vir_high::VariableDecl,
+    ) -> Result<vir_mid::VariableDecl, Self::Error> {
+        variable.to_middle_expression(self)
+    }
 }
