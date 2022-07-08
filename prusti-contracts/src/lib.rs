@@ -163,6 +163,10 @@ mod private {
         pub fn new(_: i64) -> Self {
             panic!()
         }
+
+        pub fn new_usize(_: usize) -> Self {
+            panic!()
+        }
     }
 
     macro_rules! __int_dummy_trait_impls__ {
