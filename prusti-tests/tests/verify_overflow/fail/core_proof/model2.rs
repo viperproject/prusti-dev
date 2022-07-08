@@ -164,5 +164,20 @@ impl LinkedList {
     }
 }
 
+#[trusted]
+struct LinkedList2 {
+    val: i64,
+    next: Option<Box<LinkedList>>,
+}
+
+#[model]
+struct LinkedList2 {
+    values: Seq<Int>,
+}
+
+#[derive(Clone)]
+struct Test{
+    v: Seq<u32>,
+}
 
 fn main() {}
