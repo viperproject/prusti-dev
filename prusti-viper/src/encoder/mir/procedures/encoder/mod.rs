@@ -30,7 +30,7 @@ use prusti_interface::environment::{
         allocation::{compute_definitely_allocated, DefinitelyAllocatedAnalysisResult},
         initialization::{compute_definitely_initialized, DefinitelyInitializedAnalysisResult},
     },
-    mir_body::borrowck::lifetimes::Lifetimes,
+    mir_body::borrowck::{facts::RichLocation, lifetimes::Lifetimes},
     Procedure,
 };
 use prusti_rustc_interface::{
@@ -57,6 +57,7 @@ use vir_crate::{
 
 mod builtin_function_encoder;
 mod elaborate_drops;
+mod ghost;
 mod initialisation;
 mod lifetimes;
 mod loops;
@@ -468,10 +469,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 &mut derived_lifetimes,
                 Some(&statements[location.statement_index]),
             )?;
+            self.encode_lifetimes_dead_on_edge(
+                &mut block_builder,
+                RichLocation::Start(location),
+                RichLocation::Mid(location),
+            )?;
             self.encode_statement(
                 &mut block_builder,
                 location,
                 &statements[location.statement_index],
+            )?;
+            self.encode_lifetimes_dead_on_edge(
+                &mut block_builder,
+                RichLocation::Mid(location),
+                RichLocation::Mid(mir::Location {
+                    block: location.block,
+                    statement_index: location.statement_index + 1,
+                }),
             )?;
             location.statement_index += 1;
             if location.statement_index < terminator_index {
@@ -702,12 +716,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
             mir::Rvalue::Discriminant(place) => {
                 let encoded_place = self.encoder.encode_place_high(self.mir, *place, None)?;
-                let encoded_rvalue = vir_high::Rvalue::discriminant(encoded_place);
+
+                let deref_base = encoded_place.get_dereference_base().cloned();
+                let source_permission = self.encode_open_reference(
+                    block_builder,
+                    location,
+                    &deref_base,
+                    encoded_place.clone(),
+                )?;
+
+                let encoded_rvalue = vir_high::Rvalue::discriminant(
+                    encoded_place.clone(),
+                    source_permission.clone(),
+                );
                 block_builder.add_statement(self.set_statement_error(
                     location,
                     ErrorCtxt::Assign,
                     vir_high::Statement::assign_no_pos(encoded_target, encoded_rvalue),
                 )?);
+
+                self.encode_close_reference(
+                    block_builder,
+                    location,
+                    &deref_base,
+                    encoded_place,
+                    source_permission,
+                )?;
             }
             mir::Rvalue::Aggregate(box aggregate_kind, operands) => {
                 self.encode_statement_assign_aggregate(
@@ -1043,7 +1077,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             statement_index: 0,
         };
         self.lifetimes
-            .get_origin_contains_loan_at_mid(first_location)
+            .get_origin_contains_loan_at_start(first_location)
     }
 
     fn encode_terminator(
@@ -1066,9 +1100,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 targets,
                 discr,
                 switch_ty,
-            } => {
-                self.encode_terminator_switch_int(block_builder, span, targets, discr, *switch_ty)?
-            }
+            } => self.encode_terminator_switch_int(
+                block_builder,
+                location,
+                span,
+                targets,
+                discr,
+                *switch_ty,
+            )?,
             TerminatorKind::Resume => SuccessorBuilder::exit_resume_panic(),
             // TerminatorKind::Abort => {
             //     graph.add_exit_edge(bb, "abort");
@@ -1175,9 +1214,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             | TerminatorKind::FalseUnwind {
                 real_target,
                 unwind: _,
-            } => SuccessorBuilder::jump(vir_high::Successor::Goto(
-                self.encode_basic_block_label(*real_target),
-            )),
+            } => {
+                self.encode_lft_for_block(*real_target, location, block_builder)?;
+                SuccessorBuilder::jump(vir_high::Successor::Goto(
+                    self.encode_basic_block_label(*real_target),
+                ))
+            }
             // TerminatorKind::InlineAsm { .. } => {
             //     graph.add_exit_edge(bb, "inline_asm");
             // }
@@ -1190,6 +1232,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_terminator_switch_int(
         &mut self,
         block_builder: &mut BasicBlockBuilder,
+        location: mir::Location,
         span: Span,
         targets: &mir::SwitchTargets,
         discr: &mir::Operand<'tcx>,
@@ -1210,6 +1253,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     {
                         block_builder.add_statements(statements);
                     }
+                    self.encode_lft_for_block(real_target, location, block_builder)?;
                     return Ok(SuccessorBuilder::jump(vir_high::Successor::Goto(
                         self.encode_basic_block_label(real_target),
                     )));
@@ -1247,12 +1291,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 x => unreachable!("{:?}", x),
             };
             let encoded_target = self.encode_basic_block_label(target);
+            let encoded_target = self.encode_lft_for_block_with_edge(
+                target,
+                encoded_target,
+                location,
+                block_builder,
+            )?;
             successors.push((encoded_condition, encoded_target));
         }
-        successors.push((
-            true.into(),
-            self.encode_basic_block_label(targets.otherwise()),
-        ));
+        let otherwise = self.encode_basic_block_label(targets.otherwise());
+        let otherwise = self.encode_lft_for_block_with_edge(
+            targets.otherwise(),
+            otherwise,
+            location,
+            block_builder,
+        )?;
+        successors.push((true.into(), otherwise));
         Ok(SuccessorBuilder::jump(vir_high::Successor::GotoSwitch(
             successors,
         )))
@@ -1474,7 +1528,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.encode_exhale_lifetime_tokens(
             block_builder,
             &lifetimes_to_exhale_inhale,
-            derived_from.len(),
+            derived_from.len() + 1,
         )?;
 
         let procedure_contract = self
@@ -1747,6 +1801,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 .insert(invariant_location, statement);
         }
 
+        self.encode_ghost_blocks()?;
+
         Ok(())
     }
 
@@ -1760,6 +1816,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         if false
             || self.try_encode_assert(bb, block, encoded_statements)?
             || self.try_encode_assume(bb, block, encoded_statements)?
+            || self.try_encode_ghost_markers(bb, block, encoded_statements)?
             || self.try_encode_specification_function_call(bb, block, encoded_statements)?
         {
             Ok(())
@@ -1855,6 +1912,26 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 encoded_statements.push(stmt);
 
                 return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
+    fn try_encode_ghost_markers(
+        &mut self,
+        _bb: mir::BasicBlock,
+        block: &mir::BasicBlockData<'tcx>,
+        _encoded_statements: &mut [vir_high::Statement],
+    ) -> SpannedEncodingResult<bool> {
+        for stmt in &block.statements {
+            if let mir::StatementKind::Assign(box (
+                _,
+                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, _), _),
+            )) = stmt.kind
+            {
+                let is_begin = self.encoder.get_ghost_begin(cl_def_id).is_some();
+                let is_end = self.encoder.get_ghost_end(cl_def_id).is_some();
+                return Ok(is_begin || is_end);
             }
         }
         Ok(false)

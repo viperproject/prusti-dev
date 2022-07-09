@@ -14,4 +14,3 @@ impl<'tcx> StatementAsAssign<'tcx> for mir::Statement<'tcx> {
         }
     }
 }
-

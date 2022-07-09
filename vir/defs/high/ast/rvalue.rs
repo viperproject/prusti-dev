@@ -1,5 +1,5 @@
 pub(crate) use super::super::{
-    expression::{BinaryOpKind, Expression, UnaryOpKind},
+    expression::{BinaryOpKind, Expression, UnaryOpKind, VariableDecl},
     ty::{LifetimeConst, Type},
     Position,
 };
@@ -83,9 +83,12 @@ pub struct UnaryOp {
     pub argument: Operand,
 }
 
+/// If `source_permission` is `None`, it means `write`. Otherwise, it is a
+/// variable denoting the permission amount.
 #[display(fmt = "discriminant({})", place)]
 pub struct Discriminant {
     pub place: Expression,
+    pub source_permission: Option<VariableDecl>,
 }
 
 #[display(fmt = "aggregate<{}>({})", ty, "display::cjoin(operands)")]

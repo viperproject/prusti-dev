@@ -47,7 +47,7 @@ pub(in super::super) fn propagate_assertions_back<'v, 'tcx: 'v>(
                         | vir_high::Statement::SetUnionVariant(_)
                         | vir_high::Statement::NewLft(_)
                         | vir_high::Statement::EndLft(_)
-                        | vir_high::Statement::Dead(_)
+                        | vir_high::Statement::DeadLifetime(_)
                         | vir_high::Statement::DeadInclusion(_)
                         | vir_high::Statement::LifetimeTake(_)
                         | vir_high::Statement::LifetimeReturn(_)

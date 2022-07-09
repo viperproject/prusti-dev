@@ -126,14 +126,15 @@ def verify_test(args):
     if args.test_file.startswith('prusti-tests/'):
         test_path = args.test_file
     else:
-        candidate_test_paths = glob.glob(os.path.join(current_path, "prusti-tests/tests*/*", test))
+        candidate_test_paths = glob.glob(os.path.join(
+            current_path, "prusti-tests/tests*/*", args.test_file))
         if len(candidate_test_paths) == 0:
-            error("Not tests found that match: {}", test)
+            error("Not tests found that match: {}", args.test_file)
         elif len(candidate_test_paths) > 1:
             error(
                 "Expected one test, but found {} tests that match {}. First 5: {}",
                 len(candidate_test_paths),
-                test,
+                args.test_file,
                 candidate_test_paths[:5]
             )
         test_path = candidate_test_paths[0]
