@@ -165,6 +165,8 @@ fn new_viper_verifier<'v, 't: 'v>(
             config::smt_quantifier_instantiations_bound_global_kind(),
             config::smt_quantifier_instantiations_bound_trace(),
             config::smt_quantifier_instantiations_bound_trace_kind(),
+            config::smt_unique_triggers_bound(),
+            config::smt_unique_triggers_bound_total(),
         );
         std::env::set_var(
             "PRUSTI_SMT_SOLVER_MANAGER_PORT",

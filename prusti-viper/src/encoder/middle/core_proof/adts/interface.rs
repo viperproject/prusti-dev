@@ -291,7 +291,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
                 for parameter in &parameters {
                     let destructor_call = self.adt_destructor_variant_call(
                         domain_name,
-                        variant_name,
+                        destructor_variant_name,
                         &parameter.name,
                         parameter.ty.clone(),
                         constructor_call.clone(),
@@ -358,7 +358,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> AdtsInterface for Lowerer<'p, 'v, 'tcx> {
         } else {
             assert!(
                 top_down_injectivity_guard.is_none(),
-                "top-down injectivity guard is Some while generate_injectivity_axioms is true"
+                "top-down injectivity guard is Some while generate_injectivity_axioms is false"
             );
         }
 

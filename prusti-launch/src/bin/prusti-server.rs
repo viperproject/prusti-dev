@@ -6,8 +6,8 @@
 
 #[cfg(target_family = "unix")]
 use nix::unistd::{setpgid, Pid};
-use prusti_launch::sigint_handler;
-use std::{env, path::PathBuf, process::Command};
+use prusti_launch::{get_current_executable_dir, sigint_handler};
+use std::{path::PathBuf, process::Command};
 
 fn main() {
     if let Err(code) = process(std::env::args().skip(1).collect()) {
@@ -16,11 +16,7 @@ fn main() {
 }
 
 fn process(args: Vec<String>) -> Result<(), i32> {
-    let current_executable_dir = env::current_exe()
-        .expect("current executable path invalid")
-        .parent()
-        .expect("failed to obtain the folder of the current executable")
-        .to_path_buf();
+    let current_executable_dir = get_current_executable_dir();
 
     let mut prusti_server_driver_path = current_executable_dir.join("prusti-server-driver");
     if cfg!(windows) {

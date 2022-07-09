@@ -35,7 +35,7 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
             |encoder: &mut Self,
              block_builder: &mut BasicBlockBuilder,
              rhs_gen: &mut dyn FnMut(_, Vec<vir_high::Expression>, _) -> vir_high::Expression|
-             -> SpannedEncodingResult<vir_high::Successor> {
+             -> SpannedEncodingResult<()> {
                 let (target_place, target_block) = (destination, target.unwrap());
                 let position = encoder
                     .encoder
@@ -114,26 +114,31 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                     ErrorCtxt::ProcedureCall,
                     encoder.def_id,
                 )?);
+                encoder.encode_lft_for_block(target_block, location, block_builder)?;
                 let target_label = encoder.encode_basic_block_label(target_block);
-                Ok(vir_high::Successor::Goto(target_label))
+                let successor = vir_high::Successor::Goto(target_label);
+                block_builder.set_successor_jump(successor);
+                Ok(())
             };
 
         let make_builtin_call = |encoder: &mut Self,
                                  block_builder: &mut BasicBlockBuilder,
                                  function|
-         -> SpannedEncodingResult<vir_high::Successor> {
+         -> SpannedEncodingResult<()> {
             make_manual_assign(encoder, block_builder, &mut |ty_args, args, target_ty| {
                 vir_high::Expression::builtin_func_app_no_pos(function, ty_args, args, target_ty)
-            })
+            })?;
+            Ok(())
         };
 
         let make_binop = |encoder: &mut Self,
                           block_builder: &mut BasicBlockBuilder,
                           op_kind|
-         -> SpannedEncodingResult<vir_high::Successor> {
+         -> SpannedEncodingResult<()> {
             make_manual_assign(encoder, block_builder, &mut |_ty_args, args, _target_ty| {
                 vir_high::Expression::binary_op_no_pos(op_kind, args[0].clone(), args[1].clone())
-            })
+            })?;
+            Ok(())
         };
 
         if let Some(op_name) = full_called_function_name
@@ -159,15 +164,14 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                 ];
                 for op in ops {
                     if op_name == op.0 {
-                        let successor = make_binop(self, block_builder, op.1)?;
-                        block_builder.set_successor_jump(successor);
+                        make_binop(self, block_builder, op.1)?;
                         return Ok(true);
                     }
                 }
             }
         }
 
-        let successor = match full_called_function_name.as_str() {
+        match full_called_function_name.as_str() {
             "core::panicking::panic" => {
                 let panic_message = format!("{:?}", args[0]);
                 let panic_cause = self.encoder.encode_panic_cause(span)?;
@@ -184,12 +188,17 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                 }
                 assert!(target.is_none());
                 if let Some(cleanup) = cleanup {
-                    vir_high::Successor::Goto(self.encode_basic_block_label(*cleanup))
+                    let successor =
+                        vir_high::Successor::Goto(self.encode_basic_block_label(*cleanup));
+                    block_builder.set_successor_jump(successor);
                 } else {
                     unimplemented!();
                 }
             }
             "prusti_contracts::Int::new" => {
+                make_builtin_call(self, block_builder, vir_high::BuiltinFunc::NewInt)?
+            }
+            "prusti_contracts::Int::new_usize" => {
                 make_builtin_call(self, block_builder, vir_high::BuiltinFunc::NewInt)?
             }
             "prusti_contracts::Map::<K, V>::empty" => {
@@ -222,6 +231,9 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
             "prusti_contracts::Seq::<T>::lookup" => {
                 make_builtin_call(self, block_builder, vir_high::BuiltinFunc::LookupSeq)?
             }
+            "prusti_contracts::Ghost::<T>::new" => {
+                make_manual_assign(self, block_builder, &mut |_, args, _| args[0].clone())?
+            }
             "std::ops::Index::index" | "core::ops::Index::index" => {
                 let lhs = self
                     .encode_statement_operand(location, &args[0])?
@@ -242,9 +254,27 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                     _ => return Ok(false),
                 }
             }
+            "std::cmp::PartialEq::eq" => {
+                let lhs = self
+                    .encode_statement_operand(location, &args[0])?
+                    .expression;
+                if matches!(
+                    lhs.get_type(),
+                    vir_high::Type::Reference(vir_high::ty::Reference {
+                        target_type: box vir_high::Type::Int(vir_high::ty::Int::Unbounded)
+                            | box vir_high::Type::Sequence(..)
+                            | box vir_high::Type::Map(..),
+                        ..
+                    })
+                ) {
+                    make_binop(self, block_builder, vir_high::BinaryOpKind::EqCmp)?;
+                    return Ok(true);
+                } else {
+                    return Ok(false);
+                }
+            }
             _ => return Ok(false),
         };
-        block_builder.set_successor_jump(successor);
         Ok(true)
     }
 }

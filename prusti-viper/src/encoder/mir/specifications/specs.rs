@@ -9,9 +9,9 @@ use log::{debug, trace};
 use prusti_interface::{
     environment::Environment,
     specs::typed::{
-        DefSpecificationMap, LoopSpecification, ProcedureSpecification, ProcedureSpecificationKind,
-        ProcedureSpecificationKindError, PrustiAssertion, PrustiAssumption, Refinable,
-        SpecificationItem, TypeSpecification,
+        DefSpecificationMap, GhostBegin, GhostEnd, LoopSpecification, ProcedureSpecification,
+        ProcedureSpecificationKind, ProcedureSpecificationKindError, PrustiAssertion,
+        PrustiAssumption, Refinable, SpecificationItem, TypeSpecification,
     },
     PrustiError,
 };
@@ -88,6 +88,16 @@ impl<'tcx> Specifications<'tcx> {
     pub(super) fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
         trace!("Get assumption specs of {:?}", def_id);
         self.user_typed_specs.get_assumption(def_id)
+    }
+
+    pub(super) fn get_ghost_begin(&self, def_id: &DefId) -> Option<&GhostBegin> {
+        trace!("Get begin ghost block specs of {:?}", def_id);
+        self.user_typed_specs.get_ghost_begin(def_id)
+    }
+
+    pub(super) fn get_ghost_end(&self, def_id: &DefId) -> Option<&GhostEnd> {
+        trace!("Get end ghost block specs of {:?}", def_id);
+        self.user_typed_specs.get_ghost_end(def_id)
     }
 
     pub(super) fn get_and_refine_proc_spec<'a, 'env: 'a>(
