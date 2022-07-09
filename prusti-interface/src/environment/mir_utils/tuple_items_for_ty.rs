@@ -15,4 +15,3 @@ impl<'tcx> TupleItemsForTy<'tcx> for ty::Ty<'tcx> {
         }
     }
 }
-

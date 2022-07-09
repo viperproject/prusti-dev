@@ -2,7 +2,7 @@ use std::{thread, thread::JoinHandle};
 use viper::*;
 
 lazy_static::lazy_static! {
-    static ref VIPER: Viper = Viper::new();
+    static ref VIPER: Viper = Viper::new_for_tests();
 }
 
 /// Regression test for https://github.com/viperproject/silicon/issues/315

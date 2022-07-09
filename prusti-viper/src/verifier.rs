@@ -439,7 +439,7 @@ fn verify_programs(env: &Environment, programs: Vec<Program>)
         }).collect()
     } else {
         let mut stopwatch = Stopwatch::start("prusti-viper", "JVM startup");
-        let viper = Viper::new_with_args(config::extra_jvm_args());
+        let viper = Viper::new_with_args(&config::viper_home(), config::extra_jvm_args());
         stopwatch.start_next("attach current thread to the JVM");
         let viper_thread = viper.attach_current_thread();
         stopwatch.finish();

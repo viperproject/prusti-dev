@@ -204,7 +204,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     self.register_struct_constructor(&domain_name, parameters.clone())?;
                     self.encode_validity_axioms_struct(&domain_name, parameters, true.into())?;
                     let no_alloc_parameters = vars! { target_current: {target_type} };
-                    self.register_alternative_constructor(
+                    self.register_alternative_constructor_with_injectivity_axioms(
                         &domain_name,
                         "no_alloc",
                         true,

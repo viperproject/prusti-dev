@@ -58,6 +58,12 @@ impl RichLocation {
             statement_index,
         })
     }
+
+    pub fn into_inner(self) -> mir::Location {
+        match self {
+            Self::Start(location) | Self::Mid(location) => location,
+        }
+    }
 }
 
 impl From<prusti_rustc_interface::borrowck::consumers::RichLocation> for RichLocation {

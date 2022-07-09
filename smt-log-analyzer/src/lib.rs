@@ -10,7 +10,7 @@ use std::{
     fs::File,
     io::{BufRead, BufReader},
 };
-use types::BUILTIN_QUANTIFIER_ID;
+use types::{QuantifierId, BUILTIN_QUANTIFIER_ID};
 
 mod error;
 mod parser;
@@ -23,8 +23,12 @@ pub struct Settings {
     pub quantifier_instantiations_bound_global_kind: Option<u64>,
     pub quantifier_instantiations_bound_trace: Option<u64>,
     pub quantifier_instantiations_bound_trace_kind: Option<u64>,
+    pub unique_triggers_bound: Option<u64>,
+    pub unique_triggers_bound_total: Option<u64>,
     pub check_active_scopes_count: Option<u32>,
     pub pop_scopes_by_one: bool,
+    /// If Some, dumps all triggers that match the specified quantifier.
+    pub trace_quantifier_triggers: Option<QuantifierId>,
 }
 
 fn process_line(settings: &Settings, state: &mut State, line: &str) -> Result<(), Error> {
@@ -52,12 +56,33 @@ fn process_line(settings: &Settings, state: &mut State, line: &str) -> Result<()
             state.push_scope();
         }
         EventKind::MkApp => {
-            if let Some(_term_id) = parser.try_parse_id()? {
+            if let Some(term_id) = parser.try_parse_id()? {
                 let ident = parser.parse_name()?;
                 if ident.starts_with("basic_block_marker") {
                     state.register_label(ident.to_string());
+                } else {
+                    let name = ident.to_string();
+                    let mut args = Vec::new();
+                    while let Some(arg) = parser.try_parse_id()? {
+                        args.push(arg);
+                    }
+                    state.register_term_function_application(term_id, name, args);
                 }
             }
+        }
+        EventKind::MkVar => {
+            if let Some(term_id) = parser.try_parse_id()? {
+                let index = parser.parse_number()?;
+                state.register_term_bound_variable(term_id, index);
+            }
+        }
+        EventKind::AttachMeaning => {
+            let term_id = parser.parse_id()?;
+            let ident = parser.parse_name()?;
+            let ident = ident.to_string();
+            parser.skip_whitespace();
+            let remaining = parser.remaining();
+            state.register_term_attach_meaning(term_id, ident, remaining);
         }
         EventKind::MkQuant => {
             if let Ok(id) = parser.parse_id() {
@@ -128,6 +153,9 @@ pub fn analyze(
     state.register_theory(parser::TheoryKind::Datatype);
     state.register_theory(parser::TheoryKind::UserSort);
 
+    // Tracing triggers.
+    state.mark_quantifier_for_tracing(settings.trace_quantifier_triggers);
+
     let mut line = String::new();
     let mut prev_line = String::new();
     let mut line_number = 0;
@@ -156,6 +184,8 @@ pub fn analyze(
         settings.quantifier_instantiations_bound_global_kind,
         settings.quantifier_instantiations_bound_trace,
         settings.quantifier_instantiations_bound_trace_kind,
+        settings.unique_triggers_bound,
+        settings.unique_triggers_bound_total,
     );
     Ok(())
 }

@@ -10,6 +10,7 @@ pub mod commandline;
 use self::commandline::CommandLine;
 use ::config::{Config, Environment, File};
 use log::warn;
+use prusti_launch::{get_current_executable_dir, find_viper_home};
 use serde::Deserialize;
 use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
@@ -85,6 +86,7 @@ lazy_static::lazy_static! {
         settings.set_default("cache_path", "").unwrap();
         settings.set_default("dump_debug_info", false).unwrap();
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
+        settings.set_default("dump_nll_facts", false).unwrap();
         settings.set_default("ignore_regions", false).unwrap();
         settings.set_default("max_log_file_name_length", 60).unwrap();
         settings.set_default("dump_path_ctxt_in_debug_info", false).unwrap();
@@ -135,6 +137,8 @@ lazy_static::lazy_static! {
         settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_global_kind", None).unwrap();
         settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_trace", None).unwrap();
         settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_trace_kind", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_unique_triggers_bound", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_unique_triggers_bound_total", None).unwrap();
 
         // Flags for debugging performance.
         settings.set_default("preserve_smt_trace_files", false).unwrap();
@@ -293,9 +297,18 @@ pub fn boogie_path() -> Option<String> {
 /// The path to the Viper JARs. `prusti-rustc` is expected to set this
 /// configuration flag to the correct path.
 pub fn viper_home() -> String {
-    read_setting::<Option<String>>("viper_home")
-        .expect("please set the viper_home configuration flag")
-
+    if let Some(path) = read_setting::<Option<String>>("viper_home") {
+        path
+    } else {
+        // If we are running tests, the VIPER_HOME should be in a directory
+        // relative to us.
+        let current_executable_dir = get_current_executable_dir();
+        if let Some(path) = find_viper_home(&current_executable_dir) {
+            path.to_str().unwrap().to_owned()
+        } else {
+            panic!("Failed to detect Vipe home, please set viper_home configuration flag")
+        }
+    }
 }
 
 /// The path to the Viper JARs. `prusti-rustc` is expected to set this
@@ -325,6 +338,11 @@ pub fn dump_debug_info() -> bool {
 /// be dumped to a file.
 pub fn dump_debug_info_during_fold() -> bool {
     read_setting("dump_debug_info_during_fold")
+}
+
+/// When enabled, dumps Polonius nll-facts in the log directory.
+pub fn dump_nll_facts() -> bool {
+    read_setting("dump_nll_facts")
 }
 
 /// When enabled, debug files dumped by `rustc` will not contain lifetime
@@ -702,6 +720,16 @@ pub fn smt_quantifier_instantiations_bound_trace() -> Option<u64> {
 /// regressions and matching loops.
 pub fn smt_quantifier_instantiations_bound_trace_kind() -> Option<u64> {
     read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_trace_kind")
+}
+
+/// Limit how many unique triggers per quantifier Z3 can instantiate.
+pub fn smt_unique_triggers_bound() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_unique_triggers_bound")
+}
+
+/// Limit how many unique triggers in total Z3 can instantiate.
+pub fn smt_unique_triggers_bound_total() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_unique_triggers_bound_total")
 }
 
 /// Preserve the Z3 trace files. Since the files can be huge, they are by

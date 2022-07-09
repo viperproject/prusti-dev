@@ -47,11 +47,12 @@ fn struct_with_mut_reference_assert_false () {
 struct S3<'a> {
     x: &'a u32,
 }
-fn struct_with_shared_reference () {
-    let mut n = 4;
-    let mut t = S3{ x: &n};
-    let mut u = S3{ x: &n};
-}
+// FIXME: Use lifetimes from generic arguments.
+//  fn struct_with_shared_reference () {
+//      let mut n = 4;
+//      let mut t = S3{ x: &n};
+//      let mut u = S3{ x: &n};
+//  }
 fn struct_with_shared_reference_assert_false () {
     let mut n = 4;
     let mut t = S3{ x: &n};

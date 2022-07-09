@@ -62,9 +62,8 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         adt: vir_high::Expression,
         return_type: vir_high::Type,
     ) -> EncodingResult<vir_high::Expression> {
-        let name = "discriminant";
-        Ok(vir_high::Expression::function_call(
-            name,
+        Ok(vir_high::Expression::builtin_func_app_no_pos(
+            vir_high::BuiltinFunc::Discriminant,
             vec![], // FIXME: This is most likely wrong.
             vec![adt],
             return_type,
