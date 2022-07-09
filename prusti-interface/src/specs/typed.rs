@@ -18,6 +18,8 @@ pub struct DefSpecificationMap {
     pub type_specs: HashMap<DefId, TypeSpecification>,
     pub prusti_assertions: HashMap<DefId, PrustiAssertion>,
     pub prusti_assumptions: HashMap<DefId, PrustiAssumption>,
+    pub ghost_begin: HashMap<DefId, GhostBegin>,
+    pub ghost_end: HashMap<DefId, GhostEnd>,
 }
 
 impl DefSpecificationMap {
@@ -43,6 +45,14 @@ impl DefSpecificationMap {
 
     pub fn get_assumption(&self, def_id: &DefId) -> Option<&PrustiAssumption> {
         self.prusti_assumptions.get(def_id)
+    }
+
+    pub fn get_ghost_begin(&self, def_id: &DefId) -> Option<&GhostBegin> {
+        self.ghost_begin.get(def_id)
+    }
+
+    pub fn get_ghost_end(&self, def_id: &DefId) -> Option<&GhostEnd> {
+        self.ghost_end.get(def_id)
     }
 }
 
@@ -128,6 +138,16 @@ pub struct PrustiAssertion {
 #[derive(Debug, Clone)]
 pub struct PrustiAssumption {
     pub assumption: LocalDefId,
+}
+
+#[derive(Debug, Clone)]
+pub struct GhostBegin {
+    pub marker: LocalDefId,
+}
+
+#[derive(Debug, Clone)]
+pub struct GhostEnd {
+    pub marker: LocalDefId,
 }
 
 /// The base container to store a contract of a procedure.
@@ -330,7 +350,7 @@ pub struct Pledge {
 
 /// A specification, such as preconditions or a `#[pure]` annotation.
 /// Contains information about the refinement of these specifications.
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SpecificationItem<T> {
     /// Represents an empty specification, i.e. when the user has not defined the property
     Empty,

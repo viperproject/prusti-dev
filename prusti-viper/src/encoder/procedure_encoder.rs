@@ -5305,7 +5305,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let block = &self.mir.basic_blocks()[location.block];
             assert_eq!(block.statements.len(), location.statement_index, "expected terminator location");
             match &block.terminator().kind {
-                mir::terminator::TerminatorKind::Call{ args, destination, .. } => {
+                mir::TerminatorKind::Call{ args, destination, .. } => {
                     let tcx = self.encoder.env().tcx();
                     let arg_tys = args.iter().map(|arg| arg.ty(self.mir, tcx)).collect();
                     let return_ty = destination.ty(self.mir, tcx).ty;

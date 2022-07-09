@@ -3,7 +3,7 @@ use crate::encoder::errors::SpannedEncodingResult;
 use log::debug;
 use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
-    high::{self as vir_high},
+    high::{self as vir_high, operations::ty::Typed},
     middle as vir_mid,
 };
 
@@ -12,6 +12,13 @@ pub(super) struct PredicateState {
     owned_non_aliased: BTreeSet<vir_high::Expression>,
     memory_block_stack: BTreeSet<vir_high::Expression>,
     mut_borrowed: BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+    dead_lifetimes: BTreeSet<vir_high::ty::LifetimeConst>,
+}
+
+pub(super) struct PlaceWithDeadLifetimes {
+    pub(super) place: vir_high::Expression,
+    pub(super) lifetimes_dead_before: Vec<bool>,
+    pub(super) lifetimes_dead_after: Vec<bool>,
 }
 
 #[derive(Clone)]
@@ -61,7 +68,11 @@ impl PredicateState {
     }
 
     fn contains_only_leakable(&self) -> bool {
-        self.owned_non_aliased.is_empty() && self.memory_block_stack.is_empty()
+        self.memory_block_stack.is_empty()
+            && self.owned_non_aliased.iter().all(|place| {
+                // `UniqueRef` and `FracRef` predicates can be leaked.
+                place.get_dereference_base().is_some()
+            })
     }
 
     fn places_mut(&mut self, kind: PermissionKind) -> &mut BTreeSet<vir_high::Expression> {
@@ -233,6 +244,40 @@ impl PredicateState {
         for place in self.mut_borrowed.keys() {
             place.check_no_default_position();
         }
+    }
+
+    pub(super) fn mark_lifetime_dead(
+        &mut self,
+        lifetime: &vir_high::ty::LifetimeConst,
+    ) -> (Vec<vir_high::Expression>, Vec<PlaceWithDeadLifetimes>) {
+        assert!(
+            !self.dead_lifetimes.contains(lifetime),
+            "The lifetime {} is already dead.",
+            lifetime
+        );
+        let dead_references = self
+            .owned_non_aliased
+            .drain_filter(|place| place.is_deref_of_lifetime(lifetime))
+            .collect();
+        let mut places_with_dead_lifetimes = Vec::new();
+        for place in &self.owned_non_aliased {
+            let lifetimes = place.get_type().get_lifetimes();
+            if lifetimes.contains(lifetime) {
+                places_with_dead_lifetimes.push(PlaceWithDeadLifetimes {
+                    place: place.clone(),
+                    lifetimes_dead_before: lifetimes
+                        .iter()
+                        .map(|l| self.dead_lifetimes.contains(l))
+                        .collect(),
+                    lifetimes_dead_after: lifetimes
+                        .iter()
+                        .map(|l| self.dead_lifetimes.contains(l) || l == lifetime)
+                        .collect(),
+                });
+            }
+        }
+        self.dead_lifetimes.insert(lifetime.clone());
+        (dead_references, places_with_dead_lifetimes)
     }
 }
 

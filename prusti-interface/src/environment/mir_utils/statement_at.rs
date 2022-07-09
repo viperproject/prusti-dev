@@ -21,4 +21,3 @@ impl<'tcx> StatementAt<'tcx> for mir::Body<'tcx> {
         }
     }
 }
-

@@ -211,6 +211,16 @@ fn main() {
                 rustc_args.push("-Zidentify-regions=yes".to_owned());
             }
         }
+        if config::dump_nll_facts() {
+            rustc_args.push("-Znll-facts=yes".to_string());
+            rustc_args.push(format!(
+                "-Znll-facts-dir={}",
+                config::log_dir()
+                    .join("nll-facts")
+                    .to_str()
+                    .expect("failed to configure nll-facts-dir")
+            ));
+        }
 
         let mut callbacks = PrustiCompilerCalls::default();
 
