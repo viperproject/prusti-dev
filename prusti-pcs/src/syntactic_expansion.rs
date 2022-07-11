@@ -11,17 +11,9 @@ use crate::pcs::{
 use rustc_data_structures::stable_map::FxHashMap;
 use rustc_middle::{
     mir::{
-        terminator::{Terminator, TerminatorKind::*},
-        AggregateKind::Adt,
-        BasicBlock, BinOp, Body, Local, Mutability,
-        Mutability::*,
-        NullOp, Operand,
-        Operand::*,
-        Place,
-        Rvalue::*,
-        Statement,
-        StatementKind::*,
-        UnOp,
+        AggregateKind::Adt, BasicBlock, BinOp, Body, Local, Mutability, Mutability::*, NullOp,
+        Operand, Operand::*, Place, Rvalue::*, Statement, StatementKind::*, Terminator,
+        TerminatorKind::*, UnOp,
     },
     ty,
 };
@@ -123,7 +115,7 @@ impl<'mir> MicroMirEncoder<'mir> {
     /// Encodes a MIR terminator into a MicroMir terminator, potentially adding steps to the body.
     pub fn encode_terminator(
         current: &mut Vec<MicroMirStatement<'mir>>,
-        t: &'mir Terminator,
+        t: &'mir Terminator<'mir>,
         mir: &Body,
     ) -> Result<MicroMirTerminator<'mir>, MicroMirEncodingError> {
         match &t.kind {
