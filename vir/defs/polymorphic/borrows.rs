@@ -5,11 +5,14 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use super::ast::*;
+use log::{debug, trace};
 use rustc_hash::FxHashMap;
 use std::{collections::VecDeque, fmt};
 
 /// The method-unique borrow identifier.
-#[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash, Serialize, Deserialize)]
+#[derive(
+    Ord, PartialOrd, Eq, PartialEq, Clone, Copy, Hash, serde::Serialize, serde::Deserialize,
+)]
 pub struct Borrow(pub(crate) usize);
 
 impl From<usize> for Borrow {
@@ -85,7 +88,7 @@ impl fmt::Debug for Node {
 
 /// Reborrowing directed acyclic graph (DAG). It should not be mutated
 /// after it is constructed. For construction use `DAGBuilder`.
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, Default)]
 pub struct DAG {
     /// Mapping from borrows to their node indices.
     #[serde(skip)]

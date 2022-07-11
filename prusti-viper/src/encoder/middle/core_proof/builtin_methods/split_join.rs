@@ -23,8 +23,11 @@ pub(super) struct SplitJoinHelper {
 
 impl SplitJoinHelper {
     pub(super) fn new(is_joining: bool) -> Self {
+        var_decls! { permission_amount: Perm };
         Self {
-            preconditions: Vec::new(),
+            preconditions: vec![
+                expr! { [vir_low::Expression::no_permission()] < permission_amount },
+            ],
             postconditions: Vec::new(),
             field_to_bytes_equalities: Vec::new(),
             is_joining,
@@ -38,9 +41,9 @@ impl TypeDeclWalker for SplitJoinHelper {
     type Parameters = ();
     fn before(&mut self, ty: &vir_mid::Type, _: &(), lowerer: &mut Lowerer) -> R {
         lowerer.encode_compute_address(ty)?;
-        var_decls!(address: Address);
+        var_decls!(address: Address, permission_amount: Perm);
         let size_of = lowerer.encode_type_size_expression(ty)?;
-        let whole_block = expr!(acc(MemoryBlock(address, [size_of])));
+        let whole_block = expr!(acc(MemoryBlock(address, [size_of]), permission_amount));
         if self.is_joining {
             self.postconditions.push(whole_block);
         } else {
@@ -49,11 +52,11 @@ impl TypeDeclWalker for SplitJoinHelper {
         Ok(())
     }
     fn walk_primitive(&mut self, _: &Type, _: &(), _lowerer: &mut Lowerer) -> R {
-        unreachable!("Trying to split memory block of a primitive type.")
+        unreachable!("Trying to split memory block of a primitive type.");
     }
     fn walk_field(&mut self, ty: &Type, field: &FieldDecl, _: &(), lowerer: &mut Lowerer) -> R {
         let field_size_of = lowerer.encode_type_size_expression(&field.ty)?;
-        var_decls!(address: Address);
+        var_decls!(address: Address, permission_amount: Perm);
         let field_address =
             lowerer.encode_field_address(ty, field, address.into(), Default::default())?;
         {
@@ -77,7 +80,9 @@ impl TypeDeclWalker for SplitJoinHelper {
                 });
             }
         }
-        let field_block = expr! {acc(MemoryBlock([field_address], [field_size_of]))};
+        let field_block = expr! {
+            acc(MemoryBlock([field_address], [field_size_of]), permission_amount)
+        };
         if self.is_joining {
             self.preconditions.push(field_block);
         } else {

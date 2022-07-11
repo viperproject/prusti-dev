@@ -44,6 +44,17 @@ pub(in super::super::super) trait SnapshotValuesInterface {
         ty: &vir_mid::Type,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn obtain_array_len_snapshot(
+        &mut self,
+        base_snapshot: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn obtain_array_element_snapshot(
+        &mut self,
+        base_snapshot: vir_low::Expression,
+        index: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression>;
 
     // Bottom-up: if we have a snapshot of a struct's fields and we want to get
     // a snapshot of the struct.
@@ -94,6 +105,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
         let return_type = match &ty {
             vir_mid::Type::Bool => vir_low::Type::Bool,
             vir_mid::Type::Int(_) => vir_low::Type::Int,
+            vir_mid::Type::Pointer(_) => self.address_type()?,
             x => unimplemented!("{:?}", x),
         };
         let domain_name = self.encode_snapshot_domain_name(ty)?;
@@ -161,6 +173,31 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotValuesInterface for Lowerer<'p, 'v, 'tcx> {
             vir_low::Type::Int,
             position,
         )
+    }
+    fn obtain_array_len_snapshot(
+        &mut self,
+        base_snapshot: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        Ok(vir_low::Expression::container_op(
+            vir_low::expression::ContainerOpKind::SeqLen,
+            base_snapshot,
+            true.into(),
+            position,
+        ))
+    }
+    fn obtain_array_element_snapshot(
+        &mut self,
+        base_snapshot: vir_low::Expression,
+        index: vir_low::Expression,
+        position: vir_mid::Position,
+    ) -> SpannedEncodingResult<vir_low::Expression> {
+        Ok(vir_low::Expression::container_op(
+            vir_low::expression::ContainerOpKind::SeqIndex,
+            base_snapshot,
+            index,
+            position,
+        ))
     }
     fn construct_constant_snapshot(
         &mut self,

@@ -95,4 +95,18 @@ impl<'v, 'tcx> ToMiddleStatementLowerer for crate::encoder::Encoder<'v, 'tcx> {
             position: statement.position,
         })
     }
+
+    fn to_middle_statement_statement_dead_lifetime(
+        &self,
+        _statement: vir_high::DeadLifetime,
+    ) -> Result<vir_mid::Statement, Self::Error> {
+        unreachable!("DeadLifetime statement cannot be lowered");
+    }
+
+    fn to_middle_statement_dead_lifetime(
+        &self,
+        _statement: vir_high::DeadLifetime,
+    ) -> Result<vir_mid::statement::DeadLifetime, Self::Error> {
+        unreachable!("DeadLifetime statement cannot be lowered");
+    }
 }

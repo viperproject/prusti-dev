@@ -6,7 +6,7 @@ use crate::encoder::{
         lowerer::{DomainsLowererInterface, Lowerer},
         snapshots::{
             IntoPureSnapshot, IntoSnapshot, SnapshotAdtsInterface, SnapshotDomainsInterface,
-            SnapshotValidityInterface,
+            SnapshotValidityInterface, SnapshotValuesInterface,
         },
     },
 };
@@ -42,6 +42,13 @@ trait Private {
         parameters: Vec<vir_low::VariableDecl>,
         parameter_type: &vir_mid::Type,
         simplification_result: vir_low::Expression,
+    ) -> SpannedEncodingResult<()>;
+    fn declare_evaluation_axiom(
+        &mut self,
+        ty: &vir_mid::Type,
+        variant: &str,
+        parameters: Vec<vir_low::VariableDecl>,
+        evaluation_result: vir_low::Expression,
     ) -> SpannedEncodingResult<()>;
 }
 
@@ -82,10 +89,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 // FIXME: we should make sure that the snapshot and validity
                 // function is generated, but nothing else.
             }
-            vir_mid::TypeDecl::Sequence(_) | vir_mid::TypeDecl::Map(_) => {
+            vir_mid::TypeDecl::Map(_) => {
                 // FIXME: we should generate validity and to_bytes functions.
                 // The ghost containers should be valid iff the values they
                 // contain are valid.
+            }
+            vir_mid::TypeDecl::Sequence(vir_mid::type_decl::Sequence { element_type, .. })
+            | vir_mid::TypeDecl::Array(vir_mid::type_decl::Array { element_type, .. }) => {
+                self.ensure_type_definition(element_type)?;
+                let element_domain_name = &self.encode_snapshot_domain_name(element_type)?;
+                let element_type_snapshot = element_type.to_snapshot(self)?;
+                self.encode_validity_axioms_sequence(
+                    &domain_name,
+                    element_domain_name,
+                    element_type_snapshot,
+                )?;
             }
             vir_mid::TypeDecl::Trusted(_decl) => {
                 // FIXME: we should make sure that the snapshot and validity
@@ -186,9 +204,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     self.register_struct_constructor(&domain_name, parameters.clone())?;
                     self.encode_validity_axioms_struct(&domain_name, parameters, true.into())?;
                     let no_alloc_parameters = vars! { target_current: {target_type} };
-                    self.register_alternative_constructor(
+                    self.register_alternative_constructor_with_injectivity_axioms(
                         &domain_name,
                         "no_alloc",
+                        true,
                         no_alloc_parameters.clone(),
                     )?;
                     self.encode_validity_axioms_struct_alternative_constructor(
@@ -203,6 +222,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         };
         Ok(())
     }
+
     fn declare_simplification_axiom(
         &mut self,
         ty: &vir_mid::Type,
@@ -216,11 +236,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         let domain_name = self.encode_snapshot_domain_name(ty)?;
         let snapshot_type = ty.to_snapshot(self)?;
         let mut constructor_calls = Vec::new();
+        let mut parameters_validity = Vec::new();
         for parameter in parameters.iter() {
-            constructor_calls.push(self.snapshot_constructor_constant_call(
+            let constructor_call = self.snapshot_constructor_constant_call(
                 &parameter_domain_name,
                 vec![parameter.clone().into()],
-            )?);
+            )?;
+            constructor_calls.push(constructor_call.clone());
+            parameters_validity
+                .push(self.encode_snapshot_valid_call_for_type(constructor_call, parameter_type)?);
         }
         let constructor_call_op =
             self.snapshot_constructor_constant_call(&domain_name, vec![simplification_result])?;
@@ -230,13 +254,47 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             constructor_calls,
             snapshot_type,
         );
+        let validity_op_constructor_call =
+            self.encode_snapshot_valid_call_for_type(op_constructor_call.clone(), ty)?;
         let body = vir_low::Expression::forall(
             parameters,
-            vec![vir_low::Trigger::new(vec![op_constructor_call.clone()])],
-            expr! { [op_constructor_call] == [constructor_call_op] },
+            vec![vir_low::Trigger::new(vec![validity_op_constructor_call])],
+            expr! { [parameters_validity.into_iter().conjoin()] ==> ([op_constructor_call] == [constructor_call_op]) },
         );
         let axiom = vir_low::DomainAxiomDecl {
             name: format!("{}$simplification_axiom", variant),
+            body,
+        };
+        self.declare_axiom(&domain_name, axiom)?;
+        Ok(())
+    }
+
+    fn declare_evaluation_axiom(
+        &mut self,
+        ty: &vir_mid::Type,
+        variant: &str,
+        parameters: Vec<vir_low::VariableDecl>,
+        evaluation_result: vir_low::Expression,
+    ) -> SpannedEncodingResult<()> {
+        use vir_low::macros::*;
+        let domain_name = self.encode_snapshot_domain_name(ty)?;
+        let op_constructor = vir_low::Expression::domain_function_call(
+            &domain_name,
+            self.snapshot_constructor_struct_alternative_name(&domain_name, variant)?,
+            parameters
+                .iter()
+                .map(|parameter| parameter.clone().into())
+                .collect(),
+            ty.to_snapshot(self)?,
+        );
+        let destructor = self.obtain_constant_value(ty, op_constructor, Default::default())?;
+        let body = vir_low::Expression::forall(
+            parameters,
+            vec![vir_low::Trigger::new(vec![destructor.clone()])],
+            expr! { [destructor] == [evaluation_result] },
+        );
+        let axiom = vir_low::DomainAxiomDecl {
+            name: format!("{}$eval_axiom", variant),
             body,
         };
         self.declare_axiom(&domain_name, axiom)?;
@@ -263,7 +321,13 @@ pub(in super::super) trait TypesInterface {
 
 impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
     fn ensure_type_definition(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
-        if matches!(ty, vir_mid::Type::MBool | vir_mid::Type::MInt) {
+        if matches!(
+            ty,
+            vir_mid::Type::MBool
+                | vir_mid::Type::MInt
+                | vir_mid::Type::MPerm
+                | vir_mid::Type::Lifetime
+        ) {
             // Natively supported types, nothing to do.
             return Ok(());
         }
@@ -305,7 +369,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
             self.register_alternative_constructor(
                 &result_domain,
                 &variant_name,
-                vars! { argument: {snapshot_type} },
+                false,
+                vars! { argument: {snapshot_type.clone()} },
             )?;
             // Simplification axioms.
             let op = op.to_snapshot(self)?;
@@ -329,6 +394,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
                     vec![parameter],
                     argument_type,
                     simplification_result,
+                )?;
+                var_decls! { value: {snapshot_type}};
+                let destructor_value = self.obtain_constant_value(
+                    argument_type,
+                    value.clone().into(),
+                    Default::default(),
+                )?;
+                self.declare_evaluation_axiom(
+                    result_type,
+                    &variant_name,
+                    vec![value],
+                    vir_low::Expression::unary_op_no_pos(op, destructor_value),
                 )?;
             }
         }
@@ -355,6 +432,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
             self.register_alternative_constructor(
                 &result_domain,
                 &variant_name,
+                false,
                 vars! { left: {snapshot_type.clone()}, right: {snapshot_type.clone()} },
             )?;
             // Simplification axioms.
@@ -374,6 +452,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
                     vec![left, right],
                     argument_type,
                     result,
+                )?;
+                var_decls! {left: {snapshot_type.clone()}, right: {snapshot_type}};
+                let destructor_left = self.obtain_constant_value(
+                    argument_type,
+                    left.clone().into(),
+                    Default::default(),
+                )?;
+                let destructor_right = self.obtain_constant_value(
+                    argument_type,
+                    right.clone().into(),
+                    Default::default(),
+                )?;
+                self.declare_evaluation_axiom(
+                    result_type,
+                    &variant_name,
+                    vec![left, right],
+                    vir_low::Expression::binary_op_no_pos(op, destructor_left, destructor_right),
                 )?;
             } else if op == vir_low::BinaryOpKind::EqCmp {
                 // FIXME: For now, we treat Rust's == as bit equality.

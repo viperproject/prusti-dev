@@ -1,6 +1,6 @@
 use super::encoder::SnapshotEncoder;
 use crate::encoder::errors::EncodingResult;
-use rustc_middle::{mir, ty};
+use prusti_rustc_interface::middle::{mir, ty};
 use std::{cell::RefCell, rc::Rc};
 use vir_crate::polymorphic as vir_poly;
 
@@ -151,11 +151,7 @@ impl<'v, 'tcx: 'v> SnapshotEncoderInterface<'tcx> for super::super::Encoder<'v, 
         let args = match expr.ty().kind() {
             ty::TyKind::Tuple(substs) if substs.is_empty() => vec![],
             _ => {
-                let const_val = match expr.literal {
-                    mir::ConstantKind::Ty(ty::Const(ty_val)) => ty_val.val,
-                    mir::ConstantKind::Val(val, _) => ty::ConstKind::Value(val),
-                };
-                vec![self.encode_const_expr(expr.ty(), const_val)?]
+                vec![self.encode_const_expr(expr.ty(), expr.literal)?]
             }
         };
         self.encode_snapshot(expr.ty(), None, args)

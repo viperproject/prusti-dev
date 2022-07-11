@@ -4,12 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use class_name::*;
-use errors::*;
-use jni::objects::JValue;
-use jni::JNIEnv;
+use crate::{class_name::*, errors::*, utils::*};
+use jni::{objects::JValue, JNIEnv};
 use std::collections::HashMap;
-use utils::*;
 
 pub fn generate_constructor(
     env: &JNIEnv,
@@ -168,7 +165,27 @@ fn generate(
 
     code.push(") -> JNIResult<JObject<'a>> {".to_string());
 
-    code.push(format!("    let class = self.env.find_class(\"{}\")?;", class.path()));
+    // Generate dynamic type check for the arguments
+    if cfg!(debug_assertions) {
+        for i in 0..parameter_names.len() {
+            let par_name = &parameter_names[i];
+            let par_sign = &parameter_signatures[i];
+            if par_sign.starts_with('L') {
+                let par_class = &par_sign[1..(par_sign.len() - 1)];
+                code.push("    debug_assert!(".to_string());
+                code.push(format!(
+                    "        self.env.is_instance_of({}, self.env.find_class(\"{}\")?)?",
+                    par_name, par_class
+                ));
+                code.push("    );".to_string());
+            }
+        }
+    }
+
+    code.push(format!(
+        "    let class = self.env.find_class(\"{}\")?;",
+        class.path()
+    ));
 
     code.push(format!(
         "    let method_signature = \"{}\";",

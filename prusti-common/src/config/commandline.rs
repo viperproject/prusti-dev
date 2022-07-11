@@ -1,4 +1,4 @@
-use config_crate::{Value, Source, ConfigError};
+use ::config::{Value, Source, ConfigError};
 use std::collections::HashMap;
 use itertools::Itertools;
 use std::env;

@@ -6,15 +6,15 @@
 
 use super::loops;
 use crate::data::ProcedureDefId;
-use rustc_middle::mir::{self, Body as Mir, Rvalue, AggregateKind};
-use rustc_middle::mir::{BasicBlock, BasicBlockData};
-use rustc_middle::ty::{Ty, TyCtxt};
+use prusti_rustc_interface::middle::mir::{self, Body as Mir, Rvalue, AggregateKind};
+use prusti_rustc_interface::middle::mir::{BasicBlock, BasicBlockData};
+use prusti_rustc_interface::middle::ty::{Ty, TyCtxt};
 use std::rc::Rc;
 use std::collections::{HashSet, HashMap};
-use rustc_span::Span;
+use prusti_rustc_interface::span::Span;
 use log::{trace, debug};
-use rustc_middle::mir::StatementKind;
-use rustc_hir::def_id;
+use prusti_rustc_interface::middle::mir::StatementKind;
+use prusti_rustc_interface::hir::def_id;
 use crate::environment::mir_utils::RealEdges;
 use crate::environment::debug_utils::to_text::ToText;
 use crate::environment::Environment;
@@ -77,10 +77,34 @@ impl<'tcx> Procedure<'tcx> {
 
     }
 
+    pub fn get_lifetime_of_var(&self, var: mir::Local) -> Option<String>{
+        fn get_lifetime_if_matches(local: mir::Local, var: mir::Local, mir: &Mir) -> Option<String>{
+            if local == var {
+                let ty_kind = mir.local_decls[local].ty.kind();
+                if let prusti_rustc_interface::middle::ty::TyKind::Ref(region, _ty, _mutability) = ty_kind {
+                    return Some(region.to_text());
+                }
+            }
+            None
+        }
+        let mir = self.get_mir();
+        for local in mir.vars_and_temps_iter() {
+            if let Some(lifetime) = get_lifetime_if_matches(local, var, mir) {
+                return Some(lifetime);
+            }
+        }
+        for local in mir.args_iter() {
+            if let Some(lifetime) = get_lifetime_if_matches(local, var, mir) {
+                return Some(lifetime);
+            }
+        }
+        None
+    }
+
     pub fn get_var_of_lifetime(&self, lft: &str) -> Option<mir::Local>{
         let mir = self.get_mir();
         for local in mir.vars_and_temps_iter() {
-            if let rustc_middle::ty::TyKind::Ref(region, _, _) = &mir.local_decls[local].ty.kind() {
+            if let prusti_rustc_interface::middle::ty::TyKind::Ref(region, _, _) = &mir.local_decls[local].ty.kind() {
                 if region.to_text() == lft {
                     return Some(local)
                 }
@@ -209,7 +233,7 @@ pub fn is_marked_specification_block(bb_data: &BasicBlockData, tcx: &TyCtxt) -> 
     false
 }
 
-pub fn get_loop_invariant<'tcx>(bb_data: &BasicBlockData<'tcx>, tcx: TyCtxt<'tcx>) -> Option<(ProcedureDefId, rustc_middle::ty::subst::SubstsRef<'tcx>)> {
+pub fn get_loop_invariant<'tcx>(bb_data: &BasicBlockData<'tcx>, tcx: TyCtxt<'tcx>) -> Option<(ProcedureDefId, prusti_rustc_interface::middle::ty::subst::SubstsRef<'tcx>)> {
     for stmt in &bb_data.statements {
         if let StatementKind::Assign(box (_, Rvalue::Aggregate(box AggregateKind::Closure(def_id, substs), _))) = &stmt.kind {
             if is_spec_closure(*def_id, &tcx) && crate::utils::has_prusti_attr(crate::utils::get_attributes(tcx, *def_id), "loop_body_invariant_spec") {
@@ -222,6 +246,25 @@ pub fn get_loop_invariant<'tcx>(bb_data: &BasicBlockData<'tcx>, tcx: TyCtxt<'tcx
 
 pub fn is_loop_invariant_block<'tcx>(bb_data: &BasicBlockData<'tcx>, tcx: TyCtxt<'tcx>) -> bool {
     get_loop_invariant(bb_data, tcx).is_some()
+}
+
+pub fn is_ghost_begin_marker<'tcx>(bb: &BasicBlockData<'tcx>, tcx: TyCtxt<'tcx>) -> bool {
+    is_spec_block_kind(bb, tcx, "ghost_begin")
+}
+
+pub fn is_ghost_end_marker<'tcx>(bb: &BasicBlockData<'tcx>, tcx: TyCtxt<'tcx>) -> bool {
+    is_spec_block_kind(bb, tcx, "ghost_end")
+}
+
+fn is_spec_block_kind(bb_data: &BasicBlockData, tcx: TyCtxt, kind: &str) -> bool {
+    for stmt in &bb_data.statements {
+        if let StatementKind::Assign(box (_, Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _))) = &stmt.kind {
+            if is_spec_closure(*def_id, &tcx) && crate::utils::has_prusti_attr(crate::utils::get_attributes(tcx, *def_id), kind) {
+                return true;
+            }
+        }
+    }
+    false
 }
 
 #[derive(Debug)]

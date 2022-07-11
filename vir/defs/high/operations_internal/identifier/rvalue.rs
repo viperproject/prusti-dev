@@ -4,26 +4,47 @@ use crate::common::identifier::WithIdentifier;
 impl WithIdentifier for Rvalue {
     fn get_identifier(&self) -> String {
         match self {
+            Self::Repeat(value) => value.get_identifier(),
             Self::AddressOf(value) => value.get_identifier(),
+            Self::Len(value) => value.get_identifier(),
             Self::BinaryOp(value) => value.get_identifier(),
             Self::CheckedBinaryOp(value) => value.get_identifier(),
             Self::UnaryOp(value) => value.get_identifier(),
             Self::Aggregate(value) => value.get_identifier(),
             Self::Discriminant(value) => value.get_identifier(),
             Self::Ref(value) => value.get_identifier(),
+            Self::Reborrow(value) => value.get_identifier(),
         }
+    }
+}
+
+impl WithIdentifier for Repeat {
+    fn get_identifier(&self) -> String {
+        format!("Repeat${}", self.argument.get_identifier())
+    }
+}
+
+impl WithIdentifier for Reborrow {
+    fn get_identifier(&self) -> String {
+        format!("Reborrow${}", self.place.get_type().get_identifier())
     }
 }
 
 impl WithIdentifier for Ref {
     fn get_identifier(&self) -> String {
-        format!("ref_${}", self.place.get_type().get_identifier())
+        format!("Ref${}", self.place.get_type().get_identifier())
     }
 }
 
 impl WithIdentifier for AddressOf {
     fn get_identifier(&self) -> String {
-        format!("address_of${}", self.place.get_type().get_identifier())
+        format!("AddressOf${}", self.place.get_type().get_identifier())
+    }
+}
+
+impl WithIdentifier for Len {
+    fn get_identifier(&self) -> String {
+        format!("Len${}", self.place.get_type().get_identifier())
     }
 }
 
@@ -57,13 +78,13 @@ impl WithIdentifier for CheckedBinaryOp {
 
 impl WithIdentifier for Discriminant {
     fn get_identifier(&self) -> String {
-        format!("discriminant${}", self.place.get_type().get_identifier())
+        format!("Discriminant${}", self.place.get_type().get_identifier())
     }
 }
 
 impl WithIdentifier for Aggregate {
     fn get_identifier(&self) -> String {
-        format!("aggregate${}", self.ty.get_identifier())
+        format!("Aggregate${}", self.ty.get_identifier())
     }
 }
 

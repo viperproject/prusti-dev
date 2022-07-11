@@ -2,7 +2,7 @@ pub(crate) use super::{
     super::{cfg::procedure::BasicBlockId, operations_internal::ty::Typed, Expression, Position},
     predicate::Predicate,
     rvalue::{Operand, Rvalue},
-    ty::{LifetimeConst, Type, VariantIndex},
+    ty::{LifetimeConst, Type, Uniqueness, VariantIndex},
     variable::VariableDecl,
 };
 use crate::common::display;
@@ -22,6 +22,8 @@ pub enum Statement {
     Assert(Assert),
     FoldOwned(FoldOwned),
     UnfoldOwned(UnfoldOwned),
+    FoldRef(FoldRef),
+    UnfoldRef(UnfoldRef),
     JoinBlock(JoinBlock),
     SplitBlock(SplitBlock),
     ConvertOwnedIntoMemoryBlock(ConvertOwnedIntoMemoryBlock),
@@ -33,13 +35,17 @@ pub enum Statement {
     Assign(Assign),
     NewLft(NewLft),
     EndLft(EndLft),
-    Dead(Dead),
+    DeadReference(DeadReference),
+    DeadLifetime(DeadLifetime),
+    DeadInclusion(DeadInclusion),
     LifetimeTake(LifetimeTake),
     LifetimeReturn(LifetimeReturn),
+    ObtainMutRef(ObtainMutRef),
     OpenMutRef(OpenMutRef),
     OpenFracRef(OpenFracRef),
     CloseMutRef(CloseMutRef),
     CloseFracRef(CloseFracRef),
+    BorShorten(BorShorten),
 }
 
 #[display(fmt = "// {}", comment)]
@@ -119,7 +125,7 @@ pub struct BlockMarkerCondition {
 }
 
 #[display(
-    fmt = "fold{} {}",
+    fmt = "fold-owned{} {}",
     "display::option!(condition, \"<{}>\", \"\")",
     place
 )]
@@ -131,13 +137,45 @@ pub struct FoldOwned {
 }
 
 #[display(
-    fmt = "unfold{} {}",
+    fmt = "unfold-owned{} {}",
     "display::option!(condition, \"<{}>\", \"\")",
     place
 )]
 /// Unfold `OwnedNonAliased(place)`.
 pub struct UnfoldOwned {
     pub place: Expression,
+    pub condition: Option<BlockMarkerCondition>,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "fold-{}-ref{} {} {}",
+    uniqueness,
+    "display::option!(condition, \"<{}>\", \"\")",
+    lifetime,
+    place
+)]
+/// Fold `MutRef(place)`.
+pub struct FoldRef {
+    pub place: Expression,
+    pub lifetime: LifetimeConst,
+    pub uniqueness: Uniqueness,
+    pub condition: Option<BlockMarkerCondition>,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "unfold-{}-ref{} {} {}",
+    uniqueness,
+    "display::option!(condition, \"<{}>\", \"\")",
+    lifetime,
+    place
+)]
+/// Unfold `MutRef(place)`.
+pub struct UnfoldRef {
+    pub place: Expression,
+    pub lifetime: LifetimeConst,
+    pub uniqueness: Uniqueness,
     pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
@@ -257,9 +295,31 @@ pub struct EndLft {
     pub position: Position,
 }
 
-#[display(fmt = "dead({})", target)]
-pub struct Dead {
+#[display(fmt = "dead-reference({})", target)]
+pub struct DeadReference {
     pub target: Expression,
+    pub condition: Option<BlockMarkerCondition>,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "dead-lifetime({}, before={}, after={})",
+    target,
+    "display::cjoin(dead_lifetimes_before)",
+    "display::cjoin(dead_lifetimes_after)"
+)]
+pub struct DeadLifetime {
+    pub target: Expression,
+    pub dead_lifetimes_before: Vec<bool>,
+    pub dead_lifetimes_after: Vec<bool>,
+    pub condition: Option<BlockMarkerCondition>,
+    pub position: Position,
+}
+
+#[display(fmt = "dead_inclusion({}, {})", target, value)]
+pub struct DeadInclusion {
+    pub target: VariableDecl,
+    pub value: VariableDecl,
     pub position: Position,
 }
 
@@ -286,6 +346,13 @@ pub struct LifetimeReturn {
     pub target: VariableDecl,
     pub value: Vec<VariableDecl>,
     pub lifetime_token_permission: Expression,
+    pub position: Position,
+}
+
+#[display(fmt = "obtain_mut_ref({}, {})", place, lifetime)]
+pub struct ObtainMutRef {
+    pub place: Expression,
+    pub lifetime: LifetimeConst,
     pub position: Position,
 }
 
@@ -346,5 +413,20 @@ pub struct CloseFracRef {
     pub place: Expression,
     /// The permission amount that we get for accessing `Owned`.
     pub predicate_permission_amount: VariableDecl,
+    pub position: Position,
+}
+
+#[display(
+    fmt = "bor_shorten({}, {}, {}, rd({}))",
+    lifetime,
+    old_lifetime,
+    value,
+    lifetime_token_permission
+)]
+pub struct BorShorten {
+    pub lifetime: LifetimeConst,
+    pub old_lifetime: LifetimeConst,
+    pub value: Expression,
+    pub lifetime_token_permission: Expression,
     pub position: Position,
 }

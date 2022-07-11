@@ -1,8 +1,10 @@
 use crate::encoder::errors::SpannedEncodingResult;
-use rustc_errors::MultiSpan;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty};
-use rustc_span::Span;
+use prusti_rustc_interface::{
+    errors::MultiSpan,
+    hir::def_id::DefId,
+    middle::{mir, ty},
+    span::Span,
+};
 
 pub(crate) trait SpanInterface<'tcx> {
     fn get_definition_span(&self, def_id: DefId) -> Span;

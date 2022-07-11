@@ -11,7 +11,7 @@ use crate::{
 use rustc_hash::FxHashMap;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct Domain {
     pub name: String,
     pub functions: Vec<DomainFunc>,
@@ -53,7 +53,9 @@ impl fmt::Display for Domain {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
 pub struct DomainFunc {
     pub name: String,
     pub type_arguments: Vec<Type>,
@@ -103,7 +105,7 @@ impl WithIdentifier for DomainFunc {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct DomainAxiom {
     pub name: String,
     pub expr: Expr,

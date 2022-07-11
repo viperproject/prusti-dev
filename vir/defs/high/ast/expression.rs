@@ -162,7 +162,7 @@ pub enum ContainerOpKind {
     SeqLen,
 }
 
-#[display(fmt = "{}{}{}", left, op_kind, right)]
+#[display(fmt = "({} {} {})", left, op_kind, right)]
 pub struct ContainerOp {
     pub op_kind: ContainerOpKind,
     pub left: Box<Expression>,
@@ -230,10 +230,12 @@ pub struct FuncApp {
 
 #[derive(Copy)]
 pub enum BuiltinFunc {
+    Discriminant,
     LifetimeIncluded,
     LifetimeIntersect,
     EmptyMap,
     UpdateMap,
+    MapContains,
     LookupMap,
     MapLen,
     EmptySeq,
@@ -242,6 +244,8 @@ pub enum BuiltinFunc {
     ConcatSeq,
     SeqLen,
     NewInt,
+    Index,
+    Len,
 }
 
 #[display(fmt = "__builtin__{}({})", function, "display::cjoin(arguments)")]

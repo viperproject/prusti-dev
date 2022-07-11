@@ -1,6 +1,7 @@
-use rustc_index::vec::Idx;
-use rustc_middle::mir;
-use rustc_middle::ty;
+use prusti_rustc_interface::{
+    index::vec::Idx,
+    middle::{mir, ty},
+};
 
 pub trait ArgsForMir<'tcx> {
     fn get_args(&self) -> Vec<(mir::Local, ty::Ty<'tcx>)>;

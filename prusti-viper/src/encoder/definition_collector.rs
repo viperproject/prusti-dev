@@ -5,8 +5,8 @@ use super::{
 };
 use crate::encoder::high::types::HighTypeEncoderInterface;
 use prusti_common::vir_local;
+use prusti_rustc_interface::span::Span;
 use rustc_hash::{FxHashMap, FxHashSet};
-use rustc_span::Span;
 
 use vir_crate::{
     common::identifier::WithIdentifier,
@@ -280,10 +280,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> Collector<'p, 'v, 'tcx> {
                 self.used_mirror_functions
                     .contains(&function.get_identifier().into())
             });
-            mirror_domain
-                .functions
-                .sort_by_cached_key(|func| func.get_identifier());
-            domains.push(mirror_domain);
+            if !mirror_domain.functions.is_empty() {
+                mirror_domain
+                    .functions
+                    .sort_by_cached_key(|func| func.get_identifier());
+                domains.push(mirror_domain);
+            }
         }
         domains.sort_by_cached_key(|domain| domain.name.clone());
         domains

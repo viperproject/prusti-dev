@@ -9,6 +9,7 @@ pub use self::to_graphviz::ToGraphViz;
 pub use vir::legacy::*;
 pub use vir::polymorphic as polymorphic_vir;
 pub use vir::high as vir_high;
+pub use low_to_viper::Context as LoweringContext;
 
 pub mod fixes;
 pub mod optimizations;

@@ -10,6 +10,7 @@ use crate::legacy::{
     self, ast::*, cfg, CfgMethod, ExprFolder, ExprWalker, FallibleStmtFolder, Function, StmtFolder,
     StmtWalker,
 };
+use log::trace;
 
 /// Substitute (map) expressions in a statement
 impl Stmt {

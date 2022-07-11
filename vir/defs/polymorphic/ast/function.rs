@@ -11,7 +11,7 @@ use crate::{
 use rustc_hash::FxHashMap;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct Function {
     pub name: String,
     /// Type arguments with which this function was instantiated. These are

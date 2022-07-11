@@ -8,9 +8,11 @@ use crate::{
     abstract_interpretation::{AnalysisResult, FixpointEngine},
     domains::{DefLocation, ReachingDefsState},
 };
-use rustc_data_structures::fx::{FxHashMap, FxHashSet};
-use rustc_middle::{mir, ty::TyCtxt};
-use rustc_span::def_id::DefId;
+use prusti_rustc_interface::{
+    data_structures::fx::{FxHashMap, FxHashSet},
+    middle::{mir, ty::TyCtxt},
+    span::def_id::DefId,
+};
 
 pub struct ReachingDefsAnalysis<'mir, 'tcx: 'mir> {
     tcx: TyCtxt<'tcx>,
