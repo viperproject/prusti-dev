@@ -13,8 +13,8 @@ use crate::syntactic_expansion;
 use rustc_data_structures::{stable_map::FxHashMap, stable_set::FxHashSet};
 use rustc_index::vec::IndexVec;
 use rustc_middle::mir::{
-    terminator::SwitchTargets, BasicBlock, BinOp, Constant, Local, Location, Mutability,
-    Mutability::*, NullOp, Place, PlaceElem, Statement, UnOp,
+    BasicBlock, BinOp, Constant, Local, Location, Mutability, Mutability::*, NullOp, Place,
+    PlaceElem, Statement, SwitchTargets, UnOp,
 };
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
@@ -240,31 +240,31 @@ impl<'tcx> HoareSemantics for MicroMirTerminator<'tcx> {
 }
 
 impl<'tcx> MicroMirBody<'tcx> {
-    pub fn statement_at(&self, location: Location) -> &MicroMirStatement {
-        return &self.body[location.block].statements[location.statement_index];
-    }
+    // pub fn statement_at(&self, location: Location) -> &MicroMirStatement {
+    //     return &self.body[location.block].statements[location.statement_index];
+    // }
 
-    pub fn terminator_of(&self, location: Location) -> &MicroMirTerminator {
-        return &self.body[location.block].terminator;
-    }
+    // pub fn terminator_of(&self, location: Location) -> &MicroMirTerminator {
+    //     return &self.body[location.block].terminator;
+    // }
 
-    pub fn terminator_of_bb(&self, bb: BasicBlock) -> &MicroMirTerminator {
-        return &self.body[bb].terminator;
-    }
+    // pub fn terminator_of_bb(&self, bb: BasicBlock) -> &MicroMirTerminator {
+    //     return &self.body[bb].terminator;
+    // }
 
-    /// Read off the precondition for the core memory safety proof
-    /// INVARIANT: This is never incorrect at any step in the elaboration (but can be NONE)
-    /// INVARIANT: The final MicroMir has no preconditions that are NONE
-    pub fn core_precondition(&self, location: Location) -> Option<PCS> {
-        self.statement_at(location).precondition()
-    }
+    // Read off the precondition for the core memory safety proof
+    // INVARIANT: This is never incorrect at any step in the elaboration (but can be NONE)
+    // INVARIANT: The final MicroMir has no preconditions that are NONE
+    // pub fn core_precondition(&self, location: Location) -> Option<PCS> {
+    //     self.statement_at(location).precondition()
+    // }
 
-    /// Read off the precondition for the core memory safety proof
-    /// INVARIANT: This is never incorrect at any step in the elaboration (but can be NONE)
-    /// INVARIANT: The final MicroMir has no postconditions that are NONE
-    pub fn core_postcondition(&self, location: Location) -> Option<PCS> {
-        self.statement_at(location).postcondition()
-    }
+    // Read off the precondition for the core memory safety proof
+    // INVARIANT: This is never incorrect at any step in the elaboration (but can be NONE)
+    // INVARIANT: The final MicroMir has no postconditions that are NONE
+    // pub fn core_postcondition(&self, location: Location) -> Option<PCS> {
+    //     self.statement_at(location).postcondition()
+    // }
 }
 
 impl<'tcx> LinearResource<'tcx> {
