@@ -1,4 +1,7 @@
-use super::{ensurer::ensure_required_permissions, state::FoldUnfoldState};
+use super::{
+    ensurer::ensure_required_permissions,
+    state::{FoldUnfoldState, PlaceWithDeadLifetimes, PredicateState},
+};
 use crate::encoder::{
     errors::SpannedEncodingResult,
     high::procedures::inference::{
@@ -10,8 +13,8 @@ use crate::encoder::{
 };
 use log::debug;
 use prusti_common::config;
+use prusti_rustc_interface::hir::def_id::DefId;
 use rustc_hash::FxHashSet;
-use rustc_hir::def_id::DefId;
 use std::collections::{btree_map::Entry, BTreeMap};
 use vir_crate::{
     common::{display::cjoin, position::Positioned},
@@ -156,7 +159,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         }
         let successor_blocks = self.current_successors()?;
         assert!(
-            !successor_blocks.is_empty() || state.is_empty(),
+            !successor_blocks.is_empty() || state.contains_only_leakable(),
             "some predicates are leaked"
         );
         if config::dump_debug_info() {
@@ -179,6 +182,10 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
             "Statement has default position: {}",
             statement
         );
+        if let vir_high::Statement::DeadLifetime(dead_lifetime) = statement {
+            self.process_dead_lifetime(dead_lifetime, state)?;
+            return Ok(());
+        }
         let (consumed_permissions, produced_permissions) =
             collect_permission_changes(self.encoder, &statement)?;
         debug!(
@@ -195,12 +202,23 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     enum_variant: _,
                     condition,
                 }) => {
-                    let position = place.position();
-                    vir_mid::Statement::unfold_owned(
-                        place.to_middle_expression(self.encoder)?,
-                        condition,
-                        position,
-                    )
+                    if let Some((lifetime, uniqueness)) = place.get_dereference_kind() {
+                        let position = place.position();
+                        vir_mid::Statement::unfold_ref(
+                            place.to_middle_expression(self.encoder)?,
+                            lifetime.to_middle_type(self.encoder)?,
+                            uniqueness.to_middle_type(self.encoder)?,
+                            condition,
+                            position,
+                        )
+                    } else {
+                        let position = place.position();
+                        vir_mid::Statement::unfold_owned(
+                            place.to_middle_expression(self.encoder)?,
+                            condition,
+                            position,
+                        )
+                    }
                 }
                 Action::Fold(FoldingActionState {
                     kind: PermissionKind::Owned,
@@ -208,12 +226,23 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                     enum_variant: _,
                     condition,
                 }) => {
-                    let position = place.position();
-                    vir_mid::Statement::fold_owned(
-                        place.to_middle_expression(self.encoder)?,
-                        condition,
-                        position,
-                    )
+                    if let Some((lifetime, uniqueness)) = place.get_dereference_kind() {
+                        let position = place.position();
+                        vir_mid::Statement::fold_ref(
+                            place.to_middle_expression(self.encoder)?,
+                            lifetime.to_middle_type(self.encoder)?,
+                            uniqueness.to_middle_type(self.encoder)?,
+                            condition,
+                            position,
+                        )
+                    } else {
+                        let position = place.position();
+                        vir_mid::Statement::fold_owned(
+                            place.to_middle_expression(self.encoder)?,
+                            condition,
+                            position,
+                        )
+                    }
                 }
                 Action::Unfold(FoldingActionState {
                     kind: PermissionKind::MemoryBlock,
@@ -324,6 +353,63 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
         new_block
             .statements
             .extend(std::mem::take(&mut self.current_statements));
+        Ok(())
+    }
+
+    fn process_dead_lifetime_for_predicate_state(
+        &mut self,
+        statement: &vir_high::DeadLifetime,
+        state: &mut PredicateState,
+        condition: Option<vir_mid::BlockMarkerCondition>,
+    ) -> SpannedEncodingResult<()> {
+        let (dead_references, places_with_dead_lifetimes) =
+            state.mark_lifetime_dead(&statement.lifetime);
+        for place in dead_references {
+            let place = place.to_middle_expression(self.encoder)?;
+            self.current_statements
+                .push(vir_mid::Statement::dead_reference(
+                    place,
+                    condition.clone(),
+                    statement.position,
+                ));
+        }
+        for PlaceWithDeadLifetimes {
+            place,
+            lifetimes_dead_before,
+            lifetimes_dead_after,
+        } in places_with_dead_lifetimes
+        {
+            let place = place.to_middle_expression(self.encoder)?;
+            self.current_statements
+                .push(vir_mid::Statement::dead_lifetime(
+                    place,
+                    lifetimes_dead_before,
+                    lifetimes_dead_after,
+                    condition.clone(),
+                    statement.position,
+                ));
+        }
+        Ok(())
+    }
+
+    fn process_dead_lifetime(
+        &mut self,
+        statement: vir_high::DeadLifetime,
+        state: &mut FoldUnfoldState,
+    ) -> SpannedEncodingResult<()> {
+        self.process_dead_lifetime_for_predicate_state(
+            &statement,
+            state.get_unconditional_state()?,
+            None,
+        )?;
+        for (condition, conditional_predicate_state) in state.get_conditional_states()? {
+            self.process_dead_lifetime_for_predicate_state(
+                &statement,
+                conditional_predicate_state,
+                Some(condition.clone()),
+            )?;
+        }
+
         Ok(())
     }
 

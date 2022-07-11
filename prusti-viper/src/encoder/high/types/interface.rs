@@ -5,9 +5,8 @@ use crate::encoder::{
 };
 #[rustfmt::skip]
 use prusti_common::{config, report::log};
-use rustc_errors::MultiSpan;
+use prusti_rustc_interface::{errors::MultiSpan, middle::ty};
 use rustc_hash::FxHashMap;
-use rustc_middle::ty;
 use std::cell::RefCell;
 use vir_crate::{
     high as vir_high,

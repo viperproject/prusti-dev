@@ -6,8 +6,8 @@
 
 #[cfg(target_family = "unix")]
 use nix::unistd::{setpgid, Pid};
-use prusti_launch::{find_viper_home, find_z3_exe, sigint_handler};
-use std::{env, path::PathBuf, process::Command};
+use prusti_launch::{get_current_executable_dir, sigint_handler};
+use std::{path::PathBuf, process::Command};
 
 fn main() {
     if let Err(code) = process(std::env::args().skip(1).collect()) {
@@ -16,11 +16,7 @@ fn main() {
 }
 
 fn process(args: Vec<String>) -> Result<(), i32> {
-    let current_executable_dir = env::current_exe()
-        .expect("current executable path invalid")
-        .parent()
-        .expect("failed to obtain the folder of the current executable")
-        .to_path_buf();
+    let current_executable_dir = get_current_executable_dir();
 
     let mut prusti_server_driver_path = current_executable_dir.join("prusti-server-driver");
     if cfg!(windows) {
@@ -40,29 +36,7 @@ fn process(args: Vec<String>) -> Result<(), i32> {
         .expect("Failed to find JVM library. Check JAVA_HOME");
     prusti_launch::add_to_loader_path(vec![libjvm_path], &mut cmd);
 
-    if env::var("VIPER_HOME").ok().is_none() {
-        if let Some(viper_home) = find_viper_home(&current_executable_dir) {
-            cmd.env("VIPER_HOME", viper_home);
-        } else {
-            panic!(
-                "Could not find the Viper home. \
-                Please set the VIPER_HOME environment variable, which should contain the path of \
-                the folder that contains all Viper JAR files."
-            );
-        }
-    };
-
-    if env::var("Z3_EXE").ok().is_none() {
-        if let Some(z3_exe) = find_z3_exe(&current_executable_dir) {
-            cmd.env("Z3_EXE", z3_exe);
-        } else {
-            panic!(
-                "Could not find the Z3 executable. \
-                Please set the Z3_EXE environment variable, which should contain the path of a \
-                Z3 executable."
-            );
-        }
-    };
+    prusti_launch::set_environment_settings(&mut cmd, &current_executable_dir, &java_home);
 
     // Move process to group leader if it isn't. The only applicable error should be EPERM which
     // can be thrown when the process is already the group leader. Thus, we ignore it.

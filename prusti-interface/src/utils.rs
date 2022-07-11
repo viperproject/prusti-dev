@@ -7,13 +7,14 @@
 //! Various helper functions for working with `mir::Place`.
 
 use log::trace;
-use rustc_ast::ast;
-use rustc_data_structures::fx::FxHashSet;
-use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_middle::{
+use prusti_rustc_interface::ast::ast;
+use prusti_rustc_interface::data_structures::fx::FxHashSet;
+use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
+use prusti_rustc_interface::middle::{
     mir,
     ty::{self, TyCtxt},
 };
+use analysis::mir_utils::expand_struct_place;
 use prusti_utils::force_matches;
 
 /// Check if the place `potential_prefix` is a prefix of `place`. For example:
@@ -21,7 +22,7 @@ use prusti_utils::force_matches;
 /// +   `is_prefix(x.f, x.f) == true`
 /// +   `is_prefix(x.f.g, x.f) == true`
 /// +   `is_prefix(x.f, x.f.g) == false`
-pub fn is_prefix(place: &mir::Place, potential_prefix: &mir::Place) -> bool {
+pub fn is_prefix<'tcx>(place: mir::Place<'tcx>, potential_prefix: mir::Place<'tcx>) -> bool {
     if place.local != potential_prefix.local
         || place.projection.len() < potential_prefix.projection.len()
     {
@@ -33,63 +34,6 @@ pub fn is_prefix(place: &mir::Place, potential_prefix: &mir::Place) -> bool {
             .zip(potential_prefix.projection.iter())
             .all(|(e1, e2)| e1 == e2)
     }
-}
-
-/// Expands a place `x.f.g` of type struct into a vector of places for
-/// each of the struct's fields `{x.f.g.f, x.f.g.g, x.f.g.h}`. If
-/// `without_field` is not `None`, then omits that field from the final
-/// vector.
-pub fn expand_struct_place<'tcx>(
-    place: &mir::Place<'tcx>,
-    mir: &mir::Body<'tcx>,
-    tcx: TyCtxt<'tcx>,
-    without_field: Option<usize>,
-) -> Vec<mir::Place<'tcx>> {
-    let mut places = Vec::new();
-    let typ = place.ty(mir, tcx);
-    if typ.variant_index.is_some() {
-        // Downcast is a no-op.
-    } else {
-        match typ.ty.kind() {
-            ty::Adt(def, substs) => {
-                assert!(
-                    def.is_struct(),
-                    "Only structs can be expanded. Got def={:?}.",
-                    def
-                );
-                let variant = def.non_enum_variant();
-                for (index, field_def) in variant.fields.iter().enumerate() {
-                    if Some(index) != without_field {
-                        let field = mir::Field::from_usize(index);
-                        let field_place =
-                            tcx.mk_place_field(*place, field, field_def.ty(tcx, substs));
-                        places.push(field_place);
-                    }
-                }
-            }
-            ty::Tuple(slice) => {
-                for (index, ty) in slice.iter().enumerate() {
-                    if Some(index) != without_field {
-                        let field = mir::Field::from_usize(index);
-                        let field_place = tcx.mk_place_field(*place, field, ty);
-                        places.push(field_place);
-                    }
-                }
-            }
-            ty::Ref(_region, _ty, _) => match without_field {
-                Some(without_field) => {
-                    assert_eq!(without_field, 0, "References have only a single “field”.");
-                }
-                None => {
-                    places.push(tcx.mk_place_deref(*place));
-                }
-            },
-            ref ty => {
-                unimplemented!("ty={:?}", ty);
-            }
-        }
-    }
-    places
 }
 
 /// Expand `current_place` one level down by following the `guide_place`.
@@ -105,7 +49,7 @@ pub fn expand_one_level<'tcx>(
     match guide_place.projection[index] {
         mir::ProjectionElem::Field(projected_field, field_ty) => {
             let places =
-                expand_struct_place(&current_place, mir, tcx, Some(projected_field.index()));
+                expand_struct_place(current_place, mir, tcx, Some(projected_field.index()));
             let new_current_place = tcx.mk_place_field(current_place, projected_field, field_ty);
             (new_current_place, places)
         }
@@ -162,8 +106,8 @@ pub fn try_pop_deref<'tcx>(tcx: TyCtxt<'tcx>, place: mir::Place<'tcx>) -> Option
 pub fn expand<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
-    minuend: &mir::Place<'tcx>,
-    subtrahend: &mir::Place<'tcx>,
+    mut minuend: mir::Place<'tcx>,
+    subtrahend: mir::Place<'tcx>,
 ) -> Vec<mir::Place<'tcx>> {
     assert!(
         is_prefix(subtrahend, minuend),
@@ -175,9 +119,8 @@ pub fn expand<'tcx>(
         subtrahend
     );
     let mut place_set = Vec::new();
-    let mut minuend = *minuend;
     while minuend.projection.len() < subtrahend.projection.len() {
-        let (new_minuend, places) = expand_one_level(mir, tcx, minuend, *subtrahend);
+        let (new_minuend, places) = expand_one_level(mir, tcx, minuend, subtrahend);
         minuend = new_minuend;
         place_set.extend(places);
     }
@@ -197,9 +140,8 @@ pub fn collapse<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
     places: &mut FxHashSet<mir::Place<'tcx>>,
-    guide_place: &mir::Place<'tcx>,
+    guide_place: mir::Place<'tcx>,
 ) {
-    let guide_place = *guide_place;
     fn recurse<'tcx>(
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
@@ -229,8 +171,8 @@ pub struct VecPlaceComponent<'tcx> {
 }
 
 impl<'tcx> VecPlaceComponent<'tcx> {
-    pub fn get_mir_place(&self) -> &mir::Place<'tcx> {
-        &self.place
+    pub fn get_mir_place(&self) -> mir::Place<'tcx> {
+        self.place
     }
 }
 
@@ -245,7 +187,7 @@ impl<'tcx> VecPlace<'tcx> {
     pub fn new(
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
-        place: &mir::Place<'tcx>,
+        place: mir::Place<'tcx>,
     ) -> VecPlace<'tcx> {
         let mut vec_place = Self {
             components: Vec::new(),
@@ -255,7 +197,7 @@ impl<'tcx> VecPlace<'tcx> {
             .components
             .push(VecPlaceComponent { place: prefix });
         while prefix.projection.len() < place.projection.len() {
-            let (new_prefix, _) = expand_one_level(mir, tcx, prefix, *place);
+            let (new_prefix, _) = expand_one_level(mir, tcx, prefix, place);
             prefix = new_prefix;
             vec_place
                 .components
@@ -271,11 +213,11 @@ impl<'tcx> VecPlace<'tcx> {
     }
 }
 
-pub fn get_local_attributes(tcx: ty::TyCtxt<'_>, def_id: LocalDefId) -> &[rustc_ast::ast::Attribute] {
+pub fn get_local_attributes(tcx: ty::TyCtxt<'_>, def_id: LocalDefId) -> &[prusti_rustc_interface::ast::ast::Attribute] {
     tcx.hir().attrs(tcx.hir().local_def_id_to_hir_id(def_id))
 }
 
-pub fn get_attributes(tcx: ty::TyCtxt<'_>, def_id: DefId) -> &[rustc_ast::ast::Attribute] {
+pub fn get_attributes(tcx: ty::TyCtxt<'_>, def_id: DefId) -> &[prusti_rustc_interface::ast::ast::Attribute] {
     if let Some(local_def_id) = def_id.as_local() {
         get_local_attributes(tcx, local_def_id)
     } else {
@@ -363,7 +305,7 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
             {
                 continue;
             }
-            fn extract_string(token: &rustc_ast::token::Lit) -> String {
+            fn extract_string(token: &prusti_rustc_interface::ast::token::Lit) -> String {
                 token.symbol.as_str().replace("\\\"", "\"")
             }
             strings.push(extract_string(token));

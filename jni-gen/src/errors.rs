@@ -8,7 +8,7 @@ use jni;
 use std;
 
 // Create the Error, ErrorKind, ResultExt, and Result types
-error_chain! {
+error_chain::error_chain! {
     foreign_links {
         Io(std::io::Error);
         Utf8Error(std::str::Utf8Error);

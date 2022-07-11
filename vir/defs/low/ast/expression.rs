@@ -163,7 +163,7 @@ pub struct PermBinaryOp {
     pub position: Position,
 }
 
-#[display(fmt = "{}{}{}", left, op_kind, right)]
+#[display(fmt = "({} {} {})", left, op_kind, right)]
 pub struct ContainerOp {
     pub op_kind: ContainerOpKind,
     pub left: Box<Expression>,
@@ -188,6 +188,7 @@ pub struct MapOp {
 pub enum MapOpKind {
     Empty,
     Update,
+    Contains,
     Lookup,
     Len,
 }

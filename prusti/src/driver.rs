@@ -10,26 +10,6 @@
 #![feature(box_syntax)]
 #![deny(unused_must_use)]
 
-extern crate proc_macro;
-extern crate prusti_common;
-extern crate regex;
-extern crate rustc_ast;
-extern crate rustc_ast_pretty;
-extern crate rustc_borrowck;
-extern crate rustc_data_structures;
-extern crate rustc_driver;
-extern crate rustc_errors;
-extern crate rustc_expand;
-extern crate rustc_hir;
-extern crate rustc_interface;
-extern crate rustc_metadata;
-extern crate rustc_middle;
-extern crate rustc_parse;
-extern crate rustc_resolve;
-extern crate rustc_session;
-extern crate rustc_span;
-extern crate smallvec;
-
 mod arg_value;
 mod callbacks;
 mod verifier;
@@ -39,7 +19,7 @@ use callbacks::PrustiCompilerCalls;
 use lazy_static::lazy_static;
 use log::{info, warn};
 use prusti_common::{config, report::user, Stopwatch};
-use rustc_interface::interface::try_print_query_stack;
+use prusti_rustc_interface::interface::interface::try_print_query_stack;
 use std::{borrow::Cow, env, panic};
 
 /// Link to report Prusti bugs
@@ -70,10 +50,12 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
     // Separate the output with an empty line
     eprintln!();
 
-    let fallback_bundle =
-        rustc_errors::fallback_fluent_bundle(rustc_errors::DEFAULT_LOCALE_RESOURCES, false);
-    let emitter = box rustc_errors::emitter::EmitterWriter::stderr(
-        rustc_errors::ColorConfig::Auto,
+    let fallback_bundle = prusti_rustc_interface::errors::fallback_fluent_bundle(
+        prusti_rustc_interface::errors::DEFAULT_LOCALE_RESOURCES,
+        false,
+    );
+    let emitter = box prusti_rustc_interface::errors::emitter::EmitterWriter::stderr(
+        prusti_rustc_interface::errors::ColorConfig::Auto,
         None,
         None,
         fallback_bundle,
@@ -82,11 +64,17 @@ fn report_prusti_ice(info: &panic::PanicInfo<'_>, bug_report_url: &str) {
         None,
         false,
     );
-    let handler = rustc_errors::Handler::with_emitter(true, None, emitter);
+    let handler = prusti_rustc_interface::errors::Handler::with_emitter(true, None, emitter);
 
     // a .span_bug or .bug call has already printed what it wants to print.
-    if !info.payload().is::<rustc_errors::ExplicitBug>() {
-        let mut d = rustc_errors::Diagnostic::new(rustc_errors::Level::Bug, "unexpected panic");
+    if !info
+        .payload()
+        .is::<prusti_rustc_interface::errors::ExplicitBug>()
+    {
+        let mut d = prusti_rustc_interface::errors::Diagnostic::new(
+            prusti_rustc_interface::errors::Level::Bug,
+            "unexpected panic",
+        );
         handler.emit_diagnostic(&mut d);
     }
 
@@ -116,7 +104,7 @@ fn init_loggers() {
         .filter("PRUSTI_LOG")
         .write_style("PRUSTI_LOG_STYLE");
     env_logger::init_from_env(env);
-    rustc_driver::init_rustc_env_logger();
+    prusti_rustc_interface::driver::init_rustc_env_logger();
 }
 
 const PRUSTI_PACKAGES: [&str; 4] = [
@@ -146,7 +134,7 @@ fn main() {
         .map(|name| PRUSTI_PACKAGES.contains(&name.as_str()))
         .unwrap_or(false);
     if prusti_be_rustc || is_no_verify_crate || are_lints_disabled || is_prusti_package {
-        rustc_driver::main();
+        prusti_rustc_interface::driver::main();
     }
 
     lazy_static::initialize(&ICE_HOOK);
@@ -186,7 +174,7 @@ fn main() {
         );
     }
 
-    let exit_code = rustc_driver::catch_with_exit_code(move || {
+    let exit_code = prusti_rustc_interface::driver::catch_with_exit_code(move || {
         user::message(format!(
             "{}\n{}\n{}\n",
             r"  __          __        __  ___             ",
@@ -223,10 +211,20 @@ fn main() {
                 rustc_args.push("-Zidentify-regions=yes".to_owned());
             }
         }
+        if config::dump_nll_facts() {
+            rustc_args.push("-Znll-facts=yes".to_string());
+            rustc_args.push(format!(
+                "-Znll-facts-dir={}",
+                config::log_dir()
+                    .join("nll-facts")
+                    .to_str()
+                    .expect("failed to configure nll-facts-dir")
+            ));
+        }
 
         let mut callbacks = PrustiCompilerCalls::default();
 
-        rustc_driver::RunCompiler::new(&rustc_args, &mut callbacks).run()
+        prusti_rustc_interface::driver::RunCompiler::new(&rustc_args, &mut callbacks).run()
     });
     let duration = stopwatch.finish();
     if let Some(deadline) = config::verification_deadline() {
