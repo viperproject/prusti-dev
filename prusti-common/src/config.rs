@@ -10,7 +10,7 @@ pub mod commandline;
 use self::commandline::CommandLine;
 use ::config::{Config, Environment, File};
 use log::warn;
-use prusti_launch::{get_current_executable_dir, find_viper_home};
+use prusti_launch::{find_viper_home, get_current_executable_dir};
 use serde::Deserialize;
 use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
@@ -118,6 +118,7 @@ lazy_static::lazy_static! {
         settings.set_default("enable_type_invariants", false).unwrap();
         settings.set_default("use_new_encoder", true).unwrap();
         settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
+        settings.set_default("dump_operational_pcs", false).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -225,7 +226,10 @@ pub fn get_filtered_args() -> Vec<String> {
 pub fn dump() -> String {
     let settings = SETTINGS.read().unwrap();
     let map = config::Source::collect(&*settings).unwrap();
-    let mut pairs: Vec<_> = map.iter().map(|(key, value)| format!("{}={:#?}", key, value)).collect();
+    let mut pairs: Vec<_> = map
+        .iter()
+        .map(|(key, value)| format!("{}={:#?}", key, value))
+        .collect();
     pairs.sort();
     pairs.join("\n\n")
 }
@@ -632,7 +636,9 @@ pub fn enable_purification_optimization() -> bool {
 /// be used for tests that aim to catch performance regressions.
 pub fn verification_deadline() -> Option<u64> {
     read_setting::<Option<i64>>("verification_deadline").map(|value| {
-        value.try_into().expect("verification_deadline must be a valid u64")
+        value
+            .try_into()
+            .expect("verification_deadline must be a valid u64")
     })
 }
 
@@ -643,20 +649,26 @@ pub fn use_smt_wrapper() -> bool {
     read_setting("use_smt_wrapper")
 }
 
-fn read_smt_wrapper_dependent_bool(name: &'static str) -> bool
-{
+fn read_smt_wrapper_dependent_bool(name: &'static str) -> bool {
     let value = read_setting(name);
     if value {
-        assert!(use_smt_wrapper(), "use_smt_wrapper must be true to use {}", name);
+        assert!(
+            use_smt_wrapper(),
+            "use_smt_wrapper must be true to use {}",
+            name
+        );
     }
     value
 }
 
-fn read_smt_wrapper_dependent_option(name: &'static str) -> Option<u64>
-{
+fn read_smt_wrapper_dependent_option(name: &'static str) -> Option<u64> {
     let value: Option<u64> = read_setting(name);
     if value.is_some() {
-        assert!(use_smt_wrapper(), "use_smt_wrapper must be true to use {}", name);
+        assert!(
+            use_smt_wrapper(),
+            "use_smt_wrapper must be true to use {}",
+            name
+        );
     }
     value
 }
@@ -839,4 +851,9 @@ pub fn enable_ghost_constraints() -> bool {
 /// `#[invariant(...)]` attribute.
 pub fn enable_type_invariants() -> bool {
     read_setting("enable_type_invariants")
+}
+
+/// When enabled, dump operational PCS summary instead of verifying
+pub fn dump_operational_pcs() -> bool {
+    read_setting("dump_operational_pcs")
 }

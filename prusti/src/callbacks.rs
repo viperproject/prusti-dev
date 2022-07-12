@@ -4,6 +4,7 @@ use prusti_interface::{
     environment::{mir_storage, Environment},
     specs,
 };
+use prusti_pcs::pcs::entry;
 use prusti_rustc_interface::{
     driver::Compilation,
     hir::def_id::LocalDefId,
@@ -134,7 +135,10 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                     println!("{}", value);
                 }
             }
-            if !config::no_verify() {
+
+            if config::dump_operational_pcs() {
+                entry();
+            } else if !config::no_verify() {
                 verify(env, def_spec);
             }
         });
