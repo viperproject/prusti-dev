@@ -10,11 +10,13 @@
 use std::fmt::{Debug, Display};
 
 use crate::syntactic_expansion;
-use rustc_data_structures::{stable_map::FxHashMap, stable_set::FxHashSet};
-use rustc_index::vec::IndexVec;
-use rustc_middle::mir::{
-    BasicBlock, BinOp, Constant, Local, Location, Mutability, Mutability::*, NullOp, Place,
-    PlaceElem, Statement, SwitchTargets, UnOp,
+use prusti_rustc_interface::{
+    data_structures::{stable_map::FxHashMap, stable_set::FxHashSet},
+    index::vec::IndexVec,
+    middle::mir::{
+        BasicBlock, BinOp, Constant, Local, Location, Mutability, Mutability::*, NullOp, Place,
+        PlaceElem, Statement, SwitchTargets, UnOp,
+    },
 };
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]

@@ -8,14 +8,16 @@
 use crate::pcs::{
     HoareSemantics, MicroMirData, MicroMirStatement, MicroMirTerminator, TemporaryPlace, PCS,
 };
-use rustc_data_structures::stable_map::FxHashMap;
-use rustc_middle::{
-    mir::{
-        AggregateKind::Adt, BasicBlock, BinOp, Body, Local, Mutability, Mutability::*, NullOp,
-        Operand, Operand::*, Place, Rvalue::*, Statement, StatementKind::*, Terminator,
-        TerminatorKind::*, UnOp,
+use prusti_rustc_interface::{
+    data_structures::stable_map::FxHashMap,
+    middle::{
+        mir::{
+            AggregateKind::Adt, BasicBlock, BinOp, Body, Local, Mutability, Mutability::*, NullOp,
+            Operand, Operand::*, Place, Rvalue::*, Statement, StatementKind::*, Terminator,
+            TerminatorKind::*, UnOp,
+        },
+        ty,
     },
-    ty,
 };
 
 use crate::syntactic_expansion::MicroMirEncodingError::*;
