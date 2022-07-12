@@ -223,4 +223,12 @@ pub fn exists<T, F>(_trigger_set: T, _closure: F) -> bool {
     true
 }
 
+pub fn snap<T>(_x: &T) -> T {
+    unimplemented!()
+}
+
+pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
+    true
+}
+
 pub use private::*;

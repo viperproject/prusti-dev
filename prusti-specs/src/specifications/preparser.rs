@@ -802,7 +802,7 @@ impl PrustiBinaryOp {
             }
             Self::Or => quote_spanned! { span => #lhs || #rhs },
             Self::And => quote_spanned! { span => #lhs && #rhs },
-            Self::SnapEq => quote_spanned! { span => snapshot_equality(#lhs, #rhs) },
+            Self::SnapEq => quote_spanned! { span => snapshot_equality(&#lhs, &#rhs) },
         }
     }
 }
