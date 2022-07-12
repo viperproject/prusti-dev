@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 use std::vec::Vec;
@@ -13,48 +12,60 @@ pub fn main() {
 #[requires(v.len() > 1)]
 #[requires(start_index < end_index - 1)]
 #[requires(end_index > 1 && end_index <= v.len())]
-// #[requires(forall(|i: usize| i < v.len() ==> (v[i] == 0 || v[i] == 1)))]
 #[requires(forall(|x: usize, y: usize| (start_index + 1 <= x && x <= y && y < end_index) ==> v[x] <= v[y]))]
 
 #[ensures(v.len() == old(v.len()))]
-// #[ensures(forall(|i: usize| i < v.len() ==> (v[i] == 0 || v[i] == 1)))]
-// #[ensures(sum_zero(v, v.len()) == sum_zero(old(v), v.len()))]
 #[ensures(forall(|x: usize, y: usize| (start_index <= x && x <= y && y < end_index) ==> v[x] <= v[y]))]
+
+#[requires(v.len() == runs.get_runs_sum_max())]
+#[requires(runs.get_runs_sum_cur() == runs.get_runs_sum_max() - end_index)]
+#[requires(runs.get_runs_sum_cur() == v.len() - end_index)]
+
+#[ensures(v.len() == runs.get_runs_sum_max())]
+#[ensures(runs.get_runs_sum_cur() == runs.get_runs_sum_max() - end_index)]
+#[ensures(runs.get_runs_sum_cur() == v.len() - end_index)]
 fn insert_head(v: &mut [i32], start_index: usize, end_index: usize) {
-    let mut i = start_index + 1;
-    while i < end_index {
-        body_invariant!(i < end_index);
-        body_invariant!(forall(|x: usize, y: usize| (start_index + 1 <= x && x <= y && y <= i) ==> v[x] <= v[y]));
-        i += 1;
-    }
-    if v.len() >= 2 && (v[start_index + 1] < v[start_index]) {
+    let len = v.len();
+ 
+    assert!(start_index < end_index - 1);
+    if v[start_index + 1] < v[start_index] {
         let tmp = v[start_index];
         v[start_index] = v[start_index + 1];
         let mut i = start_index + 2;
+
         assert!(v[start_index] <= v[start_index + 1]);
         assert!(tmp >= v[start_index]);
         assert!(tmp >= v[start_index + 1]);
+
         while i < end_index {
+            body_invariant!(v.len() == len);
+
             body_invariant!(i >= start_index + 2 && i < end_index);
+            body_invariant!(end_index <= v.len());
+            body_invariant!(i < v.len());
+
             body_invariant!(tmp >= v[i - 1]);
             body_invariant!(v[i - 2] == v[i - 1]);
-            body_invariant!(forall(|x: usize, y: usize| (i <= x && x <= y && y < end_index) ==> v[x] <= v[y]));
+            // body_invariant!(forall(|x: usize, y: usize| (i <= x && x <= y && y < end_index) ==> v[x] <= v[y]));
+            // body_invariant!(forall(|x: usize, y: usize| (start_index <= x && x <= y && y <= i) ==> v[x] <= v[y]));
+            body_invariant!(forall(|x: usize, y: usize| (start_index <= x && x <= y && y < end_index) ==> v[x] <= v[y]));
+            
             if v[i] >= tmp {
                 assert!(tmp >= v[i - 2]);
+                v[i - 1] = tmp;
+                assert!(v[i - 2] <= v[i - 1] && v[i - 1] <= v[i]);
                 break;
             }
-            v[i - 1] = v[i];
             assert!(tmp > v[i]);
+
+            assert!(v[i - 1] <= v[i]);
+            assert!(v[i - 2] <= v[i - 1]);
+            v[i - 1] = v[i];
+            assert!(v[i - 2] <= v[i - 1] && v[i - 1] <= v[i]);
+            
             i += 1;
         }
         v[i - 1] = tmp;
-        assert!(i == end_index || (tmp <= v[i] && tmp >= v[i - 2]));
-    }
-    let mut i = start_index;   
-    while i < end_index {
-        body_invariant!(i < end_index);
-        body_invariant!(forall(|x: usize, y: usize| (start_index <= x && x <= y && y <= i) ==> v[x] <= v[y]));
-        i += 1;
     }
 }
 
@@ -84,145 +95,194 @@ impl Buf {
     }
 
     #[trusted]
-    #[ensures(self.len() == old(self).len() + 1)]
-    pub fn push(&mut self, value: i32) {
-        self.v.push(value);
+    #[requires(i < v.len())]
+    #[requires(i == start + self.len())]
+    #[requires(forall(|x: usize| start <= x && x < i ==> self.index(x - start) == v[x]))]
+    #[requires(forall(|x: usize, y: usize| 0 <= x && x <= y && y < self.len() ==> self.index(x) <= self.index(y)))]
+    #[requires(forall(|x: usize, y: usize| start <= x && x <= y && y < start + self.len() ==> v[x] <= v[y]))]
+
+    #[ensures(self.len() == old(self.len()) + 1)]
+    #[ensures(self.index(self.len() - 1) == v[i])]
+    #[ensures(forall(|x: usize| start <= x && x <= i ==> self.index(x - start) == v[x]))]
+    #[ensures(forall(|x: usize, y: usize| 0 <= x && x <= y && y < self.len() ==> self.index(x) <= self.index(y)))]
+    pub fn push(&mut self, v: &[i32], i: usize, start: usize) {
+        self.v.push(v[i]);
     }
 }
 
 #[trusted]
-#[requires(start < mid_full && mid_full < end && end <= v_full.len())]
+#[requires(start < mid && mid < end && end <= v.len())]
 #[requires(buf.len() == 0)]
-#[requires(forall(|i: usize, j: usize| start <= i && i <= j && j < mid_full ==> v_full[i] <= v_full[j]))]
-#[requires(forall(|i: usize, j: usize| mid_full <= i && i <= j && j < end ==> v_full[i] <= v_full[j]))]
-
-#[requires(forall(|i: usize, x: usize, y: usize| (0 <= i && i < runs.len() && runs.index_start(i) <= x && x <= y && y < runs.index_start(i) + runs.index_len(i)) ==> v_full[x] <= v_full[y]))]
-
-#[ensures(v_full.len() == old(v_full.len()))]
-#[ensures(forall(|i: usize, j: usize| start <= i && i <= j && j < mid_full ==> v_full[i] <= v_full[j]))]
-#[ensures(forall(|i: usize, j: usize| mid_full <= i && i <= j && j < end ==> v_full[i] <= v_full[j]))]
-#[ensures(forall(|i: usize, j: usize| start <= i && i <= j && j < end ==> v_full[i] <= v_full[j]))]
-
-#[ensures(forall(|i: usize, x: usize, y: usize| (0 <= i && i < runs.len() && runs.index_start(i) <= x && x <= y && y < runs.index_start(i) + runs.index_len(i)) ==> v_full[x] <= v_full[y]))]
-fn merge(v_full: &mut [i32], start: usize, mid_full: usize, end: usize, buf: &mut Buf, runs: &Runs) {
-    let v = &mut v_full[start..end];
-    let mid = mid_full - start;
-    //assert!(v.len() == end - start);
-    //assert!(0 < mid_full - start && mid_full - start < v.len());
-    // #[ensures(forall(|i: usize, j: usize| start <= i && i < end && j == i - start ==> v[i] == result[j]))]
+#[requires(forall(|i: usize, j: usize| start <= i && i <= j && j < mid ==> v[i] <= v[j]))]
+#[requires(forall(|i: usize, j: usize| mid <= i && i <= j && j < end ==> v[i] <= v[j]))]
+#[ensures(v.len() == old(v.len()))]
+#[ensures(forall(|i: usize, j: usize| start <= i && i <= j && j < mid ==> v[i] <= v[j]))]
+#[ensures(forall(|i: usize, j: usize| mid <= i && i <= j && j < end ==> v[i] <= v[j]))]
+#[ensures(forall(|i: usize, j: usize| start <= i && i <= j && j < end ==> v[i] <= v[j]))]
+fn merge(v: &mut [i32], start: usize, mid: usize, end: usize, buf: &mut Buf) {
     let len = v.len();
-    if mid <= len - mid {
-        let mut i = 0;
+
+    if mid - start <= end - mid {
+        let mut i = start;
         while i < mid {
             body_invariant!(v.len() == len);
 
             body_invariant!(i < mid);
-            body_invariant!(buf.len() == i);
-            body_invariant!(buf.len() < mid);
+            body_invariant!(buf.len() == i - start);
+            body_invariant!(buf.len() < mid - start);
+            body_invariant!(forall(|x: usize| start <= x && x < i ==> buf.index(x - start) == v[x]));
+            body_invariant!(forall(|x: usize, y: usize| start <= x && x <= y && y < i ==> buf.index(x - start) <= buf.index(y - start)));
+            body_invariant!(forall(|x: usize, y: usize| 0 <= x && x <= y && y < buf.len() ==> buf.index(x) <= buf.index(y)));
 
-            buf.push(v[i]);
+            buf.push(&v, i, start);
             i += 1;
-            assert!(buf.len() <= mid);
+            assert!(buf.len() <= mid - start);
         }
-        assert!(buf.len() == mid);
+        assert!(buf.len() == mid - start);
 
         let mut left = 0;
         let mut right = mid;
-        let mut out = 0;
+        let mut out = start;
         
-        while left < mid && right < len {
+        while left < mid - start && right < end {
             body_invariant!(v.len() == len);
 
-            body_invariant!(right < len);
-            body_invariant!(len == v.len());
+            body_invariant!(right < end);
+            body_invariant!(end <= v.len());
             body_invariant!(right < v.len());
             
-            body_invariant!(left < mid);
-            body_invariant!(buf.len() == mid);
+            body_invariant!(left < mid - start);
+            body_invariant!(buf.len() == mid - start);
             body_invariant!(left < buf.len());
             
-            body_invariant!(left + right - mid < v.len());
-            body_invariant!(out <= left + right - mid);
-            body_invariant!(out < v.len());
-            
-            body_invariant!(forall(|x: usize, y: usize| 0 <= x && x <= y && y < out ==> v[x] <= v[y]));
-            // body_invariant!(forall(|x: usize, y: usize| right <= x && x <= y && y < len ==> v[x] <= v[y]));
+            body_invariant!(left + right - mid < end - start);
+            body_invariant!(out == start + left + right - mid);
+            body_invariant!(out - start == left + right - mid);
+            body_invariant!(out < end);
+            body_invariant!(out < right);
 
+            body_invariant!((left <= 0 && right <= mid) || out > start);
+
+            body_invariant!(forall(|x: usize, y: usize| start <= x && x <= y && y < out ==> v[x] <= v[y]));
+            body_invariant!(forall(|x: usize, y: usize| right <= x && x <= y && y < end ==> v[x] <= v[y]));
+            body_invariant!(forall(|x: usize, y: usize| 0 <= x && x <= y && y < buf.len() ==> buf.index(x) <= buf.index(y)));
+            
+            // body_invariant!(out <= start || (0 < left && left < buf.len() && v[out - 1] == buf.index(left - 1)) || (mid < right && right < len && v[out - 1] == v[right - 1]));
+            body_invariant!(out <= start || (v[out - 1] <= buf.index(left) && v[out - 1] <= v[right]));
+            
+            // assert!(right == mid || (out > start && v[out - 1] <= v[right] && v[out - 1] <= buf.index(left)));
+            // assert!(left == 0 || (out > start && v[out - 1] <= v[right] && v[out - 1] <= buf.index(left)));
+            
+            body_invariant!(left == 0 || buf.index(left - 1) <= buf.index(left));
+            body_invariant!(right <= mid || v[right - 1] <= v[right]);
+            
+            // assert!(out - start == left + right - mid);
+            // assert!(out == start || left > 0 || right > mid);
+
+            // assert!(left == 0 || out > start);
+            // assert!(right == mid || out > start);
             if v[right] < buf.index(left) {
+                // assert!(left == 0 || buf.index(left - 1) <= v[out - 1]);
+                // assert!(left == 0 || v[out - 1] <= v[right]);
+                // assert!(left == 0 || buf.index(left - 1) <= v[right]);
+                assert!(out <= start || v[out - 1] <= v[right]);
                 v[out] = v[right];
+                assert!(v[out] == v[right] && v[right] < buf.index(left));
+                assert!(v[out] <= buf.index(left));
+                assert!(out <= start || v[out - 1] <= v[out]);
                 right += 1;
+                assert!(v[out] == v[right - 1]);
+                assert!(!(right >= mid && right < end) || v[right - 1] <= v[right]);
+                assert!(!(right >= mid && right < end) || v[out] <= v[right]);
             } else {
+                // assert!(right <= mid || v[right - 1] <= v[out - 1]);
+                // assert!(right <= mid || v[out - 1] <= buf.index(left));
+                // assert!(right <= mid || v[right - 1] <= buf.index(left));
+                assert!(out == start || v[out - 1] <= buf.index(left));
                 v[out] = buf.index(left);
+                assert!(out == start || v[out - 1] <= v[out]);
+                assert!(v[out] == buf.index(left) && buf.index(left) <= v[right]);
+                assert!(v[out] <= v[right]);
                 left += 1;
+                assert!(v[out] == buf.index(left - 1));
+                assert!(left >= buf.len() || buf.index(left - 1) <= buf.index(left));
+                assert!(left >= buf.len() || v[out] <= buf.index(left));
             }
             out += 1;
         }
 
-        assert!(out == mid);
+        assert!(out == start + left + right - mid);
         assert!(v.len() == len);
-        
-        while left < mid {
+        assert!(left >= buf.len() || v[out - 1] <= buf.index(left));
+
+        while left < buf.len() {
             body_invariant!(v.len() == len);
 
-            body_invariant!(left < mid);
-            body_invariant!(v.len() - out >= mid - left);
-            body_invariant!(out < v.len());
-            
-            body_invariant!(left < mid);
-            body_invariant!(buf.len() == mid);
+            body_invariant!(buf.len() == mid - start);
             body_invariant!(left < buf.len());
+            body_invariant!(left < mid - start);
 
-            body_invariant!(forall(|x: usize, y: usize| 0 <= x && x <= y && y < out ==> v[x] <= v[y]));
-            // body_invariant!(forall(|x: usize, y: usize| right <= x && x <= y && y < len ==> v[x] <= v[y])); // we can remove this
+            body_invariant!(out > start);
+            body_invariant!(out == start + left + right - mid);
+            // body_invariant!(left < mid - start);
+            body_invariant!(out < right);
+            body_invariant!(right == end);
+            body_invariant!(out < end);
+
+            // body_invariant!(end - out >= (mid - start) - left);
+            // body_invariant!(end - out >= buf.len() - left);
+
+            body_invariant!(forall(|x: usize, y: usize| start <= x && x <= y && y < out ==> v[x] <= v[y]));
+            body_invariant!(forall(|x: usize, y: usize| 0 <= x && x <= y && y < buf.len() ==> buf.index(x) <= buf.index(y)));
+            body_invariant!(v[out - 1] <= buf.index(left));
 
             v[out] = buf.index(left);
+            // assert!(v[out] == buf.index(left));
+            // assert!(v[out - 1] <= buf.index(left));
+            assert!(v[out - 1] <= v[out]);
             out += 1;
             left += 1;
+            assert!(v[out - 1] == buf.index(left - 1));
+            assert!(left >= buf.len() || buf.index(left - 1) <= buf.index(left));
+            assert!(left >= buf.len() || v[out - 1] <= buf.index(left));
         }
-
-        assert!(out == right);
         
-        let mut u = 0;
-        while u < len {
-            body_invariant!(forall(|x: usize, y: usize| 0 <= x && x <= y && y < u ==> v[x] <= v[y]));
-            u += 1;
-        }
-
+        assert!(out == right);
         assert!(v.len() == len);
     } else {
         let mut i = mid;
-        while i < len {
+        while i < end {
             body_invariant!(v.len() == len);
 
-            body_invariant!(i >= mid && i < len);
+            body_invariant!(i >= mid && i < end);
             body_invariant!(buf.len() == i - mid);
-            body_invariant!(buf.len() < len - mid);
-            buf.push(v[i]);
+            body_invariant!(buf.len() < end - mid);
+            body_invariant!(forall(|x: usize| mid <= x && x < i ==> buf.index(x - mid) == v[x]));
+            body_invariant!(forall(|x: usize, y: usize| mid <= x && x <= y && y < i ==> buf.index(x - mid) <= buf.index(y - mid)));
+            body_invariant!(forall(|x: usize, y: usize| 0 <= x && x <= y && y < buf.len() ==> buf.index(x) <= buf.index(y)));
+
+            buf.push(&v, i, mid);
             i += 1;
-            assert!(buf.len() <= len - mid);
+            assert!(buf.len() <= end - mid);
         }
-        assert!(buf.len() == len - mid);
+        assert!(buf.len() == end - mid);
 
         let mut left = mid;
-        let mut right = len - mid;
-        let mut out = len;
+        let mut right = end - mid;
+        let mut out = end;
 
-        while left > 0 && right > 0 {
+        while left > start && right > 0 {
             body_invariant!(v.len() == len);
 
-            body_invariant!(left >= 1);
-            body_invariant!(mid <= v.len());
-            body_invariant!(left <= mid);
-            body_invariant!(left <= v.len());
+            body_invariant!(left > start && left <= mid);
+            body_invariant!(right < end - mid);
+            body_invariant!(buf.len() == len - mid);
+            body_invariant!(right < buf.len());
             
-            body_invariant!(right >= 1);
-            body_invariant!(right <= len - mid);
-            body_invariant!(right <= buf.len());
-            
-            body_invariant!(out <= v.len());
-            body_invariant!(left + right > 0);
+            body_invariant!(out <= end);
+            body_invariant!(left + right - start> 0);
             body_invariant!(out == left + right);
-            body_invariant!(out > 0);
+            body_invariant!(out > start);
 
             // body_invariant!(forall(|x: usize, y: usize| 0 <= x && x <= y && y < left ==> v[x] <= v[y]));
             body_invariant!(forall(|x: usize, y: usize| out <= x && x <= y && y < len ==> v[x] <= v[y]));
@@ -237,35 +297,28 @@ fn merge(v_full: &mut [i32], start: usize, mid_full: usize, end: usize, buf: &mu
             }
         }
 
-        assert!(out == mid);
+        assert!(out == left + right);
         assert!(v.len() == len);
 
+        
         while right > 0 {
             body_invariant!(v.len() == len);
 
-            body_invariant!(right >= 1);
+            body_invariant!(right > start);
            
-            body_invariant!(right <= len - mid);
-            body_invariant!(right <= buf.len());
-
-            body_invariant!(right <= len);
-            body_invariant!(right <= v.len());
-
+            body_invariant!(right < end - mid);
+            body_invariant!(right < buf.len());
+            body_invariant!(right <= end);
+            
             // body_invariant!(forall(|x: usize, y: usize| 0 <= x && x <= y && y < left ==> v[x] <= v[y])); // we can remove this
             // body_invariant!(forall(|x: usize, y: usize| out <= x && x <= y && y < len ==> v[x] <= v[y])); // we can remove this
 
             right -= 1;
-            v[right] = buf.index(right);
+            out -= 1;
+            v[out] = buf.index(right);
         }
 
         assert!(out == left);
-        
-        let mut u = 0;
-        while u < len {
-            body_invariant!(forall(|x: usize, y: usize| 0 <= x && x <= y && y < u ==> v[x] <= v[y]));
-            u += 1;
-        }
-
         assert!(v.len() == len);
     }
 }
@@ -415,8 +468,10 @@ impl Runs {
     }
 }
 
+#[requires(runs.len() > 0)]
 #[requires(forall(|i: usize, j: usize| (0 <= i && i < runs.len() && i < j && j < runs.len() ==> runs.index_len(i) + runs.index_len(j) <= runs.get_runs_sum_max())))]
 #[ensures(result == runs.len() || (runs.len() > 1 && result < runs.len() - 1))]
+#[ensures(runs.len() > 0)]
 #[ensures(runs.len() < 2 || (runs.index_start(runs.len() - 1) != 0 || result == runs.len() - 2))]
 fn collapse(runs: &Runs) -> usize {
     let n = runs.len();
@@ -472,6 +527,48 @@ fn sort_small_array(v: &mut [i32]) {
     }
 }
 
+#[trusted]
+#[requires(start < end && end <= v.len())]
+#[requires(forall(|x: usize, y: usize| (start <= x && x <= y && y < end) ==> v[x] >= v[y]))]
+#[ensures(v.len() == old(v.len()))]
+#[ensures(forall(|x: usize, y: usize| (start <= x && x <= y && y < end) ==> v[x] <= v[y]))]
+fn reverse_sorted_array_slice(v: &mut [i32], start: usize, end: usize) {
+    let len = v.len();
+    assert!(v.len() == len);
+
+    let mut i = start;
+    let mut j = end - 1;
+    assert!(i <= j);
+
+    while i < j {
+        body_invariant!(v.len() == len);
+
+        body_invariant!(start <= i);
+        body_invariant!(j < end);
+        body_invariant!(i < j);
+        body_invariant!(i < v.len() && j < v.len());
+        
+        body_invariant!(forall(|x: usize, y: usize| (i <= x && x <= y && y <= j) ==> v[x] >= v[y]));
+        body_invariant!(forall(|x: usize| (start <= x && x < i) ==> v[j] >= v[x]));
+        body_invariant!(forall(|x: usize| (j < x && x < end) ==> v[i] <= v[x]));
+        body_invariant!(forall(|x: usize, y: usize| (start <= x && x <= y && y < i) ==> v[x] <= v[y]));
+        body_invariant!(forall(|x: usize, y: usize| (j < x && x <= y && y < end) ==> v[x] <= v[y]));
+
+        assert!(v[i] >= v[j]);
+
+        let temp = v[i];
+        v[i] = v[j];
+        v[j] = temp;
+
+        assert!(v[i] <= v[j]);
+
+        i += 1;
+        j -= 1;
+    }
+
+    assert!(i == j || j == i - 1);
+    assert!(v.len() == len);
+}
 
 // the last pre and post conditions are not proved inside the function yet
 #[trusted]
@@ -513,25 +610,24 @@ fn sort_small_array(v: &mut [i32]) {
 fn push_new_run(v: &mut [i32], runs: &mut Runs, mut end: usize, MIN_RUN: usize) -> usize {
     let mut start = end - 1;
     assert!(start < end);
-    
-    let mut u = 0;
-    while u < runs.len() {
-        body_invariant!(u < runs.len());
-        body_invariant!(forall(|i: usize, x: usize, y: usize| (0 <= i && i < 0 && runs.index_len(i) <= x && x <= y && y <= runs.index_start(i) + runs.index_len(i)) ==> v[x] <= v[y]));
-        u += 1;
-    }
 
+    // assert!(runs.get_runs_sum_cur() == v.len() - end);
+    
     if start > 0 {
         start -= 1;
         assert!(start < end - 1);
         assert!(end <= v.len());
         assert!(start < v.len() - 1);
+        // assert!(runs.get_runs_sum_cur() == v.len() - end);
         if v[start + 1] < v[start] {
             assert!(v[start] >= v[start + 1]);
             while start > 0 {
                 body_invariant!(runs.get_runs_sum_cur() == v.len() - end);
                 body_invariant!(start >= 1 && start < v.len() - 1 && start < end);
                 body_invariant!(forall(|x: usize, y: usize| (start <= x && x <= y && y < end) ==> v[x] >= v[y]));
+                
+                body_invariant!(runs.get_runs_sum_cur() == v.len() - end);
+                
                 if !(v[start] < v[start - 1]) {
                     break;
                 }
@@ -539,25 +635,17 @@ fn push_new_run(v: &mut [i32], runs: &mut Runs, mut end: usize, MIN_RUN: usize) 
                 start -= 1;
                 assert!(v[start] >= v[start + 1]);
             }
-            let mut i = start;
-            while i < end {
-                body_invariant!(i < end);
-                body_invariant!(forall(|x: usize, y: usize| (start <= x && x <= y && y <= i) ==> v[x] >= v[y]));
-                i += 1;
-            }
-            v[start..end].reverse();
-            let mut i = start;
-            while i < end {
-                body_invariant!(i < end);
-                body_invariant!(forall(|x: usize, y: usize| (start <= x && x <= y && y <= i) ==> v[x] <= v[y]));
-                i += 1;
-            }
+            reverse_sorted_array_slice(v, start, end);
         } else {
             assert!(v[start] <= v[start + 1]);
             while start > 0 {
                 body_invariant!(runs.get_runs_sum_cur() == v.len() - end);
                 body_invariant!(start >= 1 && start < v.len() - 1 && start < end);
                 body_invariant!(forall(|x: usize, y: usize| (start <= x && x <= y && y < end) ==> v[x] <= v[y]));
+                
+                body_invariant!(runs.get_runs_sum_cur() == v.len() - end);
+
+
                 if v[start] < v[start - 1] {
                     break;
                 }
@@ -565,69 +653,68 @@ fn push_new_run(v: &mut [i32], runs: &mut Runs, mut end: usize, MIN_RUN: usize) 
                 start -= 1;
                 assert!(v[start] <= v[start + 1]);
             }
-            let mut i = start;
-            while i < end {
-                body_invariant!(i < end);
-                body_invariant!(forall(|x: usize, y: usize| (start <= x && x <= y && y <= i) ==> v[x] <= v[y]));
-                i += 1;
-            }
         }
     }
 
+    // assert!(runs.get_runs_sum_cur() == v.len() - end);
+
+    assert!(runs.get_runs_sum_max() == v.len());
+    assert!(runs.get_runs_sum_cur() == runs.get_runs_sum_max() - end);
     assert!(runs.get_runs_sum_cur() == v.len() - end);
 
     while start > 0 && end - start < MIN_RUN {
-        body_invariant!(runs.get_runs_sum_cur() == v.len() - end);
+        body_invariant!(runs.get_runs_sum_max() == v.len());
+        body_invariant!(runs.get_runs_sum_cur() == runs.get_runs_sum_max() - end);
+        // body_invariant!(runs.get_runs_sum_cur() == v.len() - end);
         body_invariant!(start >= 1 && end <= v.len() && start < end);
         body_invariant!(forall(|x: usize, y: usize| (start <= x && x <= y && y < end) ==> v[x] <= v[y]));
+        // assert!(runs.get_runs_sum_max() == v.len());
+        assert!(runs.get_runs_sum_cur() == runs.get_runs_sum_max() - end);
+        assert!(runs.get_runs_sum_cur() == v.len() - end);
         start -= 1;
-        insert_head(v, start, end);
+        insert_head(v, start, end, &runs);
+        assert!(runs.get_runs_sum_max() == v.len());
+        assert!(runs.get_runs_sum_cur() == runs.get_runs_sum_max() - end);
+        assert!(runs.get_runs_sum_cur() == v.len() - end);
     }
 
-    let mut i = start;
-    while i < end {
-        body_invariant!(i < end);
-        body_invariant!(forall(|x: usize, y: usize| (start <= x && x <= y && y <= i) ==> v[x] >= v[y]));
-        i += 1;
-    }
-
-    assert!(runs.get_runs_sum_cur() == v.len() - end);
-    
-    assert!(runs.len() == 0 || runs.index_start(runs.len() - 1) == runs.get_runs_sum_max() - runs.get_runs_sum_cur());
-    assert!(runs.get_runs_sum_max() - runs.get_runs_sum_cur() == end);
-    assert!(start < end);
-    assert!(runs.len() == 0 || (runs.index_start(runs.len() - 1) == end && start < runs.index_start(runs.len() - 1)));
-
-    let new_len = end - start;
-    assert!(new_len > 0);
-    assert!(start + new_len <= v.len());
-    assert!(start + new_len <= runs.get_runs_sum_max());
-    
-    assert!(start + new_len == end);
-    assert!(runs.len() == 0 || start + new_len == runs.index_start(runs.len() - 1));
-
-    let mut i = start;
-    while i < start + new_len {
-        body_invariant!(i < start + new_len);
-        body_invariant!(forall(|x: usize, y: usize| (start <= x && x <= y && y <= i) ==> v[x] >= v[y]));
-        i += 1;
-    }
-
-    // assert!((runs.len() == 0 && end == v.len()) || (runs.len() > 0 && runs.index_start(0) + runs.index_len(0) == v.len()));
-
-    runs.push(start, new_len, &v);
-    
-    assert!(runs.get_runs_sum_cur() == runs.get_runs_sum_max() - start);
     assert!(runs.get_runs_sum_max() == v.len());
-    assert!(runs.get_runs_sum_cur() == v.len() - start);
-
-    end = start;
-
+    assert!(runs.get_runs_sum_cur() == runs.get_runs_sum_max() - end);
     assert!(runs.get_runs_sum_cur() == v.len() - end);
+    
+    // assert!(runs.get_runs_sum_cur() == v.len() - end);
+    
+    // -- HERE
+    
+    // assert!(runs.get_runs_sum_cur() == v.len() - end);
+    // assert!(v.len() - runs.get_runs_sum_cur() == end);
+    // assert!(v.len() == runs.get_runs_sum_max());
+    // assert!(runs.get_runs_sum_max() - runs.get_runs_sum_cur() == end);
+    
+    // assert!(runs.len() == 0 || runs.index_start(runs.len() - 1) == runs.get_runs_sum_max() - runs.get_runs_sum_cur());
+    // assert!(start < end);
+    // assert!(runs.len() == 0 || (runs.index_start(runs.len() - 1) == end && start < runs.index_start(runs.len() - 1)));
+
+    // let new_len = end - start;
+    // assert!(new_len > 0);
+    // assert!(start + new_len <= v.len());
+    // assert!(start + new_len <= runs.get_runs_sum_max());
+    
+    // assert!(start + new_len == end);
+    // assert!(runs.len() == 0 || start + new_len == runs.index_start(runs.len() - 1));
+
+    // runs.push(start, new_len, &v);
+    
+    // assert!(runs.get_runs_sum_cur() == runs.get_runs_sum_max() - start);
+    // assert!(runs.get_runs_sum_max() == v.len());
+    // assert!(runs.get_runs_sum_cur() == v.len() - start);
+
+    // end = start;
+
+    // assert!(runs.get_runs_sum_cur() == v.len() - end);
     
     return end;
 }
-
 
 #[requires(v.len() <= usize::MAX)]
 // #[ensures(forall(|x: usize, y: usize| ((0 <= x && x <= y && y < v.len()) ==> v[x] <= v[y])))]
@@ -677,125 +764,125 @@ fn merge_sort(v: &mut [i32]) {
 
         assert!(end >= 1 && end <= v.len());
         end = push_new_run(v, &mut runs, end, MIN_RUN_COPY);
-        // assert!(runs.get_runs_sum_cur() == v.len() - end);
-        // assert!(runs.get_runs_sum_max() == v.len());
+        assert!(runs.get_runs_sum_cur() == v.len() - end);
+        assert!(runs.get_runs_sum_max() == v.len());
         
-        // assert!(runs.len() > 0);
-        // assert!(runs.index_start(runs.len() - 1) == end);
+        assert!(runs.len() > 0);
+        assert!(runs.index_start(runs.len() - 1) == end);
 
-        // assert!(runs.index_start(0) + runs.index_len(0) == v.len());
+        assert!(runs.index_start(0) + runs.index_len(0) == v.len());
         
         // let length = runs.len();
 
-        assert!(runs.len() > 0);
+        // assert!(runs.len() > 0);
 
         loop {
             body_invariant!(runs.len() > 0);
 
-            // body_invariant!(buf.len() == 0);
-            // body_invariant!(runs.get_runs_sum_max() == v.len());
-            // body_invariant!(runs.get_runs_sum_cur() == v.len() - end);
-            // body_invariant!(runs.get_runs_sum_cur() <= runs.get_runs_sum_max());
-            // body_invariant!(forall(|i: usize| (0 <= i && i < runs.len() ==> runs.index_len(i) <= runs.get_runs_sum_cur())));
-            // body_invariant!(forall(|i: usize, j: usize| (0 <= i && i < runs.len() && i < j && j < runs.len() ==> runs.index_len(i) + runs.index_len(j) <= runs.get_runs_sum_max())));
-            // body_invariant!(forall(|i: usize| (0 <= i && i < runs.len() ==> runs.index_len(i) + runs.index_start(i) <= runs.get_runs_sum_max())));
-            // body_invariant!(runs.len() < 2 || forall(|i: usize, j: usize| (0 <= i && i < (runs.len() - 1) && j == i + 1 ==> runs.index_start(i) > runs.index_start(j))));
-            // //edit here, remove runs.len() == 0 ???
-            // body_invariant!(runs.len() == 0 || runs.index_start(runs.len() - 1) == runs.get_runs_sum_max() - runs.get_runs_sum_cur());
-            // body_invariant!(runs.len() < 2 || forall(|i: usize, j: usize| 0 <= i && i < (runs.len() - 1) && j == i + 1 ==> runs.index_start(j) + runs.index_len(j) == runs.index_start(i)));
-            // body_invariant!(forall(|i: usize| 0 <= i && i < runs.len() ==> runs.index_len(i) > 0));
+            body_invariant!(buf.len() == 0);
+            body_invariant!(runs.get_runs_sum_max() == v.len());
+            body_invariant!(runs.get_runs_sum_cur() == v.len() - end);
+            body_invariant!(runs.get_runs_sum_cur() <= runs.get_runs_sum_max());
+            body_invariant!(forall(|i: usize| (0 <= i && i < runs.len() ==> runs.index_len(i) <= runs.get_runs_sum_cur())));
+            body_invariant!(forall(|i: usize, j: usize| (0 <= i && i < runs.len() && i < j && j < runs.len() ==> runs.index_len(i) + runs.index_len(j) <= runs.get_runs_sum_max())));
+            body_invariant!(forall(|i: usize| (0 <= i && i < runs.len() ==> runs.index_len(i) + runs.index_start(i) <= runs.get_runs_sum_max())));
+            body_invariant!(runs.len() < 2 || forall(|i: usize, j: usize| (0 <= i && i < (runs.len() - 1) && j == i + 1 ==> runs.index_start(i) > runs.index_start(j))));
+            //edit here, remove runs.len() == 0 ???
+            body_invariant!(runs.len() == 0 || runs.index_start(runs.len() - 1) == runs.get_runs_sum_max() - runs.get_runs_sum_cur());
+            body_invariant!(runs.len() < 2 || forall(|i: usize, j: usize| 0 <= i && i < (runs.len() - 1) && j == i + 1 ==> runs.index_start(j) + runs.index_len(j) == runs.index_start(i)));
+            body_invariant!(forall(|i: usize| 0 <= i && i < runs.len() ==> runs.index_len(i) > 0));
 
-            // body_invariant!(forall(|i: usize, x: usize, y: usize| (0 <= i && i < runs.len() && runs.index_start(i) <= x && x <= y && y < runs.index_start(i) + runs.index_len(i)) ==> v[x] <= v[y]));
+            body_invariant!(forall(|i: usize, x: usize, y: usize| (0 <= i && i < runs.len() && runs.index_start(i) <= x && x <= y && y < runs.index_start(i) + runs.index_len(i)) ==> v[x] <= v[y]));
+            
+            body_invariant!(runs.index_start(runs.len() - 1) == end);
+
+            body_invariant!(runs.index_start(0) + runs.index_len(0) == v.len());
+            
+            
+            let r = collapse(&runs);
+            assert!(runs.len() > 0);
+            
+            
+            assert!(r == runs.len() || (runs.len() > 1 && r < runs.len() - 1));
+            assert!(runs.len() < 2 || (runs.index_start(runs.len() - 1) != 0 || r == runs.len() - 2));
+
+            assert!(runs.index_start(runs.len() - 1) != 0 || (runs.len() < 2 || r == runs.len() - 2));
+            assert!(runs.index_start(runs.len() - 1) == end);
+            assert!(end != 0 || (runs.len() < 2 || r == runs.len() - 2));
             
 
-            break;
-            // body_invariant!(runs.index_start(runs.len() - 1) == end);
-
-            // body_invariant!(runs.index_start(0) + runs.index_len(0) == v.len());
-            
-            // let r = collapse(&runs);
             // assert!(runs.len() > 0);
-            
-            // assert!(r == runs.len() || (runs.len() > 1 && r < runs.len() - 1));
-            // assert!(runs.len() < 2 || (runs.index_start(runs.len() - 1) != 0 || r == runs.len() - 2));
+            if r == runs.len() {
+                assert!(runs.len() > 0);
+                
+                assert!(runs.len() < 2 || (runs.index_start(runs.len() - 1) != 0 || r == runs.len() - 2));
+                assert!(r == runs.len());
+                // assert!(r != runs.len() - 2);
+                assert!(runs.len() < 2 || runs.index_start(runs.len() - 1) != 0);
 
-            // assert!(runs.index_start(runs.len() - 1) != 0 || (runs.len() < 2 || r == runs.len() - 2));
-            // // assert!(runs.index_start(runs.len() - 1) == end);
-            // assert!(end != 0 || (runs.len() < 2 || r == runs.len() - 2));
+            //     // assert!(end == 0);
+            //     // assert!(runs.index_start(runs.len() - 1) == end);
+            //     // assert!(runs.index_start(runs.len() - 1) == 0);
+                
+            //     // assert!(runs.len() < 2);
+            //     // assert!(runs.len() == 1);
 
-            // if r == runs.len() {
-            //     assert!(runs.len() > 0);
-                
-            //     assert!(runs.len() < 2 || (runs.index_start(runs.len() - 1) != 0 || r == runs.len() - 2));
-            //     assert!(r == runs.len());
-            //     // assert!(r != runs.len() - 2);
-            //     assert!(runs.len() < 2 || runs.index_start(runs.len() - 1) != 0);
+                break;
+            } else {
+                assert!(runs.len() > 1 && r < runs.len() - 1);
+                assert!(runs.len() > 1);
 
-            // //     // assert!(end == 0);
-            // //     // assert!(runs.index_start(runs.len() - 1) == end);
-            // //     // assert!(runs.index_start(runs.len() - 1) == 0);
+                let left_start = runs.index_start(r + 1);
+                let left_len = runs.index_len(r + 1);
+                let right_start = runs.index_start(r);
+                let right_len = runs.index_len(r);
                 
-            // //     // assert!(runs.len() < 2);
-            // //     // assert!(runs.len() == 1);
+                // working
+                assert!(left_start < right_start);
+                assert!(right_start + right_len <= runs.get_runs_sum_max());
+                assert!(right_start + right_len <= v.len());
 
-            //     break;
-            // } else {
-            //     break;
-            // }
-            //     assert!(runs.len() > 1 && r < runs.len() - 1);
-            //     assert!(runs.len() > 1);
+                assert!(left_start + left_len == right_start);
+                
+                // not working
+                assert!(right_len > 0);
+                assert!(left_start + left_len < right_start + right_len);
 
-            //     let left_start = runs.index_start(r + 1);
-            //     let left_len = runs.index_len(r + 1);
-            //     let right_start = runs.index_start(r);
-            //     let right_len = runs.index_len(r);
+                // merge requires
+                // 1) v[left.start..left.start+left.len] is sorted
+                // 2) v[right.start(=left.start+left.len)..right.start+right.len] is sorted
                 
-            //     // working
-            //     assert!(left_start < right_start);
-            //     assert!(right_start + right_len <= runs.get_runs_sum_max());
-            //     assert!(right_start + right_len <= v.len());
-
-            //     assert!(left_start + left_len == right_start);
+                merge(v, left_start, left_start + left_len, right_start + right_len, &mut buf, &runs);
                 
-            //     // not working
-            //     assert!(right_len > 0);
-            //     assert!(left_start + left_len < right_start + right_len);
-
-            //     // merge requires
-            //     // 1) v[left.start..left.start+left.len] is sorted
-            //     // 2) v[right.start(=left.start+left.len)..right.start+right.len] is sorted
+                // merge ensures
+                // 1) v[left.start..left.start+left.len] is sorted
+                // 2) v[right.start(=left.start+left.len)..right.start+right.len] is sorted
+                // 3) v[left.start..right.start+right.len] is sorted
                 
-            //     merge(v, left_start, left_start + left_len, right_start + right_len, &mut buf, &runs);
+                buf = Buf::new(len / 2);
+                assert!(buf.len() == 0);
                 
-            //     // merge ensures
-            //     // 1) v[left.start..left.start+left.len] is sorted
-            //     // 2) v[right.start(=left.start+left.len)..right.start+right.len] is sorted
-            //     // 3) v[left.start..right.start+right.len] is sorted
-                
-            //     buf = Buf::new(len / 2);
-            //     assert!(buf.len() == 0);
-                
-            //     // assert!(runs.len() > 1);
-            //     runs.merge(r, &v);
-            //     assert!(runs.len() > 0);
-            // }
-            // assert!(runs.len() > 0);
+                // assert!(runs.len() > 1);
+                runs.merge(r, &v);
+                assert!(runs.len() > 0);
+            }
+            assert!(runs.len() > 0);
         }
         // assert!(runs.len() > 0);
 
         // assert!(end != 0 || runs.len() == 1);
     }
 
-    assert!(runs.get_runs_sum_cur() == v.len());
-    assert!(runs.get_runs_sum_cur() == runs.get_runs_sum_max());
+    // assert!(runs.get_runs_sum_cur() == v.len());
+    // assert!(runs.get_runs_sum_cur() == runs.get_runs_sum_max());
     
-    assert!(runs.len() > 0);
-    // assert!(runs.len() == 1);
-    assert!(runs.index_start(0) + runs.index_len(0) == v.len());
+    // assert!(runs.len() > 0);
+    // // assert!(runs.len() == 1);
+    // assert!(runs.index_start(0) + runs.index_len(0) == v.len());
 
-    assert!(end == 0);
-    assert!(runs.index_start(runs.len() - 1) == end);
-    assert!(runs.index_start(runs.len() - 1) == 0);
+    // assert!(end == 0);
+    // assert!(runs.index_start(runs.len() - 1) == end);
+    // assert!(runs.index_start(runs.len() - 1) == 0);
 
     //debug_assert!(runs.len() == 1 && runs.index(0).start == 0 && runs.index(0).len == len);
 }
