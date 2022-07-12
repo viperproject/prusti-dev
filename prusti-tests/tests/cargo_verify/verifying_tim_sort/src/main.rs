@@ -24,6 +24,59 @@ pub fn main() {
 #[ensures(v.len() == runs.get_runs_sum_max())]
 #[ensures(runs.get_runs_sum_cur() == runs.get_runs_sum_max() - end_index)]
 #[ensures(runs.get_runs_sum_cur() == v.len() - end_index)]
+fn insert_head_for_push_new_run(v: &mut [i32], start_index: usize, end_index: usize, runs: &Runs) {
+    let len = v.len();
+ 
+    assert!(start_index < end_index - 1);
+    if v[start_index + 1] < v[start_index] {
+        let tmp = v[start_index];
+        v[start_index] = v[start_index + 1];
+        let mut i = start_index + 2;
+
+        assert!(v[start_index] <= v[start_index + 1]);
+        assert!(tmp >= v[start_index]);
+        assert!(tmp >= v[start_index + 1]);
+
+        while i < end_index {
+            body_invariant!(v.len() == len);
+
+            body_invariant!(i >= start_index + 2 && i < end_index);
+            body_invariant!(end_index <= v.len());
+            body_invariant!(i < v.len());
+
+            body_invariant!(tmp >= v[i - 1]);
+            body_invariant!(v[i - 2] == v[i - 1]);
+            // body_invariant!(forall(|x: usize, y: usize| (i <= x && x <= y && y < end_index) ==> v[x] <= v[y]));
+            // body_invariant!(forall(|x: usize, y: usize| (start_index <= x && x <= y && y <= i) ==> v[x] <= v[y]));
+            body_invariant!(forall(|x: usize, y: usize| (start_index <= x && x <= y && y < end_index) ==> v[x] <= v[y]));
+            
+            if v[i] >= tmp {
+                assert!(tmp >= v[i - 2]);
+                v[i - 1] = tmp;
+                assert!(v[i - 2] <= v[i - 1] && v[i - 1] <= v[i]);
+                break;
+            }
+            assert!(tmp > v[i]);
+
+            assert!(v[i - 1] <= v[i]);
+            assert!(v[i - 2] <= v[i - 1]);
+            v[i - 1] = v[i];
+            assert!(v[i - 2] <= v[i - 1] && v[i - 1] <= v[i]);
+            
+            i += 1;
+        }
+        v[i - 1] = tmp;
+    }
+}
+
+#[trusted]
+#[requires(v.len() > 1)]
+#[requires(start_index < end_index - 1)]
+#[requires(end_index > 1 && end_index <= v.len())]
+#[requires(forall(|x: usize, y: usize| (start_index + 1 <= x && x <= y && y < end_index) ==> v[x] <= v[y]))]
+
+#[ensures(v.len() == old(v.len()))]
+#[ensures(forall(|x: usize, y: usize| (start_index <= x && x <= y && y < end_index) ==> v[x] <= v[y]))]
 fn insert_head(v: &mut [i32], start_index: usize, end_index: usize) {
     let len = v.len();
  
@@ -672,7 +725,7 @@ fn push_new_run(v: &mut [i32], runs: &mut Runs, mut end: usize, MIN_RUN: usize) 
         assert!(runs.get_runs_sum_cur() == runs.get_runs_sum_max() - end);
         assert!(runs.get_runs_sum_cur() == v.len() - end);
         start -= 1;
-        insert_head(v, start, end, &runs);
+        insert_head_for_push_new_run(v, start, end, &runs);
         assert!(runs.get_runs_sum_max() == v.len());
         assert!(runs.get_runs_sum_cur() == runs.get_runs_sum_max() - end);
         assert!(runs.get_runs_sum_cur() == v.len() - end);
@@ -852,7 +905,7 @@ fn merge_sort(v: &mut [i32]) {
                 // 1) v[left.start..left.start+left.len] is sorted
                 // 2) v[right.start(=left.start+left.len)..right.start+right.len] is sorted
                 
-                merge(v, left_start, left_start + left_len, right_start + right_len, &mut buf, &runs);
+                merge(v, left_start, left_start + left_len, right_start + right_len, &mut buf);
                 
                 // merge ensures
                 // 1) v[left.start..left.start+left.len] is sorted
