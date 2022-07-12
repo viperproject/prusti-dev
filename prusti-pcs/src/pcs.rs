@@ -371,3 +371,7 @@ impl<'tcx> Debug for MicroMirTerminator<'tcx> {
         }
     }
 }
+
+pub fn entry() {
+    println!("Computing the PCS");
+}
