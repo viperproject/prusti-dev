@@ -82,7 +82,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             tcx.hir().walk_toplevel_module(&mut spec_collector);
             tcx.hir().walk_attributes(&mut spec_collector);
 
-            let build_output_dir = (&compiler.output_dir()).as_ref().unwrap();
+            let build_output_dir = compiler.output_dir();
             let def_spec = spec_collector.build_def_specs(build_output_dir);
             if config::print_typeckd_specs() {
                 let loop_specs: Vec<_> = def_spec
