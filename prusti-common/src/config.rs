@@ -248,7 +248,7 @@ fn read_setting<T>(name: &'static str) -> T
 where
     T: Deserialize<'static>,
 {
-    SETTINGS.read().unwrap().get(name).expect(&format!("Failed to read setting {}", name))
+    SETTINGS.read().unwrap().get(name).unwrap_or_else(|e| panic!("Failed to read setting {} due to {}", name, e))
 }
 
 // The following methods are all convenience wrappers for the actual call to
