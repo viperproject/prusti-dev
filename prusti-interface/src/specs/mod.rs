@@ -90,7 +90,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         }
     }
 
-    pub fn build_def_specs(&self, build_output_dir: &PathBuf) -> typed::DefSpecificationMap<'tcx> {
+    pub fn build_def_specs(&self, build_output_dir: &Option<PathBuf>) -> typed::DefSpecificationMap<'tcx> {
         let mut def_spec = typed::DefSpecificationMap::new();
         self.determine_procedure_specs(&mut def_spec);
         self.determine_extern_specs(&mut def_spec);
@@ -103,8 +103,10 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
         self.fetch_local_mirs(&mut def_spec);
 
-        self.write_specs_to_file(&def_spec, build_output_dir);
-        self.merge_specs_from_dependencies(&mut def_spec, build_output_dir);
+        if let Some(build_output_dir) = build_output_dir {
+            self.write_specs_to_file(&def_spec, &build_output_dir);
+            self.merge_specs_from_dependencies(&mut def_spec, &build_output_dir);
+        }
 
         def_spec
     }
