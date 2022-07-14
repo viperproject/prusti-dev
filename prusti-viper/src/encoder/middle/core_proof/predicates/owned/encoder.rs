@@ -496,6 +496,7 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
         let type_decl = self.lowerer.encoder.get_type_decl_mid(ty)?;
         self.lowerer.encode_snapshot_to_bytes_function(ty)?;
         let snapshot_type = ty.to_snapshot(self.lowerer)?;
+        let position = Default::default();
         var_decls! {
             lifetime: Lifetime,
             place: Place,
@@ -512,7 +513,8 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             | vir_mid::TypeDecl::Pointer(_)
             | vir_mid::TypeDecl::Sequence(_)
             | vir_mid::TypeDecl::Map(_)
-            | vir_mid::TypeDecl::TypeVar(_) => vir_low::PredicateDecl::new(
+            | vir_mid::TypeDecl::TypeVar(_)
+            | vir_mid::TypeDecl::Trusted(_) => vir_low::PredicateDecl::new(
                 predicate_name! {FracRef<ty>},
                 vec![lifetime, place, root_address, snapshot],
                 None,
@@ -547,7 +549,7 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                     field_predicates.push(acc);
                 }
                 if field_predicates.is_empty() {
-                    unimplemented!();
+                    // FIXME: Add backing MemoryBlock unimplemented!();
                 }
                 vir_low::PredicateDecl::new(
                     predicate_name! {FracRef<ty>},
@@ -558,8 +560,63 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                     }),
                 )
             }
-            vir_mid::TypeDecl::Enum(_decl) => {
-                unimplemented!();
+            vir_mid::TypeDecl::Enum(decl) => {
+                let mut variant_predicates = Vec::new();
+                let discriminant_call =
+                    self.lowerer
+                        .obtain_enum_discriminant(snapshot.clone().into(), ty, position)?;
+                for (&discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants)
+                {
+                    let variant_index = variant.name.clone().into();
+                    let variant_place = self.lowerer.encode_enum_variant_place(
+                        ty,
+                        &variant_index,
+                        place.clone().into(),
+                        position,
+                    )?;
+                    let variant_snapshot = self.lowerer.obtain_enum_variant_snapshot(
+                        ty,
+                        &variant_index,
+                        snapshot.clone().into(),
+                        position,
+                    )?;
+                    let variant_type = ty.clone().variant(variant_index);
+                    self.encode_frac_ref(&variant_type)?;
+                    let variant_type = &variant_type;
+                    let acc = expr! {
+                        ([ discriminant_call.clone() ] == [ discriminant.into() ]) ==>
+                        (acc(FracRef<variant_type>(
+                            lifetime, [variant_place], root_address, [variant_snapshot]
+                        )))
+                    };
+                    variant_predicates.push(acc);
+                }
+                let discriminant_type = &decl.discriminant_type;
+                self.encode_frac_ref(discriminant_type)?;
+                let discriminant_field = decl.discriminant_field();
+                let discriminant_place = self.lowerer.encode_field_place(
+                    ty,
+                    &discriminant_field,
+                    place.clone().into(),
+                    position,
+                )?;
+                let discriminant_snapshot = self.lowerer.construct_constant_snapshot(
+                    discriminant_type,
+                    discriminant_call,
+                    position,
+                )?;
+                vir_low::PredicateDecl::new(
+                    predicate_name! {FracRef<ty>},
+                    vec![lifetime.clone(), place, root_address.clone(), snapshot],
+                    Some(expr! {
+                        [current_validity] &&
+                        (acc(FracRef<discriminant_type>(
+                            lifetime, [discriminant_place], root_address,
+                            [discriminant_snapshot]
+                        ))) &&
+                        [variant_predicates.into_iter().conjoin()]
+                    }),
+                )
             }
             vir_mid::TypeDecl::Union(_decl) => {
                 unimplemented!();
@@ -584,7 +641,7 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
         self.encoded_mut_borrow_predicates.insert(ty.clone());
         self.lowerer.encode_compute_address(ty)?;
         use vir_low::macros::*;
-        // let position = Default::default();
+        let position = Default::default();
         let type_decl = self.lowerer.encoder.get_type_decl_mid(ty)?;
         self.lowerer.encode_snapshot_to_bytes_function(ty)?;
         let snapshot_type = ty.to_snapshot(self.lowerer)?;
@@ -598,9 +655,6 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
         let current_validity = self
             .lowerer
             .encode_snapshot_valid_call_for_type(current_snapshot.clone().into(), ty)?;
-        let final_validity = self
-            .lowerer
-            .encode_snapshot_valid_call_for_type(final_snapshot.clone().into(), ty)?;
         let predicate = match &type_decl {
             vir_mid::TypeDecl::Bool
             | vir_mid::TypeDecl::Int(_)
@@ -608,7 +662,8 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             | vir_mid::TypeDecl::Pointer(_)
             | vir_mid::TypeDecl::Sequence(_)
             | vir_mid::TypeDecl::Map(_)
-            | vir_mid::TypeDecl::TypeVar(_) => vir_low::PredicateDecl::new(
+            | vir_mid::TypeDecl::TypeVar(_)
+            | vir_mid::TypeDecl::Trusted(_) => vir_low::PredicateDecl::new(
                 predicate_name! {UniqueRef<ty>},
                 vec![
                     lifetime,
@@ -655,7 +710,7 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                     field_predicates.push(acc);
                 }
                 if field_predicates.is_empty() {
-                    unimplemented!();
+                    // FIXME: add MemoryBlock predicate unimplemented!();
                 }
                 vir_low::PredicateDecl::new(
                     predicate_name! {UniqueRef<ty>},
@@ -668,13 +723,92 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                     ],
                     Some(expr! {
                         [current_validity] &&
-                        [final_validity] &&
                         [field_predicates.into_iter().conjoin()]
                     }),
                 )
             }
-            vir_mid::TypeDecl::Enum(_decl) => {
-                unimplemented!();
+            vir_mid::TypeDecl::Enum(decl) => {
+                let mut variant_predicates = Vec::new();
+                let discriminant_current_call = self.lowerer.obtain_enum_discriminant(
+                    current_snapshot.clone().into(),
+                    ty,
+                    position,
+                )?;
+                let discriminant_final_call = self.lowerer.obtain_enum_discriminant(
+                    final_snapshot.clone().into(),
+                    ty,
+                    position,
+                )?;
+                for (&discriminant, variant) in decl.discriminant_values.iter().zip(&decl.variants)
+                {
+                    let variant_index = variant.name.clone().into();
+                    let variant_place = self.lowerer.encode_enum_variant_place(
+                        ty,
+                        &variant_index,
+                        place.clone().into(),
+                        position,
+                    )?;
+                    let current_variant_snapshot = self.lowerer.obtain_enum_variant_snapshot(
+                        ty,
+                        &variant_index,
+                        current_snapshot.clone().into(),
+                        position,
+                    )?;
+                    let final_variant_snapshot = self.lowerer.obtain_enum_variant_snapshot(
+                        ty,
+                        &variant_index,
+                        final_snapshot.clone().into(),
+                        position,
+                    )?;
+                    let variant_type = ty.clone().variant(variant_index);
+                    self.encode_unique_ref(&variant_type)?;
+                    let variant_type = &variant_type;
+                    let acc = expr! {
+                        ([ discriminant_current_call.clone() ] == [ discriminant.into() ]) ==>
+                        (acc(UniqueRef<variant_type>(
+                            lifetime, [variant_place], root_address,
+                            [current_variant_snapshot], [final_variant_snapshot]
+                        )))
+                    };
+                    variant_predicates.push(acc);
+                }
+                let discriminant_type = &decl.discriminant_type;
+                self.encode_unique_ref(discriminant_type)?;
+                let discriminant_field = decl.discriminant_field();
+                let discriminant_place = self.lowerer.encode_field_place(
+                    ty,
+                    &discriminant_field,
+                    place.clone().into(),
+                    position,
+                )?;
+                let discriminant_current_snapshot = self.lowerer.construct_constant_snapshot(
+                    discriminant_type,
+                    discriminant_current_call,
+                    position,
+                )?;
+                let discriminant_final_snapshot = self.lowerer.construct_constant_snapshot(
+                    discriminant_type,
+                    discriminant_final_call,
+                    position,
+                )?;
+                vir_low::PredicateDecl::new(
+                    predicate_name! {UniqueRef<ty>},
+                    vec![
+                        lifetime.clone(),
+                        place,
+                        root_address.clone(),
+                        current_snapshot,
+                        final_snapshot,
+                    ],
+                    Some(expr! {
+                        [current_validity] &&
+                        (acc(UniqueRef<discriminant_type>(
+                            lifetime, [discriminant_place], root_address,
+                            [discriminant_current_snapshot], [discriminant_final_snapshot]
+                        ))) &&
+                        [variant_predicates.into_iter().conjoin()]
+                    }),
+                )
             }
             vir_mid::TypeDecl::Union(_decl) => {
                 unimplemented!();

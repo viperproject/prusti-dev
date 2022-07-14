@@ -68,7 +68,11 @@ impl PredicateState {
     }
 
     fn contains_only_leakable(&self) -> bool {
-        self.owned_non_aliased.is_empty() && self.memory_block_stack.is_empty()
+        self.memory_block_stack.is_empty()
+            && self.owned_non_aliased.iter().all(|place| {
+                // `UniqueRef` and `FracRef` predicates can be leaked.
+                place.get_dereference_base().is_some()
+            })
     }
 
     fn places_mut(&mut self, kind: PermissionKind) -> &mut BTreeSet<vir_high::Expression> {

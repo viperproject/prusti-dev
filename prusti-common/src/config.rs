@@ -86,6 +86,7 @@ lazy_static::lazy_static! {
         settings.set_default("cache_path", "").unwrap();
         settings.set_default("dump_debug_info", false).unwrap();
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
+        settings.set_default("dump_nll_facts", false).unwrap();
         settings.set_default("ignore_regions", false).unwrap();
         settings.set_default("max_log_file_name_length", 60).unwrap();
         settings.set_default("dump_path_ctxt_in_debug_info", false).unwrap();
@@ -177,7 +178,14 @@ lazy_static::lazy_static! {
 
         // 4. Override with env variables (`PRUSTI_VIPER_BACKEND`, ...)
         settings.merge(
-            Environment::with_prefix("PRUSTI").ignore_empty(true)
+            Environment::with_prefix("PRUSTI")
+                .ignore_empty(true)
+                .try_parsing(true)
+                .with_list_parse_key("delete_basic_blocks")
+                .with_list_parse_key("extra_jvm_args")
+                .with_list_parse_key("extra_verifier_args")
+                .with_list_parse_key("verify_only_basic_block_path")
+                .list_separator(" ")
         ).unwrap();
         check_keys(&settings, &allowed_keys, "environment variables");
 
@@ -240,7 +248,7 @@ fn read_setting<T>(name: &'static str) -> T
 where
     T: Deserialize<'static>,
 {
-    read_optional_setting(name).unwrap_or_else(|| panic!("Failed to read setting {:?}", name))
+    SETTINGS.read().unwrap().get(name).unwrap_or_else(|e| panic!("Failed to read setting {} due to {}", name, e))
 }
 
 // The following methods are all convenience wrappers for the actual call to
@@ -336,6 +344,11 @@ pub fn dump_debug_info() -> bool {
 /// be dumped to a file.
 pub fn dump_debug_info_during_fold() -> bool {
     read_setting("dump_debug_info_during_fold")
+}
+
+/// When enabled, dumps Polonius nll-facts in the log directory.
+pub fn dump_nll_facts() -> bool {
+    read_setting("dump_nll_facts")
 }
 
 /// When enabled, debug files dumped by `rustc` will not contain lifetime
