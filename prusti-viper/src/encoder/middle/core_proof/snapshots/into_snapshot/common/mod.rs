@@ -373,12 +373,12 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
             self.expression_to_snapshot(lowerer, &op.left, expect_math_bool_args)?;
         let right_snapshot =
             self.expression_to_snapshot(lowerer, &op.right, expect_math_bool_args)?;
-        let arg_type = op.left.get_type();
-        assert_eq!(arg_type, op.right.get_type());
+        let arg_type = op.left.get_type().clone().erase_lifetimes();
+        assert_eq!(arg_type, op.right.get_type().clone().erase_lifetimes());
         let result = lowerer.construct_binary_op_snapshot(
             op.op_kind,
             ty,
-            arg_type,
+            &arg_type,
             left_snapshot,
             right_snapshot,
             op.position,
@@ -490,6 +490,19 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         };
 
         match app.function {
+            BuiltinFunc::Discriminant => {
+                assert_eq!(args.len(), 1);
+                let discriminant_call = lowerer.obtain_enum_discriminant(
+                    args.pop().unwrap(),
+                    app.arguments[0].get_type(),
+                    app.position,
+                )?;
+                lowerer.construct_constant_snapshot(
+                    &app.return_type,
+                    discriminant_call,
+                    app.position,
+                )
+            }
             BuiltinFunc::EmptyMap => map(MapOpKind::Empty),
             BuiltinFunc::UpdateMap => map(MapOpKind::Update),
             BuiltinFunc::LookupMap => {
