@@ -105,7 +105,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
 
         let elem = projection.last().unwrap();
         Ok(match elem {
-            mir::ProjectionElem::Field(ref field, _) => {
+            mir::ProjectionElem::Field(ref field, proj_field_ty) => {
                 match base_ty.kind() {
                     ty::TyKind::Tuple(elems) => {
                         let field_name = format!("tuple_{}", field.index());
@@ -144,7 +144,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                             encoded_base
                         };
                         let field = &variant_def.fields[field.index()];
-                        let field_ty = field.ty(tcx, subst);
+                        let field_ty = *proj_field_ty;
                         if utils::is_reference(field_ty) {
                             return Err(EncodingError::unsupported(
                                 "access to reference-typed fields is not supported",
@@ -172,12 +172,7 @@ pub trait PlaceEncoder<'v, 'tcx: 'v> {
                         //     .upvar_tys(def_id, tcx)
                         //     .nth(field.index())
                         //     .unwrap();
-                        let field_ty = closure_subst.upvar_tys().nth(field.index())
-                            .ok_or_else(|| EncodingError::internal(format!(
-                                "failed to obtain the type of the captured path #{} of closure {:?}",
-                                field.index(),
-                                base_ty,
-                            )))?;
+                        let field_ty = *proj_field_ty;
 
                         let field_name = format!("closure_{}", field.index());
                         let encoded_field = self.encoder()
