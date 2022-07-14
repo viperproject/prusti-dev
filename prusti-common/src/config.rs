@@ -185,7 +185,7 @@ lazy_static::lazy_static! {
                 .with_list_parse_key("extra_jvm_args")
                 .with_list_parse_key("extra_verifier_args")
                 .with_list_parse_key("verify_only_basic_block_path")
-                .list_separator("_")
+                .list_separator(" ")
         ).unwrap();
         check_keys(&settings, &allowed_keys, "environment variables");
 
