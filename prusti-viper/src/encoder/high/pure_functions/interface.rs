@@ -89,6 +89,7 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
     }
 
     /// Encode subslicing of an array/slice.
+    // FIXME: Check if encode_subslice_call is used and tested
     fn encode_subslice_call(
         &self,
         container: vir_high::Expression,
@@ -101,7 +102,8 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         let return_type = vir_high::Type::reference(
             pure_lifetime,
             vir_high::ty::Uniqueness::Shared,
-            vir_high::Type::slice(element_type.clone()),
+            // FIXME: add slice lifetimes for subslice_call
+            vir_high::Type::slice(element_type.clone(), vec![]),
         );
         Ok(vir_high::Expression::function_call(
             name,
