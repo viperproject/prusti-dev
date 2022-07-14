@@ -21,6 +21,7 @@ use vir_crate::{
     common::expression::{ExpressionIterator, QuantifierHelpers},
     low::{self as vir_low},
     middle as vir_mid,
+    middle::operations::lifetimes::WithLifetimes,
 };
 
 pub(super) struct PredicateEncoder<'l, 'p, 'v, 'tcx> {

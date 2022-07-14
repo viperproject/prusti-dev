@@ -95,37 +95,6 @@ impl Type {
         }
         DefaultLifetimeEraser {}.fold_type(self.clone())
     }
-    pub fn get_lifetimes(&self) -> Vec<LifetimeConst> {
-        match self {
-            Type::Reference(reference) => {
-                let mut lifetimes = vec![reference.lifetime.clone()];
-                let target_lifetimes = reference.target_type.get_lifetimes();
-                lifetimes.extend(target_lifetimes);
-                lifetimes
-            }
-            Type::Tuple(Tuple { lifetimes, .. })
-            | Type::Struct(Struct { lifetimes, .. })
-            | Type::Sequence(Sequence { lifetimes, .. })
-            | Type::Map(Map { lifetimes, .. })
-            | Type::Enum(Enum { lifetimes, .. })
-            | Type::Array(Array { lifetimes, .. })
-            | Type::Slice(Slice { lifetimes, .. })
-            | Type::Projection(Projection { lifetimes, .. })
-            | Type::Trusted(Trusted { lifetimes, .. })
-            | Type::Union(Union { lifetimes, .. }) => lifetimes.clone(),
-            _ => vec![],
-        }
-    }
-    pub fn get_lifetimes_as_var(&self) -> Vec<VariableDecl> {
-        let lifetimes_const = self.get_lifetimes();
-        lifetimes_const
-            .iter()
-            .map(|lifetime| VariableDecl {
-                name: lifetime.name.clone(),
-                ty: Type::Lifetime,
-            })
-            .collect()
-    }
     pub fn contains_type_variables(&self) -> bool {
         match self {
             Self::Sequence(Sequence { element_type, .. })

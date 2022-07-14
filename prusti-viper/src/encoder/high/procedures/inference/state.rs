@@ -3,7 +3,10 @@ use crate::encoder::errors::SpannedEncodingResult;
 use log::debug;
 use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
-    high::{self as vir_high, operations::ty::Typed},
+    high::{
+        self as vir_high,
+        operations::{lifetimes::WithLifetimes, ty::Typed},
+    },
     middle as vir_mid,
 };
 
