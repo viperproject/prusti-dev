@@ -176,6 +176,7 @@ pub(in super::super) trait TypeDeclWalker {
             | vir_mid::TypeDecl::Map(_) => {
                 self.walk_primitive(ty, &parameters, lowerer)?;
             }
+            // vir_mid::TypeDecl::Trusted(_) => {}
             // vir_mid::TypeDecl::TypeVar(TypeVar) => {},
             vir_mid::TypeDecl::Tuple(_)
             | vir_mid::TypeDecl::Struct(_)
@@ -187,9 +188,6 @@ pub(in super::super) trait TypeDeclWalker {
             }
             vir_mid::TypeDecl::Tuple(tuple_decl) => {
                 self.walk_fields(ty, tuple_decl.iter_fields(), &parameters, lowerer)?;
-            }
-            vir_mid::TypeDecl::Trusted(trusted_decl) => {
-                self.walk_fields(ty, trusted_decl.iter_fields(), &parameters, lowerer)?;
             }
             vir_mid::TypeDecl::Struct(struct_decl) => {
                 self.walk_fields(ty, struct_decl.iter_fields(), &parameters, lowerer)?;

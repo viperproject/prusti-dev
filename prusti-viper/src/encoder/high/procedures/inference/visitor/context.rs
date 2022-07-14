@@ -46,9 +46,9 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
                 // Primitive type. Convert.
                 vec![(ExpandedPermissionKind::MemoryBlock, place.clone())]
             }
+            vir_high::TypeDecl::Trusted(_) => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::TypeVar(_) => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Tuple(tuple_decl) => expand_fields(place, tuple_decl.iter_fields()),
-            vir_high::TypeDecl::Trusted(decl) => expand_fields(place, decl.iter_fields()),
             vir_high::TypeDecl::Struct(decl) => expand_fields(place, decl.iter_fields()),
             vir_high::TypeDecl::Union(_) => {
                 let variant_name = place.get_variant_name(guiding_place);

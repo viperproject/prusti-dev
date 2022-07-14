@@ -155,5 +155,4 @@ pub struct Unsupported {
 #[display(fmt = "{}", name)]
 pub struct Trusted {
     pub name: String,
-    pub fields: Vec<FieldDecl>,
 }

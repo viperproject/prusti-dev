@@ -45,12 +45,6 @@ impl Tuple {
     }
 }
 
-impl Trusted {
-    pub fn iter_fields(&self) -> impl Iterator<Item = std::borrow::Cow<'_, FieldDecl>> {
-        self.fields.iter().map(std::borrow::Cow::Borrowed)
-    }
-}
-
 impl Struct {
     pub fn iter_fields(&self) -> impl Iterator<Item = std::borrow::Cow<'_, FieldDecl>> {
         self.fields.iter().map(std::borrow::Cow::Borrowed)

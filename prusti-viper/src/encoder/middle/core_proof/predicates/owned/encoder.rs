@@ -3,7 +3,6 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         compute_address::ComputeAddressInterface,
-        lifetimes::LifetimesInterface,
         lowerer::Lowerer,
         places::PlacesInterface,
         predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface},
@@ -88,6 +87,7 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             | vir_mid::TypeDecl::Float(_)
             | vir_mid::TypeDecl::Pointer(_)
             | vir_mid::TypeDecl::Sequence(_)
+            | vir_mid::TypeDecl::Trusted(_)
             | vir_mid::TypeDecl::Map(_) => {
                 predicate! {
                     OwnedNonAliased<ty>(place: Place, root_address: Address, snapshot: {snapshot_type})
@@ -109,13 +109,6 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                 snapshot_type,
                 validity,
                 tuple_decl.iter_fields(),
-            )?,
-            vir_mid::TypeDecl::Trusted(decl) => self.encode_owned_non_aliased_with_fields(
-                ty,
-                snapshot,
-                snapshot_type,
-                validity,
-                decl.iter_fields(),
             )?,
             vir_mid::TypeDecl::Struct(struct_decl) => self.encode_owned_non_aliased_with_fields(
                 ty,
@@ -579,14 +572,22 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             | vir_mid::TypeDecl::Pointer(_)
             | vir_mid::TypeDecl::Sequence(_)
             | vir_mid::TypeDecl::Map(_)
-            | vir_mid::TypeDecl::TypeVar(_) => vir_low::PredicateDecl::new(
-                predicate_name! {FracRef<ty>},
-                vec![place, root_address, snapshot, lifetime],
-                None,
-            ),
+            | vir_mid::TypeDecl::Trusted(_)
+            | vir_mid::TypeDecl::TypeVar(_) => {
+                let mut parameters = vec![place, root_address, snapshot, lifetime];
+                let lifetimes_ty: Vec<vir_low::VariableDecl> = ty
+                    .get_lifetimes()
+                    .iter()
+                    .map(|x| vir_low::VariableDecl {
+                        name: x.name.clone(),
+                        ty: ty!(Lifetime),
+                    })
+                    .collect();
+                parameters.extend(lifetimes_ty);
+                vir_low::PredicateDecl::new(predicate_name! {FracRef<ty>}, parameters, None)
+            }
             vir_mid::TypeDecl::Tuple(_decl) => unimplemented!(),
-            vir_mid::TypeDecl::Trusted(vir_mid::type_decl::Trusted { fields, .. })
-            | vir_mid::TypeDecl::Struct(vir_mid::type_decl::Struct { fields, .. }) => {
+            vir_mid::TypeDecl::Struct(vir_mid::type_decl::Struct { fields, .. }) => {
                 let mut field_predicates = Vec::new();
                 for field in fields {
                     let field_place = self.lowerer.encode_field_place(
@@ -810,6 +811,7 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             | vir_mid::TypeDecl::Pointer(_)
             | vir_mid::TypeDecl::Sequence(_)
             | vir_mid::TypeDecl::Map(_)
+            | vir_mid::TypeDecl::Trusted(_)
             | vir_mid::TypeDecl::TypeVar(_) => {
                 let mut parameters = vec![
                     place,
@@ -818,13 +820,19 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                     final_snapshot,
                     lifetime,
                 ];
-                let lifetimes_ty = self.lowerer.extract_lifetime_variables(ty)?;
+                let lifetimes_ty: Vec<vir_low::VariableDecl> = ty
+                    .get_lifetimes()
+                    .iter()
+                    .map(|x| vir_low::VariableDecl {
+                        name: x.name.clone(),
+                        ty: ty!(Lifetime),
+                    })
+                    .collect();
                 parameters.extend(lifetimes_ty);
                 vir_low::PredicateDecl::new(predicate_name! {UniqueRef<ty>}, parameters, None)
             }
             vir_mid::TypeDecl::Tuple(_decl) => unimplemented!(),
-            vir_mid::TypeDecl::Trusted(vir_mid::type_decl::Trusted { fields, .. })
-            | vir_mid::TypeDecl::Struct(vir_mid::type_decl::Struct { fields, .. }) => {
+            vir_mid::TypeDecl::Struct(vir_mid::type_decl::Struct { fields, .. }) => {
                 let mut field_predicates = Vec::new();
                 let mut field_lifetimes = Vec::new();
                 for field in fields {
