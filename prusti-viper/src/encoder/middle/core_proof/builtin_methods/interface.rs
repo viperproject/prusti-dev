@@ -30,7 +30,10 @@ use vir_crate::{
         identifier::WithIdentifier,
     },
     low::{self as vir_low, macros::method_name},
-    middle::{self as vir_mid, operations::ty::Typed},
+    middle::{
+        self as vir_mid,
+        operations::{lifetimes::WithLifetimes, ty::Typed},
+    },
 };
 
 #[derive(Default)]

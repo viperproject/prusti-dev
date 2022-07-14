@@ -51,7 +51,7 @@ use vir_crate::{
         builders::procedure::{
             BasicBlockBuilder, ProcedureBuilder, SuccessorBuilder, SuccessorExitKind,
         },
-        operations::ty::Typed,
+        operations::{lifetimes::WithLifetimes, ty::Typed},
     },
 };
 

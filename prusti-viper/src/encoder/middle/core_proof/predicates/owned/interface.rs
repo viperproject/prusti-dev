@@ -1,3 +1,4 @@
+use super::encoder::PredicateEncoder;
 use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::{
@@ -9,9 +10,8 @@ use rustc_hash::FxHashSet;
 use vir_crate::{
     low::{self as vir_low},
     middle as vir_mid,
+    middle::operations::lifetimes::WithLifetimes,
 };
-
-use super::encoder::PredicateEncoder;
 
 #[derive(Default)]
 pub(in super::super) struct PredicatesOwnedState {
