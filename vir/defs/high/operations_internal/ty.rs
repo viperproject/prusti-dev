@@ -1,6 +1,9 @@
 use super::super::ast::{
     expression::{visitors::ExpressionFolder, *},
-    ty::{visitors::TypeFolder, *},
+    ty::{
+        visitors::{default_walk_reference, default_walk_type, TypeFolder, TypeWalker},
+        *,
+    },
     type_decl::DiscriminantValue,
 };
 use rustc_hash::FxHashMap;
@@ -14,19 +17,23 @@ impl Type {
                 name,
                 arguments,
                 variant: None,
+                lifetimes,
             }) => Type::Enum(Enum {
                 name,
                 arguments,
                 variant: Some(variant),
+                lifetimes,
             }),
             Type::Union(Union {
                 name,
                 arguments,
                 variant: None,
+                lifetimes,
             }) => Type::Union(Union {
                 name,
                 arguments,
                 variant: Some(variant),
+                lifetimes,
             }),
             Type::Enum(_) => {
                 unreachable!("setting variant on enum type that already has variant set");
@@ -47,19 +54,23 @@ impl Type {
                 name,
                 arguments,
                 variant: Some(_),
+                lifetimes,
             }) => Some(Type::Enum(Enum {
                 name: name.clone(),
                 arguments: arguments.clone(),
                 variant: None,
+                lifetimes: lifetimes.clone(),
             })),
             Type::Union(Union {
                 name,
                 arguments,
                 variant: Some(_),
+                lifetimes,
             }) => Some(Type::Union(Union {
                 name: name.clone(),
                 arguments: arguments.clone(),
                 variant: None,
+                lifetimes: lifetimes.clone(),
             })),
             _ => None,
         }
@@ -74,37 +85,27 @@ impl Type {
             _ => false,
         }
     }
-    pub fn erase_lifetime(&mut self) {
-        if let Type::Reference(reference) = self {
-            reference.lifetime = LifetimeConst::erased();
-        }
-    }
-    pub fn erase_lifetimes(self) -> Self {
+    #[must_use]
+    pub fn erase_lifetimes(&self) -> Self {
         struct DefaultLifetimeEraser {}
         impl TypeFolder for DefaultLifetimeEraser {
             fn fold_lifetime_const(&mut self, _lifetime: LifetimeConst) -> LifetimeConst {
                 LifetimeConst::erased()
             }
         }
-        DefaultLifetimeEraser {}.fold_type(self)
-    }
-    pub fn get_lifetimes(&self) -> Vec<LifetimeConst> {
-        if let Type::Reference(reference) = self {
-            vec![reference.lifetime.clone()]
-        } else {
-            Vec::new()
-        }
+        DefaultLifetimeEraser {}.fold_type(self.clone())
     }
     pub fn contains_type_variables(&self) -> bool {
         match self {
-            Self::Sequence(Sequence { element_type })
+            Self::Sequence(Sequence { element_type, .. })
             | Self::Array(Array { element_type, .. })
-            | Self::Slice(Slice { element_type }) => element_type.is_type_var(),
+            | Self::Slice(Slice { element_type, .. }) => element_type.is_type_var(),
             Self::Reference(Reference { target_type, .. })
             | Self::Pointer(Pointer { target_type, .. }) => target_type.is_type_var(),
             Self::Map(ty) => ty.key_type.is_type_var() || ty.val_type.is_type_var(),
             Self::TypeVar(_) => true,
-            Self::Tuple(Tuple { arguments })
+            Self::Tuple(Tuple { arguments, .. })
+            | Self::Trusted(Trusted { arguments, .. })
             | Self::Struct(Struct { arguments, .. })
             | Self::Enum(Enum { arguments, .. })
             | Self::Union(Union { arguments, .. })
@@ -118,7 +119,6 @@ impl Type {
                 unimplemented!();
             }
             Self::Unsupported(_) => true,
-            Self::Trusted(_) => true,
             _ => false,
         }
     }

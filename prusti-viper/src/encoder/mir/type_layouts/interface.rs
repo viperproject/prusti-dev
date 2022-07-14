@@ -36,7 +36,8 @@ impl<'v, 'tcx: 'v> MirTypeLayoutsEncoderInterface<'tcx> for super::super::super:
         count: vir_high::Expression,
         ty: ty::Ty<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression> {
-        let encoded_ty = self.encode_type_high(ty)?.erase_lifetimes();
+        let encoded_ty = self.encode_type_high(ty)?;
+        let encoded_ty_without_lifetime = encoded_ty.erase_lifetimes();
         let usize = vir_high::Type::Int(vir_high::ty::Int::Usize);
         let function_call = vir_high::expression::FuncApp::new(
             "size",
@@ -49,16 +50,15 @@ impl<'v, 'tcx: 'v> MirTypeLayoutsEncoderInterface<'tcx> for super::super::super:
             .mir_type_layouts_encoder_state
             .registered_size_functions
             .borrow()
-            .contains(&encoded_ty)
+            .contains(&encoded_ty_without_lifetime)
         {
-            let encoded_ty_clone = encoded_ty.clone();
             let usize = vir_high::Type::Int(vir_high::ty::Int::Usize);
             self.register_function_constructor_mir(
                 function_call.get_identifier(),
                 Box::new(move |_encoder| {
                     Ok(vir_high::FunctionDecl::new(
                         "size",
-                        vec![encoded_ty_clone],
+                        vec![encoded_ty],
                         vec![vir_high::VariableDecl::new("count", usize.clone())],
                         usize,
                         Vec::new(),
@@ -70,7 +70,7 @@ impl<'v, 'tcx: 'v> MirTypeLayoutsEncoderInterface<'tcx> for super::super::super:
             self.mir_type_layouts_encoder_state
                 .registered_size_functions
                 .borrow_mut()
-                .insert(encoded_ty);
+                .insert(encoded_ty_without_lifetime);
         }
         Ok(vir_high::Expression::FuncApp(function_call))
     }

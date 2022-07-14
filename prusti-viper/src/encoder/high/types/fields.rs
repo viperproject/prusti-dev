@@ -26,6 +26,7 @@ pub(crate) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl
         // For composed data structures, we typically use a snapshot rather than a field.
         // To unify how parameters are passed to functions, we treat them like a reference.
         vir::Type::Tuple(_)
+        | vir::Type::Trusted(_)
         | vir::Type::Struct(_)
         | vir::Type::Enum(_)
         | vir::Type::Closure(_)
@@ -49,8 +50,7 @@ pub(crate) fn create_value_field(ty: vir::Type) -> EncodingResult<vir::FieldDecl
         | vir::Type::Never
         | vir::Type::Str
         | vir::Type::Projection(_)
-        | vir::Type::Unsupported(_)
-        | vir::Type::Trusted(_) => {
+        | vir::Type::Unsupported(_) => {
             return Err(EncodingError::unsupported(format!(
                 "{} type is not supported",
                 ty

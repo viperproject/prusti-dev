@@ -176,6 +176,7 @@ pub(in super::super) trait TypeDeclWalker {
             | vir_mid::TypeDecl::Map(_) => {
                 self.walk_primitive(ty, &parameters, lowerer)?;
             }
+            // vir_mid::TypeDecl::Trusted(_) => {}
             // vir_mid::TypeDecl::TypeVar(TypeVar) => {},
             vir_mid::TypeDecl::Tuple(_)
             | vir_mid::TypeDecl::Struct(_)
@@ -223,6 +224,7 @@ pub(in super::super) trait TypeDeclWalker {
             | vir_mid::Type::Map(_) => self.after_primitive(ty, parameters, lowerer),
             // vir_mid::Type::TypeVar(TypeVar) => {},
             vir_mid::Type::Tuple(_)
+            | vir_mid::Type::Trusted(_)
             | vir_mid::Type::Struct(_)
             | vir_mid::Type::Enum(_)
             | vir_mid::Type::Union(_)
@@ -231,6 +233,7 @@ pub(in super::super) trait TypeDeclWalker {
                 self.after_primitive(ty, parameters, lowerer)
             }
             vir_mid::Type::Tuple(_)
+            | vir_mid::Type::Trusted(_)
             | vir_mid::Type::Struct(_)
             | vir_mid::Type::Enum(_)
             | vir_mid::Type::Union(_) => self.after_composite(ty, parameters, lowerer),

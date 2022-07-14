@@ -85,6 +85,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 let validity = conjuncts.into_iter().conjoin();
                 self.encode_validity_axioms_primitive(&domain_name, vir_low::Type::Int, validity)?;
             }
+            vir_mid::TypeDecl::Trusted(_) => {
+                // FIXME: ensure type definition for trusted
+            }
             vir_mid::TypeDecl::TypeVar(_decl) => {
                 // FIXME: we should make sure that the snapshot and validity
                 // function is generated, but nothing else.
@@ -104,10 +107,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     element_domain_name,
                     element_type_snapshot,
                 )?;
-            }
-            vir_mid::TypeDecl::Trusted(_decl) => {
-                // FIXME: we should make sure that the snapshot and validity
-                // function is generated, but nothing else.
             }
             vir_mid::TypeDecl::Tuple(decl) => {
                 let mut parameters = Vec::new();
@@ -332,16 +331,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
             return Ok(());
         }
         // FIXME: We should avoid these copies in some smarter way.
-        let mut ty_no_lifetime = ty.clone();
-        ty_no_lifetime.erase_lifetime();
+        let ty_without_lifetime = ty.clone().erase_lifetimes();
         if !self
             .types_state
             .ensured_definitions
-            .contains(&ty_no_lifetime)
+            .contains(&ty_without_lifetime)
         {
             // We insert before doing the actual work to break infinite
             // recursion.
-            self.types_state.ensured_definitions.insert(ty_no_lifetime);
+            self.types_state
+                .ensured_definitions
+                .insert(ty_without_lifetime);
 
             let type_decl = self.encoder.get_type_decl_mid(ty)?;
             self.ensure_type_definition_for_decl(ty, &type_decl)?;

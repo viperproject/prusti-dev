@@ -10,6 +10,7 @@ use std::collections::VecDeque;
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, QuantifierHelpers},
     low as vir_low, middle as vir_mid,
+    middle::operations::lifetimes::WithLifetimes,
 };
 
 #[derive(Default)]
