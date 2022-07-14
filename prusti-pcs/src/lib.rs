@@ -6,6 +6,7 @@
 
 #![feature(rustc_private)]
 #![feature(box_patterns)]
+#![feature(hash_drain_filter)]
 
 extern crate polonius_engine;
 extern crate rustc_borrowck;
