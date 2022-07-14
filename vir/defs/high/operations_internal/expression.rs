@@ -152,6 +152,20 @@ impl Expression {
         }
     }
 
+    pub fn get_lifetimes(&self) -> Vec<LifetimeConst> {
+        pub struct LifetimeFinder {
+            lifetimes: Vec<LifetimeConst>,
+        }
+        impl ExpressionWalker for LifetimeFinder {
+            fn walk_variable_decl(&mut self, variable: &VariableDecl) {
+                self.lifetimes.extend(variable.ty.get_lifetimes());
+            }
+        }
+        let mut finder = LifetimeFinder { lifetimes: vec![] };
+        finder.walk_expression(self);
+        finder.lifetimes
+    }
+
     #[must_use]
     pub fn erase_lifetime(self) -> Expression {
         struct DefaultLifetimeEraser {}

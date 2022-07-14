@@ -105,11 +105,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     element_type_snapshot,
                 )?;
             }
-            vir_mid::TypeDecl::Trusted(_decl) => {
+            vir_mid::TypeDecl::Tuple(decl) => {
+                let mut parameters = Vec::new();
+                for field in decl.iter_fields() {
+                    parameters.push(vir_low::VariableDecl::new(
+                        field.name.clone(),
+                        field.ty.to_snapshot(self)?,
+                    ));
+                }
+                self.register_struct_constructor(&domain_name, parameters.clone())?;
+                self.encode_validity_axioms_struct(&domain_name, parameters, true.into())?;
+            }
+            vir_mid::TypeDecl::Trusted(decl) => {
                 // FIXME: we should make sure that the snapshot and validity
                 // function is generated, but nothing else.
-            }
-            vir_mid::TypeDecl::Tuple(decl) => {
                 let mut parameters = Vec::new();
                 for field in decl.iter_fields() {
                     parameters.push(vir_low::VariableDecl::new(
@@ -332,16 +341,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> TypesInterface for Lowerer<'p, 'v, 'tcx> {
             return Ok(());
         }
         // FIXME: We should avoid these copies in some smarter way.
-        let mut ty_no_lifetime = ty.clone();
-        ty_no_lifetime.erase_lifetime();
+        let ty_without_lifetime = ty.clone().erase_lifetimes();
         if !self
             .types_state
             .ensured_definitions
-            .contains(&ty_no_lifetime)
+            .contains(&ty_without_lifetime)
         {
             // We insert before doing the actual work to break infinite
             // recursion.
-            self.types_state.ensured_definitions.insert(ty_no_lifetime);
+            self.types_state
+                .ensured_definitions
+                .insert(ty_without_lifetime);
 
             let type_decl = self.encoder.get_type_decl_mid(ty)?;
             self.ensure_type_definition_for_decl(ty, &type_decl)?;
