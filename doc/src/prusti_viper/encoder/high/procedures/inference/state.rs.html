@@ -648,12 +648,18 @@
 <span id="642">642</span>
 <span id="643">643</span>
 <span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::permission</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#17-20">MutBorrowed</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#4-13">Permission</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23-26">PermissionKind</a>};
 <span class="kw">use</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23"><span class="kw">crate</span>::encoder::errors::SpannedEncodingResult</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../../../log/macro.debug.html">log::debug</a>;
 <span class="kw">use</span> <span class="ident">std::collections</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
 <span class="kw">use</span> <span class="ident">vir_crate</span>::{
-    <span class="ident">high</span>::{<a class="self" href="../../../../../../vir/high/index.html">self</a> <span class="kw">as</span> <span class="ident">vir_high</span>, <a class="ident" href="../../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">operations::ty::Typed</a>},
+    <span class="ident">high</span>::{
+        <a class="self" href="../../../../../../vir/high/index.html">self</a> <span class="kw">as</span> <span class="ident">vir_high</span>,
+        <span class="ident">operations</span>::{<a class="ident" href="../../../../../../vir/gen/high/operations_internal/lifetimes/trait.WithLifetimes.html">lifetimes::WithLifetimes</a>, <a class="ident" href="../../../../../../vir/gen/high/operations_internal/ty/trait.Typed.html">ty::Typed</a>},
+    },
     <a class="ident" href="../../../../../../vir/middle/index.html">middle</a> <span class="kw">as</span> <span class="ident">vir_mid</span>,
 };
 
@@ -679,7 +685,7 @@
     <span class="ident">incoming_labels</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a><span class="op">&gt;</span>,
     <span class="doccomment">/// `OwnedNonAliased` and `MemoryBlock` predicates that are unconditionally</span>
     <span class="doccomment">/// present in the current state.</span>
-    <span class="ident">unconditional</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#11-16">PredicateState</a>,
+    <span class="ident">unconditional</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14-19">PredicateState</a>,
     <span class="doccomment">/// `OwnedNonAliased` and `MemoryBlock` predicates that are present in the</span>
     <span class="doccomment">/// current state if we came through the blocks with labels specified in the</span>
     <span class="doccomment">/// key.</span>
@@ -688,10 +694,10 @@
     <span class="doccomment">/// `incoming_labels`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Invariant: only non-empty entries are present.</span>
-    <span class="ident">conditional</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#11-16">PredicateState</a><span class="op">&gt;</span>,
+    <span class="ident">conditional</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14-19">PredicateState</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#11-16">PredicateState</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14-19">PredicateState</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
         <span class="macro">writeln!</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
         <span class="macro">writeln!</span>(<span class="ident">f</span>, <span class="string">&quot;owned_non_aliased ({}):&quot;</span>, <span class="self">self</span>.<span class="ident">owned_non_aliased</span>.<span class="ident">len</span>())<span class="question-mark">?</span>;
@@ -710,34 +716,34 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#11-16">PredicateState</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14-19">PredicateState</a> {
     <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#64">self</a>.<span class="ident">owned_non_aliased</span>.<span class="ident">is_empty</span>()
-            <span class="op">&amp;&amp;</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#64">self</a>.<span class="ident">memory_block_stack</span>.<span class="ident">is_empty</span>()
-            <span class="op">&amp;&amp;</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#64">self</a>.<span class="ident">mut_borrowed</span>.<span class="ident">is_empty</span>()
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#67">self</a>.<span class="ident">owned_non_aliased</span>.<span class="ident">is_empty</span>()
+            <span class="op">&amp;&amp;</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#67">self</a>.<span class="ident">memory_block_stack</span>.<span class="ident">is_empty</span>()
+            <span class="op">&amp;&amp;</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#67">self</a>.<span class="ident">mut_borrowed</span>.<span class="ident">is_empty</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">contains_only_leakable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#70">self</a>.<span class="ident">memory_block_stack</span>.<span class="ident">is_empty</span>()
-            <span class="op">&amp;&amp;</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#70">self</a>.<span class="ident">owned_non_aliased</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#73">self</a>.<span class="ident">memory_block_stack</span>.<span class="ident">is_empty</span>()
+            <span class="op">&amp;&amp;</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#73">self</a>.<span class="ident">owned_non_aliased</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> {
                 <span class="comment">// `UniqueRef` and `FracRef` predicates can be leaked.</span>
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#72">place</a>.<span class="ident">get_dereference_base</span>().<span class="ident">is_some</span>()
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#75">place</a>.<span class="ident">get_dereference_base</span>().<span class="ident">is_some</span>()
             })
     }
 
     <span class="kw">fn</span> <span class="ident">places_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23-26">PermissionKind</a>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#78">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#236">check_no_default_position</a>();
-        <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#78">kind</a> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#24">PermissionKind::MemoryBlock</a> =&gt; <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#78">self</a>.<span class="ident">memory_block_stack</span>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#25">PermissionKind::Owned</a> =&gt; <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#78">self</a>.<span class="ident">owned_non_aliased</span>,
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#81">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#239">check_no_default_position</a>();
+        <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#81">kind</a> {
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#24">PermissionKind::MemoryBlock</a> =&gt; <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#81">self</a>.<span class="ident">memory_block_stack</span>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#25">PermissionKind::Owned</a> =&gt; <span class="kw-2">&amp;mut</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#81">self</a>.<span class="ident">owned_non_aliased</span>,
         }
     }
 
     <span class="kw">fn</span> <span class="ident">places</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23-26">PermissionKind</a>) -&gt; <span class="kw-2">&amp;</span><span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#86">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#236">check_no_default_position</a>();
-        <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#86">kind</a> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#24">PermissionKind::MemoryBlock</a> =&gt; <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#86">self</a>.<span class="ident">memory_block_stack</span>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#25">PermissionKind::Owned</a> =&gt; <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#86">self</a>.<span class="ident">owned_non_aliased</span>,
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#239">check_no_default_position</a>();
+        <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">kind</a> {
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#24">PermissionKind::MemoryBlock</a> =&gt; <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">self</a>.<span class="ident">memory_block_stack</span>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#25">PermissionKind::Owned</a> =&gt; <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">self</a>.<span class="ident">owned_non_aliased</span>,
         }
     }
 
@@ -774,7 +780,7 @@
         <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23-26">PermissionKind</a>,
         <span class="ident">place</span>: <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#125">place</a>.<span class="ident">check_no_default_position</span>();
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#128">place</a>.<span class="ident">check_no_default_position</span>();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">place</span>.<span class="ident">is_place</span>());
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
             <span class="self">self</span>.<span class="ident">places_mut</span>(<span class="ident">kind</span>).<span class="ident">insert</span>(<span class="ident">place</span>),
@@ -784,9 +790,9 @@
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23-26">PermissionKind</a>, <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#136">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#236">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#139">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#239">check_no_default_position</a>();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">place</span>.<span class="ident">is_place</span>());
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#136">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#86">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#136">kind</a>).<span class="ident">contains</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#136">place</a>)
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#139">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#139">kind</a>).<span class="ident">contains</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#139">place</a>)
     }
 
     <span class="doccomment">/// Returns a witness if it exists.</span>
@@ -798,11 +804,11 @@
         <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23-26">PermissionKind</a>,
         <span class="ident">prefix</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
     ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#147">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#236">check_no_default_position</a>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#147">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#86">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#148">kind</a>).<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#152">p</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#149">prefix</a>) <span class="op">&amp;&amp;</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">vir_high::Expression::Field</span>(<span class="ident">field</span>) <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#152">p</a> {
-                    <span class="op">!</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#154">field</a>.<span class="ident">field</span>.<span class="ident">is_discriminant</span>()
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#150">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#239">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#150">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#151">kind</a>).<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> {
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#155">p</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#152">prefix</a>) <span class="op">&amp;&amp;</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">vir_high::Expression::Field</span>(<span class="ident">field</span>) <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#155">p</a> {
+                    <span class="op">!</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#157">field</a>.<span class="ident">field</span>.<span class="ident">is_discriminant</span>()
                 } <span class="kw">else</span> {
                     <span class="bool-val">true</span>
                 }
@@ -815,8 +821,8 @@
         <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23-26">PermissionKind</a>,
         <span class="ident">prefix</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
     ) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#164">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#236">check_no_default_position</a>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#164">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#86">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#165">kind</a>).<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#169">p</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#166">prefix</a>))
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#167">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#239">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#167">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#168">kind</a>).<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#172">p</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#169">prefix</a>))
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">contains_prefix_of</span>(
@@ -824,8 +830,8 @@
         <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23-26">PermissionKind</a>,
         <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
     ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#173">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#236">check_no_default_position</a>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#173">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#86">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#174">kind</a>).<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#175">place</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#178">p</a>))
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#176">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#239">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#176">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#177">kind</a>).<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#178">place</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#181">p</a>))
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">find_prefix</span>(
@@ -833,12 +839,12 @@
         <span class="ident">kind</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#23-26">PermissionKind</a>,
         <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
     ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#182">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#236">check_no_default_position</a>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#182">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#86">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#183">kind</a>)
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#185">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#239">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#185">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#89">places</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#186">kind</a>)
             .<span class="ident">iter</span>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> {
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#189">p</a>.<span class="ident">check_no_default_position</span>();
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#184">place</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#189">p</a>)
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#192">p</a>.<span class="ident">check_no_default_position</span>();
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#187">place</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#192">p</a>)
             })
             .<span class="ident">cloned</span>()
     }
@@ -847,39 +853,39 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">prefix</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#197">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#236">check_no_default_position</a>();
-        <span class="kw">let</span> <span class="ident">collected_places</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#197">self</a>
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#200">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#239">check_no_default_position</a>();
+        <span class="kw">let</span> <span class="ident">collected_places</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#200">self</a>
             .<span class="ident">owned_non_aliased</span>
             .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#204">place</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#198">prefix</a>))
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#207">place</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#201">prefix</a>))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#201">collected_places</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#204">collected_places</a>)
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">contains_blocked</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">place</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#211">self</a>.<span class="ident">mut_borrowed</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="kw">_</span>)<span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">prefix_expr</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#214">p</a> {
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#214">self</a>.<span class="ident">mut_borrowed</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<span class="op">|</span>(<span class="ident">p</span>, <span class="kw">_</span>)<span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">prefix_expr</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#217">p</a> {
                 <span class="ident">vir_high::Expression::BuiltinFuncApp</span>(<a class="ident" href="../../../../../../vir/gen/high/ast/expression/struct.BuiltinFuncApp.html">vir_high::BuiltinFuncApp</a> {
                     <span class="ident">function</span>: <span class="ident">vir_high::BuiltinFunc::Index</span>,
                     <span class="ident">type_arguments</span>: <span class="kw">_</span>,
                     <span class="ident">arguments</span>,
                     ..
-                }) =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#219">arguments</a>[<span class="number">0</span>],
-                <span class="kw">_</span> =&gt; <span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#214">p</a>,
+                }) =&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#222">arguments</a>[<span class="number">0</span>],
+                <span class="kw">_</span> =&gt; <span class="kw-2">*</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#217">p</a>,
             };
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#212">place</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#215">prefix_expr</a>)
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#215">place</a>.<span class="ident">has_prefix</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#218">prefix_expr</a>)
         }))
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#228">self</a>.<span class="ident">owned_non_aliased</span>.<span class="ident">clear</span>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#228">self</a>.<span class="ident">memory_block_stack</span>.<span class="ident">clear</span>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#228">self</a>.<span class="ident">mut_borrowed</span>.<span class="ident">clear</span>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#228">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#236">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#231">self</a>.<span class="ident">owned_non_aliased</span>.<span class="ident">clear</span>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#231">self</a>.<span class="ident">memory_block_stack</span>.<span class="ident">clear</span>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#231">self</a>.<span class="ident">mut_borrowed</span>.<span class="ident">clear</span>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#231">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#239">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -899,15 +905,15 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">mark_lifetime_dead</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">lifetime</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/high/ast/ty/struct.LifetimeConst.html">vir_high::ty::LifetimeConst</a>,
-    ) -&gt; (<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#18-22">PlaceWithDeadLifetimes</a><span class="op">&gt;</span>) {
+    ) -&gt; (<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/high/ast/expression/enum.Expression.html">vir_high::Expression</a><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#21-25">PlaceWithDeadLifetimes</a><span class="op">&gt;</span>) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
             <span class="op">!</span><span class="self">self</span>.<span class="ident">dead_lifetimes</span>.<span class="ident">contains</span>(<span class="ident">lifetime</span>),
             <span class="string">&quot;The lifetime {} is already dead.&quot;</span>,
             <span class="ident">lifetime</span>
         );
-        <span class="kw">let</span> <span class="ident">dead_references</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#250">self</a>
+        <span class="kw">let</span> <span class="ident">dead_references</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#253">self</a>
             .<span class="ident">owned_non_aliased</span>
-            .<span class="ident">drain_filter</span>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#260">place</a>.<span class="ident">is_deref_of_lifetime</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#251">lifetime</a>))
+            .<span class="ident">drain_filter</span>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#263">place</a>.<span class="ident">is_deref_of_lifetime</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#254">lifetime</a>))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">places_with_dead_lifetimes</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">owned_non_aliased</span> {
@@ -926,12 +932,12 @@
                 });
             }
         }
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#250">self</a>.<span class="ident">dead_lifetimes</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#251">lifetime</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        (<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#258">dead_references</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#262">places_with_dead_lifetimes</a>)
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#253">self</a>.<span class="ident">dead_lifetimes</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#254">lifetime</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        (<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#261">dead_references</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#265">places_with_dead_lifetimes</a>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#25-42">FoldUnfoldState</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">std::fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#28-45">FoldUnfoldState</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;incoming labels: &quot;</span>)<span class="question-mark">?</span>;
         <span class="kw">for</span> <span class="ident">label</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">incoming_labels</span> {
@@ -947,7 +953,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#25-42">FoldUnfoldState</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#28-45">FoldUnfoldState</a> {
     <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">incoming_labels</span>: <span class="ident">Vec::new</span>(),
@@ -966,7 +972,7 @@
                 <span class="kw">return</span> <span class="bool-val">false</span>;
             }
         }
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#313">self</a>.<span class="ident">unconditional</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#70">contains_only_leakable</a>()
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#316">self</a>.<span class="ident">unconditional</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#73">contains_only_leakable</a>()
     }
 
     <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>) <span class="kw">fn</span> <span class="ident">reset_incoming_labels_with</span>(
@@ -974,7 +980,7 @@
         <span class="ident">incoming_label</span>: <a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
         <span class="ident">path_disambiguators</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>],
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#323">self</a>.<span class="ident">conditional</span> <span class="op">=</span> <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#323">self</a>.<span class="ident">conditional</span>)
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#326">self</a>.<span class="ident">conditional</span> <span class="op">=</span> <span class="ident">std::mem::take</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#326">self</a>.<span class="ident">conditional</span>)
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="kw-2">mut</span> <span class="ident">labels</span>, <span class="ident">state</span>)<span class="op">|</span> {
                 <span class="kw">for</span> <span class="ident">non_incoming_label</span> <span class="kw">in</span> <span class="ident">path_disambiguators</span> {
@@ -983,15 +989,15 @@
                         <span class="ident">basic_block_id</span>: <span class="ident">non_incoming_label</span>.<span class="ident">clone</span>(),
                     });
                 }
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#329">labels</a>.<span class="ident">elements</span>.<span class="ident">push</span>(<a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerConditionElement.html">vir_mid::BlockMarkerConditionElement</a> {
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#332">labels</a>.<span class="ident">elements</span>.<span class="ident">push</span>(<a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerConditionElement.html">vir_mid::BlockMarkerConditionElement</a> {
                     <span class="ident">visited</span>: <span class="bool-val">true</span>,
-                    <span class="ident">basic_block_id</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#324">incoming_label</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                    <span class="ident">basic_block_id</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#327">incoming_label</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                 });
-                (<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#329">labels</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#329">state</a>)
+                (<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#332">labels</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#332">state</a>)
             })
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#323">self</a>.<span class="ident">incoming_labels</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">incoming_label</span>];
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#323">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#326">self</a>.<span class="ident">incoming_labels</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">incoming_label</span>];
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#326">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1032,12 +1038,12 @@
 
         <span class="comment">// Copy over conditional.</span>
         <span class="kw">let</span> <span class="ident">empty_vec</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="ident">incoming_label_path_disambiguators</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#354">path_disambiguators</a>
-            .<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#352">incoming_label</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#353">current_label</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
-            .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#384">empty_vec</a>);
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#351">self</a>.<span class="ident">conditional</span>
+        <span class="kw">let</span> <span class="ident">incoming_label_path_disambiguators</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#357">path_disambiguators</a>
+            .<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#355">incoming_label</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#356">current_label</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()))
+            .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#387">empty_vec</a>);
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#354">self</a>.<span class="ident">conditional</span>
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#358">incoming_state</a>
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#361">incoming_state</a>
                     .<span class="ident">conditional</span>
                     .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
                     .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="kw-2">mut</span> <span class="ident">labels</span>, <span class="ident">state</span>)<span class="op">|</span> {
@@ -1047,11 +1053,11 @@
                                 <span class="ident">basic_block_id</span>: <span class="ident">non_incoming_label</span>.<span class="ident">clone</span>(),
                             });
                         }
-                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#393">labels</a>.<span class="ident">elements</span>.<span class="ident">push</span>(<a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerConditionElement.html">vir_mid::BlockMarkerConditionElement</a> {
+                        <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#396">labels</a>.<span class="ident">elements</span>.<span class="ident">push</span>(<a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerConditionElement.html">vir_mid::BlockMarkerConditionElement</a> {
                             <span class="ident">visited</span>: <span class="bool-val">true</span>,
-                            <span class="ident">basic_block_id</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#352">incoming_label</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+                            <span class="ident">basic_block_id</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#355">incoming_label</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                         });
-                        (<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#393">labels</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#393">state</a>)
+                        (<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#396">labels</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#396">state</a>)
                     }),
             );
 
@@ -1088,13 +1094,13 @@
                     <span class="ident">basic_block_id</span>: <span class="ident">non_incoming_label</span>.<span class="ident">clone</span>(),
                 });
             }
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#351">self</a>.<span class="ident">conditional</span>.<span class="ident">insert</span>(
-                <a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a> { <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#431">elements</a> },
-                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#361">incoming_conditional</a>,
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#354">self</a>.<span class="ident">conditional</span>.<span class="ident">insert</span>(
+                <a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a> { <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#434">elements</a> },
+                <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#364">incoming_conditional</a>,
             );
         }
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#351">self</a>.<span class="ident">incoming_labels</span>.<span class="ident">push</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#352">incoming_label</a>);
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#351">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#354">self</a>.<span class="ident">incoming_labels</span>.<span class="ident">push</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#355">incoming_label</a>);
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#354">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1152,7 +1158,7 @@
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">place</span>.<span class="ident">is_place</span>());
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="ident">unconditional</span>.<span class="ident">memory_block_stack</span>.<span class="ident">insert</span>(<span class="ident">place</span>));
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#500">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#503">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1162,7 +1168,7 @@
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">place</span>.<span class="ident">is_place</span>());
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="ident">unconditional</span>.<span class="ident">owned_non_aliased</span>.<span class="ident">insert</span>(<span class="ident">place</span>));
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#510">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#513">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1176,7 +1182,7 @@
             .<span class="ident">mut_borrowed</span>
             .<span class="ident">insert</span>(<span class="ident">borrow</span>.<span class="ident">place</span>, <span class="ident">borrow</span>.<span class="ident">lifetime</span>)
             .<span class="ident">is_none</span>());
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#520">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#523">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1190,7 +1196,7 @@
             <span class="string">&quot;not found place: {}&quot;</span>,
             <span class="ident">place</span>
         );
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#534">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#537">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1204,7 +1210,7 @@
             <span class="string">&quot;not found place: {}&quot;</span>,
             <span class="ident">place</span>
         );
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#548">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#551">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1215,7 +1221,7 @@
         <span class="kw">for</span> <span class="ident">permission</span> <span class="kw">in</span> <span class="ident">permissions</span> {
             <span class="self">self</span>.<span class="ident">insert_permission</span>(<span class="ident">permission</span>)<span class="question-mark">?</span>;
         }
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#562">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#565">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1223,13 +1229,13 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">permission</span>: <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#4-13">Permission</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#573">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
-        <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#574">permission</a> {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#576">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
+        <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#577">permission</a> {
             <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#6">Permission::MemoryBlock</a>(<span class="ident">place</span>) =&gt; <span class="self">self</span>.<span class="ident">insert_memory_block</span>(<span class="ident">place</span>)<span class="question-mark">?</span>,
             <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#10">Permission::Owned</a>(<span class="ident">place</span>) =&gt; <span class="self">self</span>.<span class="ident">insert_owned</span>(<span class="ident">place</span>)<span class="question-mark">?</span>,
             <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#12">Permission::MutBorrowed</a>(<span class="ident">borrow</span>) =&gt; <span class="self">self</span>.<span class="ident">insert_mut_borrowed</span>(<span class="ident">borrow</span>)<span class="question-mark">?</span>,
         }
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#573">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#576">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -1237,7 +1243,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">permissions</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#4-13">Permission</a>],
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#587">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#590">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
         <span class="kw">for</span> <span class="ident">permission</span> <span class="kw">in</span> <span class="ident">permissions</span> {
             <span class="self">self</span>.<span class="ident">remove_permission</span>(<span class="ident">permission</span>)<span class="question-mark">?</span>;
         }
@@ -1248,8 +1254,8 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">permission</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#4-13">Permission</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#598">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
-        <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#599">permission</a> {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#601">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
+        <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#602">permission</a> {
             <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#6">Permission::MemoryBlock</a>(<span class="ident">place</span>) =&gt; <span class="self">self</span>.<span class="ident">remove_memory_block</span>(<span class="ident">place</span>)<span class="question-mark">?</span>,
             <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#10">Permission::Owned</a>(<span class="ident">place</span>) =&gt; <span class="self">self</span>.<span class="ident">remove_owned</span>(<span class="ident">place</span>)<span class="question-mark">?</span>,
             <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/permission.rs.html#12">Permission::MutBorrowed</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
@@ -1257,36 +1263,36 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_unconditional_state</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#11-16">PredicateState</a><span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#610">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
-        <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#610">self</a>.<span class="ident">unconditional</span>)
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_unconditional_state</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14-19">PredicateState</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#613">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
+        <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;mut</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#613">self</a>.<span class="ident">unconditional</span>)
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_conditional_states</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>
-        <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#11-16">PredicateState</a>)<span class="op">&gt;</span>,
+        <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/middle/ast/statement/struct.BlockMarkerCondition.html">vir_mid::BlockMarkerCondition</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#14-19">PredicateState</a>)<span class="op">&gt;</span>,
     <span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#616">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#616">self</a>.<span class="ident">conditional</span>.<span class="ident">iter_mut</span>())
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#619">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#619">self</a>.<span class="ident">conditional</span>.<span class="ident">iter_mut</span>())
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">remove_empty_conditional_states</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#624">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#624">self</a>.<span class="ident">conditional</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="kw">_</span>, <span class="ident">state</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#626">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#64">is_empty</a>());
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#627">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#627">self</a>.<span class="ident">conditional</span>.<span class="ident">retain</span>(<span class="op">|</span><span class="kw">_</span>, <span class="ident">state</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#629">state</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#67">is_empty</a>());
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Remove all permissions. This is intended to be used only by `LeakAll` statement.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#631">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#634">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">check_no_default_position</a>();
         <span class="self">self</span>.<span class="ident">unconditional</span>.<span class="ident">clear</span>()<span class="question-mark">?</span>;
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#631">self</a>.<span class="ident">conditional</span>.<span class="ident">clear</span>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#634">self</a>.<span class="ident">conditional</span>.<span class="ident">clear</span>();
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">check_no_default_position</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#638">self</a>.<span class="ident">unconditional</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#236">check_no_default_position</a>();
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#641">self</a>.<span class="ident">unconditional</span>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/high/procedures/inference/state.rs.html#239">check_no_default_position</a>();
         <span class="kw">for</span> <span class="ident">predicates</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">conditional</span>.<span class="ident">values</span>() {
             <span class="ident">predicates</span>.<span class="ident">check_no_default_position</span>();
         }
