@@ -176,7 +176,6 @@ pub(super) trait LifetimesEncoder<'tcx> {
     fn encode_lifetime_specifications(
         &mut self,
     ) -> SpannedEncodingResult<(Vec<vir_high::Statement>, Vec<vir_high::Statement>)>;
-    fn lifetime_name(&mut self, variable: vir_high::Expression) -> Option<String>;
     fn identical_lifetimes_map(
         &mut self,
         existing_lifetimes: BTreeSet<String>,
@@ -433,7 +432,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
                 new_derived_lifetimes,
                 &mut lifetime_backups,
             )?;
-            self.encode_obtain_mut_ref(block_builder, location, &lifetime_backups)?;
             self.encode_lifetime_backups(block_builder, location, &lifetime_backups)?;
         }
         self.encode_lft_return(
@@ -448,7 +446,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             old_original_lifetimes,
             &new_original_lifetimes,
         )?;
+        self.encode_dead_inclusion(block_builder, location, &new_original_lifetimes)?;
         self.encode_new_lft(block_builder, location, &lifetimes_to_create)?;
+        if shorten_lifetimes {
+            self.encode_obtain_mut_ref(block_builder, location, &lifetime_backups)?;
+        }
         self.encode_lft_take(
             block_builder,
             location,
@@ -456,7 +458,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             new_derived_lifetimes,
             &reborrow_lifetimes,
         )?;
-        self.encode_dead_inclusion(block_builder, location, &new_original_lifetimes)?;
         self.encode_bor_shorten(block_builder, location, &lifetime_backups)?;
 
         *old_original_lifetimes = new_original_lifetimes.clone();
@@ -1017,21 +1018,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         }
 
         Ok((preconditions, postconditions))
-    }
-
-    fn lifetime_name(&mut self, expression: vir_high::Expression) -> Option<String> {
-        if let vir_high::Expression::Local(vir_high::Local {
-            variable:
-                vir_high::VariableDecl {
-                    name: _,
-                    ty: vir_high::ty::Type::Reference(vir_high::ty::Reference { lifetime, .. }),
-                },
-            ..
-        }) = expression
-        {
-            return Some(lifetime.name);
-        }
-        None
     }
 
     fn identical_lifetimes_map(

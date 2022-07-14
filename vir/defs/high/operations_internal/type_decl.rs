@@ -1,7 +1,7 @@
 use super::super::ast::{
     field::FieldDecl,
     ty::Type,
-    type_decl::{Enum, Struct, Tuple, TypeDecl, Union},
+    type_decl::{Enum, Struct, Trusted, Tuple, TypeDecl, Union},
 };
 
 impl Enum {
@@ -42,6 +42,12 @@ impl Tuple {
                     argument_type.clone(),
                 ))
             })
+    }
+}
+
+impl Trusted {
+    pub fn iter_fields(&self) -> impl Iterator<Item = std::borrow::Cow<'_, FieldDecl>> {
+        self.fields.iter().map(std::borrow::Cow::Borrowed)
     }
 }
 

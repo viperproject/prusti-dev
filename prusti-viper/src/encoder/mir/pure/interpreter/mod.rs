@@ -527,12 +527,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         span: Span,
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<Option<ExprBackwardInterpreterState>> {
+        let lifetimes = self.encoder.get_lifetimes_substs(&substs)?;
+        use vir_high::{expression::BuiltinFunc::*, ty::*};
         let type_arguments = self
             .encoder
             .encode_generic_arguments_high(def_id, substs)
             .with_span(span)?;
-
-        use vir_high::{expression::BuiltinFunc::*, ty::*};
 
         let subst_with = |val| {
             let mut state = states[target_block].clone();
@@ -554,7 +554,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
             let key_type = type_arguments[0].clone();
             let val_type = type_arguments[1].clone();
-            let map_type = Type::map(key_type, val_type.clone());
+            let map_type = Type::map(key_type, val_type.clone(), lifetimes);
 
             return builtin(match proc_name {
                 "empty" => (EmptyMap, map_type),
@@ -569,7 +569,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             assert_eq!(type_arguments.len(), 1);
 
             let elem_type = type_arguments[0].clone();
-            let seq_type = Type::sequence(elem_type.clone());
+            let seq_type = Type::sequence(elem_type.clone(), lifetimes);
 
             return builtin(match proc_name {
                 "empty" => (EmptySeq, seq_type),

@@ -48,9 +48,8 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
             }
             vir_high::TypeDecl::TypeVar(_) => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Tuple(tuple_decl) => expand_fields(place, tuple_decl.iter_fields()),
-            vir_high::TypeDecl::Struct(struct_decl) => {
-                expand_fields(place, struct_decl.iter_fields())
-            }
+            vir_high::TypeDecl::Trusted(decl) => expand_fields(place, decl.iter_fields()),
+            vir_high::TypeDecl::Struct(decl) => expand_fields(place, decl.iter_fields()),
             vir_high::TypeDecl::Union(_) => {
                 let variant_name = place.get_variant_name(guiding_place);
                 let variant_place = place.clone().into_variant(variant_name.clone());
@@ -90,7 +89,6 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
             vir_high::TypeDecl::Never => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Closure(_) => unimplemented!("ty: {}", ty),
             vir_high::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", ty),
-            vir_high::TypeDecl::Trusted(_) => unimplemented!("ty: {}", ty),
         };
         Ok(expansion)
     }

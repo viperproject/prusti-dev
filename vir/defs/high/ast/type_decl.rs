@@ -99,6 +99,7 @@ pub struct Enum {
     pub discriminant_bounds: Vec<DiscriminantRange>,
     pub discriminant_values: Vec<DiscriminantValue>,
     pub variants: Vec<Struct>,
+    pub lifetimes: Vec<LifetimeConst>,
 }
 
 #[display(fmt = "{}", name)]
@@ -108,6 +109,7 @@ pub struct Union {
     pub discriminant_bounds: Vec<DiscriminantRange>,
     pub discriminant_values: Vec<DiscriminantValue>,
     pub variants: Vec<Struct>,
+    pub lifetimes: Vec<LifetimeConst>,
 }
 
 #[display(fmt = "Array({}, {})", length, element_type)]
@@ -153,4 +155,5 @@ pub struct Unsupported {
 #[display(fmt = "{}", name)]
 pub struct Trusted {
     pub name: String,
+    pub fields: Vec<FieldDecl>,
 }
