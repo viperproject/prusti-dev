@@ -26,8 +26,11 @@ fn test1() {
     let mut ve = Vec::new();
     let mut v: WrapperIterator<i32> = WrapperIterator::new(&mut ve);
     for x in &mut v {
-        // *x = 4;
+        *x = 4;
     }
+    // for x in &mut v {
+    //     assert!(*x == 4);
+    // }
 }
 fn test1_assert_false() {
     let mut ve = Vec::new();
