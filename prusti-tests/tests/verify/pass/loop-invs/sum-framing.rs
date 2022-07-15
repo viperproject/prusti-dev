@@ -1,3 +1,7 @@
+// compile-flags: -Puse_more_complete_exhale=true
+// Somehow more complete exhale makes it easier for Silicon to solve
+// non-linear arithmetic.
+
 use prusti_contracts::*;
 
 #[requires(0 <= n)]
