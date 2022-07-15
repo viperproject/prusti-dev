@@ -21,7 +21,7 @@ extern crate rustc_target;
 extern crate rustc_trait_selection;
 extern crate serde;
 
-pub mod repacker;
+pub mod joins;
 pub mod syntax;
 
 mod pcs;

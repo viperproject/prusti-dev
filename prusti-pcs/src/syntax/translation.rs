@@ -220,7 +220,7 @@ impl<'mir> MicroMirEncoder<'mir> {
         Ok(())
     }
 
-    /// Encodes an assignment with a UnOp operand
+    /// Encodes an assignment with a UnOp operand?
     /// 1. Kill p_dest
     /// 2. Encode first operand into temporary
     /// 3. Encode UnOp statement
@@ -315,24 +315,22 @@ impl<'mir> MicroMirEncoder<'mir> {
     }
 
     // Appends the encoding for a StorageLive
-    // TODO: StorageLive/StorageDead right now are no-ops. Discuss this.
     fn encode_storagelive(
         current: &mut Vec<MicroMirStatement<'mir>>,
-        _l: Local,
+        l: Local,
         _mir: &Body,
     ) -> EncodingResult<()> {
-        current.push(MicroMirStatement::Nop);
+        current.push(MicroMirStatement::Allocate(l.into()));
         Ok(())
     }
 
     // Appends the encoding for a StorageDead
-    // TODO: StorageLive/StorageDead right now are no-ops. Discuss this.
     fn encode_storagedead(
         current: &mut Vec<MicroMirStatement<'mir>>,
-        _l: Local,
+        l: Local,
         _mir: &Body,
     ) -> EncodingResult<()> {
-        current.push(MicroMirStatement::Nop);
+        current.push(MicroMirStatement::Deallocate(l.into()));
         Ok(())
     }
 

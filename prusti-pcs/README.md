@@ -5,13 +5,24 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
 ## TODO
 
  - [ ] Straight line, unshared code
-    - [x] 1-ary propagation method
+    - [x] refactor
+    - [x] 1-ary propagation method (repacker)
         - [ ] temporaries
         - [ ] uninit
+        - [ ] apply-packing
+        - [ ] separating union
+        - [ ] refactor
     - [ ] formalize poset interpretation of places
-    - [ ] MIR -> MicroMIR translation
-    - [ ] unify straight-line code 
+    - [x] MIR -> MicroMIR translation
     - [ ] stable output representation for testing
-        - [ ] graphviz output
+        - [ ] serialization
+    - [ ] graphviz output
     - [ ] test harness
         - [ ] tests
+ - [ ] Branches
+    - [ ]
+
+
+- Maintainence
+    - [ ] rename lifetimes correctly
+    - [ ] turn moves into borrows
