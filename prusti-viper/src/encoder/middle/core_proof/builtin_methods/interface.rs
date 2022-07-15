@@ -3069,7 +3069,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             let included = ty!(Bool);
             let pres = vec![
                 expr! { acc(DeadLifetimeToken(lft_2))},
-                expr! { Lifetime::included( [lft_1.clone().into()], [lft_2.clone().into()] ) },
+                expr! { Lifetime::included( [lft_2.clone().into()], [lft_1.clone().into()] ) },
             ];
             let posts = vec![
                 expr! { acc(DeadLifetimeToken(lft_1))},
@@ -3282,7 +3282,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             let mut pres = vec![
                 expr! { [vir_low::Expression::no_permission()] < lifetime_perm },
                 expr! { lifetime_perm < [vir_low::Expression::full_permission()] },
-                expr! { Lifetime::included([lft.clone().into()], [old_lft.clone().into()])},
+                expr! { Lifetime::included([old_lft.clone().into()], [lft.clone().into()])},
                 expr! { acc(LifetimeToken(lft), lifetime_perm)},
             ];
             let mut posts = vec![expr! { acc(LifetimeToken(lft), lifetime_perm)}];
