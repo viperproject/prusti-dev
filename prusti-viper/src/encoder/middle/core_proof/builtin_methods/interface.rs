@@ -3282,7 +3282,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             let mut pres = vec![
                 expr! { [vir_low::Expression::no_permission()] < lifetime_perm },
                 expr! { lifetime_perm < [vir_low::Expression::full_permission()] },
-                expr! { Lifetime::included([lft.clone().into()], [old_lft.clone().into()])},
+                expr! { Lifetime::included([old_lft.clone().into()], [lft.clone().into()])},
                 expr! { acc(LifetimeToken(lft), lifetime_perm)},
             ];
             let mut posts = vec![expr! { acc(LifetimeToken(lft), lifetime_perm)}];
