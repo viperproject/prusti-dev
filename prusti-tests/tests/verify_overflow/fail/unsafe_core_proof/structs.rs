@@ -100,6 +100,33 @@ fn nested_struct_with_shared_reference_assert_false () {
     assert!(false);      //~ ERROR: the asserted expression might not hold
 }
 
+struct S6<'a, 'b: 'a, 'c: 'b> {
+    x: &'a i32,
+    y: &'b i32,
+    z: &'c i32,
+}
+fn struct_with_subset_lifetime() {
+    let x = 5;
+    let y = 6;
+    let z = 7;
+    let s = S6 {
+        x: &x,
+        y: &y,
+        z: &z,
+    };
+}
+fn struct_with_subset_lifetime_assert_false() {
+    let x = 5;
+    let y = 6;
+    let z = 7;
+    let s = S6 {
+        x: &x,
+        y: &y,
+        z: &z,
+    };
+    assert!(false);      //~ ERROR: the asserted expression might not hold
+}
+
 // FIXME: Nested structs with "shared" lifetimes don't work due to "lifetime extension"
 // struct S6I<'a> {
 //     x: &'a u32,
