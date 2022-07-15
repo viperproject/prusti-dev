@@ -46,6 +46,7 @@ pub(in super::super) struct BuiltinMethodsState {
     encoded_memory_block_split_methods: FxHashSet<vir_mid::Type>,
     encoded_memory_block_join_methods: FxHashSet<vir_mid::Type>,
     encoded_memory_block_havoc_methods: FxHashSet<vir_mid::Type>,
+    encoded_lifetime_token_havoc_method: bool,
     encoded_into_memory_block_methods: FxHashSet<vir_mid::Type>,
     encoded_assign_methods: FxHashSet<String>,
     encoded_consume_operand_methods: FxHashSet<String>,
@@ -1243,6 +1244,7 @@ pub(in super::super) trait BuiltinMethodsInterface {
     fn encode_memory_block_join_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
     fn encode_havoc_memory_block_method(&mut self, ty: &vir_mid::Type)
         -> SpannedEncodingResult<()>;
+    fn encode_havoc_lifetime_token_method(&mut self) -> SpannedEncodingResult<()>;
     fn encode_into_memory_block_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
     fn encode_assign_method_call(
         &mut self,
@@ -2496,6 +2498,33 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
         }
         Ok(())
     }
+    fn encode_havoc_lifetime_token_method(&mut self) -> SpannedEncodingResult<()> {
+        if !self
+            .builtin_methods_state
+            .encoded_lifetime_token_havoc_method
+        {
+            use vir_low::macros::*;
+            var_decls! {
+                lifetime: Lifetime,
+                permission: Perm
+            };
+            let method = vir_low::MethodDecl::new(
+                "havoc_lifetime_token",
+                vec![lifetime.clone(), permission.clone()],
+                vec![],
+                vec![
+                    expr! { [vir_low::Expression::no_permission()] < permission },
+                    expr! { acc(LifetimeToken(lifetime), [permission.clone().into()]) },
+                ],
+                vec![expr! { acc(LifetimeToken(lifetime), [permission.into()]) }],
+                None,
+            );
+            self.declare_method(method)?;
+            self.builtin_methods_state
+                .encoded_lifetime_token_havoc_method = true;
+        }
+        Ok(())
+    }
     // FIXME: This method has to be inlined if the converted type has a resource
     // invariant in it. Otherwise, that resource would be leaked.
     fn encode_into_memory_block_method(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
@@ -2831,6 +2860,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     position =>
                     call havoc_memory_block<ty>([address])
                 });
+            }
+            vir_mid::Predicate::LifetimeToken(predicate) => {
+                self.encode_havoc_lifetime_token_method()?;
+                let lifetime = self.encode_lifetime_const_into_variable(predicate.lifetime)?;
+                let permission = predicate.permission.to_procedure_snapshot(self)?;
+                let arguments = vec![vir_low::Expression::local_no_pos(lifetime), permission];
+                let statement = vir_low::Statement::method_call(
+                    "havoc_lifetime_token".to_string(),
+                    arguments,
+                    Vec::new(),
+                    position,
+                );
+                statements.push(statement);
             }
             _ => unimplemented!(),
         }
