@@ -3069,7 +3069,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             let included = ty!(Bool);
             let pres = vec![
                 expr! { acc(DeadLifetimeToken(lft_2))},
-                expr! { Lifetime::included( [lft_1.clone().into()], [lft_2.clone().into()] ) },
+                expr! { Lifetime::included( [lft_2.clone().into()], [lft_1.clone().into()] ) },
             ];
             let posts = vec![
                 expr! { acc(DeadLifetimeToken(lft_1))},

@@ -800,7 +800,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         lifetime_rhs: String,
     ) -> SpannedEncodingResult<()> {
         let assert_statement = self.encoder.set_statement_error_ctxt(
-            vir_high::Statement::assume_no_pos(vir_high::Expression::builtin_func_app_no_pos(
+            vir_high::Statement::assert_no_pos(vir_high::Expression::builtin_func_app_no_pos(
                 vir_high::BuiltinFunc::LifetimeIncluded,
                 vec![], // NOTE: we ignore argument_types for LifetimeIncluded
                 vec![
