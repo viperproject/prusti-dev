@@ -4,7 +4,7 @@ use prusti_interface::{
     environment::{mir_storage, Environment},
     specs,
 };
-use prusti_pcs::pcs::dump_pcs;
+use prusti_pcs::dump_pcs;
 use prusti_rustc_interface::{
     driver::Compilation,
     hir::def_id::LocalDefId,

@@ -5,11 +5,17 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![allow(dead_code)]
-use crate::pcs::{
-    HoareSemantics, MicroMirData, MicroMirStatement, MicroMirTerminator, TemporaryPlace, PCS,
+use crate::{
+    syntax::{
+        hoare_semantics::*,
+        micromir::{MicroMirData, MicroMirStatement, MicroMirTerminator, TemporaryPlace, PCS},
+    },
+    util::EncodingResult,
 };
+use prusti_interface::PrustiError;
 use prusti_rustc_interface::{
     data_structures::stable_map::FxHashMap,
+    errors::MultiSpan,
     middle::{
         mir::{
             AggregateKind::Adt, BasicBlock, BinOp, Body, Local, Mutability, Mutability::*, NullOp,
@@ -19,15 +25,6 @@ use prusti_rustc_interface::{
         ty,
     },
 };
-
-use crate::syntactic_expansion::MicroMirEncodingError::*;
-
-#[derive(Debug)]
-pub enum MicroMirEncodingError {
-    UnsupportedStatementError(String),
-    ExpectedMutableError(String),
-    LocalError(String),
-}
 
 /// Intermediate object containing all information for the MIR->Pre-MicroMir translation
 pub struct MicroMirEncoder<'mir> {
@@ -44,7 +41,7 @@ pub struct MicroMirEncoder<'mir> {
 }
 
 impl<'mir> MicroMirEncoder<'mir> {
-    pub fn expand_syntax(mir: &'mir Body<'mir>) -> Result<Self, MicroMirEncodingError> {
+    pub fn expand_syntax(mir: &'mir Body<'mir>) -> EncodingResult<Self> {
         let mut encoding: FxHashMap<BasicBlock, MicroMirData<'mir>> = FxHashMap::default();
         for (bb, bbdata) in mir.basic_blocks().iter_enumerated() {
             let mut current_block_statements: Vec<MicroMirStatement<'mir>> = vec![];
@@ -71,7 +68,7 @@ impl<'mir> MicroMirEncoder<'mir> {
         current: &mut Vec<MicroMirStatement<'mir>>,
         s: &Statement<'mir>,
         mir: &Body<'mir>,
-    ) -> Result<(), MicroMirEncodingError> {
+    ) -> EncodingResult<()> {
         match &s.kind {
             Assign(box (p_dest, Use(op))) => Self::encode_assign_use(current, p_dest, op, mir),
 
@@ -107,10 +104,10 @@ impl<'mir> MicroMirEncoder<'mir> {
 
             AscribeUserType(box (_p, _proj), _variance) => Ok(()),
 
-            us => Err(UnsupportedStatementError(format!(
-                "Unsupported Statement: {:?}",
-                us
-            ))),
+            us => Err(PrustiError::unsupported(
+                format!("unsupported statement: {:#?}", us),
+                MultiSpan::new(),
+            )),
         }
     }
 
@@ -119,7 +116,7 @@ impl<'mir> MicroMirEncoder<'mir> {
         current: &mut Vec<MicroMirStatement<'mir>>,
         t: &'mir Terminator<'mir>,
         mir: &Body,
-    ) -> Result<MicroMirTerminator<'mir>, MicroMirEncodingError> {
+    ) -> EncodingResult<MicroMirTerminator<'mir>> {
         match &t.kind {
             Goto { target } => Ok(MicroMirTerminator::Jump(*target)),
 
@@ -166,10 +163,10 @@ impl<'mir> MicroMirEncoder<'mir> {
                 Ok(MicroMirTerminator::Jump(*target))
             }
 
-            us => Err(MicroMirEncodingError::UnsupportedStatementError(format!(
-                "Unimplemented statement {:#?}",
-                us
-            ))),
+            us => Err(PrustiError::unsupported(
+                format!("untranslated statement {:#?}", us),
+                MultiSpan::new(),
+            )),
         }
     }
 
@@ -182,7 +179,7 @@ impl<'mir> MicroMirEncoder<'mir> {
         p_dest: &Place<'mir>,
         op: &Operand<'mir>,
         mir: &Body,
-    ) -> Result<(), MicroMirEncodingError> {
+    ) -> EncodingResult<()> {
         current.push(MicroMirStatement::Kill((*p_dest).into()));
         let temp_1 = TemporaryPlace { id: 1 };
         let temp1_mut = Self::encode_operand(current, op, temp_1, mir)?;
@@ -199,7 +196,7 @@ impl<'mir> MicroMirEncoder<'mir> {
         p_dest: &Place<'mir>,
         p0: &Place<'mir>,
         mir: &Body,
-    ) -> Result<(), MicroMirEncodingError> {
+    ) -> EncodingResult<()> {
         current.push(MicroMirStatement::Kill((*p_dest).into()));
         let p0_mut = Self::lookup_place_mutability(&p0, mir)?;
         let temp_1 = TemporaryPlace { id: 1 };
@@ -215,7 +212,7 @@ impl<'mir> MicroMirEncoder<'mir> {
         current: &mut Vec<MicroMirStatement<'mir>>,
         nullop: NullOp,
         p_dest: &Place<'mir>,
-    ) -> Result<(), MicroMirEncodingError> {
+    ) -> EncodingResult<()> {
         current.push(MicroMirStatement::Kill((*p_dest).into()));
         let temp_1 = TemporaryPlace { id: 1 };
         current.push(MicroMirStatement::NullOp(nullop, temp_1));
@@ -235,16 +232,16 @@ impl<'mir> MicroMirEncoder<'mir> {
         op1: &Operand<'mir>,
         p_dest: &Place<'mir>,
         mir: &Body,
-    ) -> Result<(), MicroMirEncodingError> {
+    ) -> EncodingResult<()> {
         current.push(MicroMirStatement::Kill((*p_dest).into()));
         let temp_1 = TemporaryPlace { id: 1 };
         let temp_2 = TemporaryPlace { id: 2 };
         let op_mut = Self::encode_operand(current, op1, temp_1, mir)?;
         if op_mut != Mut {
-            return Err(ExpectedMutableError(format!(
-                "Expected operand {:#?} to be mutable",
-                op1
-            )));
+            return Err(PrustiError::internal(
+                format!("expected operand {:#?} to be mutable", op1),
+                MultiSpan::new(),
+            ));
         }
         current.push(MicroMirStatement::UnOp(unop, temp_1, temp_2));
         current.push(MicroMirStatement::Set(temp_2, *p_dest, Mut));
@@ -265,24 +262,24 @@ impl<'mir> MicroMirEncoder<'mir> {
         p_dest: &Place<'mir>,
         is_checked: bool,
         mir: &Body,
-    ) -> Result<(), MicroMirEncodingError> {
+    ) -> EncodingResult<()> {
         current.push(MicroMirStatement::Kill((*p_dest).into()));
         let temp_1 = TemporaryPlace { id: 1 };
         let temp_2 = TemporaryPlace { id: 2 };
         let temp_3 = TemporaryPlace { id: 3 };
         let op_mut_1 = Self::encode_operand(current, op1, temp_1, mir)?;
         if op_mut_1 != Mut {
-            return Err(MicroMirEncodingError::ExpectedMutableError(format!(
-                "Expected operand {:#?} to be mutable",
-                op1
-            )));
+            return Err(PrustiError::internal(
+                format!("expected operand {:#?} to be mutable", op2),
+                MultiSpan::new(),
+            ));
         }
         let op_mut_2 = Self::encode_operand(current, op2, temp_2, mir)?;
         if op_mut_2 != Mut {
-            return Err(MicroMirEncodingError::ExpectedMutableError(format!(
-                "Expected operand {:#?} to be mutable",
-                op2
-            )));
+            return Err(PrustiError::internal(
+                format!("expected operand {:#?} to be mutable", op2),
+                MultiSpan::new(),
+            ));
         }
         current.push(MicroMirStatement::BinaryOp(
             binop, is_checked, temp_1, temp_2, temp_3,
@@ -299,7 +296,7 @@ impl<'mir> MicroMirEncoder<'mir> {
         op: &Operand<'mir>,
         into: TemporaryPlace,
         mir: &Body,
-    ) -> Result<Mutability, MicroMirEncodingError> {
+    ) -> EncodingResult<Mutability> {
         match op {
             Copy(p) => {
                 let p_mut = Self::lookup_place_mutability(&p, mir)?;
@@ -323,7 +320,7 @@ impl<'mir> MicroMirEncoder<'mir> {
         current: &mut Vec<MicroMirStatement<'mir>>,
         _l: Local,
         _mir: &Body,
-    ) -> Result<(), MicroMirEncodingError> {
+    ) -> EncodingResult<()> {
         current.push(MicroMirStatement::Nop);
         Ok(())
     }
@@ -334,16 +331,13 @@ impl<'mir> MicroMirEncoder<'mir> {
         current: &mut Vec<MicroMirStatement<'mir>>,
         _l: Local,
         _mir: &Body,
-    ) -> Result<(), MicroMirEncodingError> {
+    ) -> EncodingResult<()> {
         current.push(MicroMirStatement::Nop);
         Ok(())
     }
 
     /// Accesses a place's mutability from the current MIR body.
-    fn lookup_place_mutability(
-        p: &Place<'mir>,
-        mir: &Body,
-    ) -> Result<Mutability, MicroMirEncodingError> {
+    fn lookup_place_mutability(p: &Place<'mir>, mir: &Body) -> EncodingResult<Mutability> {
         if let Some(localdecl) = mir.local_decls.get(p.local) {
             match localdecl.ty.kind() {
                 ty::TyKind::Ref(_, _, m) => return Ok(*m),
@@ -354,10 +348,10 @@ impl<'mir> MicroMirEncoder<'mir> {
                 }
             }
         } else {
-            return Err(MicroMirEncodingError::LocalError(format!(
-                "Could not get local_decls for local {:#?}",
-                p.local
-            )));
+            return Err(PrustiError::internal(
+                format!("error when retrieving local_decl for local {:#?}", p.local),
+                MultiSpan::new(),
+            ));
         }
     }
 
