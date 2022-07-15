@@ -58,6 +58,11 @@ pub enum MicroMirStatement<'tcx> {
     UnOp(UnOp, TemporaryPlace, TemporaryPlace),
     BinaryOp(BinOp, bool, TemporaryPlace, TemporaryPlace, TemporaryPlace),
     Len(Place<'tcx>, TemporaryPlace, Mutability),
+    Allocate(Place<'tcx>),
+    Deallocate(Place<'tcx>),
+    // Places annotated so that we do not need to truck around the mir
+    Pack(Vec<Place<'tcx>>, Place<'tcx>),
+    Unpack(Place<'tcx>, Vec<Place<'tcx>>),
 }
 
 pub enum MicroMirTerminator<'tcx> {
@@ -151,6 +156,22 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
                     (*p).into(),
                 )]))
             }
+            MicroMirStatement::Allocate(_) => Some(PCS::empty()),
+            MicroMirStatement::Deallocate(p) => {
+                Some(PCS::from_vec(vec![PCSPermission::new_uninit((*p).into())]))
+            }
+            // Assumption: All places are mutably owned
+            MicroMirStatement::Pack(ps, _) => Some(PCS::from_vec(
+                ps.into_iter()
+                    .map(|p| PCSPermission::new_initialized(Mutability::Mut, (*p).into()))
+                    .collect(),
+            )),
+            MicroMirStatement::Unpack(p, _) => {
+                Some(PCS::from_vec(vec![PCSPermission::new_initialized(
+                    Mutability::Mut,
+                    (*p).into(),
+                )]))
+            }
         }
     }
 
@@ -202,6 +223,22 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
                 PCSPermission::new_initialized(*m, (*p).into()),
                 PCSPermission::new_initialized(Mutability::Mut, (*t).into()),
             ])),
+            MicroMirStatement::Deallocate(_) => Some(PCS::empty()),
+            MicroMirStatement::Allocate(p) => {
+                Some(PCS::from_vec(vec![PCSPermission::new_uninit((*p).into())]))
+            }
+            // Assumption: All places are mutably owned
+            MicroMirStatement::Unpack(_, ps) => Some(PCS::from_vec(
+                ps.into_iter()
+                    .map(|p| PCSPermission::new_initialized(Mutability::Mut, (*p).into()))
+                    .collect(),
+            )),
+            MicroMirStatement::Pack(_, p) => {
+                Some(PCS::from_vec(vec![PCSPermission::new_initialized(
+                    Mutability::Mut,
+                    (*p).into(),
+                )]))
+            }
         }
     }
 }
@@ -379,6 +416,10 @@ impl<'tcx> Debug for MicroMirStatement<'tcx> {
                 write!(f, "op2 checked {:?} {:?} {:?} -> {:?}", t1, op, t2, t3)
             }
             MicroMirStatement::Len(p, t, m) => write!(f, "len {:?} -> {:?} ({:?})", p, t, m),
+            MicroMirStatement::Pack(ps, p) => write!(f, "pack {:?} -> {:?}", ps, p),
+            MicroMirStatement::Unpack(p, ps) => write!(f, "unpack {:?} -> {:?}", p, ps),
+            MicroMirStatement::Allocate(p) => write!(f, "alloc {:?}", p),
+            MicroMirStatement::Deallocate(p) => write!(f, "dealloc {:?}", p),
         }
     }
 }
