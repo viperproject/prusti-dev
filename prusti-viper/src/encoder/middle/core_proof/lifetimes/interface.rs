@@ -204,16 +204,16 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesInterface for Lowerer<'p, 'v, 'tcx> {
             let mut arguments: Vec<Vec<vir_low::Expression>> = vec![];
             for i in 1..(lft_count + 1) {
                 arguments.push(vec![
+                    vir_low::Expression::local_no_pos(vir_low::VariableDecl::new(
+                        format!("lft_{i}"),
+                        ty.clone(),
+                    )),
                     vir_low::Expression::domain_function_call(
                         "Lifetime",
                         format!("intersect${lft_count}"),
                         arguments_all_lifetimes.clone(),
                         ty.clone(),
                     ),
-                    vir_low::Expression::local_no_pos(vir_low::VariableDecl::new(
-                        format!("lft_{i}"),
-                        ty.clone(),
-                    )),
                 ]);
             }
 
