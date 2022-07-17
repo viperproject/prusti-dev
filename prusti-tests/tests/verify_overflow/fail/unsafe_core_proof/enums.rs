@@ -139,3 +139,18 @@ fn test9_assert_false(){
     let r = &mut e;
     assert!(false);      //~ ERROR: the asserted expression might not hold
 }
+fn test10(){
+    let n = 5;
+    let mut a = D{ x: &n };
+    let mut b = &mut a;
+    let mut c = &mut b;
+    let mut _d = &mut c;
+}
+fn test10_assert_false(){
+    let n = 5;
+    let mut a = D{ x: &n };
+    let mut b = &mut a;
+    let mut c = &mut b;
+    let mut _d = &mut c;
+    assert!(false);      //~ ERROR: the asserted expression might not hold
+}
