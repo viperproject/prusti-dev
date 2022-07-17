@@ -2,9 +2,8 @@ use crate::encoder::{
     errors::{ErrorCtxt, SpannedEncodingResult},
     mir::{
         errors::ErrorInterface, places::PlacesEncoderInterface,
-        procedures::encoder::lifetimes::LifetimesEncoder, pure::SpecificationEncoderInterface,
-        spans::SpanInterface, specifications::SpecificationsInterface,
-        type_layouts::MirTypeLayoutsEncoderInterface,
+        pure::SpecificationEncoderInterface, spans::SpanInterface,
+        specifications::SpecificationsInterface, type_layouts::MirTypeLayoutsEncoderInterface,
     },
 };
 use prusti_rustc_interface::middle::mir;
@@ -87,23 +86,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
             }
         }
 
-        // Encode Lifetime Tokens
-        let original_lifetimes = self.lifetimes.get_loan_live_at_mid(invariant_location);
-        for lifetime in original_lifetimes {
-            let lifetime_token = vir_high::Predicate::lifetime_token_no_pos(
-                vir_high::ty::LifetimeConst { name: lifetime },
-                // TODO: Should/Can I havoc more permissin?
-                self.lifetime_token_fractional_permission(self.lifetime_count),
-            );
-            maybe_modified_places.push(lifetime_token);
-        }
-
         // Encode Lifetime Relations
         let derived_lifetimes = self
             .lifetimes
             .get_origin_contains_loan_at_mid(invariant_location);
         for (derived_lifetime, derived_from) in derived_lifetimes {
-            // FIXME: check if I need to inhale acc(LifetimeToken(derived_lifetime),...)
             let derived_from_args: Vec<vir_high::Expression> = derived_from
                 .iter()
                 .map(|x| {
@@ -129,7 +116,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
                 .into(),
                 intersect_expr,
             );
-            // dbg!(&equality_expr);
             encoded_specs.push(equality_expr);
         }
 
