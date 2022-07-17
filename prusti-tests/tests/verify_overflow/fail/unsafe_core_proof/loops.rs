@@ -22,21 +22,23 @@ impl<'a, T> Iterator for WrapperIterator<'a, T> {
         self.iter_mut.next()
     }
 }
+struct X<'a>{
+    x: &'a mut i32,
+}
 fn test1() {
     let mut ve = Vec::new();
     let mut v: WrapperIterator<i32> = WrapperIterator::new(&mut ve);
+    let mut s;
     for x in &mut v {
-        *x = 4;
+        s = x;
     }
-    // for x in &mut v {
-    //     assert!(*x == 4);
-    // }
 }
 fn test1_assert_false() {
     let mut ve = Vec::new();
     let mut v: WrapperIterator<i32> = WrapperIterator::new(&mut ve);
+    let mut s;
     for x in &mut v {
-        // *x = 4;
+        s = x;
     }
     assert!(false) //~ ERROR
 }
