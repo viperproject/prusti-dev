@@ -107,6 +107,39 @@
 <span id="101">101</span>
 <span id="102">102</span>
 <span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <span class="ident">errors</span>::{<a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-161">ErrorCtxt</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
     <span class="ident">mir</span>::{
@@ -195,6 +228,39 @@
             }
         }
 
+        <span class="comment">// Encode Lifetime Relations</span>
+        <span class="kw">let</span> <span class="ident">derived_lifetimes</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>
+            .<span class="ident">lifetimes</span>
+            .<span class="ident">get_origin_contains_loan_at_mid</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#19">invariant_location</a>);
+        <span class="kw">for</span> (<span class="ident">derived_lifetime</span>, <span class="ident">derived_from</span>) <span class="kw">in</span> <span class="ident">derived_lifetimes</span> {
+            <span class="kw">let</span> <span class="ident">derived_from_args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">vir_high::Expression</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">derived_from</span>
+                .<span class="ident">iter</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> {
+                    <span class="ident">vir_high::VariableDecl</span> {
+                        <span class="ident">name</span>: <span class="ident">x</span>.<span class="ident">clone</span>(),
+                        <span class="ident">ty</span>: <span class="ident">vir_high::Type::Lifetime</span>,
+                    }
+                    .<span class="ident">into</span>()
+                })
+                .<span class="ident">collect</span>();
+            <span class="kw">let</span> <span class="ident">intersect_expr</span> <span class="op">=</span> <span class="ident">vir_high::Expression::builtin_func_app_no_pos</span>(
+                <span class="ident">vir_high::BuiltinFunc::LifetimeIntersect</span>,
+                <span class="macro">vec!</span>[], <span class="comment">// NOTE: we ignore argument_types for LifetimeItersect</span>
+                <span class="ident">derived_from_args</span>,
+                <span class="ident">vir_high::ty::Type::Lifetime</span>,
+            );
+            <span class="kw">let</span> <span class="ident">equality_expr</span> <span class="op">=</span> <span class="ident">vir_high::Expression::binary_op_no_pos</span>(
+                <span class="ident">vir_high::BinaryOpKind::EqCmp</span>,
+                <span class="ident">vir_high::VariableDecl</span> {
+                    <span class="ident">name</span>: <span class="ident">derived_lifetime</span>,
+                    <span class="ident">ty</span>: <span class="ident">vir_high::ty::Type::Lifetime</span>,
+                }
+                .<span class="ident">into</span>(),
+                <span class="ident">intersect_expr</span>,
+            );
+            <span class="ident">encoded_specs</span>.<span class="ident">push</span>(<span class="ident">equality_expr</span>);
+        }
+
         <span class="comment">// Construct the info.</span>
         <span class="kw">let</span> <span class="ident">loop_invariant</span> <span class="op">=</span> <span class="ident">vir_high::Statement::loop_invariant_no_pos</span>(
             <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#14">self</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/mod.rs.html#1725">encode_basic_block_label</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#15">loop_head</a>),
@@ -207,7 +273,7 @@
             <span class="ident">ErrorCtxt::UnexpectedStorageLive</span>,
             <span class="ident">loop_invariant</span>,
         )<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#96">statement</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/loops.rs.html#129">statement</a>)
     }
 }
 </code></pre></div>
