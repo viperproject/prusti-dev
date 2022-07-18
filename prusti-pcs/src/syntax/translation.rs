@@ -353,6 +353,19 @@ impl<'mir> MicroMirEncoder<'mir> {
         }
     }
 
+    pub fn get_block<'a>(&'a self, idx: u32) -> EncodingResult<&'a MicroMirData<'mir>>
+    where
+        'mir: 'a,
+    {
+        match self.encoding.get(&idx.into()) {
+            Some(s) => Ok(&s),
+            None => Err(PrustiError::internal(
+                "unexpected error when retrieving basic block 0",
+                MultiSpan::new(),
+            )),
+        }
+    }
+
     pub fn pprint(&self) {
         let mut current_bb: usize = 0;
         for (_bb, dat) in self.encoding.iter() {
