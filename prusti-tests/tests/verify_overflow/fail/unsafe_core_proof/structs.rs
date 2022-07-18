@@ -46,6 +46,21 @@ fn struct_with_mut_reference_assert_false () {
     let u = &t;
     assert!(false);      //~ ERROR: the asserted expression might not hold
 }
+fn struct_shared_references(){
+    let mut n = 4;
+    let s1 = S2{ x: &mut n};
+    let s2 = &s1;
+    let s3 = &s2;
+    let _s4 = &s3;
+}
+fn struct_shared_references_assert_false(){
+    let mut n = 4;
+    let s1 = S2{ x: &mut n};
+    let s2 = &s1;
+    let s3 = &s2;
+    let _s4 = &s3;
+    assert!(false);      //~ ERROR: the asserted expression might not hold
+}
 
 struct S3<'a> {
     x: &'a u32,
@@ -62,6 +77,20 @@ fn struct_with_shared_reference_assert_false () {
     let mut t2 = S3{ x: &n};
     let u = &mut t2;
     assert!(false);      //~ ERROR: the asserted expression might not hold
+}
+fn struct_mut_references(){
+    let n = 4;
+    let mut s1 = S3{ x: &n};
+    let mut s2 = &mut s1;
+    let mut s3 = &mut s2;
+    let mut s4 = &mut s3;
+}
+fn struct_mut_references_assert_false(){
+    let n = 4;
+    let mut s1 = S3{ x: &n};
+    let mut s2 = &mut s1;
+    let mut s3 = &mut s2;
+    let mut _s4 = &mut s3;
 }
 
 struct S4I<'a> {
@@ -124,6 +153,29 @@ fn struct_with_subset_lifetime_assert_false() {
         y: &y,
         z: &z,
     };
+    assert!(false);      //~ ERROR: the asserted expression might not hold
+}
+
+struct S7_1<'a> {
+    x: &'a mut u32,
+}
+struct S7_2<'a, 'b> {
+    x: &'b mut S7_1<'a>,
+}
+struct S7_3<'a, 'b, 'c> {
+    x: &'c mut S7_2<'a, 'b>,
+}
+fn test_deeply_nested(){
+    let mut n = 4;
+    let mut s1 = S7_1{ x: &mut n };
+    let mut s2 = S7_2{ x: &mut s1 };
+    let mut s3 = S7_3{ x: &mut s2 };
+}
+fn test_deeply_nested_assert_false(){
+    let mut n = 4;
+    let mut s1 = S7_1{ x: &mut n };
+    let mut s2 = S7_2{ x: &mut s1 };
+    let mut s3 = S7_3{ x: &mut s2 };
     assert!(false);      //~ ERROR: the asserted expression might not hold
 }
 
