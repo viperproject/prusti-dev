@@ -2832,10 +2832,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                     call havoc_memory_block<ty>([address])
                 });
             }
-            vir_mid::Predicate::LifetimeToken(_) => {
-                // NOTE: No need to havoc LifetimeToken because there are no functional
-                //   specifications attached to it
-            }
             _ => unimplemented!(),
         }
         Ok(())
