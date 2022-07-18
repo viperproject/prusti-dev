@@ -18,27 +18,28 @@ use prusti_rustc_interface::{
     },
 };
 
-use crate::syntax::LinearResource::*;
-
 // Assumption: All places are mutably owned
 pub struct PCSRepacker<'tcx> {
-    packs: Vec<Place<'tcx>>,
-    unpacks: Vec<Place<'tcx>>,
+    pub packs: Vec<Place<'tcx>>,
+    pub unpacks: Vec<Place<'tcx>>,
 }
 
 // TODO: Look over this again, many places need improvement
-fn unify_moves<'tcx>(
-    a_pcs: PCS<'tcx>,
-    b_pcs: PCS<'tcx>,
-    mir: &Body<'tcx>,
+pub fn unify_moves<'mir, 'tcx: 'mir>(
+    a_pcs: &PCS<'mir>,
+    b_pcs: &PCS<'mir>,
+    mir: &Body<'mir>,
     tcx: TyCtxt<'tcx>,
-) -> EncodingResult<PCSRepacker<'tcx>> {
-    let a = a_pcs.set;
-    let b = b_pcs.set;
+) -> EncodingResult<PCSRepacker<'mir>>
+where
+    'mir: 'tcx,
+{
+    // let a = a_pcs.set.clone();
+    // let b = b_pcs.set.clone();
 
     let mut mir_problems: FxHashMap<
         (Local, PCSPermissionKind),
-        (FxHashSet<Place<'tcx>>, FxHashSet<Place<'tcx>>),
+        (FxHashSet<Place<'mir>>, FxHashSet<Place<'mir>>),
     > = FxHashMap::default();
 
     // Checking temporaries is simple: They aren't allowed to pack/unpack
@@ -46,8 +47,8 @@ fn unify_moves<'tcx>(
     let _tmp_problems: FxHashMap<TemporaryPlace, PCSPermissionKind> = FxHashMap::default();
 
     // Split the problem into independent parts
-    for pcs_permission in a.clone().into_iter() {
-        let permissionkind = pcs_permission.kind;
+    for pcs_permission in a_pcs.set.iter() {
+        let permissionkind = pcs_permission.kind.clone();
         match pcs_permission.target {
             LinearResource::Mir(place) => {
                 let local = place.local.clone();
@@ -64,7 +65,7 @@ fn unify_moves<'tcx>(
 
     // TODO: DRY
 
-    for pcs_permission in b.into_iter() {
+    for pcs_permission in b_pcs.set.iter() {
         let permissionkind = pcs_permission.kind.clone();
         match pcs_permission.target {
             LinearResource::Mir(place) => {
@@ -80,8 +81,8 @@ fn unify_moves<'tcx>(
         }
     }
 
-    let mut a_unpacks: Vec<Place<'tcx>> = Vec::default();
-    let mut b_unpacks: Vec<Place<'tcx>> = Vec::default();
+    let mut a_unpacks: Vec<Place<'mir>> = Vec::default();
+    let mut b_unpacks: Vec<Place<'mir>> = Vec::default();
 
     // Iterate over subproblems (in any order)
     let mut mir_problem_iter = mir_problems.drain();
@@ -102,10 +103,10 @@ fn unify_moves<'tcx>(
                 break;
             }
 
-            let mut gen_a: FxHashSet<Place<'tcx>> = FxHashSet::default();
-            let mut kill_a: FxHashSet<Place<'tcx>> = FxHashSet::default();
-            let mut gen_b: FxHashSet<Place<'tcx>> = FxHashSet::default();
-            let mut kill_b: FxHashSet<Place<'tcx>> = FxHashSet::default();
+            let mut gen_a: FxHashSet<Place<'mir>> = FxHashSet::default();
+            let mut kill_a: FxHashSet<Place<'mir>> = FxHashSet::default();
+            let mut gen_b: FxHashSet<Place<'mir>> = FxHashSet::default();
+            let mut kill_b: FxHashSet<Place<'mir>> = FxHashSet::default();
             if let Some((a, _)) = set_rc_a
                 .iter()
                 .cartesian_product(set_rc_b.iter())
@@ -151,50 +152,16 @@ fn unify_moves<'tcx>(
         }
     }
 
-    let mut working_pcs: FxHashSet<Place<'tcx>> = a
-        .iter()
-        .map(|perm| {
-            if let LinearResource::Mir(p) = perm.target {
-                p
-            } else {
-                panic!();
-            }
-        })
-        .collect();
-
-    for p in a_unpacks.iter() {
-        if !working_pcs.remove(p) {
-            return Err(PrustiError::internal(
-                format!("prusti generated an incoherent unpack"),
-                MultiSpan::new(),
-            ));
-        }
-        for p1 in expand_place(*p, mir, tcx)? {
-            if !working_pcs.insert(p1) {
-                return Err(PrustiError::internal(
-                    format!("prusti generated an incoherent unpack"),
-                    MultiSpan::new(),
-                ));
-            }
-        }
-    }
-
-    for p in b_unpacks.iter().rev() {
-        if !working_pcs.remove(p) {
-            return Err(PrustiError::internal(
-                format!("prusti generated an incoherent pack"),
-                MultiSpan::new(),
-            ));
-        }
-        for p1 in expand_place(*p, mir, tcx)? {
-            if !working_pcs.insert(p1) {
-                return Err(PrustiError::internal(
-                    format!("prusti generated an incoherent pack"),
-                    MultiSpan::new(),
-                ));
-            }
-        }
-    }
+    // let mut working_pcs: FxHashSet<Place<'tcx>> = a
+    //     .iter()
+    //     .map(|perm| {
+    //         if let LinearResource::Mir(p) = perm.target {
+    //             p
+    //         } else {
+    //             panic!();
+    //         }
+    //     })
+    //     .collect();
 
     // At this point, we can check that b is a subset of the computed PCS.
 

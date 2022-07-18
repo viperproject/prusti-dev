@@ -4,25 +4,30 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 use crate::{
+    joins::{unify_moves, PCSRepacker},
     syntax::{
-        hoare_semantics::HoareSemantics, MicroMirEncoder, MicroMirStatement, PCSPermission, PCS,
+        hoare_semantics::HoareSemantics, MicroMirData, MicroMirEncoder, MicroMirStatement,
+        MicroMirTerminator, PCSPermission, PCS,
     },
-    util::EncodingResult,
+    util::{expand_place, EncodingResult},
 };
 use prusti_interface::{environment::Environment, PrustiError};
 use prusti_rustc_interface::{
     errors::MultiSpan,
     middle::{
-        mir::{Body, Mutability},
+        mir::{Body, Mutability, Place},
         ty::TyCtxt,
     },
 };
 
-pub fn dump_pcs<'tcx>(env: Environment<'tcx>) {
+pub fn dump_pcs<'tcx>(env: Environment<'tcx>) -> EncodingResult<()> {
     for proc_id in env.get_annotated_procedures() {
         println!("id: {:#?}", env.get_unique_item_name(proc_id));
         let current_procedure = env.get_procedure(proc_id);
-        let _mir = current_procedure.get_mir();
+        let mir = current_procedure.get_mir();
+        let micro_mir = MicroMirEncoder::expand_syntax(mir)?;
+
+        let operational_pcs = straight_line_pcs(env.tcx(), &micro_mir);
 
         // Q: Can we get the MIR?
         // let mir = env.local_mir(proc_id.expect_local(), env.identity_substs(proc_id));
@@ -43,98 +48,200 @@ pub fn dump_pcs<'tcx>(env: Environment<'tcx>) {
 
         // Q: MIR analyses?
     }
+
+    return Ok(());
+}
+
+pub struct StraitLineOpPCS<'mir> {
+    pub micromir: &'mir MicroMirEncoder<'mir>,
+    pub statements: Vec<MicroMirStatement<'mir>>, // Replace this with general CGF AST
+    pub pcs_before: Vec<PCS<'mir>>,
+    pub final_pcs: PCS<'mir>,
+}
+
+// Simplest possible kill-elaboration, can be done
+// in the same pass as pcs computation.
+// { e p } kill p { u p } or
+// { u p } kill p { u p }
+fn naive_elaboration<'tcx>(
+    statement: &MicroMirStatement<'tcx>,
+    current_state: &PCS<'tcx>,
+) -> EncodingResult<PCS<'tcx>> {
+    match statement.precondition() {
+        Some(s) => Ok(s),
+        None => match statement {
+            MicroMirStatement::Kill(p) => {
+                let p_e = PCSPermission::new_initialized(Mutability::Mut, *p);
+                let p_u = PCSPermission::new_uninit(*p);
+
+                if current_state.set.contains(&p_e) {
+                    Ok(PCS::from_vec(vec![p_e]))
+                } else if current_state.set.contains(&p_u) {
+                    Ok(PCS::from_vec(vec![p_u]))
+                } else {
+                    Err(PrustiError::internal(
+                        format!("kill elaboration: place {:?} unkillable", p),
+                        MultiSpan::new(),
+                    ))
+                }
+            }
+            _ => Err(PrustiError::unsupported(
+                format!("unsupported elaboration of {:?} precondition", statement),
+                MultiSpan::new(),
+            )),
+        },
+    }
+}
+
+fn apply_packings<'mir>(
+    mut state: PCS<'mir>,
+    statements: &mut Vec<MicroMirStatement<'mir>>,
+    before_pcs: &mut Vec<PCS<'mir>>,
+    packings: PCSRepacker<'mir>,
+    tcx: TyCtxt<'mir>,
+    mir: &Body<'mir>,
+) -> EncodingResult<PCS<'mir>> {
+    // TODO: Move insert and remove (guarded with linearity) into PCS
+    for p in packings.unpacks.iter() {
+        before_pcs.push(state.clone());
+        let to_lose = p.clone();
+        // TODO: We're assuming all places are mutably owned right now
+        if !state.set.remove(&PCSPermission::new_initialized(
+            Mutability::Mut,
+            to_lose.into(),
+        )) {
+            return Err(PrustiError::internal(
+                format!("prusti generated an incoherent unpack"),
+                MultiSpan::new(),
+            ));
+        }
+        let to_regain: Vec<Place<'mir>> = expand_place(*p, mir, tcx)?;
+        for p1 in to_regain.iter() {
+            if !state.set.insert(PCSPermission::new_initialized(
+                Mutability::Mut,
+                (*p1).into(),
+            )) {
+                return Err(PrustiError::internal(
+                    format!("prusti generated an incoherent unpack"),
+                    MultiSpan::new(),
+                ));
+            }
+        }
+
+        statements.push(MicroMirStatement::Unpack(to_lose, to_regain));
+    }
+
+    for p in packings.packs.iter().rev() {
+        before_pcs.push(state.clone());
+        let to_lose: Vec<Place<'mir>> = expand_place(*p, mir, tcx)?;
+        for p1 in to_lose.iter() {
+            if !state.set.remove(&PCSPermission::new_initialized(
+                Mutability::Mut,
+                (*p1).into(),
+            )) {
+                return Err(PrustiError::internal(
+                    format!("prusti generated an incoherent pack"),
+                    MultiSpan::new(),
+                ));
+            }
+        }
+
+        let to_regain = p.clone();
+
+        if !state.set.remove(&PCSPermission::new_initialized(
+            Mutability::Mut,
+            to_regain.into(),
+        )) {
+            return Err(PrustiError::internal(
+                format!("prusti generated an incoherent pack"),
+                MultiSpan::new(),
+            ));
+        }
+
+        statements.push(MicroMirStatement::Pack(to_lose, to_regain));
+    }
+
+    return Ok(state);
 }
 
 /// Single-pass computation of the PCS for straight-line code
 pub fn straight_line_pcs<'mir, 'tcx: 'mir>(
-    mir: &'mir Body<'mir>,
     tcx: TyCtxt<'tcx>,
-) -> EncodingResult<()> {
-    let micro_mir: MicroMirEncoder<'mir> = MicroMirEncoder::expand_syntax(mir)?;
+    micro_mir: &'mir MicroMirEncoder<'mir>,
+) -> EncodingResult<StraitLineOpPCS<'mir>>
+where
+    'mir: 'tcx,
+{
+    // Is this correct? I think not and either way it's a bad way to get the first block.
+    let mut current_block: &MicroMirData<'mir> = micro_mir.get_block(0)?;
 
-    // Is this correct? I think not and either way it's bad
-    let mut current_block = match micro_mir.encoding.get(&(0 as u32).into()) {
-        Some(s) => s,
-        None => {
-            return Err(PrustiError::internal(
-                "unexpected error when retrieving basic block 0",
-                MultiSpan::new(),
-            ));
-        }
-    };
+    let mut pcs_before: Vec<PCS<'mir>> = Vec::default();
+    let mut statements: Vec<MicroMirStatement<'mir>> = Vec::default();
 
     // Also not correct, read function args
     let mut current_state = PCS::empty();
 
     loop {
-        // repack across every statement in the block
-        let mut next_s_index = 0;
-        loop {
-            let mut maybe_next_precondition: PCS<'mir>;
-            // Check to see if the next statement is a terminator... if so grab it's precondition
-            // Otherwise grab the normal precondition of the next statement.
+        // Compute PCS for the block
+        for statement in current_block.statements.iter() {
+            // Elaborate the precondition of the statement
+            let next_statement_state = naive_elaboration(&statement, &current_state)?;
 
-            // If the next precondition is none, try to elaborate it.
+            // Go through the packings, apply them and add to encoding.
+            let packings =
+                unify_moves(&current_state, &next_statement_state, &micro_mir.body, tcx)?;
+            current_state = apply_packings(
+                current_state,
+                &mut statements,
+                &mut pcs_before,
+                packings,
+                tcx,
+                &micro_mir.body,
+            )?;
 
-            let mut next_precondition: PCS<'mir>;
-            match todo!() {
-                Some(pre) => {
-                    next_precondition = pre;
-                }
-                None => {
-                    // Simplest possible kill-elaboration, can be done
-                    // in the same pass as pcs computation.
-                    // { e p } kill p { u p } or
-                    // { u p } kill p { u p }
-                    //  depending on current PCS.
-                    if let MicroMirStatement::Kill(p) = todo!() {
-                        let mut_p = PCSPermission::new_initialized(Mutability::Mut, p);
-                        let uninit_p = PCSPermission::new_uninit(p);
-                        if current_state.set.contains(&mut_p) {
-                            next_precondition = PCS::from_vec(vec![mut_p]);
-                        } else if current_state.set.contains(&uninit_p) {
-                            next_precondition = PCS::from_vec(vec![uninit_p]);
-                        } else {
-                            return Err(PrustiError::internal(
-                                format!("kill elaboration: place {:?} unkillable", p),
-                                MultiSpan::new(),
-                            ));
-                        }
-                    } else {
-                        return Err(PrustiError::unsupported(
-                            format!("unsupported elaboration of {:?} precondition", todo!()),
+            // Push the statement, should be coherent now
+            statements.push(statement.clone());
+            pcs_before.push(current_state.clone());
+        }
+
+        // In the straight line problem, the terminator precondition is always
+        // empty since it's always GOTO or JUMP. => do not compute this special case here
+
+        // if JUMP
+        //      => Contiunue verifiaction on jumped-to block
+        match current_block.terminator {
+            MicroMirTerminator::Jump(bnext) => {
+                // TODO: refactor into micro_mir implementation
+                current_block = match micro_mir.encoding.get(&bnext) {
+                    Some(s) => s,
+                    None => {
+                        return Err(PrustiError::internal(
+                            "unexpected error when retrieving basic block",
                             MultiSpan::new(),
                         ));
                     }
                 }
-            };
-
-            // If we aren't immediately compatible with the next precondition, make it so with packs/unpacks
-
-            if !current_state.set.is_subset(&next_precondition.set) {
-                // Try to repack
-                // let move_repacker =
-                //     unify_moves(current_state.set, next_precondition.set, mir, tcx)?;
-                // for stmt in encode()
-                // Add the packs and unpacks into the program
-                // Update the next_precondition to be the first packs's precondition
             }
-
-            // Transfer: remove preconditions and add postconditions
-
-            next_s_index += 1;
+            MicroMirTerminator::Return(_) => {
+                // Log result and break
+                break;
+            }
+            _ => {
+                return Err(PrustiError::unsupported(
+                    "only jump and return statements supported",
+                    MultiSpan::new(),
+                ));
+            }
         }
-
-        // Advance to the next block or error if not straight-line verification
-
-        break;
     }
 
     // Report
-    todo!();
-}
-
-/// Pointwise state for the analysis
-struct PCSState<'tcx> {
-    pcs: PCS<'tcx>,
+    //  interp. final PCS *before* return, so the return statement is not computed
+    //   (some aspects of the theory still to work out here)
+    return Ok(StraitLineOpPCS {
+        micromir: micro_mir,
+        statements,
+        pcs_before,
+        final_pcs: current_state,
+    });
 }

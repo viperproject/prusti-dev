@@ -17,6 +17,7 @@ use prusti_rustc_interface::{
 /// Wrapper type for all errors
 pub type EncodingResult<A> = Result<A, PrustiError>;
 
+#[allow(dead_code)]
 /// retrieve local_decl from a place in a MIR context
 fn retrieve_local_decl<'a, 'tcx: 'a>(
     mir: &'a Body<'tcx>,
@@ -33,7 +34,7 @@ fn retrieve_local_decl<'a, 'tcx: 'a>(
 
 /// Retruns a collection of immediate subplaces
 /// (Modified from analysis/mir_utils)
-pub fn expand_place<'tcx>(
+pub fn expand_place<'mir, 'tcx: 'mir>(
     place: Place<'tcx>,
     mir: &Body<'tcx>,
     tcx: TyCtxt<'tcx>,

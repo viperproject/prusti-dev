@@ -47,6 +47,7 @@ pub enum LinearResource<'tcx> {
     Tmp(TemporaryPlace),
 }
 
+#[derive(Clone)]
 pub enum MicroMirStatement<'tcx> {
     Nop,
     Set(TemporaryPlace, Place<'tcx>, Mutability),
@@ -96,7 +97,7 @@ pub struct PCSPermission<'tcx> {
     pub kind: PCSPermissionKind,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PCS<'tcx> {
     pub set: FxHashSet<PCSPermission<'tcx>>,
 }
@@ -113,6 +114,25 @@ impl<'tcx> PCS<'tcx> {
             set: FxHashSet::default(),
         }
     }
+}
+
+impl<'mir> MicroMirData<'mir> {
+    // pub fn get_statement_indexed(
+    //     &self,
+    //     index: usize,
+    // ) -> EncodingResult<Result<MicroMirStatement<'mir>, MicroMirTerminator<'mir>>> {
+    //     // index over statemnents, then terminator, then done
+    //     if index == self.statements.len() {
+    //         Ok(Err(todo!()))
+    //     } else if index < self.statements.len() {
+    //         Ok(Ok(todo!()))
+    //     } else {
+    //         Err(PrustiError::internal(
+    //             "attempted access of micromir data outside it's terminator",
+    //             MultiSpan::new(),
+    //         ))
+    //     }
+    // }
 }
 
 impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
