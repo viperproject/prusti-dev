@@ -62,20 +62,20 @@ impl<'tcx> Encoder for DefSpecsEncoder<'tcx> {
     }
 }
 
-impl<'a, 'tcx> Encodable<DefSpecsEncoder<'tcx>> for DefId {
-    fn encode(&self, s: &mut DefSpecsEncoder<'tcx>) -> () {
+impl<'tcx> Encodable<DefSpecsEncoder<'tcx>> for DefId {
+    fn encode(&self, s: &mut DefSpecsEncoder<'tcx>) {
         s.tcx.def_path_hash(*self).encode(s)
     }
 }
 
-impl<'a, 'tcx> Encodable<DefSpecsEncoder<'tcx>> for DefIndex {
-    fn encode(&self, _: &mut DefSpecsEncoder<'tcx>) -> () {
+impl<'tcx> Encodable<DefSpecsEncoder<'tcx>> for DefIndex {
+    fn encode(&self, _: &mut DefSpecsEncoder<'tcx>) {
         panic!("encoding `DefIndex` without context");
     }
 }
 
 impl<'tcx> Encodable<DefSpecsEncoder<'tcx>> for CrateNum {
-    fn encode(&self, s: &mut DefSpecsEncoder<'tcx>) -> () {
+    fn encode(&self, s: &mut DefSpecsEncoder<'tcx>) {
         s.tcx.stable_crate_id(*self).encode(s)
     }
 }
@@ -100,7 +100,7 @@ impl<'tcx> TyEncoder for DefSpecsEncoder<'tcx> {
     fn encode_alloc_id(
         &mut self,
         alloc_id: &rustc_middle::mir::interpret::AllocId,
-    ) -> () {
+    ) {
         let (index, _) = self.interpret_allocs.insert_full(*alloc_id);
 
         index.encode(self)

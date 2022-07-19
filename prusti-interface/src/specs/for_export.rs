@@ -67,9 +67,9 @@ pub struct DefSpecificationMapForExportOwned<'tcx> {
 
 impl<'tcx> DefSpecificationMapForExportOwned<'tcx> {
     pub(crate) fn read_from_file(tcx: TyCtxt<'tcx>, path: &Path) -> io::Result<Self> {
-        DefSpecsBlob::from_file(path).and_then(|blob| {
+        DefSpecsBlob::from_file(path).map(|blob| {
             let mut decoder = DefSpecsDecoder::new(tcx, &blob);
-            Ok(Self::decode(&mut decoder))
+            Self::decode(&mut decoder)
         })
     }
 
