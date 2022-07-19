@@ -166,3 +166,15 @@ fn test10_assert_false(){
     let mut _d = &mut c;
     assert!(false);      //~ ERROR: the asserted expression might not hold
 }
+
+enum Enum5<'a, T> {
+    A(&'a mut T),
+    B(&'a mut T),
+}
+fn test11(){
+    let mut n = 4;
+    let mut c = C{ x: &mut n};
+    let mut e = Enum5::A(&mut c);
+    let mut f = &mut e;
+    let mut g = &mut f;
+}
