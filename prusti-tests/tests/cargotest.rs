@@ -255,6 +255,6 @@ fn test_overflow_checks() {
 // TODO: automatically create a test for each folder in `test/cargo_verify`.
 
 #[cargo_test]
-fn test_library_contracts() {
+fn test_library_contracts_test() {
     test_local_project_with_dependencies("library_contracts_test", &["library_contracts_lib"]);
 }
