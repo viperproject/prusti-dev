@@ -131,12 +131,12 @@ impl TypeSpecification {
     }
 }
 
-#[derive(Debug, Clone, TyEncodable, TyDecodable)]
+#[derive(Debug, Clone)]
 pub struct PrustiAssertion {
     pub assertion: LocalDefId,
 }
 
-#[derive(Debug, Clone, TyEncodable, TyDecodable)]
+#[derive(Debug, Clone)]
 pub struct PrustiAssumption {
     pub assumption: LocalDefId,
 }
