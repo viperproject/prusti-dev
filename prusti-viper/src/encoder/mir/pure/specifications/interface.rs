@@ -132,10 +132,9 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             parent_def_id,
             substs,
         )?;
-        let position = self.error_manager().register_span(
-            parent_def_id,
-            self.env().tcx().def_span(assertion),
-        );
+        let position = self
+            .error_manager()
+            .register_span(parent_def_id, self.env().tcx().def_span(assertion));
         Ok(encoded_assertion.set_default_position(position.into()))
     }
 

@@ -151,16 +151,21 @@ fn test_local_project_with_dependencies<T: Into<PathBuf>>(project_name: T, depen
         );
     }
 
-    let cargo_verify_path = project_path
-        .parent()
-        .unwrap_or_else(|| {
-            panic!(
-                "Failed to obtain parent folders of {}",
-                project_path.display()
-            )
-        });
+    let cargo_verify_path = project_path.parent().unwrap_or_else(|| {
+        panic!(
+            "Failed to obtain parent folders of {}",
+            project_path.display()
+        )
+    });
     for crate_name in dependencies {
-        println!("{}", format!("Creating symlink for {} -> {}", Path::new(crate_name).display(), cargo_verify_path.join(crate_name).as_path().display()));
+        println!(
+            "{}",
+            format!(
+                "Creating symlink for {} -> {}",
+                Path::new(crate_name).display(),
+                cargo_verify_path.join(crate_name).as_path().display()
+            )
+        );
         project_builder = project_builder.symlink_dir(
             cargo_verify_path.join(crate_name).as_path(),
             Path::new(crate_name),

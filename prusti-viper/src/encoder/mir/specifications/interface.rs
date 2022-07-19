@@ -12,8 +12,7 @@ use prusti_rustc_interface::{
     middle::{mir, ty::subst::SubstsRef},
     span::Span,
 };
-use std::{cell::RefCell, hash::Hash};
-use std::rc::Rc;
+use std::{cell::RefCell, hash::Hash, rc::Rc};
 
 pub(crate) struct SpecificationsState<'tcx> {
     specs: RefCell<Specifications<'tcx>>,
@@ -285,6 +284,13 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
     }
 
     fn get_local_mir(&self, def_id: DefId) -> Rc<mir::Body<'tcx>> {
-        return self.specifications_state.specs.borrow().get_local_mirs().get(&def_id).unwrap().clone();
+        return self
+            .specifications_state
+            .specs
+            .borrow()
+            .get_local_mirs()
+            .get(&def_id)
+            .unwrap()
+            .clone();
     }
 }
