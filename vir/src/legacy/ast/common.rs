@@ -15,7 +15,7 @@ use std::{
 };
 
 /// The identifier of a statement. Used in error reporting.
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Position {
     pub(crate) line: i32,
     pub(crate) column: i32,
@@ -63,7 +63,7 @@ pub enum PermAmountError {
 }
 
 /// The permission amount.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum PermAmount {
     Read,
     Write,
@@ -129,13 +129,17 @@ impl Ord for PermAmount {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub enum Float {
     F32,
     F64,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub enum BitVectorSize {
     BV8,
     BV16,
@@ -156,7 +160,9 @@ impl fmt::Display for BitVectorSize {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub enum BitVector {
     Signed(BitVectorSize),
     Unsigned(BitVectorSize),
@@ -171,13 +177,16 @@ impl fmt::Display for BitVector {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub enum Type {
     Int,
     Bool,
     Float(Float),
     BitVector(BitVector),
     Seq(Box<Type>),
+    Map(Box<Type>, Box<Type>),
     //Ref, // At the moment we don't need this
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(String),
@@ -193,6 +202,7 @@ pub enum TypeId {
     BitVector,
     Ref,
     Seq,
+    Map,
     Domain,
     Snapshot,
 }
@@ -209,6 +219,7 @@ impl fmt::Display for Type {
             Type::Domain(ref name) => write!(f, "Domain({})", name),
             Type::Snapshot(ref name) => write!(f, "Snapshot({})", name),
             Type::Seq(ref elem_ty) => write!(f, "Seq[{}]", elem_ty),
+            Type::Map(ref key_type, ref val_type) => write!(f, "Map[{}, {}]", key_type, val_type),
         }
     }
 }
@@ -237,6 +248,7 @@ impl Type {
             Type::Domain(ref pred_name) => pred_name.to_string(),
             Type::Snapshot(ref pred_name) => pred_name.to_string(),
             Type::Seq(_) => "Seq".to_string(),
+            Type::Map(..) => "Map".to_string(),
         }
     }
 
@@ -277,11 +289,12 @@ impl Type {
             Type::Domain(_) => TypeId::Domain,
             Type::Snapshot(_) => TypeId::Snapshot,
             Type::Seq(_) => TypeId::Seq,
+            Type::Map(..) => TypeId::Map,
         }
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct LocalVar {
     pub name: String,
     pub typ: Type,
@@ -312,7 +325,7 @@ impl LocalVar {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Eq, PartialEq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct Field {
     pub name: String,
     pub typ: Type,

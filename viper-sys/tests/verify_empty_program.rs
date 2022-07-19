@@ -1,11 +1,5 @@
-extern crate env_logger;
-extern crate error_chain;
-extern crate jni;
-#[macro_use]
-extern crate log;
-extern crate viper_sys;
-
 use jni::{objects::JObject, InitArgsBuilder, JNIVersion, JavaVM};
+use log::debug;
 use std::{env, fs};
 use viper_sys::{get_system_out, wrappers::*};
 

@@ -3,7 +3,11 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         lowerer::{Lowerer, VariablesLowererInterface},
-        snapshots::{IntoSnapshot, SnapshotValuesInterface},
+        references::ReferencesInterface,
+        snapshots::{
+            IntoProcedureSnapshot, IntoSnapshot, SnapshotValidityInterface, SnapshotValuesInterface,
+        },
+        type_layouts::TypeLayoutsInterface,
         types::TypesInterface,
     },
     mir::errors::ErrorInterface,
@@ -43,7 +47,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         version: u64,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         let name = format!("{}$snapshot${}", name, version);
-        let ty = ty.create_snapshot(self)?;
+        let ty = ty.to_snapshot(self)?;
         self.create_variable(name, ty)
     }
     /// Copy all values of the old snapshot into the new snapshot, except the
@@ -76,9 +80,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 | vir_mid::TypeDecl::Pointer(_) => {
                     unreachable!("place: {}", place);
                 }
-                vir_mid::TypeDecl::TypeVar(_) => unimplemented!("ty: {}", type_decl),
-                vir_mid::TypeDecl::Tuple(_) => unimplemented!("ty: {}", type_decl),
-                vir_mid::TypeDecl::Struct(decl) => {
+                vir_mid::TypeDecl::Trusted(_) | vir_mid::TypeDecl::TypeVar(_) => {
+                    unimplemented!("ty: {}", type_decl)
+                }
+                vir_mid::TypeDecl::Tuple(decl) => {
+                    // FIXME: Remove duplication with vir_mid::TypeDecl::Struct
                     let place_field = place.clone().unwrap_field(); // FIXME: Implement a macro that takes a reference to avoid clonning.
                     for field in decl.iter_fields() {
                         if field.as_ref() != &place_field.field {
@@ -86,13 +92,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                                 parent_type,
                                 &field,
                                 old_snapshot.clone(),
-                                Default::default(),
+                                position,
                             )?;
                             let new_field_snapshot = self.obtain_struct_field_snapshot(
                                 parent_type,
                                 &field,
                                 new_snapshot.clone(),
-                                Default::default(),
+                                position,
                             )?;
                             statements.push(
                                 stmtp! { position => assume ([new_field_snapshot] == [old_field_snapshot])},
@@ -104,13 +110,50 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                             parent_type,
                             &place_field.field,
                             old_snapshot,
-                            Default::default(),
+                            position,
                         )?,
                         self.obtain_struct_field_snapshot(
                             parent_type,
                             &place_field.field,
                             new_snapshot,
-                            Default::default(),
+                            position,
+                        )?,
+                    ))
+                }
+                vir_mid::TypeDecl::Struct(decl) => {
+                    // FIXME: Remove duplication with vir_mid::TypeDecl::Tuple
+                    let place_field = place.clone().unwrap_field(); // FIXME: Implement a macro that takes a reference to avoid clonning.
+                    for field in decl.iter_fields() {
+                        if field.as_ref() != &place_field.field {
+                            let old_field_snapshot = self.obtain_struct_field_snapshot(
+                                parent_type,
+                                &field,
+                                old_snapshot.clone(),
+                                position,
+                            )?;
+                            let new_field_snapshot = self.obtain_struct_field_snapshot(
+                                parent_type,
+                                &field,
+                                new_snapshot.clone(),
+                                position,
+                            )?;
+                            statements.push(
+                                stmtp! { position => assume ([new_field_snapshot] == [old_field_snapshot])},
+                            );
+                        }
+                    }
+                    Ok((
+                        self.obtain_struct_field_snapshot(
+                            parent_type,
+                            &place_field.field,
+                            old_snapshot,
+                            position,
+                        )?,
+                        self.obtain_struct_field_snapshot(
+                            parent_type,
+                            &place_field.field,
+                            new_snapshot,
+                            position,
                         )?,
                     ))
                 }
@@ -121,18 +164,105 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                             parent_type,
                             &place_variant.variant_index,
                             old_snapshot,
-                            Default::default(),
+                            position,
                         )?,
                         self.obtain_enum_variant_snapshot(
                             parent_type,
                             &place_variant.variant_index,
                             new_snapshot,
-                            Default::default(),
+                            position,
                         )?,
                     ))
                 }
-                vir_mid::TypeDecl::Array(_) => unimplemented!("ty: {}", type_decl),
-                vir_mid::TypeDecl::Reference(_) => unimplemented!("ty: {}", type_decl),
+                vir_mid::TypeDecl::Array(_) => {
+                    let call = place.clone().unwrap_builtin_func_app(); // FIXME: Implement a macro that takes a reference to avoid clonning.
+                    assert_eq!(call.function, vir_mid::BuiltinFunc::Index);
+                    let index = call.arguments[1].to_procedure_snapshot(self)?;
+                    let index_int = self.obtain_constant_value(
+                        call.arguments[1].get_type(),
+                        index.clone(),
+                        position,
+                    )?;
+                    let old_len = self.obtain_array_len_snapshot(old_snapshot.clone(), position)?;
+                    let new_len = self.obtain_array_len_snapshot(new_snapshot.clone(), position)?;
+                    let size_type = self.size_type()?;
+                    let size_type_mid = self.size_type_mid()?;
+                    var_decls! { i: {size_type.clone()} };
+                    let i_int =
+                        self.obtain_constant_value(&size_type_mid, i.clone().into(), position)?;
+                    let i_validity =
+                        self.encode_snapshot_valid_call_for_type(i.into(), &size_type_mid)?;
+                    let new_element_snapshot = self.obtain_array_element_snapshot(
+                        new_snapshot.clone(),
+                        i_int.clone(),
+                        position,
+                    )?;
+                    let old_element_snapshot = self.obtain_array_element_snapshot(
+                        old_snapshot.clone(),
+                        i_int.clone(),
+                        position,
+                    )?;
+                    statements.push(stmtp! { position => assume ([new_len.clone()] == [old_len])});
+                    statements.push(stmtp! { position =>
+                        assume (
+                            forall(
+                                i: {size_type} :: [ {[new_element_snapshot.clone()]} ]
+                                ([i_validity] && ([i_int] < [new_len]) && (i != [index])) ==>
+                                ([new_element_snapshot] == [old_element_snapshot])
+                            )
+                        )
+                    });
+                    Ok((
+                        self.obtain_array_element_snapshot(
+                            old_snapshot,
+                            index_int.clone(),
+                            position,
+                        )?,
+                        self.obtain_array_element_snapshot(new_snapshot, index_int, position)?,
+                    ))
+                }
+                vir_mid::TypeDecl::Reference(decl) => {
+                    if place.is_deref() {
+                        let old_address_snapshot =
+                            self.reference_address(parent_type, old_snapshot.clone(), position)?;
+                        let new_address_snapshot =
+                            self.reference_address(parent_type, new_snapshot.clone(), position)?;
+                        statements.push(stmtp! { position =>
+                            assume ([new_address_snapshot] == [old_address_snapshot])
+                        });
+                        if decl.uniqueness.is_unique() {
+                            let old_final_snapshot = self.reference_target_final_snapshot(
+                                parent_type,
+                                old_snapshot.clone(),
+                                position,
+                            )?;
+                            let new_final_snapshot = self.reference_target_final_snapshot(
+                                parent_type,
+                                new_snapshot.clone(),
+                                position,
+                            )?;
+                            statements.push(stmtp! { position =>
+                                assume ([new_final_snapshot] == [old_final_snapshot])
+                            });
+                        }
+                        Ok((
+                            self.reference_target_current_snapshot(
+                                parent_type,
+                                old_snapshot,
+                                position,
+                            )?,
+                            self.reference_target_current_snapshot(
+                                parent_type,
+                                new_snapshot,
+                                position,
+                            )?,
+                        ))
+                    } else {
+                        unimplemented!("Place: {}", place);
+                    }
+                }
+                vir_mid::TypeDecl::Sequence(_) => unimplemented!("ty: {}", type_decl),
+                vir_mid::TypeDecl::Map(_) => unimplemented!("ty: {}", type_decl),
                 vir_mid::TypeDecl::Never => unimplemented!("ty: {}", type_decl),
                 vir_mid::TypeDecl::Closure(_) => unimplemented!("ty: {}", type_decl),
                 vir_mid::TypeDecl::Unsupported(_) => unimplemented!("ty: {}", type_decl),
@@ -154,6 +284,11 @@ pub(in super::super::super) trait SnapshotVariablesInterface {
         &mut self,
         variable: &vir_mid::VariableDecl,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
+    fn snapshot_variable_version_at_label(
+        &mut self,
+        variable: &vir_mid::VariableDecl,
+        label: &str,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl>;
     #[allow(clippy::ptr_arg)] // Clippy false positive.
     fn encode_snapshot_update(
         &mut self,
@@ -166,15 +301,16 @@ pub(in super::super::super) trait SnapshotVariablesInterface {
         &mut self,
         label: &vir_mid::BasicBlockId,
         predecessors: &BTreeMap<vir_mid::BasicBlockId, Vec<vir_mid::BasicBlockId>>,
-        basic_blocks: &mut BTreeMap<
+        basic_block_edges: &mut BTreeMap<
             vir_mid::BasicBlockId,
-            (Vec<vir_low::Statement>, vir_low::Successor),
+            BTreeMap<vir_mid::BasicBlockId, Vec<vir_low::Statement>>,
         >,
     ) -> SpannedEncodingResult<()>;
     fn unset_current_block_for_snapshots(
         &mut self,
         label: vir_mid::BasicBlockId,
     ) -> SpannedEncodingResult<()>;
+    fn save_old_label(&mut self, label: String) -> SpannedEncodingResult<()>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> {
@@ -206,6 +342,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
             .get_or_default(&variable.name);
         self.create_snapshot_variable(&variable.name, &variable.ty, version)
     }
+    fn snapshot_variable_version_at_label(
+        &mut self,
+        variable: &vir_mid::VariableDecl,
+        label: &str,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        let version = self
+            .snapshots_state
+            .variables_at_label
+            .get(label)
+            .unwrap_or_else(|| panic!("not found label {}", label))
+            .get_or_default(&variable.name);
+        self.create_snapshot_variable(&variable.name, &variable.ty, version)
+    }
     fn encode_snapshot_update(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
@@ -216,19 +365,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
         use vir_low::macros::*;
         let base = target.get_base();
         self.ensure_type_definition(&base.ty)?;
-        let old_snapshot = base.create_snapshot(self)?;
+        let old_snapshot = base.to_procedure_snapshot(self)?;
         let new_snapshot = self.new_snapshot_variable_version(&base, position)?;
         self.snapshot_copy_except(statements, old_snapshot, new_snapshot, target, position)?;
-        statements.push(stmtp! { position => assume ([target.create_snapshot(self)?] == [value]) });
+        statements
+            .push(stmtp! { position => assume ([target.to_procedure_snapshot(self)?] == [value]) });
         Ok(())
     }
+    /// `basic_block_edges` are statements to be executed then going from one
+    /// block to another.
     fn set_current_block_for_snapshots(
         &mut self,
         label: &vir_mid::BasicBlockId,
         predecessors: &BTreeMap<vir_mid::BasicBlockId, Vec<vir_mid::BasicBlockId>>,
-        basic_blocks: &mut BTreeMap<
+        basic_block_edges: &mut BTreeMap<
             vir_mid::BasicBlockId,
-            (Vec<vir_low::Statement>, vir_low::Successor),
+            BTreeMap<vir_mid::BasicBlockId, Vec<vir_low::Statement>>,
         >,
     ) -> SpannedEncodingResult<()> {
         let predecessor_labels = &predecessors[label];
@@ -250,20 +402,23 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
                     .get_type(&variable)
                     .clone();
                 let new_variable = self.create_snapshot_variable(&variable, &ty, new_version)?;
-                for label in predecessor_labels {
-                    if let Some(old_version) = self.snapshots_state.variables[label].get(&variable)
-                    {
-                        let (statements, _) = basic_blocks.get_mut(label).unwrap();
-                        let old_variable =
-                            self.create_snapshot_variable(&variable, &ty, old_version)?;
-                        let position = self.encoder.change_error_context(
-                            // FIXME: Get a more precise span.
-                            self.snapshots_state.all_variables.get_position(&variable),
-                            ErrorCtxt::Unexpected,
-                        );
-                        let statement = vir_low::macros::stmtp! { position => assume (new_variable == old_variable) };
-                        statements.push(statement);
-                    }
+                for predecessor_label in predecessor_labels {
+                    let old_version =
+                        self.snapshots_state.variables[predecessor_label].get_or_default(&variable);
+                    let statements = basic_block_edges
+                        .entry(predecessor_label.clone())
+                        .or_default()
+                        .entry(label.clone())
+                        .or_default();
+                    let old_variable =
+                        self.create_snapshot_variable(&variable, &ty, old_version)?;
+                    let position = self.encoder.change_error_context(
+                        // FIXME: Get a more precise span.
+                        self.snapshots_state.all_variables.get_position(&variable),
+                        ErrorCtxt::Unexpected,
+                    );
+                    let statement = vir_low::macros::stmtp! { position => assume (new_variable == old_variable) };
+                    statements.push(statement);
                 }
                 new_map.set(variable, new_version);
             } else {
@@ -281,6 +436,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
         assert!(self
             .snapshots_state
             .variables
+            .insert(label, current_variables)
+            .is_none());
+        Ok(())
+    }
+    fn save_old_label(&mut self, label: String) -> SpannedEncodingResult<()> {
+        let current_variables = self.snapshots_state.current_variables.clone().unwrap();
+        assert!(self
+            .snapshots_state
+            .variables_at_label
             .insert(label, current_variables)
             .is_none());
         Ok(())

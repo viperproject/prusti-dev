@@ -8,7 +8,9 @@
 pub mod commandline;
 
 use self::commandline::CommandLine;
-use config_crate::{Config, Environment, File};
+use ::config::{Config, Environment, File};
+use log::warn;
+use prusti_launch::{get_current_executable_dir, find_viper_home};
 use serde::Deserialize;
 use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
@@ -59,7 +61,7 @@ impl Optimizations {
     }
 }
 
-lazy_static! {
+lazy_static::lazy_static! {
     // Is this RwLock<..> necessary?
     static ref SETTINGS: RwLock<Config> = RwLock::new({
         let mut settings = Config::default();
@@ -67,6 +69,13 @@ lazy_static! {
         // 1. Default values
         settings.set_default("be_rustc", false).unwrap();
         settings.set_default("viper_backend", "Silicon").unwrap();
+        settings.set_default::<Option<String>>("smt_solver_path", env::var("Z3_EXE").ok()).unwrap();
+        settings.set_default::<Option<String>>("smt_solver_wrapper_path", None).unwrap();
+        settings.set_default::<Option<String>>("boogie_path", env::var("BOOGIE_EXE").ok()).unwrap();
+        settings.set_default::<Option<String>>("viper_home", None).unwrap();
+        settings.set_default::<Option<String>>("java_home", None).unwrap();
+
+        settings.set_default::<Option<u32>>("check_timeout", None).unwrap();
         settings.set_default("check_foldunfold_state", false).unwrap();
         settings.set_default("check_overflows", true).unwrap();
         settings.set_default("check_panics", true).unwrap();
@@ -77,6 +86,7 @@ lazy_static! {
         settings.set_default("cache_path", "").unwrap();
         settings.set_default("dump_debug_info", false).unwrap();
         settings.set_default("dump_debug_info_during_fold", false).unwrap();
+        settings.set_default("dump_nll_facts", false).unwrap();
         settings.set_default("ignore_regions", false).unwrap();
         settings.set_default("max_log_file_name_length", 60).unwrap();
         settings.set_default("dump_path_ctxt_in_debug_info", false).unwrap();
@@ -89,6 +99,7 @@ lazy_static! {
         settings.set_default::<Vec<String>>("extra_verifier_args", vec![]).unwrap();
         settings.set_default("quiet", false).unwrap();
         settings.set_default("assert_timeout", 10_000).unwrap();
+        settings.set_default("smt_qi_eager_threshold", 1000).unwrap();
         settings.set_default("use_more_complete_exhale", true).unwrap();
         settings.set_default("skip_unsupported_features", false).unwrap();
         settings.set_default("internal_errors_as_warnings", false).unwrap();
@@ -97,13 +108,16 @@ lazy_static! {
         settings.set_default("no_verify_deps", false).unwrap();
         settings.set_default("full_compilation", false).unwrap();
         settings.set_default("json_communication", false).unwrap();
-        settings.set_default("optimizations","all").unwrap();
+        settings.set_default("optimizations", "all").unwrap();
         settings.set_default("intern_names", true).unwrap();
         settings.set_default("enable_purification_optimization", false).unwrap();
-        settings.set_default("enable_manual_axiomatization", false).unwrap();
-        settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();
+        // settings.set_default("enable_manual_axiomatization", false).unwrap();
         settings.set_default("unsafe_core_proof", false).unwrap();
         settings.set_default("only_memory_safety", false).unwrap();
+        settings.set_default("check_no_drops", false).unwrap();
+        settings.set_default("enable_type_invariants", false).unwrap();
+        settings.set_default("use_new_encoder", true).unwrap();
+        settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -112,6 +126,23 @@ lazy_static! {
         settings.set_default("counterexample", false).unwrap();
         settings.set_default("print_hash", false).unwrap();
         settings.set_default("enable_cache", true).unwrap();
+        settings.set_default("enable_ghost_constraints", false).unwrap();
+
+        // Flags for testing.
+        settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();
+        settings.set_default("use_smt_wrapper", false).unwrap();
+        settings.set_default("smt_quantifier_instantiations_ignore_builtin", true).unwrap();
+        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_global", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_global_kind", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_trace", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_quantifier_instantiations_bound_trace_kind", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_unique_triggers_bound", None).unwrap();
+        settings.set_default::<Option<u64>>("smt_unique_triggers_bound_total", None).unwrap();
+
+        // Flags for debugging performance.
+        settings.set_default("preserve_smt_trace_files", false).unwrap();
+        settings.set_default("write_smt_statistics", false).unwrap();
+        settings.set_default("log_smt_wrapper_interaction", false).unwrap();
 
         // Flags for debugging Prusti that can change verification results.
         settings.set_default("disable_name_mangling", false).unwrap();
@@ -130,6 +161,7 @@ lazy_static! {
         allowed_keys.insert("log_style".to_string());
         allowed_keys.insert("rustc_log_args".to_string());
         allowed_keys.insert("rustc_log_env".to_string());
+        allowed_keys.insert("original_smt_solver_path".to_string());
 
         // 2. Override with default env variables (e.g. `DEFAULT_PRUSTI_CACHE_PATH`, ...)
         settings.merge(
@@ -191,7 +223,11 @@ pub fn get_filtered_args() -> Vec<String> {
 
 /// Generate a dump of the settings
 pub fn dump() -> String {
-    format!("{:#?}", SETTINGS.read().unwrap())
+    let settings = SETTINGS.read().unwrap();
+    let map = config::Source::collect(&*settings).unwrap();
+    let mut pairs: Vec<_> = map.iter().map(|(key, value)| format!("{}={:#?}", key, value)).collect();
+    pairs.sort();
+    pairs.join("\n\n")
 }
 
 fn read_optional_setting<T>(name: &'static str) -> Option<T>
@@ -208,17 +244,28 @@ where
     read_optional_setting(name).unwrap_or_else(|| panic!("Failed to read setting {:?}", name))
 }
 
-/// Should Prusti behave exactly like rustc?
+// The following methods are all convenience wrappers for the actual call to
+// `read_setting` (+ optionally some light sanitisation or processing). Please
+// keep the documentation on each method in sync with `flags.md` in the dev
+// guide!
+
+/// When enabled, Prusti will behave like `rustc`.
 pub fn be_rustc() -> bool {
     read_setting("be_rustc")
 }
 
-/// Generate additional, *slow*, checks for the foldunfold algorithm
+/// When enabled, additional, *slow*, checks for the `fold`/`unfold` algorithm
+/// will be generated.
 pub fn check_foldunfold_state() -> bool {
     read_setting("check_foldunfold_state")
 }
 
-/// The Viper backend that should be used for the verification
+/// Verification backend to use. Possible values:
+///
+/// - `Carbon` - verification-condition-generation-based backend
+///   [Carbon](https://github.com/viperproject/carbon).
+/// - `Silicon` - symbolic-execution-based backend
+///   [Silicon](https://github.com/viperproject/silicon/).
 pub fn viper_backend() -> String {
     read_setting::<String>("viper_backend")
         .to_lowercase()
@@ -226,216 +273,323 @@ pub fn viper_backend() -> String {
         .to_string()
 }
 
-/// Should we check absence of panics?
+/// The path to the SMT solver to use. `prusti-rustc` is expected to set this
+/// configuration flag to the correct path to Z3.
+pub fn smt_solver_path() -> String {
+    read_setting::<Option<String>>("smt_solver_path")
+        .expect("please set the smt_solver_path configuration flag")
+}
+
+/// The path to the SMT solver wrapper. `prusti-rustc` is expected to set this
+/// configuration flag to the correct path.
+pub fn smt_solver_wrapper_path() -> String {
+    read_setting::<Option<String>>("smt_solver_wrapper_path")
+        .expect("please set the smt_solver_wrapper_path configuration flag")
+}
+
+/// The path to the Boogie executable. `prusti-rustc` is expected to set this
+/// configuration flag to the correct path.
+pub fn boogie_path() -> Option<String> {
+    read_setting::<Option<String>>("boogie_path")
+}
+
+/// The path to the Viper JARs. `prusti-rustc` is expected to set this
+/// configuration flag to the correct path.
+pub fn viper_home() -> String {
+    if let Some(path) = read_setting::<Option<String>>("viper_home") {
+        path
+    } else {
+        // If we are running tests, the VIPER_HOME should be in a directory
+        // relative to us.
+        let current_executable_dir = get_current_executable_dir();
+        if let Some(path) = find_viper_home(&current_executable_dir) {
+            path.to_str().unwrap().to_owned()
+        } else {
+            panic!("Failed to detect Vipe home, please set viper_home configuration flag")
+        }
+    }
+}
+
+/// The path to the Viper JARs. `prusti-rustc` is expected to set this
+/// configuration flag to the correct path.
+pub fn java_home() -> String {
+    read_setting::<Option<String>>("java_home")
+        .expect("please set the java_home configuration flag")
+}
+
+/// When enabled, Prusti will check for an absence of `panic!`s.
 pub fn check_panics() -> bool {
     read_setting("check_panics")
 }
 
-/// Should we simplify the encoding before passing it to Viper?
+/// When enabled, the encoded program is simplified before it is passed to
+/// the Viper backend.
 pub fn simplify_encoding() -> bool {
     read_setting("simplify_encoding")
 }
 
-/// Should we dump debug files?
+/// When enabled, debug files will be created.
 pub fn dump_debug_info() -> bool {
     read_setting("dump_debug_info")
 }
 
-/// Should we dump debug files for fold/unfold generation?
+/// When enabled, the state of the fold-unfold algorithm after each step will
+/// be dumped to a file.
 pub fn dump_debug_info_during_fold() -> bool {
     read_setting("dump_debug_info_during_fold")
 }
 
-/// Should the dumped debug files not contain lifetime regions?
+/// When enabled, dumps Polonius nll-facts in the log directory.
+pub fn dump_nll_facts() -> bool {
+    read_setting("dump_nll_facts")
+}
+
+/// When enabled, debug files dumped by `rustc` will not contain lifetime
+/// regions.
 pub fn ignore_regions() -> bool {
     read_setting("ignore_regions")
 }
 
-/// What is the longest allowed length of a log file name? If this is exceeded,
-/// the file name is truncated.
+/// Maximum allowed length of a log file name. If this is exceeded, the file
+/// name is truncated.
 pub fn max_log_file_name_length() -> usize {
     read_setting("max_log_file_name_length")
 }
 
-/// Should we dump the branch context state in debug files?
+/// When enabled, branch context state will be output in debug files.
 pub fn dump_path_ctxt_in_debug_info() -> bool {
     read_setting("dump_path_ctxt_in_debug_info")
 }
 
-/// Should we dump the reborrowing DAGs in debug files?
+/// When enabled, reborrowing DAGs will be output in debug files.
 pub fn dump_reborrowing_dag_in_debug_info() -> bool {
     read_setting("dump_reborrowing_dag_in_debug_info")
 }
 
-/// Should we dump borrowck info?
+/// When enabled, borrow checking info will be output.
 pub fn dump_borrowck_info() -> bool {
     read_setting("dump_borrowck_info")
 }
 
-/// Should we dump the Viper program?
+/// When enabled, the encoded Viper program will be output.
 pub fn dump_viper_program() -> bool {
     read_setting("dump_viper_program")
 }
 
-/// The Viper backend that should be used for the verification
+/// Filter for `fold`/`unfold` nodes when debug info is dumped.
 pub fn foldunfold_state_filter() -> String {
     read_setting("foldunfold_state_filter")
 }
 
-/// In which folder should we store log/dumps?
+/// Path to directory in which log files and dumped output will be stored.
 pub fn log_dir() -> PathBuf {
     PathBuf::from(read_setting::<String>("log_dir"))
 }
 
-/// In which folder should we store the Verification cache
+/// Path to a cache file, where verification cache will be loaded from and
+/// saved to. The default empty string disables saving any cache to disk.
+/// A path to a file which does not yet exist will result in using an empty
+/// cache, but then creating and saving to that location on exit.
 pub fn cache_path() -> PathBuf {
     PathBuf::from(read_setting::<String>("cache_path"))
 }
 
-/// Check binary operations for overflows
+/// When enabled, binary operations and numeric casts will be checked for
+/// overflows.
 pub fn check_overflows() -> bool {
     read_setting("check_overflows")
 }
 
-/// Encode (and check) that unsigned integers are non-negative.
+/// When enabled, non-negativity of unsigned integers will be encoded and
+/// checked.
 pub fn encode_unsigned_num_constraint() -> bool {
     read_setting("encode_unsigned_num_constraint")
 }
 
-/// Enable (highly hacky) support for bitvectors.
+/// When enabled, bitwise integer operations are encoded using bitvectors.
+///
+/// **Note:** this option is highly experimental.
 pub fn encode_bitvectors() -> bool {
     read_setting("encode_bitvectors")
 }
 
-/// Location of 'libprusti_contracts*.rlib'
+/// Path to `libprusti_contracts*.rlib`.
 pub fn contracts_lib() -> String {
     read_setting("contracts_lib")
 }
 
-/// Get extra JVM arguments
+/// Additional arguments to pass to the JVM when launching a verifier backend.
 pub fn extra_jvm_args() -> Vec<String> {
     read_setting("extra_jvm_args")
 }
 
-/// Get extra arguments for the verifier
+/// Additional arguments to pass to the verifier backend.
 pub fn extra_verifier_args() -> Vec<String> {
     read_setting("extra_verifier_args")
 }
 
-/// Should we hide user messages?
+/// When enabled, user messages are not printed. Otherwise, message output
+/// into `stderr`.
 pub fn quiet() -> bool {
     read_setting("quiet")
 }
 
-/// The assert timeout (in milliseconds) passed to Silicon.
+/// Maximum time (in milliseconds) for the verifier to spend on a single
+/// assertion. Set to `0` to disable timeout. Maps to the verifier command-line
+/// argument `--assertTimeout`.
 pub fn assert_timeout() -> u64 {
     read_setting("assert_timeout")
 }
 
-/// Use the Silicon configuration option `--enableMoreCompleteExhale`.
+/// Set `qi.eager_threshold` value to the given one.
+pub fn smt_qi_eager_threshold() -> u64 {
+    read_setting("smt_qi_eager_threshold")
+}
+
+/// Maximum time (in milliseconds) for the verifier to spend on checks.
+/// Set to None uses the verifier's default value. Maps to the verifier command-line
+/// argument `--checkTimeout`.
+///
+/// For more information see https://github.com/viperproject/silicon/blob/4c70514379f89e7ec6f96588290ade32518f0527/src/main/scala/Config.scala#L203
+pub fn check_timeout() -> Option<u32> {
+    read_setting("check_timeout")
+}
+
+/// When enabled, a more complete `exhale` version is used in the verifier.
+/// See [`consolidate`](https://github.com/viperproject/silicon/blob/f48de7f6e2d90d9020812869c713a5d3e2035995/src/main/scala/rules/StateConsolidator.scala#L29-L46).
+/// Equivalent to the verifier command-line argument
+/// `--enableMoreCompleteExhale`.
 pub fn use_more_complete_exhale() -> bool {
     read_setting("use_more_complete_exhale")
 }
 
-/// Should Prusti print the items collected for verification.
+/// When enabled, prints the items collected for verification.
 pub fn print_collected_verification_items() -> bool {
     read_setting("print_collected_verification_items")
 }
 
-/// Should Prusti print the AST with desugared specifications.
+/// When enabled, prints the AST with desugared specifications.
 pub fn print_desugared_specs() -> bool {
     read_setting("print_desugared_specs")
 }
 
-/// Should Prusti print the type-checked specifications.
+/// When enabled, prints the type-checked specifications.
 pub fn print_typeckd_specs() -> bool {
     read_setting("print_typeckd_specs")
 }
 
-/// Should Prusti hide the UUIDs of expressions and specifications.
+/// When enabled, UUIDs of expressions and specifications printed with
+/// `PRINT_TYPECKD_SPECS` are hidden.
 pub fn hide_uuids() -> bool {
     read_setting("hide_uuids")
 }
 
-/// Should Prusti produce a counterexample.
-pub fn produce_counterexample() -> bool {
+/// When enabled, Prusti will try to find and print a counterexample for any
+/// failed assertion or specification.
+pub fn counterexample() -> bool {
     read_setting("counterexample")
 }
 
-/// Should Prusti print VerificationRequest hashes.
+/// When enabled, prints the hash of a verification request (the hash is used
+/// for caching). This is a debugging option which does not perform
+/// verification -- it is similar to `NO_VERIFY`, except that this flag stops
+/// the verification process at a later stage.
 pub fn print_hash() -> bool {
     read_setting("print_hash")
 }
 
-/// Should Prusti ignore cached verification results.
+/// When enabled, verification requests (to verify individual `fn`s) are cached
+/// to improve future verification. By default the cache is only saved in
+/// memory (of the `prusti-server` if enabled). For long-running verification
+/// projects use `CACHE_PATH` to save to disk.
 pub fn enable_cache() -> bool {
     read_setting("enable_cache")
 }
 
-/**
-The maximum amount of instantiated viper verifiers the server will keep around for reuse.
-If not set, this defaults to `SERVER_MAX_CONCURRENT_VERIFICATION_OPERATIONS`.
-It also doesn't make much sense to set this to less than that, since then the server will likely have to keep creating new verifiers, reducing the performance gained from reuse.
-**Note:** This does _not_ limit how many verification requests the server handles concurrently, only the size of what is essentially its verifier cache.
-*/
+/// Maximum amount of instantiated Viper verifiers the server will keep around
+/// for reuse. If not set, defaults to
+/// `SERVER_MAX_CONCURRENT_VERIFICATION_OPERATIONS`. It also doesn't make much
+/// sense to set this option to less than that, since then the server will
+/// likely have to keep creating new verifiers, reducing the performance gained
+/// from reuse.
+///
+/// **Note:** This does _not_ limit how many verification requests the server
+/// handles concurrently, only the size of what is essentially its verifier
+/// cache.
 pub fn server_max_stored_verifiers() -> Option<usize> {
     // TODO: default to below in prusti-server
     // TODO: warn if lower than below
     read_optional_setting("server_max_stored_verifiers")
 }
 
-/// The maximum amount of verification requests the server will work on concurrently.
-///
-/// If not set, this defaults to the number of (logical) cores on the system
+/// Maximum amount of verification requests the server will work on
+/// concurrently. If not set, defaults to the number of (logical) cores on
+/// the system.
 pub fn server_max_concurrency() -> Option<usize> {
     read_optional_setting("server_max_concurrency")
 }
 
-/// When set, Prusti will connect to this server and use it for its verification backend (i.e. the things using the JVM/Viper).
-/// Set to "MOCK" to run the server off-thread, effectively mocking connecting to a server without having to start it up separately.
-/// e.g. "127.0.0.1:2468"
+/// When set to an address and port (e.g. `"127.0.0.1:2468"`), Prusti will
+/// connect to the given server and use it for its verification backend.
+///
+/// When set to `"MOCK"`, the server is run off-thread, effectively mocking
+/// connecting to a server without having to start it up separately.
 pub fn server_address() -> Option<String> {
     read_optional_setting("server_address")
 }
 
-/// If true, communication with the server will be encoded as json and not the default of bincode.
+/// When enabled, communication with the server will be encoded as JSON
+/// instead of the default bincode.
 pub fn json_communication() -> bool {
     read_setting("json_communication")
 }
 
-/// Disable mangling of generated Viper names.
+/// When enabled, Viper name mangling will be disabled.
 ///
-/// **Note:** This is very likely to result in invalid programs being
-/// generated because of name collisions.
+/// **Note:** This is very likely to result in invalid programs being generated
+/// because of name collisions.
 pub fn disable_name_mangling() -> bool {
     read_setting("disable_name_mangling")
 }
 
-/// Verify only the preamble: domains, functions, and predicates.
+/// When enabled, only the preamble will be verified: domains, functions,
+/// and predicates.
 ///
 /// **Note:** With this flag enabled, no methods are verified!
 pub fn verify_only_preamble() -> bool {
     read_setting("verify_only_preamble")
 }
 
-/// Verify only the path given in ``VERIFY_ONLY_BASIC_BLOCK_PATH``.
+/// When enabled, only the path given in `VERIFY_ONLY_BASIC_BLOCK_PATH` will
+/// be verified.
 ///
-/// **Note:** This flag is only for debugging Prusti!
+/// **Note:** This flag is only for debugging Prusti.
 pub fn enable_verify_only_basic_block_path() -> bool {
     read_setting("enable_verify_only_basic_block_path")
 }
 
 /// Verify only the single execution path goes through the given basic blocks.
+/// All basic blocks not on this execution path are replaced with `assume false`.
+/// Must be enabled using the `ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH` flag.
 ///
-/// All basic blocks not on this execution path are replaced with
-/// ``assume false``.
-///
-/// **Note:** This flag is only for debugging Prusti!
+/// **Note:** This option is only for debugging Prusti.
 pub fn verify_only_basic_block_path() -> Vec<String> {
     read_setting("verify_only_basic_block_path")
 }
 
-/// Which optimizations should be enabled
+/// Comma-separated list of optimizations to enable, or `"all"` to enable all.
+/// Possible values in the list are:
+///
+/// - `"inline_constant_functions"`
+/// - `"delete_unused_predicates"`
+/// - `"optimize_folding"`
+/// - `"remove_empty_if"`
+/// - `"purify_vars"`
+/// - `"fix_quantifiers"`
+/// - `"fix_unfoldings"`
+/// - `"remove_unused_vars"`
+/// - `"remove_trivial_assertions"`
+/// - `"clean_cfg"`
 pub fn optimizations() -> Optimizations {
     let optimizations_string = read_setting::<String>("optimizations");
 
@@ -462,80 +616,227 @@ pub fn optimizations() -> Optimizations {
     opt
 }
 
-/// Enable purification optimization for impure functions.
+/// When enabled, impure methods are optimized using the purification
+/// optimization, which tries to convert heap operations to pure (snapshot-
+/// based) operations.
+///
+/// **Note:** this option is highly experimental.
 pub fn enable_purification_optimization() -> bool {
     read_setting("enable_purification_optimization")
 }
 
-/// Enable manual axiomatization of pure functions.
+/// Deadline (in seconds) within which Prusti should encode and verify
+/// the program.
 ///
-/// **Note:** this is currently very incomplete and may introduce unsoudnesses.
-pub fn enable_manual_axiomatization() -> bool {
-    read_setting("enable_manual_axiomatization")
-}
-
-/// Set the deadline in seconds within which Prusti should encode and verify the
-/// program.
-///
-/// Prusti panics if it fails to meet this deadline. This flag is intended to be
-/// used for tests that aim to catch performance regressions.
+/// Prusti panics if it fails to meet this deadline. This flag is intended to
+/// be used for tests that aim to catch performance regressions.
 pub fn verification_deadline() -> Option<u64> {
     read_setting::<Option<i64>>("verification_deadline").map(|value| {
         value.try_into().expect("verification_deadline must be a valid u64")
     })
 }
 
-/// Use the new core proof suitable for unsafe code.
+/// Instead of using Z3 directly, use our SMT wrapper that tracks important
+/// statistics. This must be set to `true` to use any of the
+/// `smt_quantifier_instantiations_bound_*`.
+pub fn use_smt_wrapper() -> bool {
+    read_setting("use_smt_wrapper")
+}
+
+fn read_smt_wrapper_dependent_bool(name: &'static str) -> bool
+{
+    let value = read_setting(name);
+    if value {
+        assert!(use_smt_wrapper(), "use_smt_wrapper must be true to use {}", name);
+    }
+    value
+}
+
+fn read_smt_wrapper_dependent_option(name: &'static str) -> Option<u64>
+{
+    let value: Option<u64> = read_setting(name);
+    if value.is_some() {
+        assert!(use_smt_wrapper(), "use_smt_wrapper must be true to use {}", name);
+    }
+    value
+}
+
+/// Whether the built-in quantifiers should be ignored when comparing bounds.
+pub fn smt_quantifier_instantiations_ignore_builtin() -> bool {
+    read_setting("smt_quantifier_instantiations_ignore_builtin")
+}
+
+/// Limit how many quantifier instantiations Z3 can make while verifying the
+/// program. This bound is for the total number of quantifier instantiations
+/// made on a single thread **without** taking into account `push`/`pop`.
 ///
-/// **Note:** this is currently very incomplete.
+/// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
+/// This flag is intended to be used for tests that aim to catch performance
+/// regressions and matching loops.
+pub fn smt_quantifier_instantiations_bound_global() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_global")
+}
+
+/// Limit how many quantifier instantiations Z3 can make while verifying the
+/// program. This bound is for the total number of quantifier instantiations
+/// made by a single quantifier on a single thread **without** taking into
+/// account `push`/`pop`.
+///
+/// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
+/// This flag is intended to be used for tests that aim to catch performance
+/// regressions and matching loops.
+pub fn smt_quantifier_instantiations_bound_global_kind() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_global_kind")
+}
+
+/// Limit how many quantifier instantiations Z3 can make while verifying the
+/// program. This bound is for the total number of quantifier instantiations on
+/// a specific trace (in other words, it is a version of
+/// `smt_quantifier_instantiations_bound_global` that takes into account `push`
+/// and `pop`.)
+///
+/// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
+/// This flag is intended to be used for tests that aim to catch performance
+/// regressions and matching loops.
+pub fn smt_quantifier_instantiations_bound_trace() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_trace")
+}
+
+/// Limit how many quantifier instantiations Z3 can make while verifying the
+/// program. This bound is for the number of quantifier instantiations on a
+/// specific trace per quantifier (in other words, it is a version of
+/// `smt_quantifier_instantiations_bound_trace` that takes computes the
+/// instantiations for each quantifier separately.)
+///
+/// Z3 wrapper crashes if it exceeds this bound causing Prusti to crash as well.
+/// This flag is intended to be used for tests that aim to catch performance
+/// regressions and matching loops.
+pub fn smt_quantifier_instantiations_bound_trace_kind() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_quantifier_instantiations_bound_trace_kind")
+}
+
+/// Limit how many unique triggers per quantifier Z3 can instantiate.
+pub fn smt_unique_triggers_bound() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_unique_triggers_bound")
+}
+
+/// Limit how many unique triggers in total Z3 can instantiate.
+pub fn smt_unique_triggers_bound_total() -> Option<u64> {
+    read_smt_wrapper_dependent_option("smt_unique_triggers_bound_total")
+}
+
+/// Preserve the Z3 trace files. Since the files can be huge, they are by
+/// default deleted once the required checks are made.
+pub fn preserve_smt_trace_files() -> bool {
+    read_smt_wrapper_dependent_bool("preserve_smt_trace_files")
+}
+
+/// Write the statistics colllected by the SMT wrapper into CSV files.
+pub fn write_smt_statistics() -> bool {
+    read_smt_wrapper_dependent_bool("write_smt_statistics")
+}
+
+/// Log communication of Silicon with Z3.
+pub fn log_smt_wrapper_interaction() -> bool {
+    read_smt_wrapper_dependent_bool("log_smt_wrapper_interaction")
+}
+
+/// When enabled, the new core proof is used, suitable for unsafe code
+///
+/// **Note:** This option is currently very incomplete.
 pub fn unsafe_core_proof() -> bool {
     read_setting("unsafe_core_proof")
 }
 
-/// Verify only the core proof.
+/// When enabled, replaces calls to the drop function with `assert false`.
 ///
-/// Note: This should be used together with `unsafe_core_proof=True`.
+/// **Note:** This option is used only for testing.
+pub fn check_no_drops() -> bool {
+    read_setting("check_no_drops")
+}
+
+/// When enabled, only the core proof is verified.
+///
+/// **Note:** This should be used only when `UNSAFE_CORE_PROOF` is enabled.
 pub fn only_memory_safety() -> bool {
     read_setting("only_memory_safety")
 }
 
-/// Replace the given basic blocks with ``assume false``.
+/// When enabled, Prusti uses the new VIR encoder.
+///
+/// This is a temporary configuration flag.
+/// The new VIR encoder is still a work in progress,
+/// once finished this will become the only encoder.
+///
+/// If you run into `todo!()` or `unreachable!()`,
+/// then setting this flag to `false` may help.
+pub fn use_new_encoder() -> bool {
+    read_setting("use_new_encoder")
+}
+
+/// How many parallel verifiers Silicon should use.
+pub fn number_of_parallel_verifiers() -> Option<u8> {
+    read_setting("number_of_parallel_verifiers")
+}
+
+/// The given basic blocks will be replaced with `assume false`.
 pub fn delete_basic_blocks() -> Vec<String> {
     read_setting("delete_basic_blocks")
 }
 
-/// Skip features that are unsupported or partially supported
+/// When enabled, features not supported by Prusti will be reported as warnings
+/// rather than errors.
 pub fn skip_unsupported_features() -> bool {
     read_setting("skip_unsupported_features")
 }
 
-/// Report internal errors as warnings instead of errors. Used for testing.
+/// When enabled, internal errors are reported as warnings instead of errors.
+/// Used for testing.
 pub fn internal_errors_as_warnings() -> bool {
     read_setting("internal_errors_as_warnings")
 }
 
-/// Encode unsupported code as `assert false`, so that we report error messages
-/// only for unsupported code that is actually reachable.
+/// When enabled, unsupported code is encoded as `assert false`. This way error
+/// messages are reported only for unsupported code that is actually reachable.
 pub fn allow_unreachable_unsupported_code() -> bool {
     read_setting("allow_unreachable_unsupported_code")
 }
 
-/// Skip the verification
+/// When enabled, verification is skipped altogether.
 pub fn no_verify() -> bool {
     read_setting("no_verify")
 }
 
-/// Skip the verification of dependencies
+/// When enabled, verification is skipped for dependencies.
 pub fn no_verify_deps() -> bool {
     read_setting("no_verify_deps")
 }
 
-/// Continue the compilation and generate the binary after Prusti terminates
+/// When enabled, compilation will continue and a binary will be generated
+/// after Prusti terminates.
 pub fn full_compilation() -> bool {
     read_setting("full_compilation")
 }
 
-/// Intern Viper identifiers to shorten them when possible.
+/// When enabled, Viper identifiers are interned to shorten them when possible.
 pub fn intern_names() -> bool {
     read_setting("intern_names")
+}
+
+/// When enabled, ghost constraints can be used in Prusti specifications.
+///
+/// Ghost constraints allow for specifications which are only active if a
+/// certain "constraint" (i.e. a trait bound on a generic type parameter) is
+/// satisfied.
+///
+/// **This is an experimental feature**, because it is currently possible to
+/// introduce unsound verification behavior.
+pub fn enable_ghost_constraints() -> bool {
+    read_setting("enable_ghost_constraints")
+}
+
+/// When enabled, type invariants can be declared on types using the
+/// `#[invariant(...)]` attribute.
+pub fn enable_type_invariants() -> bool {
+    read_setting("enable_type_invariants")
 }

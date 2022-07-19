@@ -25,6 +25,7 @@ impl ComputeAddressState {
                 name: "ComputeAddress".to_string(),
                 functions: vec![vir_low::DomainFunctionDecl {
                     name: "compute_address".to_string(),
+                    is_unique: false,
                     parameters: vir_low::macros::vars! {
                         place: Place,
                         address: Address
@@ -95,21 +96,33 @@ pub(in super::super) trait ComputeAddressInterface {
 
 impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
     fn encode_compute_address(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
-        if !self.compute_address_state.encoded_types.contains(ty) {
-            self.compute_address_state.encoded_types.insert(ty.clone());
+        let ty_without_lifetime = ty.clone().erase_lifetimes();
+        if !self
+            .compute_address_state
+            .encoded_types
+            .contains(&ty_without_lifetime)
+        {
+            self.compute_address_state
+                .encoded_types
+                .insert(ty_without_lifetime);
 
             let type_decl = self.encoder.get_type_decl_mid(ty)?;
             match type_decl {
                 vir_mid::TypeDecl::Bool
                 | vir_mid::TypeDecl::Int(_)
                 | vir_mid::TypeDecl::Float(_)
-                | vir_mid::TypeDecl::Pointer(_) => {
+                | vir_mid::TypeDecl::Pointer(_)
+                | vir_mid::TypeDecl::Trusted(_)
+                | vir_mid::TypeDecl::TypeVar(_)
+                | vir_mid::TypeDecl::Sequence(_)
+                | vir_mid::TypeDecl::Map(_) => {
                     // Nothing to do.
                 }
-                // vir_mid::TypeDecl::TypeVar(TypeVar) => {},
-                vir_mid::TypeDecl::Tuple(tuple_decl) => {
-                    if !tuple_decl.arguments.is_empty() {
-                        unimplemented!();
+                vir_mid::TypeDecl::Tuple(decl) => {
+                    for field in decl.iter_fields() {
+                        let axiom = self.encode_compute_address_axiom_for_field(ty, &field)?;
+                        self.compute_address_state.axioms.push(axiom);
+                        self.encode_compute_address(&field.ty)?;
                     }
                 }
                 vir_mid::TypeDecl::Struct(decl) => {
@@ -203,8 +216,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
                         self.encode_compute_address(&variant_ty)?;
                     }
                 }
-                // vir_mid::TypeDecl::Array(Array) => {},
-                // vir_mid::TypeDecl::Reference(Reference) => {},
+                vir_mid::TypeDecl::Array(_decl) => {
+                    // FIXME: Doing nothing is probably wrong.
+                }
+                vir_mid::TypeDecl::Reference(_reference) => {
+                    // Do nothing
+                }
                 // vir_mid::TypeDecl::Never => {},
                 // vir_mid::TypeDecl::Closure(Closure) => {},
                 // vir_mid::TypeDecl::Unsupported(Unsupported) => {},

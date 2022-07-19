@@ -15,7 +15,7 @@ use std::{
     mem::discriminant,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Stmt {
     Comment(String),
     Label(String),
@@ -101,7 +101,7 @@ impl Hash for Stmt {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum AssignKind {
     /// Encodes a Rust copy.
     /// This assignment can be used iff the Viper type of the `lhs` and `rhs` is *not* Ref.

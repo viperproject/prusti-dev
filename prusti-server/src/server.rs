@@ -51,7 +51,10 @@ where
     F: FnOnce(SocketAddr),
 {
     let stopwatch = Stopwatch::start("prusti-server", "JVM startup");
-    let viper = Arc::new(Viper::new_with_args(config::extra_jvm_args()));
+    let viper = Arc::new(Viper::new_with_args(
+        &config::viper_home(),
+        config::extra_jvm_args(),
+    ));
     stopwatch.finish();
 
     let cache_data = PersistentCache::load_cache(config::cache_path());
@@ -101,8 +104,7 @@ where
     // Here we use a single thread because
     // 1. Viper is not thread safe yet (Silicon issue #578), and
     // 2. By default Silicon already uses as many cores as possible.
-    let mut runtime = Builder::new()
-        .basic_scheduler()
+    let runtime = Builder::new_current_thread()
         .thread_name("prusti-server")
         .enable_all()
         .build()

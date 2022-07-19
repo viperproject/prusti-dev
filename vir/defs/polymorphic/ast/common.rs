@@ -19,7 +19,9 @@ use std::{
 /// The identifier of a statement. Used in error reporting.
 /// TODO: This should probably have custom `PartialEq, Eq, Hash, PartialOrd, Ord` impls,
 /// to ensure that it is not included in these calculations.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
 pub struct Position {
     pub(crate) line: i32,
     pub(crate) column: i32,
@@ -44,7 +46,7 @@ pub enum PermAmountError {
 }
 
 /// The permission amount.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum PermAmount {
     Read,
     Write,
@@ -114,13 +116,17 @@ impl Ord for PermAmount {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub enum Float {
     F32,
     F64,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub enum BitVectorSize {
     BV8,
     BV16,
@@ -141,7 +147,9 @@ impl fmt::Display for BitVectorSize {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub enum BitVector {
     Signed(BitVectorSize),
     Unsigned(BitVectorSize),
@@ -156,13 +164,16 @@ impl fmt::Display for BitVector {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub enum Type {
     Int,
     Bool,
     Float(Float),
     BitVector(BitVector),
     Seq(SeqType),
+    Map(MapType),
     /// TypedRef: the first parameter is the name of the predicate that encodes the type
     TypedRef(TypedRef),
     Domain(DomainType),
@@ -180,6 +191,7 @@ impl fmt::Display for Type {
             Type::Float(Float::F64) => write!(f, "F64"),
             Type::BitVector(value) => write!(f, "{}", value),
             Type::Seq(seq) => seq.fmt(f),
+            Type::Map(map) => map.fmt(f),
             Type::TypedRef(_) => write!(f, "Ref({})", self.encode_as_string()),
             Type::Domain(_) => write!(f, "Domain({})", self.encode_as_string()),
             Type::Snapshot(_) => write!(f, "Snapshot({})", self.encode_as_string()),
@@ -205,6 +217,14 @@ impl Type {
         matches!(self, &Type::Snapshot(_))
     }
 
+    pub fn is_seq(&self) -> bool {
+        matches!(self, &Type::Seq(_))
+    }
+
+    pub fn is_map(&self) -> bool {
+        matches!(self, &Type::Map(_))
+    }
+
     pub fn is_type_var(&self) -> bool {
         matches!(self, &Type::TypeVar(_))
     }
@@ -225,10 +245,12 @@ impl Type {
             Type::Float(Float::F32) => "f32".to_string(),
             Type::Float(Float::F64) => "f64".to_string(),
             Type::BitVector(value) => value.to_string(),
-            Type::Domain(_) | Type::Snapshot(_) | Type::TypedRef(_) | Type::TypeVar(_) => {
-                self.encode_as_string()
-            }
-            Type::Seq(SeqType { box ref typ }) => typ.name(),
+            Type::Domain(_)
+            | Type::Snapshot(_)
+            | Type::TypedRef(_)
+            | Type::TypeVar(_)
+            | Type::Seq(_)
+            | Type::Map(..) => self.encode_as_string(),
         }
     }
 
@@ -334,6 +356,7 @@ impl Type {
             Type::Domain(_) => TypeId::Domain,
             Type::Snapshot(_) => TypeId::Snapshot,
             Type::Seq(_) => TypeId::Seq,
+            Type::Map(..) => TypeId::Map,
             Type::TypeVar(t) => unreachable!("{}", t),
         }
     }
@@ -399,7 +422,27 @@ impl Type {
                     }
                 }
             }
-            Type::TypeVar(TypeVar { label }) => format!("__TYPARAM__$_{}$__", label),
+            Type::Seq(SeqType { box typ }) => {
+                format!("Seq${}", Self::encode_arguments(&[typ.clone()]))
+            }
+            Type::Map(MapType {
+                box key_type,
+                box val_type,
+            }) => {
+                format!(
+                    "Map${}${}",
+                    Self::encode_arguments(&[key_type.clone()]),
+                    Self::encode_arguments(&[val_type.clone()])
+                )
+            }
+            Type::TypeVar(TypeVar { label }) => {
+                assert!(
+                    TypeVar::is_valid_label(label),
+                    "Label {} is not valid",
+                    label
+                );
+                format!("__TYPARAM__$_{}$__", label)
+            }
             x => unreachable!("{}", x),
         }
     }
@@ -441,23 +484,13 @@ impl Type {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord)]
+use crate::common::display;
+
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash,
+)]
 pub struct SeqType {
     pub typ: Box<Type>,
-}
-
-impl PartialEq for SeqType {
-    fn eq(&self, other: &Self) -> bool {
-        *self.typ == *other.typ
-    }
-}
-
-impl Eq for SeqType {}
-
-impl Hash for SeqType {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        (*self.typ).hash(state);
-    }
 }
 
 impl fmt::Display for SeqType {
@@ -466,7 +499,21 @@ impl fmt::Display for SeqType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash,
+)]
+pub struct MapType {
+    pub key_type: Box<Type>,
+    pub val_type: Box<Type>,
+}
+
+impl fmt::Display for MapType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Map[{}, {}]", &self.key_type, &self.val_type)
+    }
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct TypedRef {
     pub label: String,
     pub arguments: Vec<Type>,
@@ -508,7 +555,7 @@ impl From<SnapshotType> for TypedRef {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct DomainType {
     pub label: String,
     pub arguments: Vec<Type>,
@@ -549,7 +596,7 @@ impl From<TypeVar> for DomainType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct SnapshotType {
     pub label: String,
     pub arguments: Vec<Type>,
@@ -590,9 +637,17 @@ impl From<TypeVar> for SnapshotType {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub struct TypeVar {
     pub label: String,
+}
+
+impl TypeVar {
+    pub fn is_valid_label(label: &str) -> bool {
+        !label.contains(' ') && !label.contains('<') && !label.contains('>') && !label.contains('=')
+    }
 }
 
 impl fmt::Display for TypeVar {
@@ -609,11 +664,12 @@ pub enum TypeId {
     BitVector,
     Ref,
     Seq,
+    Map,
     Domain,
     Snapshot,
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct LocalVar {
     pub name: String,
     pub typ: Type,
@@ -640,7 +696,7 @@ impl LocalVar {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Clone, Eq, PartialEq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct Field {
     pub name: String,
     pub typ: Type,

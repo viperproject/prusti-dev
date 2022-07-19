@@ -60,7 +60,7 @@ pub fn define_vir(input: TokenStream, source_file: &std::path::Path) -> TokenStr
     }
 
     if !error_tokens.is_empty() {
-        unreachable!();
+        unreachable!("{:?}", error_tokens);
     }
 
     quote! { #declarations #error_tokens }

@@ -9,9 +9,11 @@ use vir_crate::{
 };
 
 pub(crate) trait HighPureFunctionEncoderInterface<'tcx> {
+    // TODO: Replace all these functions with BuiltinFuncApp.
     fn encode_discriminant_call(
         &self,
         adt: vir_high::Expression,
+        return_type: vir_high::Type,
     ) -> EncodingResult<vir_high::Expression>;
     fn encode_index_call(
         &self,
@@ -40,6 +42,10 @@ pub(crate) trait HighPureFunctionEncoderInterface<'tcx> {
         &self,
         function_identifier: &str,
     ) -> SpannedEncodingResult<(Vec<vir_high::Expression>, Vec<vir_high::Expression>)>;
+    fn get_pure_function_decl_mid(
+        &self,
+        function_identifier: &str,
+    ) -> SpannedEncodingResult<vir_mid::FunctionDecl>;
     /// Returns preconditions and postconditions of the specified pure function.
     fn get_pure_function_specs_mid(
         &self,
@@ -54,11 +60,10 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
     fn encode_discriminant_call(
         &self,
         adt: vir_high::Expression,
+        return_type: vir_high::Type,
     ) -> EncodingResult<vir_high::Expression> {
-        let name = "discriminant";
-        let return_type = vir_high::Type::Int(vir_high::ty::Int::Isize);
-        Ok(vir_high::Expression::function_call(
-            name,
+        Ok(vir_high::Expression::builtin_func_app_no_pos(
+            vir_high::BuiltinFunc::Discriminant,
             vec![], // FIXME: This is most likely wrong.
             vec![adt],
             return_type,
@@ -71,12 +76,12 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         container: vir_high::Expression,
         index: vir_high::Expression,
     ) -> EncodingResult<vir_high::Expression> {
-        // FIXME: Should use encode_builtin_function_use.
-        let name = "lookup_pure";
+        // TODO: Consider if instead of a builtin function, we should have a
+        // dedicated variant on the expression.
         let element_type = extract_container_element_type(&container)?;
         let return_type = element_type.clone();
-        Ok(vir_high::Expression::function_call(
-            name,
+        Ok(vir_high::Expression::builtin_func_app_no_pos(
+            vir_high::BuiltinFunc::Index,
             vec![element_type.clone()],
             vec![container, index],
             return_type,
@@ -84,6 +89,7 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
     }
 
     /// Encode subslicing of an array/slice.
+    // FIXME: Check if encode_subslice_call is used and tested
     fn encode_subslice_call(
         &self,
         container: vir_high::Expression,
@@ -92,11 +98,13 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         // FIXME: Should use encode_builtin_function_use.
         let name = "subslice";
         let element_type = extract_container_element_type(&container)?;
-        let pure_lifetime = vir_high::ty::Lifetime {
-            name: String::from("pure_erased"),
-        };
-        let return_type =
-            vir_high::Type::reference(vir_high::Type::slice(element_type.clone()), pure_lifetime);
+        let pure_lifetime = vir_high::ty::LifetimeConst::erased();
+        let return_type = vir_high::Type::reference(
+            pure_lifetime,
+            vir_high::ty::Uniqueness::Shared,
+            // FIXME: add slice lifetimes for subslice_call
+            vir_high::Type::slice(element_type.clone(), vec![]),
+        );
         Ok(vir_high::Expression::function_call(
             name,
             vec![element_type.clone()],
@@ -110,12 +118,10 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         &self,
         container: vir_high::Expression,
     ) -> EncodingResult<vir_high::Expression> {
-        // FIXME: Should use encode_builtin_function_use.
-        let name = "len";
         let element_type = extract_container_element_type(&container)?;
         let return_type = vir_high::Type::Int(vir_high::ty::Int::Usize);
-        Ok(vir_high::Expression::function_call(
-            name,
+        Ok(vir_high::Expression::builtin_func_app_no_pos(
+            vir_high::BuiltinFunc::Len,
             vec![element_type.clone()],
             vec![container],
             return_type,
@@ -154,6 +160,35 @@ impl<'v, 'tcx: 'v> HighPureFunctionEncoderInterface<'tcx>
         let pres = function_decl.pres.clone();
         let posts = function_decl.posts.clone();
         Ok((pres, posts))
+    }
+
+    fn get_pure_function_decl_mid(
+        &self,
+        function_identifier: &str,
+    ) -> SpannedEncodingResult<vir_mid::FunctionDecl> {
+        let function_decl = self.get_pure_function_decl_high(function_identifier)?;
+        Ok(vir_mid::FunctionDecl {
+            name: function_decl.name.clone(),
+            type_arguments: function_decl
+                .type_arguments
+                .clone()
+                .to_middle_expression(self)?,
+            parameters: function_decl
+                .parameters
+                .clone()
+                .to_middle_expression(self)?,
+            return_type: function_decl
+                .return_type
+                .clone()
+                .to_middle_expression(self)?,
+            pres: function_decl.pres.clone().to_middle_expression(self)?,
+            posts: function_decl.posts.clone().to_middle_expression(self)?,
+            body: function_decl
+                .body
+                .clone()
+                .map(|body| body.to_middle_expression(self))
+                .transpose()?,
+        })
     }
 
     fn get_pure_function_specs_mid(

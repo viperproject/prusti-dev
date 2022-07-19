@@ -3,6 +3,7 @@
 pub(super) mod state;
 
 use self::state::ExprBackwardInterpreterState;
+use super::PureEncodingContext;
 use crate::encoder::{
     errors::{EncodingResult, ErrorCtxt, SpannedEncodingError, SpannedEncodingResult, WithSpan},
     high::{
@@ -17,20 +18,25 @@ use crate::encoder::{
         specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
     },
-    mir_encoder::MirEncoder,
+    mir_encoder::{MirEncoder, PRECONDITION_LABEL},
     mir_interpreter::BackwardMirInterpreter,
     Encoder,
 };
 use log::{debug, trace};
 use prusti_common::vir_high_local;
+use prusti_interface::environment::mir_utils::SliceOrArrayRef;
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    middle::{mir, ty, ty::subst::SubstsRef},
+    span::Span,
+};
 use rustc_hash::FxHashMap;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty, ty::subst::SubstsRef};
-use rustc_span::Span;
-
 use vir_crate::{
-    common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
-    high::{self as vir_high},
+    common::{
+        expression::{BinaryOperationHelpers, UnaryOperationHelpers},
+        position::Positioned,
+    },
+    high::{self as vir_high, operations::ty::Typed},
 };
 
 // FIXME: Make this explicitly accessible only to spec_encoder and pure
@@ -41,11 +47,8 @@ pub(super) struct ExpressionBackwardInterpreter<'p, 'v: 'p, 'tcx: 'v> {
     mir: &'p mir::Body<'tcx>,
     /// MirEncoder of the pure function being encoded.
     mir_encoder: MirEncoder<'p, 'v, 'tcx>,
-    /// True if a panic should be encoded to a `false` boolean value.
-    /// This flag is used to distinguish whether an assert terminators generated e.g. for an
-    /// integer overflow should be translated into `false` and when to an "unreachable" function
-    /// call with a `false` precondition.
-    encode_panic_to_false: bool,
+    /// How panics are handled depending on the encoding context.
+    pure_encoding_context: PureEncodingContext,
     /// DefId of the caller. Used for error reporting.
     caller_def_id: DefId,
     substs: SubstsRef<'tcx>,
@@ -61,7 +64,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         encoder: &'p Encoder<'v, 'tcx>,
         mir: &'p mir::Body<'tcx>,
         def_id: DefId,
-        encode_panic_to_false: bool,
+        pure_encoding_context: PureEncodingContext,
         caller_def_id: DefId,
         substs: SubstsRef<'tcx>,
     ) -> Self {
@@ -69,18 +72,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
             encoder,
             mir,
             mir_encoder: MirEncoder::new(encoder, mir, def_id),
-            encode_panic_to_false,
+            pure_encoding_context,
             caller_def_id,
             substs,
         }
     }
 
-    pub(super) fn mir_encoder(&self) -> &MirEncoder<'p, 'v, 'tcx> {
-        &self.mir_encoder
-    }
-
     fn encode_place(&self, place: mir::Place<'tcx>) -> SpannedEncodingResult<vir_high::Expression> {
-        self.encoder.encode_place_high(self.mir, place)
+        self.encoder.encode_place_high(self.mir, place, None)
     }
 
     fn encode_operand(
@@ -89,7 +88,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         span: Span,
     ) -> SpannedEncodingResult<vir_high::Expression> {
         self.encoder
-            .encode_operand_high(self.mir, operand)
+            .encode_operand_high(self.mir, operand, span)
             .with_span(span)
     }
 
@@ -156,7 +155,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         rhs: &mir::Rvalue<'tcx>,
         span: Span,
     ) -> SpannedEncodingResult<()> {
-        let encoded_lhs = self.encode_place(lhs)?;
+        let encoded_lhs = self.encode_place(lhs)?.erase_lifetime();
         let ty = self
             .encoder
             .encode_type_of_place_high(self.mir, lhs)
@@ -207,8 +206,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     .encoder
                     .encode_binary_op_check_high(*op, encoded_left, encoded_right, &operand_ty)
                     .with_span(span)?;
-                let value_field = vir_high::FieldDecl::new("tuple_0".to_string(), operand_ty);
-                let check_field = vir_high::FieldDecl::new("tuple_1".to_string(), check_ty);
+                let value_field =
+                    vir_high::FieldDecl::new("tuple_0".to_string(), 0usize, operand_ty);
+                let check_field = vir_high::FieldDecl::new("tuple_1".to_string(), 1usize, check_ty);
                 let lhs_value =
                     vir_high::Expression::field_no_pos(encoded_lhs.clone(), value_field);
                 let lhs_check =
@@ -227,33 +227,40 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 state.substitute_value(&encoded_lhs, encoded_value);
             }
             mir::Rvalue::Discriminant(src) => {
-                let arg = self.encoder.encode_place_high(self.mir, *src)?;
-                let expr = self.encoder.encode_discriminant_call(arg).with_span(span)?;
+                let arg = self.encoder.encode_place_high(self.mir, *src, None)?;
+                let expr = self
+                    .encoder
+                    .encode_discriminant_call(arg, encoded_lhs.get_type().clone())
+                    .with_span(span)?;
                 state.substitute_value(&encoded_lhs, expr);
             }
-            mir::Rvalue::Ref(_, mir::BorrowKind::Unique, place)
-            | mir::Rvalue::Ref(_, mir::BorrowKind::Mut { .. }, place)
-            | mir::Rvalue::Ref(_, mir::BorrowKind::Shared, place) => {
-                let encoded_place = self.encoder.encode_place_high(self.mir, *place)?;
+            &mir::Rvalue::Ref(_, kind, place) => {
+                if !matches!(
+                    kind,
+                    mir::BorrowKind::Unique | mir::BorrowKind::Mut { .. } | mir::BorrowKind::Shared
+                ) {
+                    return Err(SpannedEncodingError::unsupported(
+                        format!("unsupported kind of reference: {:?}", kind),
+                        span,
+                    ));
+                }
+                let encoded_place = self.encoder.encode_place_high(self.mir, place, None)?;
                 let ty = self
                     .encoder
-                    .encode_type_of_place_high(self.mir, *place)
+                    .encode_type_of_place_high(self.mir, place)
                     .with_span(span)?;
-                let pure_lifetime = vir_high::ty::Lifetime {
-                    name: String::from("pure_erased"),
+                let pure_lifetime = vir_high::ty::LifetimeConst::erased();
+                let uniqueness = if matches!(kind, mir::BorrowKind::Mut { .. }) {
+                    vir_high::ty::Uniqueness::Unique
+                } else {
+                    vir_high::ty::Uniqueness::Shared
                 };
                 let encoded_ref = vir_high::Expression::addr_of_no_pos(
                     encoded_place,
-                    vir_high::Type::reference(ty, pure_lifetime),
+                    vir_high::Type::reference(pure_lifetime, uniqueness, ty),
                 );
                 // Substitute the place
                 state.substitute_value(&encoded_lhs, encoded_ref);
-            }
-            mir::Rvalue::Ref(_, kind, _) => {
-                return Err(SpannedEncodingError::unsupported(
-                    format!("unsupported kind of reference: {:?}", kind),
-                    span,
-                ));
             }
             mir::Rvalue::Cast(mir::CastKind::Misc, operand, dst_ty) => {
                 let encoded_rhs = self.encoder.encode_cast_expression_high(
@@ -270,19 +277,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 operand,
                 cast_ty,
             ) => {
-                if !cast_ty.is_slice() {
+                let rhs_ty = self.mir_encoder.get_operand_ty(operand);
+                if rhs_ty.is_array_ref() && cast_ty.is_slice_ref() {
+                    // We have a cast of a slice or array into a slice.
+                    let arg = self.encode_operand(operand, span)?;
+                    let expr = self
+                        .encoder
+                        .encode_cast_into_slice(arg, ty)
+                        .with_span(span)?;
+                    state.substitute_value(&encoded_lhs, expr);
+                } else {
                     return Err(SpannedEncodingError::unsupported(
-                        "unsizing a pointer or reference value is not supported",
+                        format!("unsizing a {} into a {} is not supported", rhs_ty, cast_ty),
                         span,
                     ));
                 }
-                // We have a cast of a slice or array into a slice.
-                let arg = self.encode_operand(operand, span)?;
-                let expr = self
-                    .encoder
-                    .encode_cast_into_slice(arg, ty)
-                    .with_span(span)?;
-                state.substitute_value(&encoded_lhs, expr);
             }
             mir::Rvalue::Cast(kind, _, _) => {
                 return Err(SpannedEncodingError::unsupported(
@@ -290,8 +299,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     span,
                 ));
             }
-            mir::Rvalue::Len(place) => {
-                let arg = self.encoder.encode_place_high(self.mir, *place)?;
+            &mir::Rvalue::Len(place) => {
+                let arg = self.encoder.encode_place_high(self.mir, place, None)?;
                 let expr = self.encoder.encode_len_call(arg).with_span(span)?;
                 state.substitute_value(&encoded_lhs, expr);
             }
@@ -299,7 +308,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 let encoded_operand = self.encode_operand(operand, span)?;
                 let len: usize = self
                     .encoder
-                    .const_eval_intlike(times.val())
+                    .const_eval_intlike(mir::ConstantKind::Ty(*times))
                     .with_span(span)?
                     .to_u64()
                     .unwrap()
@@ -412,7 +421,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
     fn apply_call_terminator(
         &self,
         args: &[mir::Operand<'tcx>],
-        destination: &Option<(mir::Place<'tcx>, mir::BasicBlock)>,
+        destination: mir::Place<'tcx>,
+        target: &Option<mir::BasicBlock>,
         ty: ty::Ty<'tcx>,
         states: FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
         span: Span,
@@ -424,113 +434,46 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
 
             // compose substitutions
             // TODO(tymap): do we need this?
-            use crate::rustc_middle::ty::subst::Subst;
-            let substs = call_substs.subst(self.encoder.env().tcx(), self.substs);
+            use prusti_rustc_interface::middle::ty::subst::Subst;
+            let substs = ty::EarlyBinder(*call_substs).subst(self.encoder.env().tcx(), self.substs);
 
-            let state = if let Some((lhs_place, target_block)) = destination {
-                let encoded_lhs = self.encode_place(*lhs_place).with_span(span)?;
-                let mut encoded_args: Vec<_> = args
+            let state = if let Some(target_block) = target {
+                let encoded_lhs = self.encode_place(destination).with_span(span)?;
+                let encoded_args: Vec<_> = args
                     .iter()
                     .map(|arg| self.encode_operand(arg, span))
                     .collect::<Result<_, _>>()
                     .with_span(span)?;
-                match full_func_proc_name {
-                    "prusti_contracts::old" => {
-                        unimplemented!();
-                        // self.encode_call_old()?
-                    }
-                    "prusti_contracts::before_expiry" => {
-                        // self.encode_call_before_expiry()?
-                        unimplemented!();
-                    }
-                    "std::cmp::PartialEq::eq" | "core::cmp::PartialEq::eq"
-                        if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
-                    {
-                        assert_eq!(args.len(), 2);
-                        let encoded_rhs = vir_high::Expression::equals(
-                            encoded_args[0].clone(),
-                            encoded_args[1].clone(),
-                        );
-                        let mut state = states[target_block].clone();
-                        state.substitute_value(&encoded_lhs, encoded_rhs);
-                        state
-                    }
-                    "std::cmp::PartialEq::ne" | "core::cmp::PartialEq::ne"
-                        if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
-                    {
-                        assert_eq!(args.len(), 2);
-                        let encoded_rhs = vir_high::Expression::not_equals(
-                            encoded_args[0].clone(),
-                            encoded_args[1].clone(),
-                        );
-                        let mut state = states[target_block].clone();
-                        state.substitute_value(&encoded_lhs, encoded_rhs);
-                        state
-                    }
-                    "core::slice::<impl [T]>::len" => {
-                        assert_eq!(args.len(), 1);
-                        self.encode_call_len(
-                            *target_block,
-                            states,
-                            encoded_lhs,
-                            encoded_args.pop().unwrap(),
-                            span,
-                        )?
-                    }
-                    "std::ops::IndexMut::index_mut"
-                    | "core::ops::IndexMut::index_mut"
-                    | "std::ops::Index::index"
-                    | "core::ops::Index::index" => {
-                        assert_eq!(args.len(), 2);
-                        self.encode_call_index(
-                            *target_block,
-                            states,
-                            encoded_lhs,
-                            encoded_args[0].clone(),
-                            encoded_args[1].clone(),
-                            span,
-                        )?
-                    }
-
-                    // Prusti-specific syntax
-                    // TODO: check we are in a spec function
-                    "prusti_contracts::exists"
-                    | "prusti_contracts::forall"
-                    | "prusti_contracts::specification_entailment"
-                    | "prusti_contracts::call_description" => {
-                        let expr = self.encoder.encode_prusti_operation_high(
-                            full_func_proc_name,
-                            span,
-                            encoded_args,
-                            self.caller_def_id,
-                            substs,
-                        )?;
-                        let mut state = states[target_block].clone();
-                        state.substitute_value(&encoded_lhs, expr);
-                        state
-                    }
-
-                    _ => {
-                        if self.encoder.is_pure(def_id) {
-                            self.encode_call_generic(
-                                *target_block,
-                                states,
-                                encoded_lhs,
-                                def_id,
-                                encoded_args,
-                                span,
-                                substs,
-                            )?
-                        } else {
-                            return Err(SpannedEncodingError::incorrect(
-                                format!(
-                                    "use of impure function {:?} in pure code is not allowed",
-                                    func_proc_name
-                                ),
-                                span,
-                            ));
-                        }
-                    }
+                if let Some(state) = self.try_encode_builtin_funs(
+                    def_id,
+                    full_func_proc_name,
+                    target_block,
+                    &states,
+                    encoded_lhs.clone(),
+                    args,
+                    &encoded_args,
+                    span,
+                    substs,
+                )? {
+                    state
+                } else if self.encoder.is_pure(def_id, Some(substs)) {
+                    self.encode_call_generic(
+                        *target_block,
+                        states,
+                        encoded_lhs,
+                        def_id,
+                        encoded_args,
+                        span,
+                        substs,
+                    )?
+                } else {
+                    return Err(SpannedEncodingError::incorrect(
+                        format!(
+                            "use of impure function {:?} in pure code is not allowed",
+                            func_proc_name
+                        ),
+                        span,
+                    ));
                 }
             } else {
                 // FIXME: Refactor the common code with the procedure encoder.
@@ -568,6 +511,234 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                 format!("unsupported type of call: {:?}", ty.kind()),
                 span,
             ))
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn try_encode_builtin_funs(
+        &self,
+        def_id: DefId,
+        proc_name: &str,
+        target_block: &mir::BasicBlock,
+        states: &FxHashMap<mir::BasicBlock, &ExprBackwardInterpreterState>,
+        encoded_lhs: vir_high::Expression,
+        args: &[prusti_rustc_interface::middle::mir::Operand<'tcx>],
+        encoded_args: &[vir_high::Expression],
+        span: Span,
+        substs: SubstsRef<'tcx>,
+    ) -> SpannedEncodingResult<Option<ExprBackwardInterpreterState>> {
+        let lifetimes = self.encoder.get_lifetimes_substs(&substs)?;
+        use vir_high::{expression::BuiltinFunc::*, ty::*};
+        let type_arguments = self
+            .encoder
+            .encode_generic_arguments_high(def_id, substs)
+            .with_span(span)?;
+
+        let subst_with = |val| {
+            let mut state = states[target_block].clone();
+            state.substitute_value(&encoded_lhs, val);
+            Ok(Some(state))
+        };
+
+        let builtin = |(function, return_type)| {
+            subst_with(vir_high::Expression::builtin_func_app_no_pos(
+                function,
+                type_arguments.clone(),
+                encoded_args.into(),
+                return_type,
+            ))
+        };
+
+        if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Map::<K, V>::") {
+            assert_eq!(type_arguments.len(), 2);
+
+            let key_type = type_arguments[0].clone();
+            let val_type = type_arguments[1].clone();
+            let map_type = Type::map(key_type, val_type.clone(), lifetimes);
+
+            return builtin(match proc_name {
+                "empty" => (EmptyMap, map_type),
+                "insert" => (UpdateMap, map_type),
+                "len" => (MapLen, Type::int(Int::Unbounded)),
+                "lookup" => (LookupMap, val_type),
+                "delete" => unimplemented!(),
+                "contains" => (MapContains, Type::bool()),
+                _ => unreachable!("no further Map functions"),
+            });
+        } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Seq::<T>::") {
+            assert_eq!(type_arguments.len(), 1);
+
+            let elem_type = type_arguments[0].clone();
+            let seq_type = Type::sequence(elem_type.clone(), lifetimes);
+
+            return builtin(match proc_name {
+                "empty" => (EmptySeq, seq_type),
+                "single" => (SingleSeq, seq_type),
+                "len" => (SeqLen, Type::Int(vir_high::ty::Int::Unbounded)),
+                "lookup" => (LookupSeq, elem_type),
+                "concat" => (ConcatSeq, seq_type),
+                _ => unreachable!("no further Seq functions"),
+            });
+        } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Int::") {
+            assert!(type_arguments.is_empty());
+            return match proc_name {
+                "new" => builtin((NewInt, Type::Int(Int::Unbounded))),
+                "new_usize" => builtin((NewInt, Type::Int(Int::Unbounded))),
+                _ => unreachable!("no further int functions"),
+            };
+        } else if let Some(proc_name) = proc_name.strip_prefix("prusti_contracts::Ghost::<T>::") {
+            return match proc_name {
+                "new" => subst_with(encoded_args[0].clone()),
+                _ => unreachable!("no further Ghost functions."),
+            };
+        }
+
+        // replace all the operations on Ints
+        if let Some(
+            Type::Int(Int::Unbounded)
+            | Type::Reference(Reference {
+                target_type: box Type::Int(Int::Unbounded),
+                ..
+            }),
+        ) = encoded_args.first().map(vir_high::Expression::get_type)
+        {
+            let std = proc_name.strip_prefix("std::");
+            let core = proc_name.strip_prefix("core::");
+            let op_name = std.or(core).and_then(|name| {
+                name.strip_prefix("ops::")
+                    .or_else(|| name.strip_prefix("cmp::PartialOrd::"))
+                    .or_else(|| name.strip_prefix("cmp::PartialEq::"))
+            });
+
+            if let Some(op_name) = op_name {
+                use vir_high::BinaryOpKind::*;
+                let ops = [
+                    ("Add::add", Add),
+                    ("Sub::sub", Sub),
+                    ("Mul::mul", Mul),
+                    ("Div::div", Div),
+                    ("Rem::rem", Mod),
+                    ("lt", LtCmp),
+                    ("le", LeCmp),
+                    ("gt", GtCmp),
+                    ("ge", GeCmp),
+                    ("eq", EqCmp),
+                    ("ne", NeCmp),
+                ];
+
+                // replace binary ops
+                for (fun, op_kind) in ops {
+                    if op_name == fun {
+                        return subst_with(vir_high::Expression::binary_op_no_pos(
+                            op_kind,
+                            encoded_args[0].clone(),
+                            encoded_args[1].clone(),
+                        ));
+                    }
+                }
+
+                // replace negation
+                if op_name == "Neg::neg" {
+                    return subst_with(vir_high::Expression::minus(encoded_args[0].clone()));
+                }
+
+                unreachable!("Didn't expect function {:?} on Int.", proc_name);
+            }
+        }
+
+        match proc_name {
+            "prusti_contracts::old" => {
+                let argument = encoded_args.last().cloned().unwrap();
+                let position = argument.position();
+                let encoded_rhs = vir_high::Expression::labelled_old(
+                    PRECONDITION_LABEL.to_string(),
+                    argument,
+                    position,
+                );
+                subst_with(encoded_rhs)
+            }
+            "prusti_contracts::before_expiry" => {
+                // self.encode_call_before_expiry()?
+                unimplemented!();
+            }
+            "std::cmp::PartialEq::eq" | "core::cmp::PartialEq::eq"
+                if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
+            {
+                assert_eq!(encoded_args.len(), 2);
+                let encoded_rhs =
+                    vir_high::Expression::equals(encoded_args[0].clone(), encoded_args[1].clone());
+                subst_with(encoded_rhs)
+            }
+            "std::cmp::PartialEq::ne" | "core::cmp::PartialEq::ne"
+                if self.has_structural_eq_impl(&args[0]).with_span(span)? =>
+            {
+                assert_eq!(encoded_args.len(), 2);
+                let encoded_rhs = vir_high::Expression::not_equals(
+                    encoded_args[0].clone(),
+                    encoded_args[1].clone(),
+                );
+                subst_with(encoded_rhs)
+            }
+            "core::slice::<impl [T]>::len" => {
+                assert_eq!(encoded_args.len(), 1);
+                self.encode_call_len(
+                    *target_block,
+                    states.clone(),
+                    encoded_lhs,
+                    encoded_args.last().cloned().unwrap(),
+                    span,
+                )
+                .map(Some)
+            }
+            "std::ops::IndexMut::index_mut"
+            | "core::ops::IndexMut::index_mut"
+            | "std::ops::Index::index"
+            | "core::ops::Index::index" => {
+                assert_eq!(encoded_args.len(), 2);
+                match encoded_args[0].get_type() {
+                    Type::Reference(Reference {
+                        target_type: box Type::Map(_),
+                        ..
+                    }) => {
+                        let ref_type = encoded_lhs.get_type().clone();
+                        builtin((LookupMap, ref_type))
+                    }
+                    Type::Reference(Reference {
+                        target_type: box Type::Sequence(_),
+                        ..
+                    }) => {
+                        let ref_type = encoded_lhs.get_type().clone();
+                        builtin((LookupSeq, ref_type))
+                    }
+                    _ => self
+                        .encode_call_index(
+                            *target_block,
+                            states.clone(),
+                            encoded_lhs,
+                            encoded_args[0].clone(),
+                            encoded_args[1].clone(),
+                            span,
+                        )
+                        .map(Some),
+                }
+            }
+
+            // Prusti-specific syntax
+            // TODO: check we are in a spec function
+            "prusti_contracts::exists"
+            | "prusti_contracts::forall"
+            | "prusti_contracts::specification_entailment"
+            | "prusti_contracts::call_description" => {
+                let expr = self.encoder.encode_prusti_operation_high(
+                    proc_name,
+                    span,
+                    encoded_args.to_vec(),
+                    self.caller_def_id,
+                    substs,
+                )?;
+                subst_with(expr)
+            }
+            _ => Ok(None),
         }
     }
 
@@ -644,7 +815,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         let encoded_type = self.encoder.encode_type_high(self.mir.return_ty())?;
         let (function_name, type_arguments) = self
             .encoder
-            .encode_builtin_function_use_high(BuiltinFunctionHighKind::Unreachable(encoded_type));
+            .encode_builtin_function_use_high(BuiltinFunctionHighKind::Unreachable(encoded_type))?;
         Ok(vir_high::Expression::func_app(
             function_name,
             type_arguments,
@@ -660,7 +831,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
         let encoded_type = self.encoder.encode_type_high(self.mir.return_ty())?;
         let (function_name, type_arguments) = self
             .encoder
-            .encode_builtin_function_use_high(BuiltinFunctionHighKind::Undefined(encoded_type));
+            .encode_builtin_function_use_high(BuiltinFunctionHighKind::Undefined(encoded_type))?;
         Ok(vir_high::Expression::func_app(
             function_name,
             type_arguments,
@@ -689,7 +860,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
         terminator: &mir::Terminator<'tcx>,
         states: FxHashMap<mir::BasicBlock, &Self::State>,
     ) -> Result<Self::State, Self::Error> {
-        use rustc_middle::mir::TerminatorKind;
+        use prusti_rustc_interface::middle::mir::TerminatorKind;
         let span = terminator.source_info.span;
         let state = match &terminator.kind {
             TerminatorKind::Unreachable => {
@@ -760,9 +931,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
             TerminatorKind::Call {
                 args,
                 destination,
+                target,
                 func: mir::Operand::Constant(box mir::Constant { literal, .. }),
                 ..
-            } => self.apply_call_terminator(args, destination, literal.ty(), states, span)?,
+            } => {
+                self.apply_call_terminator(args, *destination, target, literal.ty(), states, span)?
+            }
 
             TerminatorKind::Call { .. } => {
                 return Err(SpannedEncodingError::unsupported(
@@ -798,22 +972,38 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     self.caller_def_id,
                 );
 
-                let failure_encoding = if self.encode_panic_to_false {
-                    // We are encoding an assertion, so all failures should be equivalent to false.
-                    debug_assert!(matches!(self.mir.return_ty().kind(), ty::TyKind::Bool));
-                    false.into()
-                } else {
-                    // We are encoding a pure function, so all failures should be unreachable.
-                    self.unreachable_expr(pos.into()).with_span(span)?
-                };
-
-                ExprBackwardInterpreterState::new(states[target].expr().map(|target_expr| {
-                    vir_high::Expression::conditional_no_pos(
-                        guard.clone(),
-                        target_expr.clone(),
-                        failure_encoding,
-                    )
-                }))
+                match self.pure_encoding_context {
+                    PureEncodingContext::Trigger => {
+                        // We are encoding a trigger, so all panic branches must be stripped.
+                        states[target].clone()
+                    }
+                    PureEncodingContext::Assertion => {
+                        // We are encoding an assertion, so all failures should be equivalent to false.
+                        debug_assert!(matches!(self.mir.return_ty().kind(), ty::TyKind::Bool));
+                        ExprBackwardInterpreterState::new(states[target].expr().map(
+                            |target_expr| {
+                                vir_high::Expression::conditional_no_pos(
+                                    guard.clone(),
+                                    target_expr.clone(),
+                                    false.into(),
+                                )
+                            },
+                        ))
+                    }
+                    PureEncodingContext::Code => {
+                        // We are encoding a pure function, so all failures should be unreachable.
+                        let failure_encoding = self.unreachable_expr(pos.into()).with_span(span)?;
+                        ExprBackwardInterpreterState::new(states[target].expr().map(
+                            |target_expr| {
+                                vir_high::Expression::conditional_no_pos(
+                                    guard.clone(),
+                                    target_expr.clone(),
+                                    failure_encoding,
+                                )
+                            },
+                        ))
+                    }
+                }
             }
 
             TerminatorKind::Yield { .. }
@@ -860,7 +1050,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                 unimplemented!("kind: {:?} at {:?}", kind, location);
             }
         }
-
+        trace!("after {:?}, state: {}", statement, state);
         // self.apply_downcasts(state, location)?; FIXME: Is this needed?
 
         Ok(())

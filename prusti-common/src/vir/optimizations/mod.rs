@@ -13,6 +13,7 @@ use crate::{
         ToGraphViz,
     },
 };
+use log::debug;
 
 pub mod bitvectors;
 pub mod folding;
@@ -126,7 +127,9 @@ pub fn optimize_program(p: Program, source_file_name: &str) -> Program {
     }
 
     if config::enable_purification_optimization() {
+        log_methods(source_file_name, &program.methods, "purify_methods", false);
         program.methods = purification::purify_methods(program.methods, &program.viper_predicates);
+        log_methods(source_file_name, &program.methods, "purify_methods", true);
     }
 
     program

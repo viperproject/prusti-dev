@@ -7,26 +7,15 @@
 #![feature(rustc_private)]
 #![feature(box_patterns)]
 #![feature(box_syntax)]
-#![feature(bool_to_option)]
 #![feature(try_blocks)]
 #![feature(never_type)]
 #![feature(btree_drain_filter)]
+#![feature(decl_macro)]
 
 #![deny(unused_must_use)]
 #![deny(unreachable_patterns)]
 // This Clippy chcek seems to be always wrong.
 #![allow(clippy::iter_with_drain)]
-
-extern crate rustc_middle;
-extern crate rustc_hir;
-extern crate rustc_span;
-extern crate rustc_index;
-extern crate rustc_ast;
-extern crate rustc_target;
-extern crate rustc_attr;
-extern crate rustc_data_structures;
-extern crate lazy_static;
-extern crate rustc_hash;
 
 pub mod encoder;
 mod utils;

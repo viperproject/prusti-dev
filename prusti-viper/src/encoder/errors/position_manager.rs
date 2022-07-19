@@ -6,8 +6,8 @@
 
 use vir_crate::polymorphic::Position;
 use rustc_hash::FxHashMap;
-use rustc_span::source_map::SourceMap;
-use rustc_span::MultiSpan;
+use prusti_rustc_interface::span::source_map::SourceMap;
+use prusti_rustc_interface::errors::MultiSpan;
 use log::{debug, trace};
 use prusti_interface::data::ProcedureDefId;
 

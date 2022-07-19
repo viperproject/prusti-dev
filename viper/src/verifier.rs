@@ -4,14 +4,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ast_factory::*;
-use ast_utils::AstUtils;
+use crate::{
+    ast_factory::*,
+    ast_utils::AstUtils,
+    jni_utils::JniUtils,
+    silicon_counterexample::SiliconCounterexample,
+    smt_manager::SmtManager,
+    verification_backend::VerificationBackend,
+    verification_result::{VerificationError, VerificationResult},
+};
 use jni::{objects::JObject, JNIEnv};
-use jni_utils::JniUtils;
-use silicon_counterexample::SiliconCounterexample;
+use log::{debug, error, info};
 use std::path::PathBuf;
-use verification_backend::VerificationBackend;
-use verification_result::{VerificationError, VerificationResult};
 use viper_sys::wrappers::{scala, viper::*};
 
 pub struct Verifier<'a> {
@@ -20,6 +24,7 @@ pub struct Verifier<'a> {
     verifier_instance: JObject<'a>,
     jni: JniUtils<'a>,
     ast_utils: AstUtils<'a>,
+    smt_manager: SmtManager,
 }
 
 impl<'a> Verifier<'a> {
@@ -27,6 +32,7 @@ impl<'a> Verifier<'a> {
         env: &'a JNIEnv,
         backend: VerificationBackend,
         report_path: Option<PathBuf>,
+        smt_manager: SmtManager,
     ) -> Self {
         let jni = JniUtils::new(env);
         let ast_utils = AstUtils::new(env);
@@ -67,6 +73,7 @@ impl<'a> Verifier<'a> {
             verifier_instance,
             jni,
             ast_utils,
+            smt_manager,
         }
     }
 
@@ -96,7 +103,7 @@ impl<'a> Verifier<'a> {
         self
     }
 
-    pub fn verify(&self, program: Program) -> VerificationResult {
+    pub fn verify(&mut self, program: Program) -> VerificationResult {
         self.ast_utils.with_local_frame(16, || {
             debug!(
                 "Program to be verified:\n{}",
@@ -140,6 +147,8 @@ impl<'a> Verifier<'a> {
                 .jni
                 .is_instance_of(viper_result, "viper/silver/verifier/Failure");
 
+            self.smt_manager.stop_and_check();
+
             if is_failure {
                 let mut errors: Vec<VerificationError> = vec![];
 
@@ -148,6 +157,8 @@ impl<'a> Verifier<'a> {
                 ));
 
                 let verification_error_wrapper = silver::verifier::VerificationError::with(self.env);
+
+                let error_node_positioned_wrapper = silver::ast::Positioned::with(self.env);
 
                 let failure_context_wrapper = silver::verifier::FailureContext::with(self.env);
 
@@ -282,9 +293,34 @@ impl<'a> Verifier<'a> {
                             None
                         };
 
+                    let offending_node = self
+                        .jni
+                        .unwrap_result(verification_error_wrapper.call_offendingNode(viper_error));
+
+                    let offending_pos = self
+                        .jni
+                        .unwrap_result(error_node_positioned_wrapper.call_pos(offending_node));
+
+                    let offending_pos_id =
+                        if self
+                            .jni
+                            .is_instance_of(offending_pos, "viper/silver/ast/HasIdentifier")
+                        {
+                            Some(self.jni.get_string(
+                                self.jni.unwrap_result(has_identifier_wrapper.call_id(offending_pos)),
+                            ))
+                        } else {
+                            debug!(
+                                "The verifier returned an error whose position has no identifier: {:?}",
+                                self.jni.to_string(viper_error)
+                            );
+                            None
+                        };
+
                     errors.push(VerificationError::new(
                         error_full_id,
                         pos_id,
+                        offending_pos_id,
                         reason_pos_id,
                         message,
                         counterexample,

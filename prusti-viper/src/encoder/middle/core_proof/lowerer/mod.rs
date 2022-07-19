@@ -9,14 +9,16 @@ use super::{
     builtin_methods::BuiltinMethodsState,
     compute_address::ComputeAddressState,
     into_low::IntoLow,
-    predicates_memory_block::PredicatesMemoryBlockState,
-    predicates_owned::{PredicatesOwnedInterface, PredicatesOwnedState},
+    lifetimes::LifetimesState,
+    places::PlacesState,
+    predicates::{PredicatesOwnedInterface, PredicatesState},
     snapshots::{SnapshotVariablesInterface, SnapshotsState},
     types::TypesState,
 };
 use crate::encoder::{errors::SpannedEncodingResult, Encoder};
 
 use vir_crate::{
+    common::{cfg::Cfg, graphviz::ToGraphviz},
     low::{self as vir_low, operations::ty::Typed},
     middle as vir_mid,
 };
@@ -46,7 +48,16 @@ pub(super) fn lower_procedure<'p, 'v: 'p, 'tcx: 'v>(
     procedure: vir_mid::ProcedureDecl,
 ) -> SpannedEncodingResult<LoweringResult> {
     let lowerer = self::Lowerer::new(encoder);
-    lowerer.lower_procedure(procedure)
+    let result = lowerer.lower_procedure(procedure)?;
+    if prusti_common::config::dump_debug_info() {
+        let source_filename = encoder.env().source_file_name();
+        prusti_common::report::log::report_with_writer(
+            "graphviz_method_vir_low",
+            format!("{}.{}.dot", source_filename, result.procedure.name),
+            |writer| result.procedure.to_graphviz(writer).unwrap(),
+        );
+    }
+    Ok(result)
 }
 
 pub(super) struct Lowerer<'p, 'v: 'p, 'tcx: 'v> {
@@ -57,13 +68,14 @@ pub(super) struct Lowerer<'p, 'v: 'p, 'tcx: 'v> {
     domains_state: DomainsLowererState,
     predicates_state: PredicatesLowererState,
     methods_state: MethodsLowererState,
-    pub(super) predicates_memory_block_state: PredicatesMemoryBlockState,
-    pub(super) predicates_owned_state: PredicatesOwnedState,
+    pub(super) predicates_encoding_state: PredicatesState,
     pub(super) builtin_methods_state: BuiltinMethodsState,
     pub(super) compute_address_state: ComputeAddressState,
     pub(super) snapshots_state: SnapshotsState,
     pub(super) types_state: TypesState,
     pub(super) adts_state: AdtsState,
+    pub(super) lifetimes_state: LifetimesState,
+    pub(super) places_state: PlacesState,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
@@ -76,13 +88,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             domains_state: Default::default(),
             predicates_state: Default::default(),
             methods_state: Default::default(),
-            predicates_memory_block_state: Default::default(),
+            predicates_encoding_state: Default::default(),
             builtin_methods_state: Default::default(),
             compute_address_state: Default::default(),
             snapshots_state: Default::default(),
             types_state: Default::default(),
-            predicates_owned_state: Default::default(),
             adts_state: Default::default(),
+            lifetimes_state: Default::default(),
+            places_state: Default::default(),
         }
     }
     pub(super) fn lower_procedure(
@@ -90,19 +103,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         mut procedure: vir_mid::ProcedureDecl,
     ) -> SpannedEncodingResult<LoweringResult> {
         let mut basic_blocks_map = BTreeMap::new();
-        let predecessors = procedure.get_predecessors();
+        let mut basic_block_edges = BTreeMap::new();
+        let predecessors = procedure.predecessors_owned();
         let traversal_order = procedure.get_topological_sort();
         self.procedure_name = Some(procedure.name.clone());
         let mut marker_initialisation = Vec::new();
         for label in &traversal_order {
-            self.set_current_block_for_snapshots(label, &predecessors, &mut basic_blocks_map)?;
+            self.set_current_block_for_snapshots(label, &predecessors, &mut basic_block_edges)?;
             let basic_block = procedure.basic_blocks.remove(label).unwrap();
             let marker = self.create_block_marker(label)?;
             marker_initialisation.push(vir_low::Statement::assign_no_pos(
                 marker.clone(),
                 false.into(),
             ));
-            let mut statements = vec![vir_low::Statement::assign_no_pos(marker, true.into())];
+            let mut statements = vec![
+                vir_low::Statement::assign_no_pos(marker.clone(), true.into()),
+                // We need to use a function call here because Silicon optimizes
+                // out assignments to pure variables and our Z3 wrapper does not
+                // see them.
+                vir_low::Statement::log_event(self.create_domain_func_app(
+                    "MarkerCalls",
+                    format!("basic_block_marker${}", marker.name),
+                    vec![],
+                    vir_low::Type::Bool,
+                    Default::default(),
+                )?),
+            ];
             for statement in basic_block.statements {
                 statements.extend(statement.into_low(&mut self)?);
             }
@@ -115,9 +141,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         entry_block_statements.extend(marker_initialisation);
 
         let mut basic_blocks = Vec::new();
-        for label in traversal_order {
-            let (statements, successor) = basic_blocks_map.remove(&label).unwrap();
-            let label = label.into_low(&mut self)?;
+        for basic_block_id in traversal_order {
+            let (statements, mut successor) = basic_blocks_map.remove(&basic_block_id).unwrap();
+            let label = basic_block_id.clone().into_low(&mut self)?;
+            if let Some(intermediate_blocks) = basic_block_edges.remove(&basic_block_id) {
+                for (successor_label, successor_statements) in intermediate_blocks {
+                    let successor_label = successor_label.into_low(&mut self)?;
+                    let intermediate_block_label = vir_low::Label::new(format!(
+                        "label__from__{}__to__{}",
+                        label.name, successor_label.name
+                    ));
+                    successor.replace_label(&successor_label, intermediate_block_label.clone());
+                    basic_blocks.push(vir_low::BasicBlock {
+                        label: intermediate_block_label,
+                        statements: successor_statements,
+                        successor: vir_low::Successor::Goto(successor_label),
+                    });
+                }
+            }
+
             basic_blocks.push(vir_low::BasicBlock {
                 label,
                 statements,

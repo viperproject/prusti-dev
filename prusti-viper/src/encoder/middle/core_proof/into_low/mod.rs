@@ -2,10 +2,6 @@ use super::lowerer::Lowerer;
 use crate::encoder::errors::SpannedEncodingResult;
 
 mod cfg;
-mod expression;
-mod interface;
-
-pub(super) use self::interface::IntoLowInterface;
 
 pub(super) trait IntoLow {
     type Target;

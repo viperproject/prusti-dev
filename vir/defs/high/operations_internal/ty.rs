@@ -1,6 +1,10 @@
 use super::super::ast::{
     expression::{visitors::ExpressionFolder, *},
-    ty::{visitors::TypeFolder, *},
+    ty::{
+        visitors::{default_walk_reference, default_walk_type, TypeFolder, TypeWalker},
+        *,
+    },
+    type_decl::DiscriminantValue,
 };
 use rustc_hash::FxHashMap;
 
@@ -13,19 +17,23 @@ impl Type {
                 name,
                 arguments,
                 variant: None,
+                lifetimes,
             }) => Type::Enum(Enum {
                 name,
                 arguments,
                 variant: Some(variant),
+                lifetimes,
             }),
             Type::Union(Union {
                 name,
                 arguments,
                 variant: None,
+                lifetimes,
             }) => Type::Union(Union {
                 name,
                 arguments,
                 variant: Some(variant),
+                lifetimes,
             }),
             Type::Enum(_) => {
                 unreachable!("setting variant on enum type that already has variant set");
@@ -46,19 +54,23 @@ impl Type {
                 name,
                 arguments,
                 variant: Some(_),
+                lifetimes,
             }) => Some(Type::Enum(Enum {
                 name: name.clone(),
                 arguments: arguments.clone(),
                 variant: None,
+                lifetimes: lifetimes.clone(),
             })),
             Type::Union(Union {
                 name,
                 arguments,
                 variant: Some(_),
+                lifetimes,
             }) => Some(Type::Union(Union {
                 name: name.clone(),
                 arguments: arguments.clone(),
                 variant: None,
+                lifetimes: lifetimes.clone(),
             })),
             _ => None,
         }
@@ -73,11 +85,41 @@ impl Type {
             _ => false,
         }
     }
-    pub fn erase_lifetime(&mut self) {
-        if let Type::Reference(reference) = self {
-            reference.lifetime = Lifetime {
-                name: String::from("pure_erased"),
-            };
+    #[must_use]
+    pub fn erase_lifetimes(&self) -> Self {
+        struct DefaultLifetimeEraser {}
+        impl TypeFolder for DefaultLifetimeEraser {
+            fn fold_lifetime_const(&mut self, _lifetime: LifetimeConst) -> LifetimeConst {
+                LifetimeConst::erased()
+            }
+        }
+        DefaultLifetimeEraser {}.fold_type(self.clone())
+    }
+    pub fn contains_type_variables(&self) -> bool {
+        match self {
+            Self::Sequence(Sequence { element_type, .. })
+            | Self::Array(Array { element_type, .. })
+            | Self::Slice(Slice { element_type, .. }) => element_type.is_type_var(),
+            Self::Reference(Reference { target_type, .. })
+            | Self::Pointer(Pointer { target_type, .. }) => target_type.is_type_var(),
+            Self::Map(ty) => ty.key_type.is_type_var() || ty.val_type.is_type_var(),
+            Self::TypeVar(_) => true,
+            Self::Tuple(Tuple { arguments, .. })
+            | Self::Trusted(Trusted { arguments, .. })
+            | Self::Struct(Struct { arguments, .. })
+            | Self::Enum(Enum { arguments, .. })
+            | Self::Union(Union { arguments, .. })
+            | Self::Projection(Projection { arguments, .. }) => {
+                arguments.iter().any(|arg| arg.is_type_var())
+            }
+            Self::Closure(_) => {
+                unimplemented!();
+            }
+            Self::FunctionDef(_) => {
+                unimplemented!();
+            }
+            Self::Unsupported(_) => true,
+            _ => false,
         }
     }
 }
@@ -106,28 +148,36 @@ impl super::super::ast::type_decl::Enum {
             })
         }
     }
-    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<&Expression> {
+    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<DiscriminantValue> {
         self.iter_discriminant_variants()
             .find(|(_, variant)| variant_index.as_ref() == variant.name)
             .map(|(discriminant, _)| discriminant)
     }
     pub fn iter_discriminant_variants(
         &self,
-    ) -> impl Iterator<Item = (&Expression, &super::super::ast::type_decl::Struct)> {
-        self.discriminant_values.iter().zip(&self.variants)
+    ) -> impl Iterator<Item = (DiscriminantValue, &super::super::ast::type_decl::Struct)> {
+        self.discriminant_values.iter().cloned().zip(&self.variants)
     }
 }
 
 impl super::super::ast::type_decl::Union {
-    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<&Expression> {
+    pub fn get_discriminant(&self, variant_index: &VariantIndex) -> Option<DiscriminantValue> {
         self.iter_discriminant_variants()
             .find(|(_, variant)| variant_index.as_ref() == variant.name)
             .map(|(discriminant, _)| discriminant)
     }
     pub fn iter_discriminant_variants(
         &self,
-    ) -> impl Iterator<Item = (&Expression, &super::super::ast::type_decl::Struct)> {
-        self.discriminant_values.iter().zip(&self.variants)
+    ) -> impl Iterator<Item = (DiscriminantValue, &super::super::ast::type_decl::Struct)> {
+        self.discriminant_values.iter().cloned().zip(&self.variants)
+    }
+}
+
+impl LifetimeConst {
+    pub fn erased() -> Self {
+        LifetimeConst {
+            name: String::from("pure_erased"),
+        }
     }
 }
 
@@ -240,6 +290,7 @@ impl Typed for Expression {
             Expression::Quantifier(expression) => expression.get_type(),
             Expression::LetExpr(expression) => expression.get_type(),
             Expression::FuncApp(expression) => expression.get_type(),
+            Expression::BuiltinFuncApp(expression) => expression.get_type(),
             Expression::Downcast(expression) => expression.get_type(),
         }
     }
@@ -261,6 +312,7 @@ impl Typed for Expression {
             Expression::Quantifier(expression) => expression.set_type(new_type),
             Expression::LetExpr(expression) => expression.set_type(new_type),
             Expression::FuncApp(expression) => expression.set_type(new_type),
+            Expression::BuiltinFuncApp(expression) => expression.set_type(new_type),
             Expression::Downcast(expression) => expression.set_type(new_type),
         }
     }
@@ -362,7 +414,8 @@ impl Typed for BinaryOp {
             | BinaryOpKind::Sub
             | BinaryOpKind::Mul
             | BinaryOpKind::Div
-            | BinaryOpKind::Mod => {
+            | BinaryOpKind::Mod
+            | BinaryOpKind::LifetimeIntersection => {
                 let ty1 = self.left.get_type();
                 let ty2 = self.right.get_type();
                 assert_eq!(ty1, ty2, "expr: {:?}", self);
@@ -426,6 +479,15 @@ impl Typed for LetExpr {
 }
 
 impl Typed for FuncApp {
+    fn get_type(&self) -> &Type {
+        &self.return_type
+    }
+    fn set_type(&mut self, new_type: Type) {
+        self.return_type = new_type;
+    }
+}
+
+impl Typed for BuiltinFuncApp {
     fn get_type(&self) -> &Type {
         &self.return_type
     }

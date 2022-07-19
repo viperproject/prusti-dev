@@ -80,6 +80,8 @@ impl<Level: LogLevel> Drop for Stopwatch<Level> {
 }
 
 pub mod log_level {
+    use log::{error, warn, info, debug, trace};
+
     use super::*;
 
     macro_rules! log_level {

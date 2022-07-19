@@ -6,7 +6,7 @@
 
 use std::fmt;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum VerificationBackend {
     Silicon,
     Carbon,

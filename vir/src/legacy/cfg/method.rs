@@ -9,6 +9,7 @@ use crate::{
     legacy::{ast::*, gather_labels::gather_labels},
 };
 use derivative::Derivative;
+use log::{debug, trace};
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     fmt,
@@ -20,7 +21,7 @@ pub const RETURN_LABEL: &str = "end_of_method";
 
 #[derive(Derivative)]
 #[derivative(Hash)]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct CfgMethod {
     #[derivative(Hash = "ignore")]
     pub method_name: String,
@@ -33,13 +34,13 @@ pub struct CfgMethod {
     pub basic_blocks_labels: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Hash)]
 pub struct CfgBlock {
     pub stmts: Vec<Stmt>,
     pub successor: Successor,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, Eq, PartialEq, serde::Serialize, serde::Deserialize, Hash)]
 pub enum Successor {
     Undefined,
     Return,
@@ -49,7 +50,7 @@ pub enum Successor {
 
 #[derive(Derivative)]
 #[derivative(Hash, PartialEq, Eq)]
-#[derive(Clone, Copy, Serialize, Deserialize)]
+#[derive(Clone, Copy, serde::Serialize, serde::Deserialize)]
 pub struct CfgBlockIndex {
     pub block_index: usize,
 }

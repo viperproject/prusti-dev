@@ -16,13 +16,17 @@
 //! the set at the same time. For example, having `x.f` and `x.f.g` in
 //! `S` at the same time is illegal.
 
-use crate::environment::place_set::PlaceSet;
-use analysis::{domains::DefinitelyInitializedAnalysis};
+use crate::environment::mir_sets::PlaceSet;
+use analysis::{
+    abstract_interpretation::{AbstractState, FixpointEngine},
+    domains::DefinitelyInitializedAnalysis,
+};
 use prusti_common::Stopwatch;
-use rustc_data_structures::fx::FxHashMap;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty::TyCtxt};
-use analysis::abstract_interpretation::{FixpointEngine, AbstractState};
+use prusti_rustc_interface::{
+    data_structures::fx::FxHashMap,
+    hir::def_id::DefId,
+    middle::{mir, ty::TyCtxt},
+};
 
 pub struct AnalysisResult<T> {
     /// The state before the basic block.
@@ -108,10 +112,9 @@ pub fn compute_definitely_initialized<'a, 'tcx: 'a>(
             }
         }
         let state_after_block = opt_state_after_block.unwrap_or_else(|| analysis.new_bottom());
-        analysis_result.after_statement.insert(
-            location,
-            state_after_block.get_def_init_mir_places().into(),
-        );
+        analysis_result
+            .after_statement
+            .insert(location, state_after_block.get_def_init_mir_places().into());
     }
     stopwatch.finish();
     analysis_result

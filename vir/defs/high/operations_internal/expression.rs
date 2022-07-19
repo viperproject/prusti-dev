@@ -8,7 +8,7 @@ use super::{
             *,
         },
         position::Position,
-        ty::{visitors::TypeFolder, Lifetime, Type},
+        ty::{self, visitors::TypeFolder, LifetimeConst, Type},
     },
     ty::Typed,
 };
@@ -35,7 +35,8 @@ impl BinaryOpKind {
             | BinaryOpKind::Sub
             | BinaryOpKind::Mul
             | BinaryOpKind::Div
-            | BinaryOpKind::Mod => argument_type,
+            | BinaryOpKind::Mod
+            | BinaryOpKind::LifetimeIntersection => argument_type,
         }
     }
 }
@@ -57,8 +58,14 @@ impl Expression {
             Expression::Local(_) => None,
             Expression::Variant(Variant { box ref base, .. })
             | Expression::Field(Field { box ref base, .. })
+            | Expression::Deref(Deref { box ref base, .. })
             | Expression::AddrOf(AddrOf { box ref base, .. }) => Some(base),
             Expression::LabelledOld(_) => None,
+            Expression::BuiltinFuncApp(BuiltinFuncApp {
+                function: BuiltinFunc::Index,
+                arguments,
+                ..
+            }) => Some(&arguments[0]),
             expr => unreachable!("{}", expr),
         }
     }
@@ -87,26 +94,83 @@ impl Expression {
             | Expression::Deref(Deref { base, .. })
             | Expression::AddrOf(AddrOf { base, .. })
             | Expression::LabelledOld(LabelledOld { base, .. }) => base.is_place(),
+            Expression::BuiltinFuncApp(BuiltinFuncApp {
+                function: BuiltinFunc::Index,
+                arguments,
+                ..
+            }) if arguments.len() == 2 => arguments[0].is_place() && arguments[1].is_place(),
             _ => false,
         }
     }
+    /// Check whether the place is a dereference of a reference and if that is
+    /// the case, returns the uniqueness guarantees given by this reference.
+    pub fn get_dereference_kind(&self) -> Option<(ty::LifetimeConst, ty::Uniqueness)> {
+        assert!(self.is_place());
+        if let Some(parent) = self.get_parent_ref() {
+            if let Some(result) = parent.get_dereference_kind() {
+                return Some(result);
+            } else if self.is_deref() {
+                if let Type::Reference(ty::Reference {
+                    lifetime,
+                    uniqueness,
+                    ..
+                }) = parent.get_type()
+                {
+                    return Some((lifetime.clone(), *uniqueness));
+                } else {
+                    unreachable!();
+                }
+            }
+        }
+        None
+    }
+
+    pub fn is_deref_of_lifetime(&self, searched_lifetime: &ty::LifetimeConst) -> bool {
+        if let Some(parent) = self.get_parent_ref() {
+            if self.is_deref() {
+                if let Type::Reference(ty::Reference { lifetime, .. }) = parent.get_type() {
+                    return searched_lifetime == lifetime
+                        || parent.is_deref_of_lifetime(searched_lifetime);
+                }
+            }
+            parent.is_deref_of_lifetime(searched_lifetime)
+        } else {
+            false
+        }
+    }
+
+    /// Check whether the place is a dereference of a reference and if that is
+    /// the case, return its base.
+    pub fn get_dereference_base(&self) -> Option<&Expression> {
+        assert!(self.is_place());
+        if let Expression::Deref(Deref { box base, .. }) = self {
+            Some(base)
+        } else if let Some(parent) = self.get_parent_ref() {
+            parent.get_dereference_base()
+        } else {
+            None
+        }
+    }
+
+    #[must_use]
     pub fn erase_lifetime(self) -> Expression {
         struct DefaultLifetimeEraser {}
         impl ExpressionFolder for DefaultLifetimeEraser {
             fn fold_type(&mut self, ty: Type) -> Type {
-                TypeFolder::fold_type(self, ty)
+                ty.erase_lifetimes()
             }
             fn fold_variable_decl(&mut self, variable_decl: VariableDecl) -> VariableDecl {
                 VariableDecl {
                     name: variable_decl.name,
-                    ty: TypeFolder::fold_type(self, variable_decl.ty),
+                    ty: variable_decl.ty.erase_lifetimes(),
                 }
             }
-        }
-        impl TypeFolder for DefaultLifetimeEraser {
-            fn fold_lifetime(&mut self, _lifetime: Lifetime) -> Lifetime {
-                Lifetime {
-                    name: String::from("pure_erased"),
+            fn fold_field_decl(&mut self, field_decl: FieldDecl) -> FieldDecl {
+                // FIXME: Fix the visitor generator to follow relative imports
+                // when generating visitors.
+                FieldDecl {
+                    ty: field_decl.ty.erase_lifetimes(),
+                    ..field_decl
                 }
             }
         }
@@ -239,6 +303,106 @@ impl Expression {
         }
         Simplifier.fold_expression(self)
     }
+    fn apply_simplification_rules(self) -> Self {
+        let mut expression = self;
+        loop {
+            expression = match expression {
+                Expression::Deref(Deref {
+                    base: box Expression::AddrOf(AddrOf { base, .. }),
+                    ..
+                }) => *base,
+                Expression::Field(Field {
+                    field,
+                    base: box Expression::Constructor(Constructor { arguments, .. }),
+                    ..
+                }) => arguments[field.index].clone(),
+                Expression::BinaryOp(BinaryOp {
+                    op_kind,
+                    left:
+                        box Expression::AddrOf(AddrOf {
+                            base: left,
+                            ty:
+                                Type::Reference(ty::Reference {
+                                    lifetime: _,
+                                    uniqueness: ty::Uniqueness::Shared,
+                                    target_type:
+                                        box Type::Map(_) | box Type::Sequence(_) | box Type::Int(_),
+                                }),
+                            ..
+                        }),
+                    right:
+                        box Expression::AddrOf(AddrOf {
+                            base: right,
+                            ty:
+                                Type::Reference(ty::Reference {
+                                    lifetime: _,
+                                    uniqueness: ty::Uniqueness::Shared,
+                                    target_type:
+                                        box Type::Map(_) | box Type::Sequence(_) | box Type::Int(_),
+                                }),
+                            ..
+                        }),
+                    position,
+                }) => Expression::BinaryOp(BinaryOp {
+                    op_kind,
+                    left,
+                    right,
+                    position,
+                }),
+                Expression::UnaryOp(UnaryOp {
+                    op_kind: op_kind_outer,
+                    argument:
+                        box Expression::UnaryOp(UnaryOp {
+                            op_kind: op_kind_inner,
+                            argument,
+                            ..
+                        }),
+                    ..
+                }) if op_kind_inner == op_kind_outer => *argument,
+                Expression::Deref(Deref {
+                    base: box Expression::BuiltinFuncApp(ref app),
+                    ..
+                }) => match app.function {
+                    BuiltinFunc::LookupMap | BuiltinFunc::LookupSeq => {
+                        match (&app.arguments[0], &app.return_type) {
+                            (
+                                Expression::AddrOf(AddrOf { base, .. }),
+                                Type::Reference(ty::Reference {
+                                    target_type: box return_type,
+                                    ..
+                                }),
+                            ) => {
+                                let mut arguments = app.arguments.clone();
+                                arguments[0] = (**base).clone();
+                                let return_type = return_type.clone();
+                                Expression::BuiltinFuncApp(BuiltinFuncApp {
+                                    arguments,
+                                    return_type,
+                                    ..app.clone()
+                                })
+                            }
+                            _ => break expression,
+                        }
+                    }
+                    _ => break expression,
+                },
+                _ => {
+                    break expression;
+                }
+            };
+        }
+    }
+    pub fn simplify(self) -> Self {
+        struct Simplifier;
+        impl ExpressionFolder for Simplifier {
+            fn fold_expression(&mut self, expression: Expression) -> Expression {
+                let expression = expression.apply_simplification_rules();
+                let expression = default_fold_expression(self, expression);
+                expression.apply_simplification_rules()
+            }
+        }
+        Simplifier.fold_expression(self)
+    }
     pub fn find(&self, sub_target: &Expression) -> bool {
         pub struct ExprFinder<'a> {
             sub_target: &'a Expression,
@@ -354,5 +518,36 @@ impl Expression {
         let ty = self.get_type().clone().variant(variant_name.clone());
         let position = self.position();
         self.variant(variant_name, ty, position)
+    }
+
+    /// Assuming that `self` is an array and is a prefix of `guiding_place`,
+    /// return the index that matches the guiding place.
+    pub fn get_index<'a>(&self, guiding_place: &'a Expression) -> &'a Expression {
+        let parent = guiding_place.get_parent_ref().unwrap();
+        if self == parent {
+            match guiding_place {
+                Expression::BuiltinFuncApp(BuiltinFuncApp {
+                    function: BuiltinFunc::Index,
+                    arguments,
+                    ..
+                }) => &arguments[1],
+                _ => unreachable!(
+                    "self: {} ({}), guiding_place: {}",
+                    self,
+                    self.get_type(),
+                    guiding_place
+                ),
+            }
+        } else {
+            self.get_index(parent)
+        }
+    }
+
+    pub fn none_permission() -> Self {
+        Self::constant_no_pos(ConstantValue::Int(0), Type::MPerm)
+    }
+
+    pub fn full_permission() -> Self {
+        Self::constant_no_pos(ConstantValue::Int(1), Type::MPerm)
     }
 }
