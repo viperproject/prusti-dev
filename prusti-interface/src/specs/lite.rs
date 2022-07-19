@@ -14,7 +14,7 @@ use prusti_rustc_interface::middle::ty::TyCtxt;
 use rustc_serialize::{Decodable, Encodable};
 
 use crate::specs::typed::{
-    DefSpecificationMap, ProcedureSpecification, PrustiAssertion, PrustiAssumption,
+    DefSpecificationMap, ProcedureSpecification,
     SpecGraph, TypeSpecification,
 };
 
@@ -30,8 +30,6 @@ use super::{
 pub struct DefSpecificationMapLite<'tcx, 'a> {
     proc_specs: &'a HashMap<DefId, SpecGraph<ProcedureSpecification>>,
     type_specs: &'a HashMap<DefId, TypeSpecification>,
-    prusti_assertions: &'a HashMap<DefId, PrustiAssertion>,
-    prusti_assumptions: &'a HashMap<DefId, PrustiAssumption>,
 
     mirs_of_specs: &'a HashMap<DefId, Rc<mir::Body<'tcx>>>,
 }
@@ -41,8 +39,6 @@ impl<'tcx, 'a> DefSpecificationMapLite<'tcx, 'a> {
         Self {
             proc_specs: &def_spec.proc_specs,
             type_specs: &def_spec.type_specs,
-            prusti_assertions: &def_spec.prusti_assertions,
-            prusti_assumptions: &def_spec.prusti_assumptions,
 
             mirs_of_specs: &def_spec.mirs_of_specs,
         }
@@ -65,8 +61,6 @@ impl<'tcx, 'a> DefSpecificationMapLite<'tcx, 'a> {
 pub struct DefSpecificationMapLiteOwned<'tcx> {
     proc_specs: HashMap<DefId, SpecGraph<ProcedureSpecification>>,
     type_specs: HashMap<DefId, TypeSpecification>,
-    prusti_assertions: HashMap<DefId, PrustiAssertion>,
-    prusti_assumptions: HashMap<DefId, PrustiAssumption>,
 
     mirs_of_specs: HashMap<DefId, Rc<mir::Body<'tcx>>>,
 }
@@ -82,8 +76,6 @@ impl<'tcx> DefSpecificationMapLiteOwned<'tcx> {
     pub(crate) fn extend(self, def_spec: &mut DefSpecificationMap<'tcx>) {
         def_spec.proc_specs.extend(self.proc_specs);
         def_spec.type_specs.extend(self.type_specs);
-        def_spec.prusti_assertions.extend(self.prusti_assertions);
-        def_spec.prusti_assumptions.extend(self.prusti_assumptions);
 
         def_spec.mirs_of_specs.extend(self.mirs_of_specs);
     }
