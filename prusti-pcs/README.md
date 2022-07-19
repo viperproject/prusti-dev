@@ -7,11 +7,12 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
  - [ ] Straight line, unshared code
     - [x] refactor
     - [x] 1-ary propagation method (repacker)
-        - [ ] temporaries
+        - [x] temporaries
         - [ ] uninit
-        - [ ] apply-packing
+        - [x] apply-packing
         - [ ] separating union
         - [ ] refactor
+        - [x] fix lifetimes
     - [ ] formalize poset interpretation of places
     - [x] MIR -> MicroMIR translation
     - [ ] stable output representation for testing
@@ -24,5 +25,4 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
 
 
 - Maintainence
-    - [ ] rename lifetimes correctly
     - [ ] turn moves into borrows
