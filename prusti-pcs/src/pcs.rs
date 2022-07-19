@@ -9,8 +9,9 @@ use crate::{
         hoare_semantics::HoareSemantics, LinearResource, MicroMirData, MicroMirEncoder,
         MicroMirStatement, MicroMirTerminator, PCSPermission, PCS,
     },
-    util::{expand_place, EncodingResult},
+    util::EncodingResult,
 };
+use analysis::mir_utils::{expand_one_level, PlaceImpl};
 use prusti_interface::{
     environment::{Environment, Procedure},
     PrustiError,
@@ -32,6 +33,26 @@ pub fn dump_pcs<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> EncodingResul
         let micro_mir: MicroMirEncoder<'tcx> = MicroMirEncoder::expand_syntax(mir)?;
         micro_mir.pprint();
         let operational_pcs = straight_line_pcs(&micro_mir, mir, env)?;
+
+        let mut i = 0;
+        while i < operational_pcs.statements.len() {
+            // Report PCS before
+            print!("\tPCS: ");
+            for s in operational_pcs.pcs_before[i].set.iter() {
+                print!("{:#?}, ", s)
+            }
+            println!();
+
+            println!("\t\t{:?}", operational_pcs.statements[i]);
+
+            i += 1;
+        }
+
+        print!("\tPCS: ");
+        for s in operational_pcs.final_pcs.set.iter() {
+            print!("{:#?}, ", s)
+        }
+        println!();
     }
     Ok(())
 }
@@ -63,12 +84,7 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
     loop {
         // Compute PCS for the block
         for statement in current_block.statements.iter() {
-            print!("\tPCS: ");
-            for s in current_state.set.iter() {
-                print!("{:#?}, ", s)
-            }
-            println!();
-            println!("  working on {:?} ", statement);
+            // println!("  working on {:?} ", statement);
             // Elaborate the precondition of the statement
             let next_statement_state = naive_elaboration(&statement, &current_state)?;
             // println!(
@@ -90,7 +106,10 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
             for p1 in next_statement_state.set.iter() {
                 if !current_state.set.remove(p1) {
                     return Err(PrustiError::internal(
-                        format!("generated PCS is incoherent (precondition)"),
+                        format!(
+                            "generated PCS is incoherent (precondition): {:#?}",
+                            next_statement_state.set
+                        ),
                         MultiSpan::new(),
                     ));
                 }
@@ -109,7 +128,7 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
             for p1 in post.set.iter() {
                 if !current_state.set.insert((*p1).clone()) {
                     return Err(PrustiError::internal(
-                        format!("generated PCS is incoherent (postcondition)"),
+                        format!("generated PCS is incoherent (postcondition) {:?}", p1),
                         MultiSpan::new(),
                     ));
                 }
@@ -154,6 +173,7 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
     // Report
     //  interp. final PCS *before* return, so the return statement is not computed
     //   (some aspects of the theory still to work out here)
+
     return Ok(StraitLineOpPCS {
         statements,
         pcs_before,
@@ -213,7 +233,8 @@ fn apply_packings<'mir, 'env: 'mir, 'tcx: 'env>(
     // mir: &Body<'mir>,
 ) -> EncodingResult<PCS<'tcx>> {
     // TODO: Move insert and remove (guarded with linearity) into PCS
-    for p in packings.unpacks.iter() {
+
+    for (p, unpacked_p) in packings.unpacks.iter() {
         before_pcs.push(state.clone());
         let to_lose = p.clone();
         // TODO: We're assuming all places are mutably owned right now
@@ -226,7 +247,7 @@ fn apply_packings<'mir, 'env: 'mir, 'tcx: 'env>(
                 MultiSpan::new(),
             ));
         }
-        let to_regain: Vec<Place<'tcx>> = expand_place(*p, mir, env)?;
+        let to_regain: Vec<Place<'tcx>> = unpacked_p.iter().cloned().collect();
         for p1 in to_regain.iter() {
             if !state.set.insert(PCSPermission::new_initialized(
                 Mutability::Mut,
@@ -242,9 +263,9 @@ fn apply_packings<'mir, 'env: 'mir, 'tcx: 'env>(
         statements.push(MicroMirStatement::Unpack(to_lose, to_regain));
     }
 
-    for p in packings.packs.iter().rev() {
+    for (p, pre_p) in packings.packs.iter().rev() {
         before_pcs.push(state.clone());
-        let to_lose: Vec<Place<'tcx>> = expand_place(*p, mir, env)?;
+        let mut to_lose: Vec<Place<'tcx>> = pre_p.iter().cloned().collect(); // expand_place(*p, mir, env)?;
         for p1 in to_lose.iter() {
             if !state.set.remove(&PCSPermission::new_initialized(
                 Mutability::Mut,
@@ -271,6 +292,5 @@ fn apply_packings<'mir, 'env: 'mir, 'tcx: 'env>(
 
         statements.push(MicroMirStatement::Pack(to_lose, to_regain));
     }
-
     return Ok(state);
 }

@@ -8,7 +8,11 @@ use crate::{
     util::*,
 };
 use itertools::Itertools;
-use prusti_interface::{environment::Environment, utils::is_prefix, PrustiError};
+use prusti_interface::{
+    environment::Environment,
+    utils::{expand_one_level, is_prefix},
+    PrustiError,
+};
 use prusti_rustc_interface::{
     data_structures::{stable_map::FxHashMap, stable_set::FxHashSet},
     errors::MultiSpan,
@@ -19,9 +23,10 @@ use prusti_rustc_interface::{
 };
 
 // Assumption: All places are mutably owned
+#[derive(Debug)]
 pub struct PCSRepacker<'tcx> {
-    pub packs: Vec<Place<'tcx>>,
-    pub unpacks: Vec<Place<'tcx>>,
+    pub packs: Vec<(Place<'tcx>, FxHashSet<Place<'tcx>>)>,
+    pub unpacks: Vec<(Place<'tcx>, FxHashSet<Place<'tcx>>)>,
 }
 
 // TODO: Look over this again, many places need improvement
@@ -71,14 +76,15 @@ pub fn unify_moves<'mir, 'env: 'mir, 'tcx: 'env>(
         }
     }
 
-    let mut a_unpacks: Vec<Place<'tcx>> = Vec::default();
-    let mut b_unpacks: Vec<Place<'tcx>> = Vec::default();
+    let mut a_unpacks: Vec<(Place<'tcx>, FxHashSet<Place<'tcx>>)> = Vec::default();
+    let mut b_unpacks: Vec<(Place<'tcx>, FxHashSet<Place<'tcx>>)> = Vec::default();
 
     // Iterate over subproblems (in any order)
     let mut mir_problem_iter = mir_problems.drain();
     while let Some(((_local, _kind), (mut set_rc_a, mut set_rc_b))) = mir_problem_iter.next() {
-        loop {
-            // Remove (mark?) elements which do not need to be considered.
+        // No work to be done when PCS a is a subset of PCS b
+        while !set_rc_b.is_subset(&set_rc_a) {
+            // Remove intersection (b still not subset of a afterwards)
             let mut intersection: FxHashSet<Place<'tcx>> = FxHashSet::default();
             for x in set_rc_a.intersection(&set_rc_b) {
                 intersection.insert(x.clone());
@@ -88,40 +94,38 @@ pub fn unify_moves<'mir, 'env: 'mir, 'tcx: 'env>(
                 set_rc_b.remove(&x);
             }
 
-            // If no more elements in set, we are done (they're unified)
-            if (set_rc_a.len() == 0) && (set_rc_b.len() == 0) {
-                break;
-            }
-
-            // If the set of elements in a already containas all elets in b, done
-            if set_rc_b.is_subset(&set_rc_a) {
-                break;
-            }
-
             let mut gen_a: FxHashSet<Place<'tcx>> = FxHashSet::default();
             let mut kill_a: FxHashSet<Place<'tcx>> = FxHashSet::default();
             let mut gen_b: FxHashSet<Place<'tcx>> = FxHashSet::default();
             let mut kill_b: FxHashSet<Place<'tcx>> = FxHashSet::default();
-            if let Some((a, _)) = set_rc_a
+            if let Some((a, b)) = set_rc_a
                 .iter()
                 .cartesian_product(set_rc_b.iter())
                 .filter(|(a, b)| is_prefix(**a, **b))
                 .next()
             {
-                // b is a prefix of a => a should get expanded
-                gen_a = FxHashSet::from_iter(expand_place(*a, mir, env)?);
-                kill_a = FxHashSet::from_iter([*a].into_iter());
-                a_unpacks.push(*a);
-            } else if let Some((_, b)) = set_rc_a
+                // println!("(1) {:#?} is a prefix of {:#?}", b, a);
+                // expand b
+                let (expand_b, remainder_b) =
+                    expand_one_level(mir, env.tcx(), (*b).into(), (*a).into());
+                gen_b = remainder_b.into_iter().collect();
+                gen_b.insert(expand_b);
+                kill_b = FxHashSet::from_iter([*b].into_iter());
+                b_unpacks.push((*b, gen_b.clone()));
+            } else if let Some((a, b)) = set_rc_a
                 .iter()
                 .cartesian_product(set_rc_b.iter())
                 .filter(|(a, b)| is_prefix(**b, **a))
                 .next()
             {
-                // a is a prefix of b => b should get expanded
-                gen_b = FxHashSet::from_iter(expand_place(*b, mir, env)?);
-                kill_b = FxHashSet::from_iter([*b].into_iter());
-                b_unpacks.push(*b);
+                // println!("(2) {:#?} is a prefix of {:#?}", a, b);
+                // expand a
+                let (expand_a, remainder_a) =
+                    expand_one_level(mir, env.tcx(), (*a).into(), (*b).into());
+                gen_a = remainder_a.into_iter().collect();
+                gen_a.insert(expand_a);
+                kill_a = FxHashSet::from_iter([*a].into_iter());
+                a_unpacks.push((*a, gen_a.clone()));
             } else {
                 return Err(PrustiError::internal(
                     format!(
@@ -148,6 +152,26 @@ pub fn unify_moves<'mir, 'env: 'mir, 'tcx: 'env>(
                 set_rc_b.insert(*b);
             }
         }
+
+        /*
+               loop {
+                   // Remove (mark?) elements which do not need to be considered.
+
+
+                   // If no more elements in set, we are done (they're unified)
+                   if (set_rc_a.len() == 0) && (set_rc_b.len() == 0) {
+                       break;
+                   }
+
+                   // If the set of elements in a already containas all elets in b, done
+                   if set_rc_b.is_subset(&set_rc_a) {
+                       break;
+                   }
+
+
+
+              }
+        */
     }
 
     // let mut working_pcs: FxHashSet<Place<'tcx>> = a
