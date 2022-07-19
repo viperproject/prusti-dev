@@ -233,12 +233,11 @@ pub mod trait_bounds {
         for spec_id in pres
             .iter()
             .chain(posts.iter())
-            // Parameter substitution is not yet implemented for external specification
-            .map(|spec_id| spec_id.expect_local())
+            .map(|spec_id| spec_id)
         {
-            let param_env = env.tcx().param_env(spec_id.to_def_id());
-            let spec_span = env.tcx().def_span(spec_id.to_def_id());
-            let attrs = env.get_local_attributes(spec_id);
+            let param_env = env.tcx().param_env(spec_id);
+            let spec_span = env.tcx().def_span(spec_id);
+            let attrs = env.get_attributes(*spec_id);
             if has_trait_bounds_ghost_constraint(attrs) {
                 param_envs
                     .entry(param_env)
