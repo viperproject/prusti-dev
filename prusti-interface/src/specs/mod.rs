@@ -103,8 +103,8 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.fetch_local_mirs(&mut def_spec);
 
         if let Some(build_output_dir) = build_output_dir {
-            self.write_specs_to_file(&def_spec, &build_output_dir);
-            self.merge_specs_from_dependencies(&mut def_spec, &build_output_dir);
+            self.write_specs_to_file(&def_spec, build_output_dir);
+            self.merge_specs_from_dependencies(&mut def_spec, build_output_dir);
         }
 
         def_spec
@@ -114,31 +114,31 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         let name = (&self.tcx.sess().opts.crate_name).as_ref().unwrap();
         let stable_id = &self.tcx.sess().local_stable_crate_id().to_u64();
 
-        return format!("{}-{:x}.bin", name, stable_id).to_owned();
+        format!("{}-{:x}.bin", name, stable_id)
     }
 
-    fn get_serialized_specs_dir(build_output_dir: &PathBuf) -> Box<PathBuf> {
-        let mut output_dir = Box::new(build_output_dir.clone());
+    fn get_serialized_specs_dir(build_output_dir: &Path) -> Box<PathBuf> {
+        let mut output_dir = Box::new(build_output_dir.to_path_buf());
         output_dir.push("serialized_specs");
-        return output_dir;
+        output_dir
     }
 
-    fn get_local_crate_specs_path(&self, build_output_dir: &PathBuf) -> Box<PathBuf> {
+    fn get_local_crate_specs_path(&self, build_output_dir: &Path) -> Box<PathBuf> {
         let mut output_file = Self::get_serialized_specs_dir(build_output_dir);
         output_file.push(self.get_local_crate_specs_filename());
-        return output_file;
+        output_file
     }
 
-    fn write_specs_to_file(&self, def_spec: &typed::DefSpecificationMap<'tcx>, build_output_dir: &PathBuf) {
+    fn write_specs_to_file(&self, def_spec: &typed::DefSpecificationMap<'tcx>, build_output_dir: &Path) {
         let def_spec_for_export = DefSpecificationMapForExport::from_def_spec(def_spec);
         let target_filename = self.get_local_crate_specs_path(build_output_dir);
-        return def_spec_for_export.write_into_file(
+        def_spec_for_export.write_into_file(
             self.tcx,
             &target_filename,
-        ).unwrap();
+        ).unwrap()
     }
 
-    fn merge_specs_from_dependencies(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>, build_output_dir: &PathBuf) {
+    fn merge_specs_from_dependencies(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>, build_output_dir: &Path) {
         // TODO: only load serialized specs of dependencies (instead of loading all existing files)
 
         let serialized_mirs_dir = Self::get_serialized_specs_dir(build_output_dir);

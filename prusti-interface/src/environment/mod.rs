@@ -303,14 +303,14 @@ impl<'tcx> Environment<'tcx> {
                     borrowck_facts: Rc::new(facts),
                 }
             });
-        return body.clone()
+        body.clone()
     }
 
     /// Get the MIR body of a local procedure, without performing any type substitution.
     /// This is equivalent to performing the substitution with `identity_substs(def_id)`.
     pub fn local_base_mir(&self, def_id: LocalDefId) -> Rc<mir::Body<'tcx>> {
         let body = self.local_mir_raw(def_id);
-        return body.base_body;
+        body.base_body
     }
 
     /// Get the MIR body of a local procedure, monomorphised with the given

@@ -159,12 +159,9 @@ fn test_local_project_with_dependencies<T: Into<PathBuf>>(project_name: T, depen
     });
     for crate_name in dependencies {
         println!(
-            "{}",
-            format!(
-                "Creating symlink for {} -> {}",
-                Path::new(crate_name).display(),
-                cargo_verify_path.join(crate_name).as_path().display()
-            )
+            "Creating symlink for {} -> {}",
+            Path::new(crate_name).display(),
+            cargo_verify_path.join(crate_name).as_path().display()
         );
         project_builder = project_builder.symlink_dir(
             cargo_verify_path.join(crate_name).as_path(),
