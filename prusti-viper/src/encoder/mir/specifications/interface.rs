@@ -9,7 +9,7 @@ use prusti_interface::{
 };
 use prusti_rustc_interface::{
     hir::def_id::DefId,
-    middle::{mir, ty::subst::SubstsRef},
+    middle::{mir, ty, ty::subst::SubstsRef},
     span::Span,
 };
 use std::{cell::RefCell, hash::Hash, rc::Rc};
@@ -129,6 +129,8 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     fn get_spec_span(&self, def_id: DefId) -> Span;
 
     fn get_local_mir(&self, def_id: DefId) -> Rc<mir::Body<'tcx>>;
+
+    fn get_mir(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>>;
 }
 
 impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
@@ -292,5 +294,14 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .get(&def_id)
             .unwrap()
             .clone();
+    }
+
+    fn get_mir(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
+        return if let Some(def_id) = def_id.as_local() {
+            self.env().local_mir(def_id, substs)
+        } else {
+            use ty::subst::Subst;
+            ty::EarlyBinder(self.get_local_mir(def_id)).subst(self.env().tcx(), substs)
+        };
     }
 }

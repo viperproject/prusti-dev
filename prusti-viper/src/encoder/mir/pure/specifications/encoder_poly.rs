@@ -9,6 +9,7 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     mir::{
         pure::{specifications::utils::extract_closure_from_ty, PureFunctionEncoderInterface},
+        specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
     },
     mir_encoder::{MirEncoder, PlaceEncoder},
