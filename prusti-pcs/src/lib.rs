@@ -24,6 +24,7 @@ extern crate serde;
 pub mod joins;
 pub mod syntax;
 
+mod graph;
 mod pcs;
 mod util;
 pub use pcs::*;
