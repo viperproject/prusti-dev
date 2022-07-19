@@ -1,4 +1,4 @@
-// compiler-flags: -Penable_ghost_constraints=true
+// compile-flags: -Penable_ghost_constraints=true
 
 #![feature(unboxed_closures, fn_traits)]
 

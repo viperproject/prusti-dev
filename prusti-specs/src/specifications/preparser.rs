@@ -899,7 +899,7 @@ mod tests {
         );
         assert_eq!(
             parse_prusti(quote! { exists(|x: i32| a === b) }).unwrap().to_string(),
-            "exists (() , # [prusti :: spec_only] | x : i32 | -> bool { ((snapshot_equality (a , b)) : bool) })",
+            "exists (() , # [prusti :: spec_only] | x : i32 | -> bool { ((snapshot_equality (& a , & b)) : bool) })",
         );
         assert_eq!(
             parse_prusti(quote! { forall(|x: i32| a ==> b, triggers = [(c,), (d, e)]) }).unwrap().to_string(),
