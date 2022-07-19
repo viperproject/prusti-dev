@@ -23,7 +23,7 @@ use prusti_interface::PrustiError;
 use vir_crate::polymorphic::{self as vir};
 use vir_crate::common::identifier::WithIdentifier;
 use prusti_rustc_interface::hir::def_id::DefId;
-use prusti_rustc_interface::middle::{mir, ty, ty::subst::SubstsRef};
+use prusti_rustc_interface::middle::{mir, ty};
 use std::cell::{Cell, RefCell, RefMut, Ref};
 use rustc_hash::FxHashMap;
 use std::io::Write;
@@ -785,14 +785,5 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn discriminants_info(&self) -> FxHashMap<(ProcedureDefId, String), Vec<String>> {
         self.discriminants_info.borrow().clone()
-    }
-
-    pub fn get_mir(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
-        return if let Some(def_id) = def_id.as_local() {
-            self.env().local_mir(def_id, substs)
-        } else {
-            use ty::subst::Subst;
-            ty::EarlyBinder(self.get_local_mir(def_id)).subst(self.env().tcx(), substs)
-        };
     }
 }
