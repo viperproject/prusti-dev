@@ -3,7 +3,6 @@ use prusti_rustc_interface::errors::MultiSpan;
 use prusti_rustc_interface::hir::intravisit;
 use prusti_rustc_interface::middle::{hir::map::Map, ty::TyCtxt};
 use prusti_rustc_interface::span::Span;
-use prusti_rustc_interface::middle::dep_graph::DepContext;
 
 use crate::{
     environment::Environment,
@@ -14,7 +13,7 @@ use crate::{
     },
 };
 use log::debug;
-use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
+use prusti_rustc_interface::hir::def_id::{CrateNum, DefId, LocalDefId, LOCAL_CRATE};
 use std::{collections::HashMap, convert::TryInto, fmt::Debug, path::PathBuf};
 
 pub mod checker;
@@ -110,28 +109,19 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         def_spec
     }
 
-    fn get_local_crate_specs_filename(&self) -> String {
-        let name = (&self.tcx.sess().opts.crate_name).as_ref().unwrap();
-        let stable_id = &self.tcx.sess().local_stable_crate_id().to_u64();
-
-        format!("{}-{:x}.bin", name, stable_id)
-    }
-
-    fn get_serialized_specs_dir(build_output_dir: &Path) -> Box<PathBuf> {
-        let mut output_dir = Box::new(build_output_dir.to_path_buf());
-        output_dir.push("serialized_specs");
-        output_dir
-    }
-
-    fn get_local_crate_specs_path(&self, build_output_dir: &Path) -> Box<PathBuf> {
-        let mut output_file = Self::get_serialized_specs_dir(build_output_dir);
-        output_file.push(self.get_local_crate_specs_filename());
-        output_file
+    fn get_crate_specs_path(&self, build_output_dir: &Path, crate_num: CrateNum) -> Box<PathBuf> {
+        let mut path = Box::new(build_output_dir.to_path_buf());
+        path.push("serialized_specs");
+        path.push(format!("{}-{:x}.bin",
+                          self.tcx.crate_name(crate_num),
+                          self.tcx.stable_crate_id(crate_num).to_u64(),
+        ));
+        path
     }
 
     fn write_specs_to_file(&self, def_spec: &typed::DefSpecificationMap<'tcx>, build_output_dir: &Path) {
         let def_spec_for_export = DefSpecificationMapForExport::from_def_spec(def_spec);
-        let target_filename = self.get_local_crate_specs_path(build_output_dir);
+        let target_filename = self.get_crate_specs_path(build_output_dir, LOCAL_CRATE);
         def_spec_for_export.write_into_file(
             self.tcx,
             &target_filename,
@@ -139,14 +129,14 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn merge_specs_from_dependencies(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>, build_output_dir: &Path) {
-        // TODO: only load serialized specs of dependencies (instead of loading all existing files)
+        for crate_num in self.tcx.crates(()) {
+            if *crate_num == LOCAL_CRATE {
+                continue;
+            }
 
-        let serialized_mirs_dir = Self::get_serialized_specs_dir(build_output_dir);
-        let local_crate_specs_filename = self.get_local_crate_specs_filename();
-        for d in serialized_mirs_dir.read_dir().unwrap() {
-            let path = d.unwrap().path();
-            if path.is_file() && !path.file_name().unwrap().eq(local_crate_specs_filename.as_str()) {
-                self.merge_specs_from_file(def_spec, &path);
+            let file = self.get_crate_specs_path(build_output_dir, *crate_num);
+            if file.is_file() {
+                self.merge_specs_from_file(def_spec, &file);
             }
         }
     }
