@@ -68,7 +68,10 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
             );
             // Elaborate the precondition of the statement
             let next_statement_state = naive_elaboration(&statement, &current_state)?;
-
+            println!(
+                "      attempt to unify: {:#?} and {:#?}",
+                current_state, next_statement_state
+            );
             // Go through the packings, apply them and add to encoding.
             let packings = unify_moves(&current_state, &next_statement_state, mir, env)?;
             current_state = apply_packings(

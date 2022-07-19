@@ -31,17 +31,10 @@ pub fn unify_moves<'mir, 'env: 'mir, 'tcx: 'env>(
     mir: &'mir Body<'tcx>,
     env: &'env Environment<'tcx>,
 ) -> EncodingResult<PCSRepacker<'tcx>> {
-    // let a = a_pcs.set.clone();
-    // let b = b_pcs.set.clone();
-
     let mut mir_problems: FxHashMap<
         (Local, PCSPermissionKind),
         (FxHashSet<Place<'tcx>>, FxHashSet<Place<'tcx>>),
     > = FxHashMap::default();
-
-    // Checking temporaries is simple: They aren't allowed to pack/unpack
-    //      so we just need to check that they have the same mutability
-    let _tmp_problems: FxHashMap<TemporaryPlace, PCSPermissionKind> = FxHashMap::default();
 
     // Split the problem into independent parts
     for pcs_permission in a_pcs.set.iter() {
@@ -54,8 +47,8 @@ pub fn unify_moves<'mir, 'env: 'mir, 'tcx: 'env>(
                     .or_insert((FxHashSet::default(), FxHashSet::default()));
                 (*set_borrow).0.insert(place.clone());
             }
-            LinearResource::Tmp(_temp) => {
-                todo!();
+            LinearResource::Tmp(_) => {
+                // Not changed by packs/unpacks
             }
         }
     }
@@ -72,8 +65,8 @@ pub fn unify_moves<'mir, 'env: 'mir, 'tcx: 'env>(
                     .or_insert((FxHashSet::default(), FxHashSet::default()));
                 (*set_borrow).1.insert(place.clone());
             }
-            LinearResource::Tmp(_temp) => {
-                todo!();
+            LinearResource::Tmp(_) => {
+                // Not changed by packs/unpacks
             }
         }
     }
