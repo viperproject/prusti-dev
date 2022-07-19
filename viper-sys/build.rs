@@ -4,11 +4,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-extern crate env_logger;
-extern crate error_chain;
-extern crate jni_gen;
-extern crate tempdir;
-
 use error_chain::ChainedError;
 use jni_gen::*;
 use std::{env, fs, fs::File, io::copy, path::Path};
@@ -577,6 +572,9 @@ fn main() {
             java_class!("viper.silver.ast.PermDiv", vec![
                 constructor!(),
             ]),
+            java_class!("viper.silver.ast.Positioned", vec![
+                method!("pos"),
+            ]),
             java_class!("viper.silver.ast.Predicate", vec![
                 constructor!(),
             ]),
@@ -623,6 +621,36 @@ fn main() {
                 constructor!(),
             ]),
             java_class!("viper.silver.ast.SeqUpdate", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.MapType", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.EmptyMap", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.ExplicitMap", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.Maplet", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.MapUpdate", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.MapLookup", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.MapContains", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.MapCardinality", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.MapDomain", vec![
+                constructor!(),
+            ]),
+            java_class!("viper.silver.ast.MapRange", vec![
                 constructor!(),
             ]),
             java_class!("viper.silver.ast.SetType", vec![
@@ -682,6 +710,7 @@ fn main() {
             ]),
             java_class!("viper.silver.verifier.VerificationError", vec![
                 method!("id"),
+                method!("offendingNode"),
                 method!("pos"),
                 method!("fullId"),
                 method!("reason"),

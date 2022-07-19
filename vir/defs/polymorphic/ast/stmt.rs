@@ -14,7 +14,7 @@ use std::fmt;
 
 // TODO: Fix by boxing all `Expr`s.
 #[allow(clippy::large_enum_variant)]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Stmt {
     Comment(Comment),
     Label(Label),
@@ -90,7 +90,7 @@ impl fmt::Display for Stmt {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum AssignKind {
     /// Encodes a Rust copy.
     /// This assignment can be used iff the Viper type of the `lhs` and `rhs` is *not* Ref.
@@ -110,7 +110,7 @@ pub enum AssignKind {
 }
 
 /// Individual structs for different cases of Expr
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Comment {
     pub comment: String,
 }
@@ -121,7 +121,7 @@ impl fmt::Display for Comment {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Label {
     pub label: String,
 }
@@ -132,7 +132,7 @@ impl fmt::Display for Label {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Inhale {
     pub expr: Expr,
 }
@@ -143,7 +143,7 @@ impl fmt::Display for Inhale {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Exhale {
     pub expr: Expr,
     pub position: Position,
@@ -155,7 +155,7 @@ impl fmt::Display for Exhale {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Assert {
     pub expr: Expr,
     pub position: Position,
@@ -167,7 +167,7 @@ impl fmt::Display for Assert {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct MethodCall {
     pub method_name: String,
     pub arguments: Vec<Expr>,
@@ -194,7 +194,7 @@ impl fmt::Display for MethodCall {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Assign {
     pub target: Expr,
     pub source: Expr,
@@ -225,7 +225,7 @@ impl fmt::Display for Assign {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, Hash)]
 pub struct Fold {
     pub predicate: Type,
     pub arguments: Vec<Expr>,
@@ -254,7 +254,7 @@ impl fmt::Display for Fold {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, Hash)]
 pub struct Unfold {
     pub predicate: Type,
     pub arguments: Vec<Expr>,
@@ -282,7 +282,7 @@ impl fmt::Display for Unfold {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Obtain {
     pub expr: Expr,
     pub position: Position,
@@ -294,7 +294,7 @@ impl fmt::Display for Obtain {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct BeginFrame {}
 
 impl fmt::Display for BeginFrame {
@@ -303,7 +303,7 @@ impl fmt::Display for BeginFrame {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct EndFrame {}
 
 impl fmt::Display for EndFrame {
@@ -312,7 +312,7 @@ impl fmt::Display for EndFrame {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct TransferPerm {
     pub left: Expr,
     pub right: Expr,
@@ -329,7 +329,7 @@ impl fmt::Display for TransferPerm {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct PackageMagicWand {
     pub magic_wand: Expr,
     pub package_stmts: Vec<Stmt>,
@@ -361,7 +361,7 @@ impl fmt::Display for PackageMagicWand {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ApplyMagicWand {
     pub magic_wand: Expr,
     pub position: Position,
@@ -384,7 +384,7 @@ impl fmt::Display for ApplyMagicWand {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct ExpireBorrows {
     pub dag: ReborrowingDAG,
 }
@@ -395,7 +395,7 @@ impl fmt::Display for ExpireBorrows {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct If {
     pub guard: Expr,
     pub then_stmts: Vec<Stmt>,
@@ -424,7 +424,7 @@ impl fmt::Display for If {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Downcast {
     pub base: Expr,
     pub field: Field,

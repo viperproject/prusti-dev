@@ -8,7 +8,7 @@ use crate::{common::identifier::WithIdentifier, polymorphic::ast::*};
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum Predicate {
     Struct(StructPredicate),
     Enum(EnumPredicate),
@@ -147,7 +147,7 @@ impl WithIdentifier for Predicate {
 }
 
 /// The predicate for types that have exactly one variant.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct StructPredicate {
     /// The predicate name in Viper.
     pub typ: Type,
@@ -223,7 +223,7 @@ impl WithIdentifier for StructPredicate {
 }
 
 /// The predicate for types that have 0 or more than one variants.
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct EnumPredicate {
     /// The predicate name in Viper.
     pub typ: Type,
@@ -238,7 +238,9 @@ pub struct EnumPredicate {
     pub variants: Vec<(Expr, String, StructPredicate)>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
 pub struct EnumVariantIndex(pub(crate) String);
 
 impl EnumVariantIndex {

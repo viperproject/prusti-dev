@@ -13,10 +13,12 @@ use crate::{
     mir_utils::remove_place_from_set,
     PointwiseState,
 };
-use rustc_borrowck::BodyWithBorrowckFacts;
-use rustc_data_structures::{stable_map::FxHashMap, stable_set::FxHashSet};
-use rustc_middle::{mir, ty::TyCtxt};
-use rustc_span::def_id::DefId;
+use prusti_rustc_interface::{
+    borrowck::BodyWithBorrowckFacts,
+    data_structures::{stable_map::FxHashMap, stable_set::FxHashSet},
+    middle::{mir, ty::TyCtxt},
+    span::def_id::DefId,
+};
 
 pub struct DefinitelyAccessibleAnalysis<'mir, 'tcx: 'mir> {
     tcx: TyCtxt<'tcx>,
@@ -89,7 +91,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyAccessibleAnalysis<'mir, 'tcx> {
                 .lookup_after_block(block)
                 .unwrap_or_else(|| panic!("No 'borrowed' state after block {:?}", block));
             let available_after_block = analysis_state.lookup_mut_after_block(block);
-            for &successor in block_data.terminator().successors() {
+            for successor in block_data.terminator().successors() {
                 let def_init_after = def_init_after_block.get(&successor).unwrap_or_else(|| {
                     panic!("No 'def_init' state from {:?} to {:?}", block, successor)
                 });

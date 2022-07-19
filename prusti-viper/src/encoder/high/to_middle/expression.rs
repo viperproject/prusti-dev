@@ -20,6 +20,7 @@ impl<'v, 'tcx> ToMiddleExpressionLowerer for crate::encoder::Encoder<'v, 'tcx> {
     ) -> SpannedEncodingResult<vir_mid::FieldDecl> {
         Ok(vir_mid::FieldDecl {
             name: decl.name,
+            index: decl.index,
             ty: self.to_middle_expression_type(decl.ty)?,
         })
     }

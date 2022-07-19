@@ -1,8 +1,9 @@
-use crate::encoder::{errors::SpannedEncodingResult, mir::spans::SpanInterface};
+use crate::encoder::{
+    errors::SpannedEncodingResult,
+    mir::{procedures::passes, spans::SpanInterface},
+};
+use prusti_rustc_interface::{hir::def_id::DefId, middle::mir, span::Span};
 use rustc_hash::FxHashMap;
-use rustc_hir::def_id::DefId;
-use rustc_middle::mir;
-use rustc_span::Span;
 use vir_crate::high::cfg;
 
 #[derive(Default)]
@@ -26,6 +27,7 @@ impl<'v, 'tcx: 'v> MirProcedureEncoderInterface<'tcx> for super::super::super::E
         proc_def_id: DefId,
     ) -> SpannedEncodingResult<cfg::ProcedureDecl> {
         let procedure = super::encoder::encode_procedure(self, proc_def_id)?;
+        let procedure = passes::run_passes(self, procedure)?;
         assert!(
             self.mir_procedure_encoder_state
                 .encoded_procedure_def_ids

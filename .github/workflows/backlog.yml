@@ -1,0 +1,48 @@
+name: Backlog fixes
+
+on:
+  workflow_dispatch:
+  schedule:
+    # At 07:00 UTC on day-of-month 1 and 15. Use https://crontab.guru/ to edit this.
+    - cron:  '0 7 1,15 * *'
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Choose developer
+        run: |
+          declare -a DEVELOPERS=(Aurel300 JonasAlaif vakaras) # fpoli
+          UPDATE_NUMBER=$(( 10#$(date +%m) * 2 + (10#$(date +%d) / 15) - 2 ))
+          DEVELOPER="${DEVELOPERS[ $UPDATE_NUMBER % ${#DEVELOPERS[@]} ]}"
+          DATE="$(date +%Y-%m-%d)"
+          echo "The assigned developer on $DATE is $DEVELOPER"
+          echo "DEVELOPER=$DEVELOPER" >> $GITHUB_ENV
+          echo "DATE=$DATE" >> $GITHUB_ENV
+
+      - name: Create an empty commit
+        run: |
+          git config user.email "viper-admin@inf.ethz.ch"
+          git config user.name "viper-admin"
+          git commit --allow-empty -m "Backlog fixes"
+
+      - name: Open a pull request
+        uses: peter-evans/create-pull-request@v3
+        with:
+          # Use viper-admin's token to workaround a restriction of GitHub.
+          # See: https://github.com/peter-evans/create-pull-request/issues/48
+          token: ${{ secrets.VIPER_ADMIN_TOKEN }}
+          commit-message: Backlog fixes
+          title: Backlog fixes
+          branch: auto-fixes-${{ env.DATE }}
+          delete-branch: true
+          assignees: ${{ env.DEVELOPER }}
+          body: |
+            In `test-crates/crates.csv`, replace one `Skip` with `NoCrash` or one `NoCrash` with `NoErrors`. Optionally, also update a crate version. This should be enough to make the `test-crates` test fail because of panics or internal errors. To test a single crate you can use `./target/release/test-crates <FILTER>`, which checks only the crates whose name contains `<FILTER>`.
+
+            The purpose of this PR is to fix at least one bug (e.g. convert a panic to an internal error or an internal error to a readable "unsupported" error message).
+
+            @${{ env.DEVELOPER }} could you take care of this?

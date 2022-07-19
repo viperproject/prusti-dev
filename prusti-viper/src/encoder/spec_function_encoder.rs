@@ -1,9 +1,12 @@
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
-use crate::encoder::{Encoder, borrows::ProcedureContract};
+use crate::encoder::Encoder;
 use crate::encoder::errors::{ErrorCtxt, SpannedEncodingResult, WithSpan};
-use crate::encoder::borrows::compute_procedure_contract;
 use crate::encoder::mir_encoder::{MirEncoder, PlaceEncoder};
 use crate::encoder::mir::{
+    contracts::{
+        ContractsEncoderInterface,
+        ProcedureContract,
+    },
     pure::SpecificationEncoderInterface,
     specifications::SpecificationsInterface,
 };
@@ -12,12 +15,11 @@ use prusti_interface::{
         Procedure
     },
     data::ProcedureDefId,
-    specs::typed,
 };
 use vir_crate::polymorphic as vir;
 use vir_crate::polymorphic::ExprIterator;
-use rustc_middle::{mir, ty::subst::SubstsRef};
-use rustc_span::Span;
+use prusti_rustc_interface::middle::{mir, ty::subst::SubstsRef};
+use prusti_rustc_interface::span::Span;
 
 pub enum SpecFunctionKind {
     Pre,
@@ -57,18 +59,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
         let _post_name = self.encoder.encode_spec_func_name(self.procedure.get_id(),
                                                            SpecFunctionKind::Post);
 
-        let specs = if let Some(specs) = self.encoder.get_procedure_specs(self.proc_def_id) {
-            specs
-        } else {
+        if self.encoder.get_procedure_specs(self.proc_def_id, self.substs).is_none() {
             return Ok(vec![]);
-        };
+        }
 
-        let contract = compute_procedure_contract(
-            self.proc_def_id,
-            self.encoder.env(),
-            typed::SpecificationSet::Procedure(specs),
-            self.substs,
-        ).with_span(self.span)?.to_def_site_contract();
+        let contract = self.encoder.get_procedure_contract_for_def(self.proc_def_id, self.substs)
+            .with_span(self.span)?;
 
         let pre_func = self.encode_pre_spec_func(&contract)?;
         let post_func = self.encode_post_spec_func(&contract)?;

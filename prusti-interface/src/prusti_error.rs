@@ -4,7 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc_span::{Span, MultiSpan};
+use prusti_rustc_interface::span::Span;
+use prusti_rustc_interface::errors::MultiSpan;
 use crate::environment::Environment;
 use prusti_common::config;
 use ::log::warn;
@@ -20,7 +21,7 @@ use ::log::warn;
 /// `SpannedEncodingError` and similar types to something less confusing.)
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct PrustiError {
-    is_error: bool,
+    kind: PrustiErrorKind,
     /// If `true`, it should not be reported to the user. We need this in cases
     /// when the same error could be reported twice.
     ///
@@ -32,6 +33,13 @@ pub struct PrustiError {
     span: MultiSpan,
     help: Option<String>,
     notes: Vec<(String, Option<MultiSpan>)>,
+}
+/// Determines how a `PrustiError` is reported.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum PrustiErrorKind {
+    Error, Warning,
+    /// A warning which is only shown if at least one error is emitted.
+    WarningOnError,
 }
 
 impl PartialOrd for PrustiError {
@@ -50,7 +58,7 @@ impl PrustiError {
     /// Private constructor. Use one of the following methods.
     fn new(message: String, span: MultiSpan) -> Self {
         PrustiError {
-            is_error: true,
+            kind: PrustiErrorKind::Error,
             is_disabled: false,
             message,
             span,
@@ -100,6 +108,29 @@ impl PrustiError {
         )
     }
 
+    /// Report a non-fatal issue
+    pub fn warning<S: ToString>(message: S, span: MultiSpan) -> Self {
+        check_message(message.to_string());
+        let mut err = PrustiError::new(
+            format!("[Prusti: warning] {}", message.to_string()),
+            span
+        );
+        err.kind = PrustiErrorKind::Warning;
+        err
+    }
+
+    /// Report a non-fatal issue only if there are errors
+    /// (e.g. cannot automatically include loop guard as an invariant)
+    pub fn warning_on_error<S: ToString>(message: S, span: MultiSpan) -> Self {
+        check_message(message.to_string());
+        let mut err = PrustiError::new(
+            format!("[Prusti: warning] {}", message.to_string()),
+            span
+        );
+        err.kind = PrustiErrorKind::WarningOnError;
+        err
+    }
+
     /// Report an internal error of Prusti (e.g. failure of the fold-unfold)
     pub fn internal<S: ToString>(message: S, span: MultiSpan) -> Self {
         check_message(message.to_string());
@@ -121,11 +152,11 @@ impl PrustiError {
 
     /// Set that this Prusti error should be reported as a warning to the user
     pub fn set_warning(&mut self) {
-        self.is_error = false;
+        self.kind = PrustiErrorKind::Warning;
     }
 
     pub fn is_error(&self) -> bool {
-        self.is_error
+        matches!(self.kind, PrustiErrorKind::Error)
     }
 
     // FIXME: This flag is a temporary workaround for having duplicate errors
@@ -151,24 +182,31 @@ impl PrustiError {
         self.notes.push((message.to_string(), opt_span));
     }
 
-    /// Report the encoding error using the compiler's interface
+    /// Report the encoding error using the compiler's interface.
+    /// Warnings are not immediately emitted, but buffered and only shown
+    /// if an error is emitted (i.e. verification failure)
     pub fn emit(self, env: &Environment) {
         assert!(!self.is_disabled);
-        if self.is_error {
-            env.span_err_with_help_and_notes(
+        match self.kind {
+            PrustiErrorKind::Error => env.span_err_with_help_and_notes(
                 self.span,
                 &self.message,
                 &self.help,
                 &self.notes,
-            );
-        } else {
-            env.span_warn_with_help_and_notes(
+            ),
+            PrustiErrorKind::Warning => env.span_warn_with_help_and_notes(
                 self.span,
                 &self.message,
                 &self.help,
                 &self.notes,
-            );
-        }
+            ),
+            PrustiErrorKind::WarningOnError => env.span_warn_on_err_with_help_and_notes(
+                self.span,
+                &self.message,
+                &self.help,
+                &self.notes,
+            ),
+        };
     }
 
     /// Cancel the error.

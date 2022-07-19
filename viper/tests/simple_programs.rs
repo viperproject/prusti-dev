@@ -1,16 +1,10 @@
-extern crate env_logger;
-extern crate error_chain;
-#[macro_use]
-extern crate lazy_static;
-extern crate viper;
-
 use std::sync::Once;
 use viper::*;
 
 static INIT: Once = Once::new();
 
-lazy_static! {
-    static ref VIPER: Viper = Viper::new();
+lazy_static::lazy_static! {
+    static ref VIPER: Viper = Viper::new_for_tests();
 }
 
 /// Setup function that is only run once, even if called multiple times.
@@ -30,7 +24,8 @@ fn success_with_empty_program() {
 
     let program = ast.program(&[], &[], &[], &[], &[]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
+    let mut verifier =
+        verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
     let verification_result = verifier.verify(program);
 
@@ -56,7 +51,8 @@ fn failure_with_assert_false() {
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
+    let mut verifier =
+        verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
     let verification_result = verifier.verify(program);
 
@@ -66,7 +62,7 @@ fn failure_with_assert_false() {
             errors[0].full_id,
             "assert.failed:assertion.false".to_string()
         );
-        assert_eq!(errors[0].pos_id, Some("pos-id:123".to_string()));
+        assert_eq!(errors[0].offending_pos_id, Some("pos-id:123".to_string()));
     } else {
         unreachable!()
     }
@@ -99,7 +95,8 @@ fn success_with_assert_with_boolean_operations() {
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
+    let mut verifier =
+        verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
     let verification_result = verifier.verify(program);
 
@@ -128,7 +125,8 @@ fn success_with_assert_false_in_dead_code() {
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
+    let mut verifier =
+        verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
     let verification_result = verifier.verify(program);
 
@@ -161,7 +159,8 @@ fn success_with_assign_if_and_assert() {
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
+    let mut verifier =
+        verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
     let verification_result = verifier.verify(program);
 
@@ -200,7 +199,8 @@ fn failure_with_assign_if_and_assert() {
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
+    let mut verifier =
+        verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
     let verification_result = verifier.verify(program);
 
@@ -210,7 +210,7 @@ fn failure_with_assign_if_and_assert() {
             errors[0].full_id,
             "assert.failed:assertion.false".to_string()
         );
-        assert_eq!(errors[0].pos_id, Some("then".to_string()));
+        assert_eq!(errors[0].offending_pos_id, Some("then".to_string()));
     } else {
         unreachable!()
     }
@@ -251,7 +251,8 @@ fn success_with_complex_post_condition() {
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
+    let mut verifier =
+        verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
     let verification_result = verifier.verify(program);
 

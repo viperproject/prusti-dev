@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ast_factory::{
+use crate::ast_factory::{
     structs::{DomainFunc, Expr, Field, LocalVarDecl, Location, Position, Trigger, Type},
     AstFactory,
 };
@@ -1249,6 +1249,60 @@ impl<'a> AstFactory<'a> {
             ast::ExplicitSeq,
             self.jni.new_seq(&map_to_jobjects!(elems))
         )
+    }
+
+    pub fn empty_map(&self, key_ty: Type, val_ty: Type) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            ast::EmptyMap,
+            key_ty.to_jobject(),
+            val_ty.to_jobject()
+        )
+    }
+
+    pub fn explicit_map(&self, keys_values: &[Expr]) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            ast::ExplicitMap,
+            self.jni.new_seq(&map_to_jobjects!(keys_values))
+        )
+    }
+
+    pub fn update_map(&self, map: Expr, key: Expr, val: Expr) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            ast::MapUpdate,
+            map.to_jobject(),
+            key.to_jobject(),
+            val.to_jobject()
+        )
+    }
+
+    pub fn lookup_map(&self, map: Expr, key: Expr) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            ast::MapLookup,
+            map.to_jobject(),
+            key.to_jobject()
+        )
+    }
+
+    pub fn map_contains(&self, map: Expr, key: Expr) -> Expr<'a> {
+        build_ast_node!(
+            self,
+            Expr,
+            ast::MapContains,
+            key.to_jobject(),
+            map.to_jobject()
+        )
+    }
+
+    pub fn map_len(&self, map: Expr) -> Expr<'a> {
+        build_ast_node!(self, Expr, ast::MapCardinality, map.to_jobject())
     }
 
     pub fn range_seq(&self, low: Expr, high: Expr) -> Expr<'a> {

@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ast_factory::{structs::Type, AstFactory};
+use crate::ast_factory::{structs::Type, AstFactory};
 use jni::objects::JObject;
 use viper_sys::wrappers::viper::silver::ast;
 
@@ -69,6 +69,13 @@ impl<'a> AstFactory<'a> {
         let obj = self
             .jni
             .unwrap_result(ast::SeqType::with(self.env).new(element_type.to_jobject()));
+        Type::new(obj)
+    }
+
+    pub fn map_type(&self, key_type: Type, val_type: Type) -> Type<'a> {
+        let obj = self.jni.unwrap_result(
+            ast::MapType::with(self.env).new(key_type.to_jobject(), val_type.to_jobject()),
+        );
         Type::new(obj)
     }
 

@@ -9,7 +9,7 @@ use crate::encoder::{
     errors::{EncodingError, EncodingResult},
     foldunfold,
     high::types::HighTypeEncoderInterface,
-    mir::types::MirTypeEncoderInterface,
+    mir::{sequences::MirSequencesEncoderInterface, types::MirTypeEncoderInterface},
     snapshot::{decls::Snapshot, patcher::SnapshotPatcher},
     utils::range_extract,
     Encoder,
@@ -17,12 +17,14 @@ use crate::encoder::{
 use log::debug;
 use prusti_common::{vir_expr, vir_local};
 
-use rustc_hash::FxHashMap;
-use rustc_middle::{
-    ty,
-    ty::{layout::IntegerExt, ParamEnv},
+use prusti_rustc_interface::{
+    middle::{
+        ty,
+        ty::{layout::IntegerExt, ParamEnv},
+    },
+    target::abi::Integer,
 };
-use rustc_target::abi::Integer;
+use rustc_hash::FxHashMap;
 use std::rc::Rc;
 use vir_crate::{
     common::identifier::WithIdentifier,
@@ -63,7 +65,7 @@ pub(super) struct SnapshotEncoder {
 
 /// Snapshot encoding flattens references and boxes. This function removes any
 /// [Box<...>] or reference (mutable or shared) wrappers.
-fn strip_refs_and_boxes(ty: ty::Ty) -> ty::Ty {
+pub(crate) fn strip_refs_and_boxes(ty: ty::Ty) -> ty::Ty {
     match ty.kind() {
         _ if ty.is_box() => strip_refs_and_boxes(ty.boxed_ty()),
         ty::TyKind::Ref(_, sub_ty, _) => strip_refs_and_boxes(*sub_ty),
@@ -238,6 +240,8 @@ impl SnapshotEncoder {
             Type::Snapshot(_)
             | Type::Bool // TODO: restrict to snapshot-produced Bools and Ints
             | Type::Int
+            | Type::Map(..)
+            | Type::Seq(..)
             | Type::Float(_) => Ok(expr),
 
             _ => Err(EncodingError::internal(
@@ -616,6 +620,7 @@ impl SnapshotEncoder {
             ty::TyKind::Float(ty::FloatTy::F64) => Type::Float(vir::Float::F64),
             ty::TyKind::Bool => Type::Bool,
 
+            _ if predicate_type.is_map() || predicate_type.is_seq() => predicate_type.clone(),
             // Param(_) | Adt(_) | Tuple(_), arrays and slices and unsupported types
             _ => predicate_type.convert_to_snapshot(),
         };
@@ -657,6 +662,7 @@ impl SnapshotEncoder {
             // since all encoding goes through [encode_type] first, we should
             // never get a box or reference here
             _ if ty.is_box() => unreachable!(),
+            _ if predicate_type.is_map() => Ok(Snapshot::Primitive(predicate_type.clone())),
             ty::TyKind::Ref(_, _, _) => unreachable!(),
 
             ty::TyKind::Int(_) | ty::TyKind::Uint(_) | ty::TyKind::Char => {
@@ -799,7 +805,9 @@ impl SnapshotEncoder {
                     let discriminant_raw = adt_def
                         .discriminant_for_variant(
                             tcx,
-                            rustc_target::abi::VariantIdx::from_usize(variant_idx),
+                            prusti_rustc_interface::target::abi::VariantIdx::from_usize(
+                                variant_idx,
+                            ),
                         )
                         .val;
                     let size = ty::tls::with(|tcx| {

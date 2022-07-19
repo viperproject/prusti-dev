@@ -94,6 +94,14 @@ impl ExprFootprintGetter for vir::Expr {
                     hs
                 }),
 
+            vir::Expr::Map(vir::Map { elements, .. }) => elements
+                .iter()
+                .map(|e| e.get_footprint(predicates))
+                .fold(FxHashSet::default(), |mut hs, fp| {
+                    hs.extend(fp);
+                    hs
+                }),
+
             vir::Expr::Cond(vir::Cond {
                 box guard,
                 box then_expr,
@@ -115,9 +123,6 @@ impl ExprFootprintGetter for vir::Expr {
                 box body,
                 ..
             }) => {
-                assert!(variables
-                    .iter()
-                    .all(|var| !var.typ.is_typed_ref_or_type_var()));
                 let vars_places: FxHashSet<Perm> = variables
                     .iter()
                     .map(|var| Acc(vir::Expr::local(var.clone()), PermAmount::Write))

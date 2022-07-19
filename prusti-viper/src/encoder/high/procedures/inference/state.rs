@@ -1,15 +1,27 @@
-use std::collections::{BTreeMap, BTreeSet};
-
-use super::permission::{Permission, PermissionKind};
+use super::permission::{MutBorrowed, Permission, PermissionKind};
 use crate::encoder::errors::SpannedEncodingResult;
 use log::debug;
-use std::fmt::Write;
-use vir_crate::{high as vir_high, middle as vir_mid};
+use std::collections::{BTreeMap, BTreeSet};
+use vir_crate::{
+    high::{
+        self as vir_high,
+        operations::{lifetimes::WithLifetimes, ty::Typed},
+    },
+    middle as vir_mid,
+};
 
 #[derive(Clone, Default)]
 pub(super) struct PredicateState {
     owned_non_aliased: BTreeSet<vir_high::Expression>,
     memory_block_stack: BTreeSet<vir_high::Expression>,
+    mut_borrowed: BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+    dead_lifetimes: BTreeSet<vir_high::ty::LifetimeConst>,
+}
+
+pub(super) struct PlaceWithDeadLifetimes {
+    pub(super) place: vir_high::Expression,
+    pub(super) lifetimes_dead_before: Vec<bool>,
+    pub(super) lifetimes_dead_after: Vec<bool>,
 }
 
 #[derive(Clone)]
@@ -29,7 +41,7 @@ pub(in super::super) struct FoldUnfoldState {
     /// `incoming_labels`.
     ///
     /// Invariant: only non-empty entries are present.
-    conditional: BTreeMap<Vec<vir_mid::BasicBlockId>, PredicateState>,
+    conditional: BTreeMap<vir_mid::BlockMarkerCondition, PredicateState>,
 }
 
 impl std::fmt::Display for PredicateState {
@@ -43,13 +55,27 @@ impl std::fmt::Display for PredicateState {
         for place in &self.memory_block_stack {
             writeln!(f, "  {}", place)?;
         }
+        writeln!(f, "mut_borrowed ({}):", self.mut_borrowed.len())?;
+        for (place, lifetime) in &self.mut_borrowed {
+            writeln!(f, "  &{} {}", lifetime, place)?;
+        }
         Ok(())
     }
 }
 
 impl PredicateState {
     fn is_empty(&self) -> bool {
-        self.owned_non_aliased.is_empty() && self.memory_block_stack.is_empty()
+        self.owned_non_aliased.is_empty()
+            && self.memory_block_stack.is_empty()
+            && self.mut_borrowed.is_empty()
+    }
+
+    fn contains_only_leakable(&self) -> bool {
+        self.memory_block_stack.is_empty()
+            && self.owned_non_aliased.iter().all(|place| {
+                // `UniqueRef` and `FracRef` predicates can be leaked.
+                place.get_dereference_base().is_some()
+            })
     }
 
     fn places_mut(&mut self, kind: PermissionKind) -> &mut BTreeSet<vir_high::Expression> {
@@ -79,6 +105,19 @@ impl PredicateState {
             "not found: {} in {:?}",
             place,
             kind
+        );
+        Ok(())
+    }
+
+    pub(super) fn remove_mut_borrowed(
+        &mut self,
+        place: &vir_high::Expression,
+    ) -> SpannedEncodingResult<()> {
+        assert!(place.is_place());
+        assert!(
+            self.mut_borrowed.remove(place).is_some(),
+            "not found in mut_borrowed: {}",
+            place,
         );
         Ok(())
     }
@@ -171,9 +210,28 @@ impl PredicateState {
         Ok(collected_places)
     }
 
-    fn clear(&mut self) -> SpannedEncodingResult<()> {
+    pub(super) fn contains_blocked(
+        &self,
+        place: &vir_high::Expression,
+    ) -> SpannedEncodingResult<Option<(&vir_high::Expression, &vir_high::ty::LifetimeConst)>> {
+        Ok(self.mut_borrowed.iter().find(|(p, _)| {
+            let prefix_expr = match p {
+                vir_high::Expression::BuiltinFuncApp(vir_high::BuiltinFuncApp {
+                    function: vir_high::BuiltinFunc::Index,
+                    type_arguments: _,
+                    arguments,
+                    ..
+                }) => &arguments[0],
+                _ => *p,
+            };
+            place.has_prefix(prefix_expr)
+        }))
+    }
+
+    pub(super) fn clear(&mut self) -> SpannedEncodingResult<()> {
         self.owned_non_aliased.clear();
         self.memory_block_stack.clear();
+        self.mut_borrowed.clear();
         self.check_no_default_position();
         Ok(())
     }
@@ -186,6 +244,43 @@ impl PredicateState {
         {
             expr.check_no_default_position();
         }
+        for place in self.mut_borrowed.keys() {
+            place.check_no_default_position();
+        }
+    }
+
+    pub(super) fn mark_lifetime_dead(
+        &mut self,
+        lifetime: &vir_high::ty::LifetimeConst,
+    ) -> (Vec<vir_high::Expression>, Vec<PlaceWithDeadLifetimes>) {
+        assert!(
+            !self.dead_lifetimes.contains(lifetime),
+            "The lifetime {} is already dead.",
+            lifetime
+        );
+        let dead_references = self
+            .owned_non_aliased
+            .drain_filter(|place| place.is_deref_of_lifetime(lifetime))
+            .collect();
+        let mut places_with_dead_lifetimes = Vec::new();
+        for place in &self.owned_non_aliased {
+            let lifetimes = place.get_type().get_lifetimes();
+            if lifetimes.contains(lifetime) {
+                places_with_dead_lifetimes.push(PlaceWithDeadLifetimes {
+                    place: place.clone(),
+                    lifetimes_dead_before: lifetimes
+                        .iter()
+                        .map(|l| self.dead_lifetimes.contains(l))
+                        .collect(),
+                    lifetimes_dead_after: lifetimes
+                        .iter()
+                        .map(|l| self.dead_lifetimes.contains(l) || l == lifetime)
+                        .collect(),
+                });
+            }
+        }
+        self.dead_lifetimes.insert(lifetime.clone());
+        (dead_references, places_with_dead_lifetimes)
     }
 }
 
@@ -198,8 +293,7 @@ impl std::fmt::Display for FoldUnfoldState {
         writeln!(f, "\nunconditional:")?;
         writeln!(f, "{}", self.unconditional)?;
         for (condition, state) in &self.conditional {
-            write!(f, "conditional (")?;
-            self.debug_write_condition(condition, f)?;
+            write!(f, "conditional ({}", condition)?;
             writeln!(f, "):\n{}", state)?;
         }
         Ok(())
@@ -219,33 +313,33 @@ impl FoldUnfoldState {
         debug!("state:\n{}", self);
     }
 
-    fn debug_write_condition(
-        &self,
-        condition: &[vir_mid::BasicBlockId],
-        writer: &mut dyn Write,
-    ) -> std::fmt::Result {
-        let mut iterator = condition.iter();
-        if let Some(first) = iterator.next() {
-            write!(writer, "{}", first)?;
+    pub(in super::super) fn contains_only_leakable(&self) -> bool {
+        for state in self.conditional.values() {
+            if !state.contains_only_leakable() {
+                return false;
+            }
         }
-        for label in iterator {
-            write!(writer, "→{}", label)?;
-        }
-        Ok(())
-    }
-
-    pub(in super::super) fn is_empty(&self) -> bool {
-        self.unconditional.is_empty() && self.conditional.is_empty()
+        self.unconditional.contains_only_leakable()
     }
 
     pub(in super::super) fn reset_incoming_labels_with(
         &mut self,
         incoming_label: vir_mid::BasicBlockId,
+        path_disambiguators: &[vir_mid::BasicBlockId],
     ) -> SpannedEncodingResult<()> {
         self.conditional = std::mem::take(&mut self.conditional)
             .into_iter()
             .map(|(mut labels, state)| {
-                labels.push(incoming_label.clone());
+                for non_incoming_label in path_disambiguators {
+                    labels.elements.push(vir_mid::BlockMarkerConditionElement {
+                        visited: false,
+                        basic_block_id: non_incoming_label.clone(),
+                    });
+                }
+                labels.elements.push(vir_mid::BlockMarkerConditionElement {
+                    visited: true,
+                    basic_block_id: incoming_label.clone(),
+                });
                 (labels, state)
             })
             .collect();
@@ -259,6 +353,11 @@ impl FoldUnfoldState {
     pub(in super::super) fn merge(
         &mut self,
         incoming_label: vir_mid::BasicBlockId,
+        current_label: vir_mid::BasicBlockId,
+        path_disambiguators: &BTreeMap<
+            (vir_mid::BasicBlockId, vir_mid::BasicBlockId),
+            Vec<vir_mid::BasicBlockId>,
+        >,
         incoming_state: Self,
     ) -> SpannedEncodingResult<()> {
         let mut new_conditional = PredicateState::default();
@@ -277,32 +376,102 @@ impl FoldUnfoldState {
             &mut new_conditional.memory_block_stack,
             &mut incoming_conditional.memory_block_stack,
         )?;
+        Self::merge_unconditional_mut_borrowed(
+            &mut self.unconditional.mut_borrowed,
+            incoming_state.unconditional.mut_borrowed,
+            &mut new_conditional.mut_borrowed,
+            &mut incoming_conditional.mut_borrowed,
+        )?;
 
         // Copy over conditional.
+        let empty_vec = Vec::new();
+        let incoming_label_path_disambiguators = path_disambiguators
+            .get(&(incoming_label.clone(), current_label.clone()))
+            .unwrap_or(&empty_vec);
         self.conditional
             .extend(
                 incoming_state
                     .conditional
                     .into_iter()
-                    .map(|(mut condition, state)| {
-                        condition.push(incoming_label.clone());
-                        (condition, state)
+                    .map(|(mut labels, state)| {
+                        for non_incoming_label in incoming_label_path_disambiguators {
+                            labels.elements.push(vir_mid::BlockMarkerConditionElement {
+                                visited: false,
+                                basic_block_id: non_incoming_label.clone(),
+                            });
+                        }
+                        labels.elements.push(vir_mid::BlockMarkerConditionElement {
+                            visited: true,
+                            basic_block_id: incoming_label.clone(),
+                        });
+                        (labels, state)
                     }),
             );
 
         // Create new conditionals.
         if !new_conditional.is_empty() {
             for label in &self.incoming_labels {
-                self.conditional
-                    .insert(vec![label.clone()], new_conditional.clone());
+                let mut elements = vec![vir_mid::BlockMarkerConditionElement {
+                    basic_block_id: label.clone(),
+                    visited: true,
+                }];
+                for disambiguator in path_disambiguators
+                    .get(&(label.clone(), current_label.clone()))
+                    .unwrap_or(&empty_vec)
+                {
+                    elements.push(vir_mid::BlockMarkerConditionElement {
+                        visited: false,
+                        basic_block_id: disambiguator.clone(),
+                    });
+                }
+                self.conditional.insert(
+                    vir_mid::BlockMarkerCondition { elements },
+                    new_conditional.clone(),
+                );
             }
         }
         if !incoming_conditional.is_empty() {
-            self.conditional
-                .insert(vec![incoming_label.clone()], incoming_conditional);
+            let mut elements = vec![vir_mid::BlockMarkerConditionElement {
+                basic_block_id: incoming_label.clone(),
+                visited: true,
+            }];
+            for non_incoming_label in incoming_label_path_disambiguators {
+                elements.push(vir_mid::BlockMarkerConditionElement {
+                    visited: false,
+                    basic_block_id: non_incoming_label.clone(),
+                });
+            }
+            self.conditional.insert(
+                vir_mid::BlockMarkerCondition { elements },
+                incoming_conditional,
+            );
         }
         self.incoming_labels.push(incoming_label);
         self.check_no_default_position();
+        Ok(())
+    }
+
+    fn merge_unconditional_mut_borrowed(
+        unconditional: &mut BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+        incoming_unconditional: BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+        new_conditional: &mut BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+        incoming_conditional: &mut BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+    ) -> SpannedEncodingResult<()> {
+        let mut unconditional_predicates = BTreeMap::default();
+        // Unconditional: merge incoming into self.
+        for (predicate, lifetime) in &incoming_unconditional {
+            if unconditional.contains_key(predicate) {
+                unconditional_predicates.insert(predicate, lifetime);
+            } else {
+                incoming_conditional.insert(predicate.clone(), lifetime.clone());
+            }
+        }
+        // Unconditional: check what needs to be made conditional.
+        for (predicate, lifetime) in unconditional
+            .drain_filter(|predicate, _| !unconditional_predicates.contains_key(predicate))
+        {
+            new_conditional.insert(predicate, lifetime);
+        }
         Ok(())
     }
 
@@ -346,6 +515,20 @@ impl FoldUnfoldState {
     ) -> SpannedEncodingResult<()> {
         assert!(place.is_place());
         assert!(self.unconditional.owned_non_aliased.insert(place));
+        self.check_no_default_position();
+        Ok(())
+    }
+
+    pub(in super::super) fn insert_mut_borrowed(
+        &mut self,
+        borrow: MutBorrowed,
+    ) -> SpannedEncodingResult<()> {
+        assert!(borrow.place.is_place());
+        assert!(self
+            .unconditional
+            .mut_borrowed
+            .insert(borrow.place, borrow.lifetime)
+            .is_none());
         self.check_no_default_position();
         Ok(())
     }
@@ -397,6 +580,7 @@ impl FoldUnfoldState {
         match permission {
             Permission::MemoryBlock(place) => self.insert_memory_block(place)?,
             Permission::Owned(place) => self.insert_owned(place)?,
+            Permission::MutBorrowed(borrow) => self.insert_mut_borrowed(borrow)?,
         }
         self.check_no_default_position();
         Ok(())
@@ -421,6 +605,7 @@ impl FoldUnfoldState {
         match permission {
             Permission::MemoryBlock(place) => self.remove_memory_block(place)?,
             Permission::Owned(place) => self.remove_owned(place)?,
+            Permission::MutBorrowed(_) => unreachable!(),
         }
         Ok(())
     }
@@ -433,7 +618,7 @@ impl FoldUnfoldState {
     pub(super) fn get_conditional_states(
         &mut self,
     ) -> SpannedEncodingResult<
-        impl Iterator<Item = (&Vec<vir_mid::BasicBlockId>, &mut PredicateState)>,
+        impl Iterator<Item = (&vir_mid::BlockMarkerCondition, &mut PredicateState)>,
     > {
         self.check_no_default_position();
         Ok(self.conditional.iter_mut())

@@ -3,7 +3,6 @@
 //! Please see the `parser.rs` file for more information about
 //! specifications.
 
-use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 use std::fmt::{Display, Debug};
 use uuid::Uuid;
@@ -15,10 +14,12 @@ pub enum SpecType {
     Precondition,
     /// Postcondition of a procedure.
     Postcondition,
-    /// Loop invariant or struct invariant
+    /// Loop invariant
     Invariant,
     /// Predicate
     Predicate,
+    /// Struct invariant
+    StructInvariant,
 }
 
 #[derive(Debug)]
@@ -44,7 +45,7 @@ impl<'a> TryFrom<&'a str> for SpecType {
 }
 
 #[derive(
-    Debug, Default, PartialEq, Eq, Hash, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord,
+    Debug, Default, PartialEq, Eq, Hash, Clone, Copy, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
 )]
 /// A unique ID of the specification element such as entire precondition
 /// or postcondition.
@@ -67,7 +68,7 @@ impl Display for SpecificationId {
         write!(
             f,
             "{}",
-            self.0.to_simple().encode_lower(&mut Uuid::encode_buffer()),
+            self.0.simple().encode_lower(&mut Uuid::encode_buffer()),
         )
     }
 }
@@ -97,18 +98,18 @@ impl SpecificationIdGenerator {
 }
 
 pub(crate) fn generate_struct_name(item: &syn::ItemImpl) -> String {
-    let uuid = Uuid::new_v4().to_simple();
+    let uuid = Uuid::new_v4().simple();
     let name_ty = generate_name_for_type(&*item.self_ty).unwrap_or_default();
     format!("PrustiStruct{}_{}", name_ty, uuid)
 }
 
 pub(crate) fn generate_struct_name_for_trait(item: &syn::ItemTrait) -> String {
-    let uuid = Uuid::new_v4().to_simple();
+    let uuid = Uuid::new_v4().simple();
     format!("PrustiTrait{}_{}", item.ident, uuid)
 }
 
 pub(crate) fn generate_mod_name(ident: &syn::Ident) -> String {
-    let uuid = Uuid::new_v4().to_simple();
+    let uuid = Uuid::new_v4().simple();
     format!("{}_{}", ident, uuid)
 }
 

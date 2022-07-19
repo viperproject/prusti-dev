@@ -6,10 +6,10 @@
 
 
 use crate::environment::Environment;
-use rustc_hir as hir;
-use rustc_hir::def_id::DefId;
-use rustc_hir::itemlikevisit::ItemLikeVisitor;
-use rustc_middle::ty::TyCtxt;
+use prusti_rustc_interface::hir;
+use prusti_rustc_interface::hir::def_id::DefId;
+use prusti_rustc_interface::hir::intravisit::Visitor;
+use prusti_rustc_interface::middle::ty::TyCtxt;
 
 
 use log::{trace};
@@ -33,11 +33,27 @@ impl<'a, 'tcx> CollectPrustiSpecVisitor<'a, 'tcx> {
     pub fn get_annotated_procedures(self) -> Vec<DefId> {
         self.result
     }
+
+    pub fn visit_all_item_likes(&mut self) {
+        let items = self.tcx.hir_crate_items(());
+        for id in items.items() {
+            self.visit_item(self.tcx.hir().item(id));
+        }
+        for id in items.trait_items() {
+            self.visit_trait_item(self.tcx.hir().trait_item(id));
+        }
+        for id in items.impl_items() {
+            self.visit_impl_item(self.tcx.hir().impl_item(id));
+        }
+        for id in items.foreign_items() {
+            self.visit_foreign_item(self.tcx.hir().foreign_item(id));
+        }
+    }
 }
 
-impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
+impl<'a, 'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
     fn visit_item(&mut self, item: &hir::Item) {
-        let attrs = self.tcx.get_attrs(item.def_id.to_def_id());
+        let attrs = self.env.get_local_attributes(item.def_id);
         if has_spec_only_attr(attrs) || has_extern_spec_attr(attrs) {
             return;
         }
@@ -50,7 +66,7 @@ impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
     }
 
     fn visit_trait_item(&mut self, trait_item: &hir::TraitItem) {
-        let attrs = self.tcx.get_attrs(trait_item.def_id.to_def_id());
+        let attrs = self.env.get_local_attributes(trait_item.def_id);
         if has_spec_only_attr(attrs) || has_extern_spec_attr(attrs) {
             return;
         }
@@ -73,7 +89,7 @@ impl<'a, 'tcx> ItemLikeVisitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
     }
 
     fn visit_impl_item(&mut self, impl_item: &hir::ImplItem) {
-        let attrs = self.tcx.get_attrs(impl_item.def_id.to_def_id());
+        let attrs = self.env.get_local_attributes(impl_item.def_id);
         if has_spec_only_attr(attrs) || has_extern_spec_attr(attrs) {
             return;
         }

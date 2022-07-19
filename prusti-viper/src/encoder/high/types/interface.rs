@@ -4,11 +4,9 @@ use crate::encoder::{
     mir::types::MirTypeEncoderInterface,
 };
 #[rustfmt::skip]
-use ::log::trace;
 use prusti_common::{config, report::log};
+use prusti_rustc_interface::{errors::MultiSpan, middle::ty};
 use rustc_hash::FxHashMap;
-use rustc_middle::ty;
-use rustc_span::MultiSpan;
 use std::cell::RefCell;
 use vir_crate::{
     high as vir_high,
@@ -26,8 +24,6 @@ pub(crate) struct HighTypeEncoderState<'tcx> {
     lowered_high_types: RefCell<FxHashMap<vir_high::Type, vir_poly::Type>>,
     lowered_types_inverse: RefCell<FxHashMap<vir_poly::Type, vir_high::Type>>,
 
-    // type_invariant_names: RefCell<FxHashMap<ty::TyKind<'tcx>, String>>,
-    type_invariants: RefCell<FxHashMap<String, vir_poly::FunctionIdentifier>>,
     // viper_predicate_descriptions: RefCell<FxHashMap<String, ViperPredicateDescription>>,
     viper_predicates: RefCell<FxHashMap<vir_poly::Type, vir_poly::Predicate>>,
 }
@@ -136,16 +132,6 @@ pub(crate) trait HighTypeEncoderInterface<'tcx> {
     fn encode_type(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Type>;
     fn encode_value_field(&self, ty: ty::Ty<'tcx>) -> EncodingResult<vir_poly::Field>;
     fn decode_type_predicate_type(&self, typ: &vir_poly::Type) -> EncodingResult<ty::Ty<'tcx>>;
-    fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<String>;
-    fn encode_type_invariant_def(
-        &self,
-        ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<vir_poly::FunctionIdentifier>;
-    fn encode_type_invariant_def_internal(
-        &self,
-        ty: ty::Ty<'tcx>,
-        invariant_name: &str,
-    ) -> EncodingResult<vir_poly::FunctionIdentifier>;
     fn encode_type_bounds(&self, var: &vir_poly::Expr, ty: ty::Ty<'tcx>) -> Vec<vir_poly::Expr>;
     fn decode_type_mid(&self, ty: &vir_mid::Type) -> SpannedEncodingResult<ty::Ty<'tcx>>;
     /// An empty type is similar to the compiler's ZSTs, just it also includes
@@ -250,61 +236,6 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
             ))),
         }
     }
-    fn encode_type_invariant_use(&self, ty: ty::Ty<'tcx>) -> EncodingResult<String> {
-        trace!("encode_type_invariant_use: {:?}", ty.kind());
-        let encoded_type = self.encode_type_high(ty)?;
-        let invariant_name = format!("{}$inv", encoded_type);
-        let invariant_name = crate::encoder::encoder::encode_identifier(invariant_name);
-        // Trigger encoding of definition.
-        // FIXME: This should not be needed.
-        self.encode_type_invariant_def_internal(ty, &invariant_name)?;
-        Ok(invariant_name)
-    }
-    fn encode_type_invariant_def(
-        &self,
-        ty: ty::Ty<'tcx>,
-    ) -> EncodingResult<vir_poly::FunctionIdentifier> {
-        trace!("encode_type_invariant_def: {:?}", ty.kind());
-        let invariant_name = self.encode_type_invariant_use(ty)?;
-        self.encode_type_invariant_def_internal(ty, &invariant_name)
-    }
-    fn encode_type_invariant_def_internal(
-        &self,
-        ty: ty::Ty<'tcx>,
-        invariant_name: &str,
-    ) -> EncodingResult<vir_poly::FunctionIdentifier> {
-        trace!("encode_type_invariant_def_internal: {:?}", ty.kind());
-        if !self
-            .high_type_encoder_state
-            .type_invariants
-            .borrow()
-            .contains_key(invariant_name)
-        {
-            // FIXME: Type invariants are currently not supported.
-
-            // FIXME: We currently cannot correctly lower functions because it
-            // is tricky to ensure that the type is lowered to correct type in
-            // polymorphic VIR because sometimes primitive types should be
-            // lowered to `TypedRef`, sometimes to primitive types.
-            let encoded_type = self.encode_type(ty)?;
-            let self_local_var = vir_poly::LocalVar::new("self", encoded_type);
-            let invariant = vir_poly::Function {
-                name: invariant_name.to_string(),
-                type_arguments: vec![], // FIXME: This is probably wrong.
-                formal_args: vec![self_local_var],
-                return_type: vir_poly::Type::Bool,
-                pres: Vec::new(),
-                posts: Vec::new(),
-                body: Some(true.into()),
-            };
-            let identifier = self.insert_function(invariant);
-            self.high_type_encoder_state
-                .type_invariants
-                .borrow_mut()
-                .insert(invariant_name.to_string(), identifier);
-        }
-        Ok(self.high_type_encoder_state.type_invariants.borrow()[invariant_name].clone())
-    }
     fn encode_type_bounds(&self, var: &vir_poly::Expr, ty: ty::Ty<'tcx>) -> Vec<vir_poly::Expr> {
         // FIXME: This should replaced with the type invariant.
         if let Some((lower_bound, upper_bound)) = self.get_integer_type_bounds(ty) {
@@ -326,9 +257,12 @@ impl<'v, 'tcx: 'v> HighTypeEncoderInterface<'tcx> for super::super::super::Encod
             vir_mid::TypeDecl::Bool
             | vir_mid::TypeDecl::Int(_)
             | vir_mid::TypeDecl::Float(_)
+            | vir_mid::TypeDecl::Trusted(_)
             | vir_mid::TypeDecl::TypeVar(_)
             | vir_mid::TypeDecl::Reference(_)
-            | vir_mid::TypeDecl::Pointer(_) => false,
+            | vir_mid::TypeDecl::Pointer(_)
+            | vir_mid::TypeDecl::Sequence(_)
+            | vir_mid::TypeDecl::Map(_) => false,
             vir_mid::TypeDecl::Tuple(decl) => decl.arguments.is_empty(),
             vir_mid::TypeDecl::Struct(decl) => decl.fields.is_empty(),
             vir_mid::TypeDecl::Enum(decl) => decl.variants.is_empty(),

@@ -7,4 +7,5 @@
 //! This module defines various MIR analyses.
 //! Consider using the new `analysis` crate instead of this module.
 
+pub mod allocation;
 pub mod initialization;

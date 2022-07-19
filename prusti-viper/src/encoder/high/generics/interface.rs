@@ -2,8 +2,7 @@ use crate::encoder::{
     errors::EncodingResult, high::lower::IntoPolymorphic,
     mir::generics::MirGenericsEncoderInterface,
 };
-use rustc_hir::def_id::DefId;
-use rustc_middle::ty::subst::SubstsRef;
+use prusti_rustc_interface::{hir::def_id::DefId, middle::ty::subst::SubstsRef};
 use vir_crate::polymorphic as vir_poly;
 
 pub(crate) trait HighGenericsEncoderInterface<'tcx> {

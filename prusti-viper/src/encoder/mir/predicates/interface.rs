@@ -1,4 +1,4 @@
-use rustc_middle::mir;
+use prusti_rustc_interface::middle::mir;
 use vir_crate::high as vir_high;
 
 use crate::encoder::{

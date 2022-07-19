@@ -8,20 +8,17 @@
 
 mod all_places;
 mod args_for_mir;
+mod mir_place;
 mod real_edges;
+mod slice_or_array_ref;
 mod split_aggregate_assignment;
 mod statement_as_assign;
 mod statement_at;
 mod tuple_items_for_ty;
 mod ty_as_ty_ref;
-mod mir_place;
 
-pub use self::all_places::*;
-pub use self::args_for_mir::*;
-pub use self::real_edges::*;
-pub use self::split_aggregate_assignment::*;
-pub use self::statement_as_assign::*;
-pub use self::statement_at::*;
-pub use self::tuple_items_for_ty::*;
-pub use self::ty_as_ty_ref::*;
-pub use self::mir_place::*;
+pub use self::{
+    all_places::*, args_for_mir::*, mir_place::*, real_edges::*, slice_or_array_ref::*,
+    split_aggregate_assignment::*, statement_as_assign::*, statement_at::*, tuple_items_for_ty::*,
+    ty_as_ty_ref::*,
+};

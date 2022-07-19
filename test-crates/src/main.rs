@@ -14,7 +14,7 @@ use std::{
 use log::{error, info, warn, LevelFilter};
 use rustwide::{cmd, logging, logging::LogStorage, Crate, Toolchain, WorkspaceBuilder};
 use serde::Deserialize;
-use clap::{self, App, Arg};
+use clap::Parser;
 
 /// How a crate should be tested. All tests use `check_panics=false`, `check_overflows=false` and
 /// `skip_unsupported_features=true`.
@@ -116,19 +116,24 @@ pub fn collect_java_policies() -> Vec<PathBuf> {
         .collect()
 }
 
+/// A tool to test Prusti on a variety of public crates.
+#[derive(Parser, Debug)]
+#[clap(version, about, long_about = None)]
+struct Args {
+    /// Do not check that the crates compile successfully without Prusti
+    #[clap(short, long)]
+    skip_build_check: bool,
+
+    /// If specified, only test crates containing this string in their names
+    #[clap(value_name = "CRATENAME", default_value_t = String::from(""))]
+    filter_crate_name: String,
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     color_backtrace::install();
     setup_logs();
 
-    let matches = App::new("Test crates")
-        .version("1.0")
-        .arg(Arg::with_name("skip-build-check")
-            .long("skip-build-check")
-            .help("Do not check that the crates compile successfully without Prusti.")
-            .takes_value(false)
-            .required(false))
-        .get_matches();
-    let skip_build_check = matches.is_present("skip-build-check");
+    let args = Args::parse();
 
     let workspace_path = Path::new("../workspaces/test-crates-builder");
     let host_prusti_home = if cfg!(debug_assertions) {
@@ -159,6 +164,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     info!("Crate a new workspace...");
+    // `Error: Compat { error: SandboxImagePullFailed(ExecutionFailed(ExitStatus(unix_wait_status(256)))) }` if
+    // docker daemon isn't running
     let workspace = WorkspaceBuilder::new(workspace_path, "prusti-test-crates").init()?;
 
     info!("Install the toolchain...");
@@ -179,6 +186,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .deserialize()
             .collect::<Result<Vec<CrateRecord>, _>>()?
             .into_iter()
+            .filter(|record| record.name.contains(&args.filter_crate_name))
             .map(|record| (Crate::crates_io(&record.name, &record.version), record.test_kind))
             .collect();
 
@@ -203,7 +211,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         info!("Fetch crate...");
         krate.fetch(&workspace)?;
 
-        if !skip_build_check {
+        if !args.skip_build_check {
             info!("Build crate...");
             let mut build_dir = workspace.build_dir(&format!("build_{}", index));
 

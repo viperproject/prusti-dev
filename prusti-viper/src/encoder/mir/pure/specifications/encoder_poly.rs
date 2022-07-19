@@ -12,13 +12,17 @@ use crate::encoder::{
         types::MirTypeEncoderInterface,
     },
     mir_encoder::{MirEncoder, PlaceEncoder},
+    snapshot::interface::SnapshotEncoderInterface,
     Encoder,
 };
 use prusti_common::config;
+use prusti_rustc_interface::{
+    errors::MultiSpan,
+    hir::def_id::DefId,
+    middle::{ty, ty::subst::SubstsRef},
+    span::Span,
+};
 use rustc_hash::FxHashSet;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{ty, ty::subst::SubstsRef};
-use rustc_span::{MultiSpan, Span};
 use vir_crate::polymorphic::ExprIterator;
 
 // TODO: this variant (poly) should not need to exist, eventually should be
@@ -80,20 +84,28 @@ pub(super) fn inline_spec_item<'tcx>(
         let local_span = mir_encoder.get_local_span(arg_local);
         let local = mir_encoder.encode_local(arg_local).unwrap();
         let local_ty = mir.local_decls[arg_local].ty;
+        let is_return_arg = target_return.is_some() && arg_idx == mir.arg_count - 1;
         body_replacements.push((
-            if targets_are_values {
+            if targets_are_values && !is_return_arg {
                 encoder
-                    .encode_value_expr(vir_crate::polymorphic::Expr::local(local), local_ty)
+                    .encode_value_expr(vir_crate::polymorphic::Expr::local(local.clone()), local_ty)
                     .with_span(local_span)?
             } else {
-                vir_crate::polymorphic::Expr::local(local)
+                vir_crate::polymorphic::Expr::local(local.clone())
             },
-            if target_return.is_some() && arg_idx == mir.arg_count - 1 {
+            if is_return_arg {
                 target_return.unwrap().clone()
             } else {
                 target_args[arg_idx].clone()
             },
         ));
+
+        if !is_return_arg {
+            body_replacements.push((
+                vir_crate::polymorphic::Expr::local(local),
+                target_args[arg_idx].clone(),
+            ));
+        }
     }
     Ok(encoder
         .encode_pure_expression(def_id, parent_def_id, substs)?
@@ -123,12 +135,12 @@ pub(super) fn encode_quantifier<'tcx>(
     //   )
 
     let cl_type_body = substs.type_at(1);
-    let (body_def_id, body_substs, _, args, _) = extract_closure_from_ty(tcx, cl_type_body);
+    let (body_def_id, body_substs, body_span, args, _) = extract_closure_from_ty(tcx, cl_type_body);
 
     let mut encoded_qvars = vec![];
     let mut bounds = vec![];
     for (arg_idx, arg_ty) in args.into_iter().enumerate() {
-        let qvar_ty = encoder.encode_type(arg_ty).unwrap();
+        let qvar_ty = encoder.encode_snapshot_type(arg_ty).with_span(body_span)?;
         let qvar_name = format!(
             "_{}_quant_{}",
             arg_idx,

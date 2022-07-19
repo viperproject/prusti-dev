@@ -2,8 +2,8 @@
     Debug,
     derive_more::Display,
     Clone,
-    Serialize,
-    Deserialize,
+    serde::Serialize,
+    serde::Deserialize,
     PartialEq(ignore=[position]),
     Eq,
     Hash(ignore=[position])
@@ -19,8 +19,4 @@ pub mod statement;
 pub mod ty;
 pub mod variable;
 
-pub use self::{
-    expression::{Expression, PermAmount},
-    function::FunctionDecl,
-    statement::Statement,
-};
+pub use self::{expression::Expression, function::FunctionDecl, statement::Statement};

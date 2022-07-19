@@ -6,7 +6,6 @@
 
 use std::{
     collections::HashMap,
-    env,
     fs,
     path::{PathBuf, Path},
     process::Command,
@@ -64,12 +63,12 @@ fn test_prusti_rustc_caching() {
         println!("Running {:?} on {:?}...", prusti_rustc, program);
         let out = Command::new(&prusti_rustc)
             .arg("--edition=2018")
+            .arg("--crate-type=lib")
+            .arg("-Pmax_log_file_name_length=120")
             .arg(program)
-            .env_clear()
             .env("RUST_BACKTRACE", "1")
             .env("PRUSTI_DUMP_VIPER_PROGRAM", "true")
             .env("PRUSTI_PRINT_HASH", "true")
-            .env("PATH", env!("PATH"))
             .output()
             .expect("failed to execute prusti-rustc");
         assert!(out.status.success(), "Failed to compile: {:?}\n{}", program, String::from_utf8(out.stderr).unwrap());
@@ -78,20 +77,15 @@ fn test_prusti_rustc_caching() {
             .skip_while(|line| !line.starts_with("Received verification request for: "));
         while let Some(l1) = hash_lines.next() {
             let mut full_name = l1.strip_prefix("Received verification request for: ").unwrap().to_string();
-            if cfg!(target_os = "windows") {
-                full_name = full_name.chars()
-                    .map(|x| match x {
-                        '\\' | '/' | ':' | '*' | '?' | '"' | '<' | '>' | '|' => '-',
-                        _ => x
-                    }).collect();
-            }
+            full_name.push_str(".vpr");
+            full_name = prusti_common::report::log::to_legal_file_name_of_max_length(full_name, 120);
             let mut name = full_name.split(".rs_");
             let _filename = name.next().unwrap();
             let fn_name = name.next().unwrap();
             let l2 = hash_lines.next().unwrap();
             let hash: u64 = l2.strip_prefix("Hash of the request is: ").unwrap().parse().unwrap();
             std::fs::rename(
-                format!("log/viper_program/{}.vpr", full_name),
+                format!("log/viper_program/{}", full_name),
                 format!("log/viper_program/{}.vpr", hash)
             ).unwrap();
             hashes.entry(fn_name.to_string())

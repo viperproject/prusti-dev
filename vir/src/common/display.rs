@@ -1,5 +1,13 @@
 use std::fmt::{Display, Write};
 
+pub(crate) macro condition($condition: expr, $then_template: expr, $else_template: expr) {{
+    if $condition {
+        $then_template
+    } else {
+        $else_template
+    }
+}}
+
 pub(crate) macro option($option: expr, $some_template: expr, $none_template: expr) {{
     match $option {
         Some(value) => format!($some_template, value),

@@ -1,0 +1,32 @@
+// compile-flags: -Pprint_desugared_specs=true -Pprint_typeckd_specs=true -Pno_verify=true -Phide_uuids=true
+// normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
+// normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
+// normalize-stdout-test: "/[[a-z0-9]{4}/]::" -> "[$(CRATE_ID)]::"
+
+
+
+
+#![feature(type_ascription)]
+#![feature(stmt_expr_attributes)]
+#![feature(register_tool)]
+#![register_tool(prusti)]
+#[prelude_import]
+use std::prelude::rust_2018::*;
+#[macro_use]
+extern crate std;
+use prusti_contracts::*;
+#[prusti::trusted]
+fn test1() {}
+struct Test2 {
+    x: i32,
+}
+impl Test2<> {
+    #[allow(unused_variables, dead_code, non_snake_case)]
+    #[prusti::spec_only]
+    #[prusti::trusted_type]
+    #[prusti::spec_id = "$(NUM_UUID)"]
+    fn prusti_trusted_item_Test2_$(NUM_UUID)(self) {}
+}
+fn main() {}
+TypeSpecification { invariant: Inherent([]), trusted: Inherent(true) }
+ProcedureSpecification { span: Some($DIR/trusted.rs:9:1: 9:11 (#0)), kind: Inherent(Impure), pres: Empty, posts: Empty, pledges: Empty, trusted: Inherent(true) }

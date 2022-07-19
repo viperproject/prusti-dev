@@ -1,7 +1,7 @@
 use super::super::ast::{
     field::FieldDecl,
     ty::Type,
-    type_decl::{Enum, Struct, Tuple, TypeDecl, Union},
+    type_decl::{Enum, Struct, Trusted, Tuple, TypeDecl, Union},
 };
 
 impl Enum {
@@ -37,7 +37,8 @@ impl Tuple {
             .enumerate()
             .map(|(index, argument_type)| {
                 std::borrow::Cow::Owned(FieldDecl::new(
-                    format!("tuple${}", index),
+                    format!("tuple_{}", index),
+                    index,
                     argument_type.clone(),
                 ))
             })

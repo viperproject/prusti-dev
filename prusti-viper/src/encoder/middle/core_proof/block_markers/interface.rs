@@ -3,7 +3,7 @@ use crate::encoder::{
     middle::core_proof::lowerer::{Lowerer, VariablesLowererInterface},
 };
 use vir_crate::{
-    common::expression::ExpressionIterator,
+    common::expression::{ExpressionIterator, UnaryOperationHelpers},
     low::{self as vir_low},
     middle as vir_mid,
 };
@@ -15,7 +15,7 @@ pub(in super::super) trait BlockMarkersInterface {
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
     fn lower_block_marker_condition(
         &mut self,
-        condition: Vec<vir_mid::BasicBlockId>,
+        condition: vir_mid::BlockMarkerCondition,
     ) -> SpannedEncodingResult<vir_low::Expression>;
 }
 
@@ -28,12 +28,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> BlockMarkersInterface for Lowerer<'p, 'v, 'tcx> {
     }
     fn lower_block_marker_condition(
         &mut self,
-        condition: Vec<vir_mid::BasicBlockId>,
+        condition: vir_mid::BlockMarkerCondition,
     ) -> SpannedEncodingResult<vir_low::Expression> {
         let mut conjuncts: Vec<vir_low::Expression> = Vec::new();
-        for label in condition {
-            let marker = self.create_block_marker(&label)?;
-            conjuncts.push(marker.into());
+        for element in condition.elements {
+            let marker = self.create_block_marker(&element.basic_block_id)?;
+            let condition = if element.visited {
+                marker.into()
+            } else {
+                vir_low::Expression::not(marker.into())
+            };
+            conjuncts.push(condition);
         }
         Ok(conjuncts.into_iter().conjoin())
     }

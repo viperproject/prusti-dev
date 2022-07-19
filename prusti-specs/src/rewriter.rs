@@ -1,16 +1,14 @@
-use crate::specifications::common::{
-    SpecificationId,
-    SpecificationIdGenerator,
+use crate::{
+    common::HasSignature,
+    specifications::{
+        common::{SpecificationId, SpecificationIdGenerator},
+        preparser::{parse_prusti, parse_prusti_assert_pledge, parse_prusti_pledge},
+        untyped,
+    },
 };
-use crate::specifications::untyped;
-use proc_macro2::{TokenStream, Span};
-use syn::{Type, punctuated::Punctuated, Pat, Token};
-use syn::spanned::Spanned;
-use quote::{quote_spanned, format_ident};
-use crate::specifications::preparser::{
-    parse_prusti,
-    parse_prusti_pledge, parse_prusti_assert_pledge,
-};
+use proc_macro2::{Span, TokenStream};
+use quote::{format_ident, quote, quote_spanned};
+use syn::{parse_quote_spanned, punctuated::Punctuated, spanned::Spanned, Pat, Token, Type};
 
 pub(crate) struct AstRewriter {
     spec_id_generator: SpecificationIdGenerator,
@@ -48,12 +46,13 @@ impl AstRewriter {
 
     /// Check whether function `item` contains a parameter called `keyword`. If
     /// yes, return its span.
-    fn check_contains_keyword_in_params(&self, item: &untyped::AnyFnItem, keyword: &str) -> Option<Span> {
+    fn check_contains_keyword_in_params<T: HasSignature>(
+        &self,
+        item: &T,
+        keyword: &str,
+    ) -> Option<Span> {
         for param in &item.sig().inputs {
-            if let syn::FnArg::Typed(syn::PatType {
-                    pat,
-                    ..
-                }) = param {
+            if let syn::FnArg::Typed(syn::PatType { pat, .. }) = param {
                 if let syn::Pat::Ident(syn::PatIdent { ident, .. }) = &**pat {
                     if ident == keyword {
                         return Some(param.span());
@@ -64,30 +63,28 @@ impl AstRewriter {
         None
     }
 
-    fn generate_result_arg(&self, item: &untyped::AnyFnItem) -> syn::FnArg {
+    fn generate_result_arg<T: HasSignature + Spanned>(&self, item: &T) -> syn::FnArg {
         let item_span = item.span();
         let output_ty = match &item.sig().output {
             syn::ReturnType::Default => parse_quote_spanned!(item_span=> ()),
             syn::ReturnType::Type(_, ty) => ty.clone(),
         };
-        let fn_arg = syn::FnArg::Typed(
-            syn::PatType {
-                attrs: Vec::new(),
-                pat: Box::new(parse_quote_spanned!(item_span=> result)),
-                colon_token: syn::Token![:](item.sig().output.span()),
-                ty: output_ty,
-            }
-        );
+        let fn_arg = syn::FnArg::Typed(syn::PatType {
+            attrs: Vec::new(),
+            pat: Box::new(parse_quote_spanned!(item_span=> result)),
+            colon_token: syn::Token![:](item.sig().output.span()),
+            ty: output_ty,
+        });
         fn_arg
     }
 
     /// Turn an expression into the appropriate function
-    pub fn generate_spec_item_fn(
+    pub fn generate_spec_item_fn<T: HasSignature + Spanned>(
         &mut self,
         spec_type: SpecItemType,
         spec_id: SpecificationId,
         expr: TokenStream,
-        item: &untyped::AnyFnItem,
+        item: &T,
     ) -> syn::Result<syn::Item> {
         if let Some(span) = self.check_contains_keyword_in_params(item, "result") {
             return Err(syn::Error::new(
@@ -128,26 +125,21 @@ impl AstRewriter {
             SpecItemType::Postcondition | SpecItemType::Pledge => {
                 let fn_arg = self.generate_result_arg(item);
                 spec_item.sig.inputs.push(fn_arg);
-            },
+            }
             _ => (),
         }
         Ok(syn::Item::Fn(spec_item))
     }
 
     /// Parse an assertion into a Rust expression
-    pub fn process_assertion(
+    pub fn process_assertion<T: HasSignature + Spanned>(
         &mut self,
         spec_type: SpecItemType,
         spec_id: SpecificationId,
         tokens: TokenStream,
-        item: &untyped::AnyFnItem,
+        item: &T,
     ) -> syn::Result<syn::Item> {
-        self.generate_spec_item_fn(
-            spec_type,
-            spec_id,
-            parse_prusti(tokens)?,
-            item,
-        )
+        self.generate_spec_item_fn(spec_type, spec_id, parse_prusti(tokens)?, item)
     }
 
     /// Parse a pledge with lhs into a Rust expression
@@ -174,18 +166,8 @@ impl AstRewriter {
         item: &untyped::AnyFnItem,
     ) -> syn::Result<(syn::Item, syn::Item)> {
         let (lhs, rhs) = parse_prusti_assert_pledge(tokens)?;
-        let lhs_item = self.generate_spec_item_fn(
-            SpecItemType::Pledge,
-            spec_id_lhs,
-            lhs,
-            item,
-        )?;
-        let rhs_item = self.generate_spec_item_fn(
-            SpecItemType::Pledge,
-            spec_id_rhs,
-            rhs,
-            item,
-        )?;
+        let lhs_item = self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_lhs, lhs, item)?;
+        let rhs_item = self.generate_spec_item_fn(SpecItemType::Pledge, spec_id_rhs, rhs, item)?;
         Ok((lhs_item, rhs_item))
     }
 
@@ -195,12 +177,39 @@ impl AstRewriter {
         spec_id: SpecificationId,
         tokens: TokenStream,
     ) -> syn::Result<TokenStream> {
+        self.process_prusti_expression(quote! {loop_body_invariant_spec}, spec_id, tokens)
+    }
+
+    /// Parse a prusti assertion into a Rust expression
+    pub fn process_prusti_assertion(
+        &mut self,
+        spec_id: SpecificationId,
+        tokens: TokenStream,
+    ) -> syn::Result<TokenStream> {
+        self.process_prusti_expression(quote! {prusti_assertion}, spec_id, tokens)
+    }
+
+    /// Parse a prusti assumption into a Rust expression
+    pub fn process_prusti_assumption(
+        &mut self,
+        spec_id: SpecificationId,
+        tokens: TokenStream,
+    ) -> syn::Result<TokenStream> {
+        self.process_prusti_expression(quote! {prusti_assumption}, spec_id, tokens)
+    }
+
+    fn process_prusti_expression(
+        &mut self,
+        kind: TokenStream,
+        spec_id: SpecificationId,
+        tokens: TokenStream,
+    ) -> syn::Result<TokenStream> {
         let expr = parse_prusti(tokens)?;
         let spec_id_str = spec_id.to_string();
         Ok(quote_spanned! {expr.span()=>
             {
                 #[prusti::spec_only]
-                #[prusti::loop_body_invariant_spec]
+                #[prusti::#kind]
                 #[prusti::spec_id = #spec_id_str]
                 || -> bool {
                     #expr
@@ -218,27 +227,30 @@ impl AstRewriter {
         preconds: Vec<(SpecificationId, syn::Expr)>,
         postconds: Vec<(SpecificationId, syn::Expr)>,
     ) -> syn::Result<(TokenStream, TokenStream)> {
-        let process_cond = |is_post: bool, id: &SpecificationId,
-                            assertion: &syn::Expr| -> TokenStream
-        {
-            let spec_id_str = id.to_string();
-            let name = format_ident!("prusti_{}_closure_{}", if is_post { "post" } else { "pre" }, spec_id_str);
-            let callsite_span = Span::call_site();
-            let result = if is_post && !inputs.empty_or_trailing() {
-                quote_spanned! {callsite_span=> , result: #output }
-            } else if is_post {
-                quote_spanned! {callsite_span=> result: #output }
-            } else {
-                TokenStream::new()
-            };
-            quote_spanned! {callsite_span=>
-                #[prusti::spec_only]
-                #[prusti::spec_id = #spec_id_str]
-                fn #name(#inputs #result) {
-                    #assertion
+        let process_cond =
+            |is_post: bool, id: &SpecificationId, assertion: &syn::Expr| -> TokenStream {
+                let spec_id_str = id.to_string();
+                let name = format_ident!(
+                    "prusti_{}_closure_{}",
+                    if is_post { "post" } else { "pre" },
+                    spec_id_str
+                );
+                let callsite_span = Span::call_site();
+                let result = if is_post && !inputs.empty_or_trailing() {
+                    quote_spanned! {callsite_span=> , result: #output }
+                } else if is_post {
+                    quote_spanned! {callsite_span=> result: #output }
+                } else {
+                    TokenStream::new()
+                };
+                quote_spanned! {callsite_span=>
+                    #[prusti::spec_only]
+                    #[prusti::spec_id = #spec_id_str]
+                    fn #name(#inputs #result) {
+                        #assertion
+                    }
                 }
-            }
-        };
+            };
 
         let mut pre_ts = TokenStream::new();
         for (id, precond) in preconds {

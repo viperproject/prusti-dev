@@ -13,6 +13,7 @@ use std::collections::BTreeMap;
 pub struct ProcedureDecl {
     pub name: String,
     pub entry: BasicBlockId,
+    pub exit: BasicBlockId,
     pub basic_blocks: BTreeMap<BasicBlockId, BasicBlock>,
 }
 
