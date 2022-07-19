@@ -29,6 +29,7 @@ pub fn dump_pcs<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> EncodingResul
         let current_procedure: Procedure<'tcx> = env.get_procedure(*proc_id);
         let mir: &Body<'tcx> = current_procedure.get_mir();
         let micro_mir: MicroMirEncoder<'tcx> = MicroMirEncoder::expand_syntax(mir)?;
+        micro_mir.pprint();
         let operational_pcs = straight_line_pcs(&micro_mir, mir, env)?;
     }
     Ok(())
@@ -61,6 +62,10 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
     loop {
         // Compute PCS for the block
         for statement in current_block.statements.iter() {
+            println!(
+                "  working on {:?} in PCS {:#?}",
+                statement, current_state.set
+            );
             // Elaborate the precondition of the statement
             let next_statement_state = naive_elaboration(&statement, &current_state)?;
 
@@ -74,6 +79,37 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
                 mir,
                 env,
             )?;
+
+            println!("  current state becomes {:#?}", current_state.set);
+
+            // Now apply the statement's hoare triple
+            for p1 in next_statement_state.set.iter() {
+                if !current_state.set.remove(p1) {
+                    return Err(PrustiError::internal(
+                        format!("generated PCS is incoherent (precondition)"),
+                        MultiSpan::new(),
+                    ));
+                }
+            }
+
+            let post = match statement.postcondition() {
+                Some(s) => s,
+                None => {
+                    return Err(PrustiError::unsupported(
+                        format!("naive elaboration does not support postconditions"),
+                        MultiSpan::new(),
+                    ))
+                }
+            };
+
+            for p1 in post.set.iter() {
+                if !current_state.set.insert((*p1).clone()) {
+                    return Err(PrustiError::internal(
+                        format!("generated PCS is incoherent (postcondition)"),
+                        MultiSpan::new(),
+                    ));
+                }
+            }
 
             // Push the statement, should be coherent now
             statements.push(statement.clone());
@@ -142,7 +178,10 @@ fn naive_elaboration<'tcx>(
                     Ok(PCS::from_vec(vec![p_u]))
                 } else {
                     Err(PrustiError::internal(
-                        format!("kill elaboration: place {:?} unkillable", p),
+                        format!(
+                            "kill elaboration: place {:?} unkillable in the current PCS {:#?}",
+                            p, current_state.set
+                        ),
                         MultiSpan::new(),
                     ))
                 }

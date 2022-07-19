@@ -100,6 +100,11 @@ pub fn unify_moves<'mir, 'env: 'mir, 'tcx: 'env>(
                 break;
             }
 
+            // If the set of elements in a already containas all elets in b, done
+            if set_rc_b.is_subset(&set_rc_a) {
+                break;
+            }
+
             let mut gen_a: FxHashSet<Place<'tcx>> = FxHashSet::default();
             let mut kill_a: FxHashSet<Place<'tcx>> = FxHashSet::default();
             let mut gen_b: FxHashSet<Place<'tcx>> = FxHashSet::default();
@@ -126,7 +131,10 @@ pub fn unify_moves<'mir, 'env: 'mir, 'tcx: 'env>(
                 b_unpacks.push(*b);
             } else {
                 return Err(PrustiError::internal(
-                    format!("could not unify pcs's"),
+                    format!(
+                        "could not unify pcs's {:#?} and {:#?}",
+                        a_pcs.set, b_pcs.set
+                    ),
                     MultiSpan::new(),
                 ));
             }
