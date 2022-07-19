@@ -27,14 +27,14 @@ use super::{
 /// specification data (of the currently compiled crate), loaded by dependent crates
 /// that import external specification (from the current crate).
 #[derive(TyEncodable)]
-pub struct DefSpecificationMapLite<'tcx, 'a> {
+pub struct DefSpecificationMapForExport<'tcx, 'a> {
     proc_specs: &'a HashMap<DefId, SpecGraph<ProcedureSpecification>>,
     type_specs: &'a HashMap<DefId, TypeSpecification>,
 
     mirs_of_specs: &'a HashMap<DefId, Rc<mir::Body<'tcx>>>,
 }
 
-impl<'tcx, 'a> DefSpecificationMapLite<'tcx, 'a> {
+impl<'tcx, 'a> DefSpecificationMapForExport<'tcx, 'a> {
     pub(crate) fn from_def_spec(def_spec: &'a DefSpecificationMap<'tcx>) -> Self {
         Self {
             proc_specs: &def_spec.proc_specs,
@@ -58,14 +58,14 @@ impl<'tcx, 'a> DefSpecificationMapLite<'tcx, 'a> {
 }
 
 #[derive(TyDecodable)]
-pub struct DefSpecificationMapLiteOwned<'tcx> {
+pub struct DefSpecificationMapForExportOwned<'tcx> {
     proc_specs: HashMap<DefId, SpecGraph<ProcedureSpecification>>,
     type_specs: HashMap<DefId, TypeSpecification>,
 
     mirs_of_specs: HashMap<DefId, Rc<mir::Body<'tcx>>>,
 }
 
-impl<'tcx> DefSpecificationMapLiteOwned<'tcx> {
+impl<'tcx> DefSpecificationMapForExportOwned<'tcx> {
     pub(crate) fn read_from_file(tcx: TyCtxt<'tcx>, path: &Path) -> io::Result<Self> {
         DefSpecsBlob::from_file(path).and_then(|blob| {
             let mut decoder = DefSpecsDecoder::new(tcx, &blob);
