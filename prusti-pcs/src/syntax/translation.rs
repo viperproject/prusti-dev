@@ -333,7 +333,7 @@ impl<'tcx> MicroMirEncoder<'tcx> {
     where
         'tcx: 'mir,
     {
-        current.push(MicroMirStatement::Allocate(l.into()));
+        // current.push(MicroMirStatement::Allocate(l.into()));
         Ok(())
     }
 
@@ -346,7 +346,6 @@ impl<'tcx> MicroMirEncoder<'tcx> {
     where
         'tcx: 'mir,
     {
-        // TODO!!!!
         // current.push(MicroMirStatement::Deallocate(l.into()));
         Ok(())
     }
