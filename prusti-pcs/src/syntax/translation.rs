@@ -8,7 +8,10 @@
 use crate::{
     syntax::{
         hoare_semantics::*,
-        micromir::{MicroMirData, MicroMirStatement, MicroMirTerminator, TemporaryPlace, PCS},
+        micromir::{
+            LinearResource, MicroMirData, MicroMirStatement, MicroMirTerminator, PCSPermission,
+            TemporaryPlace, PCS,
+        },
     },
     util::EncodingResult,
 };
@@ -90,7 +93,9 @@ impl<'tcx> MicroMirEncoder<'tcx> {
             StorageLive(local) => Self::encode_storagelive(current, *local, mir),
 
             // TODO: These need to be discussed
-            Assign(box (_p_dest, Aggregate(box Adt(_, _, _, _, _), _vec))) => Ok(()),
+            Assign(box (dest, Aggregate(box Adt(_, _, _, _, _), operands))) => {
+                Self::encode_aggregate(current, dest, operands, mir)
+            }
 
             FakeRead(box (_, _)) => Ok(()),
 
@@ -322,6 +327,39 @@ impl<'tcx> MicroMirEncoder<'tcx> {
                 return Ok(Mut);
             }
         }
+    }
+
+    /// 1. Kill dest
+    /// 2. Encode all operands
+    /// 3. Encode a pack from the encoded operands
+    /// 4. Set the packed place to a temporary (?)
+    fn encode_aggregate<'mir>(
+        current: &mut Vec<MicroMirStatement<'tcx>>,
+        p_dest: &Place<'tcx>,
+        operands: &Vec<Operand<'tcx>>,
+        mir: &'mir Body<'tcx>,
+    ) -> EncodingResult<()>
+    where
+        'tcx: 'mir,
+    {
+        current.push(MicroMirStatement::Kill((*p_dest).into()));
+        let mut to_aggregate: Vec<PCSPermission<'tcx>> = vec![];
+        let mut i: usize = 1;
+        for op in operands.iter() {
+            let temp = TemporaryPlace { id: i };
+            let op_mut = Self::encode_operand(current, op, temp, mir)?;
+            to_aggregate.push(PCSPermission::new_initialized(
+                op_mut,
+                LinearResource::Tmp(temp),
+            ));
+            i += 1;
+        }
+        current.push(MicroMirStatement::Aggregate(
+            (*p_dest).into(),
+            to_aggregate,
+            Mutability::Mut,
+        ));
+        Ok(())
     }
 
     // Appends the encoding for a StorageLive

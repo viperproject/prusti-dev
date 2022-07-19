@@ -59,6 +59,9 @@ pub enum MicroMirStatement<'tcx> {
     UnOp(UnOp, TemporaryPlace, TemporaryPlace),
     BinaryOp(BinOp, bool, TemporaryPlace, TemporaryPlace, TemporaryPlace),
     Len(Place<'tcx>, TemporaryPlace, Mutability),
+    // Aggregate probably needs more information
+    Aggregate(Place<'tcx>, Vec<PCSPermission<'tcx>>, Mutability),
+    // These two are probably useless
     Allocate(Place<'tcx>),
     Deallocate(Place<'tcx>),
     // Places annotated so that we do not need to truck around the mir
@@ -173,6 +176,11 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
                     (*p).into(),
                 )]))
             }
+            MicroMirStatement::Aggregate(dest, subpermissions, _) => {
+                let mut pcs = PCS::from_vec(subpermissions.to_vec());
+                pcs.set.insert(PCSPermission::new_uninit((*dest).into()));
+                Some(pcs)
+            }
         }
     }
 
@@ -239,6 +247,15 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
                     Mutability::Mut,
                     (*p).into(),
                 )]))
+            }
+            MicroMirStatement::Aggregate(p, subpermissions, m) => {
+                let mut pcs = PCS::from_vec(vec![PCSPermission::new_initialized(*m, (*p).into())]);
+                for permission in subpermissions.iter() {
+                    if let r @ LinearResource::Mir(pl) = permission.target {
+                        pcs.set.insert(PCSPermission::new_uninit(r));
+                    }
+                }
+                Some(pcs)
             }
         }
     }
@@ -421,6 +438,13 @@ impl<'tcx> Debug for MicroMirStatement<'tcx> {
             MicroMirStatement::Unpack(p, ps) => write!(f, "unpack {:?} -> {:?}", p, ps),
             MicroMirStatement::Allocate(p) => write!(f, "alloc {:?}", p),
             MicroMirStatement::Deallocate(p) => write!(f, "dealloc {:?}", p),
+            MicroMirStatement::Aggregate(p, subpermissions, m) => {
+                write!(f, "aggregate ({:?}) ", m)?;
+                for perm in subpermissions.iter() {
+                    write!(f, "{:?}, ", perm)?;
+                }
+                write!(f, "-> {:?}", p)
+            }
         }
     }
 }

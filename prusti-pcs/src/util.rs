@@ -35,6 +35,7 @@ fn retrieve_local_decl<'a, 'tcx: 'a>(
 }
 */
 
+/*
 /// Retruns a collection of immediate subplaces
 /// (Modified from analysis/mir_utils)
 pub fn expand_place<'mir, 'env: 'mir, 'tcx: 'env>(
@@ -43,7 +44,8 @@ pub fn expand_place<'mir, 'env: 'mir, 'tcx: 'env>(
     env: &'env Environment<'tcx>,
 ) -> EncodingResult<Vec<Place<'tcx>>> {
     let tcx: TyCtxt<'tcx> = env.tcx();
-    match place.projection[place.projection.len()] {
+    println!("-------- debug: expanding {:#?}", place.projection);
+    match place.projection[place.projection.len() - 1] {
         mir::ProjectionElem::Field(projected_field, field_ty) => {
             let mut places = expand_struct_place(place, mir, tcx, Some(projected_field.index()));
             let new_current_place = tcx.mk_place_field(place, projected_field, field_ty).into();
@@ -69,3 +71,4 @@ pub fn expand_place<'mir, 'env: 'mir, 'tcx: 'env>(
         )),
     }
 }
+ */

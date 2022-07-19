@@ -195,7 +195,7 @@ pub fn expand_struct_place<'tcx, P: PlaceImpl<'tcx> + std::marker::Copy>(
 /// Expand `current_place` one level down by following the `guide_place`.
 /// Returns the new `current_place` and a vector containing other places that
 /// could have resulted from the expansion.
-pub(crate) fn expand_one_level<'tcx>(
+pub fn expand_one_level<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
     current_place: Place<'tcx>,
