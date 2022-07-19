@@ -33,7 +33,7 @@ pub struct DefSpecificationMapLite<'tcx, 'a> {
     prusti_assertions: &'a HashMap<DefId, PrustiAssertion>,
     prusti_assumptions: &'a HashMap<DefId, PrustiAssumption>,
 
-    local_mirs: &'a HashMap<DefId, Rc<mir::Body<'tcx>>>,
+    mirs_of_specs: &'a HashMap<DefId, Rc<mir::Body<'tcx>>>,
 }
 
 impl<'tcx, 'a> DefSpecificationMapLite<'tcx, 'a> {
@@ -44,7 +44,7 @@ impl<'tcx, 'a> DefSpecificationMapLite<'tcx, 'a> {
             prusti_assertions: &def_spec.prusti_assertions,
             prusti_assumptions: &def_spec.prusti_assumptions,
 
-            local_mirs: &def_spec.local_mirs,
+            mirs_of_specs: &def_spec.mirs_of_specs,
         }
     }
 
@@ -68,7 +68,7 @@ pub struct DefSpecificationMapLiteOwned<'tcx> {
     prusti_assertions: HashMap<DefId, PrustiAssertion>,
     prusti_assumptions: HashMap<DefId, PrustiAssumption>,
 
-    local_mirs: HashMap<DefId, Rc<mir::Body<'tcx>>>,
+    mirs_of_specs: HashMap<DefId, Rc<mir::Body<'tcx>>>,
 }
 
 impl<'tcx> DefSpecificationMapLiteOwned<'tcx> {
@@ -85,6 +85,6 @@ impl<'tcx> DefSpecificationMapLiteOwned<'tcx> {
         def_spec.prusti_assertions.extend(self.prusti_assertions);
         def_spec.prusti_assumptions.extend(self.prusti_assumptions);
 
-        def_spec.local_mirs.extend(self.local_mirs);
+        def_spec.mirs_of_specs.extend(self.mirs_of_specs);
     }
 }

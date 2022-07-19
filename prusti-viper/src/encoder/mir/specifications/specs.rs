@@ -131,8 +131,8 @@ impl<'tcx> Specifications<'tcx> {
         }
     }
 
-    pub(super) fn get_local_mirs(&self) -> &HashMap<DefId, Rc<mir::Body<'tcx>>> {
-        return &self.user_typed_specs.local_mirs;
+    pub(super) fn get_mirs_of_specs(&self) -> &HashMap<DefId, Rc<mir::Body<'tcx>>> {
+        return &self.user_typed_specs.mirs_of_specs;
     }
 
     fn perform_proc_spec_refinement<'a, 'env: 'a>(

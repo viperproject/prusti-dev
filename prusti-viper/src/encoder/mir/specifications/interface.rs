@@ -288,7 +288,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .specifications_state
             .specs
             .borrow()
-            .get_local_mirs()
+            .get_mirs_of_specs()
             .get(&def_id)
             .unwrap()
             .clone();
