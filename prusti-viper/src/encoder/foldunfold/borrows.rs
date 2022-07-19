@@ -6,7 +6,7 @@
 
 use rustc_hash::FxHashMap;
 use std::io;
-use vir_crate::polymorphic as vir;
+use vir_crate::{common::graphviz::escape_html, polymorphic as vir};
 
 pub(super) struct BasicBlock<'a> {
     pub guard: vir::Expr,
@@ -49,14 +49,6 @@ impl<'a> CFG<'a> {
         graph: &mut dyn io::Write,
         curr_block_index: usize,
     ) -> Result<(), io::Error> {
-        fn escape_html<S: ToString>(s: S) -> String {
-            s.to_string()
-                .replace('&', "&amp;")
-                .replace('>', "&gt;")
-                .replace('<', "&lt;")
-                .replace('\n', "<br/>")
-        }
-
         writeln!(graph, "digraph CFG {{")?;
         writeln!(graph, "graph [fontname=monospace];")?;
         writeln!(graph, "node [fontname=monospace];")?;

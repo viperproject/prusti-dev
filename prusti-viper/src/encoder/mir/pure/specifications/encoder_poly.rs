@@ -16,11 +16,13 @@ use crate::encoder::{
     Encoder,
 };
 use prusti_common::config;
-use rustc_errors::MultiSpan;
+use prusti_rustc_interface::{
+    errors::MultiSpan,
+    hir::def_id::DefId,
+    middle::{ty, ty::subst::SubstsRef},
+    span::Span,
+};
 use rustc_hash::FxHashSet;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{ty, ty::subst::SubstsRef};
-use rustc_span::Span;
 use vir_crate::polymorphic::ExprIterator;
 
 // TODO: this variant (poly) should not need to exist, eventually should be
@@ -95,10 +97,10 @@ pub(super) fn inline_spec_item<'tcx>(
         body_replacements.push((
             if targets_are_values && !is_return_arg {
                 encoder
-                    .encode_value_expr(vir_crate::polymorphic::Expr::local(local), local_ty)
+                    .encode_value_expr(vir_crate::polymorphic::Expr::local(local.clone()), local_ty)
                     .with_span(local_span)?
             } else {
-                vir_crate::polymorphic::Expr::local(local)
+                vir_crate::polymorphic::Expr::local(local.clone())
             },
             if is_return_arg {
                 target_return.unwrap().clone()
@@ -106,6 +108,13 @@ pub(super) fn inline_spec_item<'tcx>(
                 target_args[arg_idx].clone()
             },
         ));
+
+        if !is_return_arg {
+            body_replacements.push((
+                vir_crate::polymorphic::Expr::local(local),
+                target_args[arg_idx].clone(),
+            ));
+        }
     }
     Ok(encoder
         .encode_pure_expression(def_id, parent_def_id, substs)?

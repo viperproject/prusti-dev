@@ -6,14 +6,14 @@ use crate::{
 };
 use log::debug;
 use rustc_hash::FxHashMap;
-use rustc_hir::{
+use prusti_rustc_interface::hir::{
     self as hir,
     def::{DefKind, Res},
     intravisit, HirId, QPath, TyKind,
 };
-use rustc_middle::{hir::map::Map, ty::TyCtxt};
-use rustc_span::Span;
-use rustc_errors::MultiSpan;
+use prusti_rustc_interface::middle::{hir::map::Map, ty::TyCtxt};
+use prusti_rustc_interface::span::Span;
+use prusti_rustc_interface::errors::MultiSpan;
 
 /// Checks the usage of the `.model()` method (induced by the `#[model]` macro) in non-spec code
 pub struct IllegalModelUsagesChecker;
@@ -147,7 +147,7 @@ struct CollectModelledTypes<'tcx> {
 
 impl<'tcx> intravisit::Visitor<'tcx> for CollectModelledTypes<'tcx> {
     type Map = Map<'tcx>;
-    type NestedFilter = rustc_middle::hir::nested_filter::All;
+    type NestedFilter =prusti_rustc_interface::middle::hir::nested_filter::All;
 
     fn nested_visit_map(&mut self) -> Self::Map {
         self.tcx.hir()

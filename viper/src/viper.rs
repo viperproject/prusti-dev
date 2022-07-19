@@ -4,30 +4,28 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use crate::{jni_utils::JniUtils, verification_context::*};
 use jni::*;
-use jni_utils::JniUtils;
+use log::{debug, info};
 use std::{env, fs, path::Path};
-use verification_context::*;
 use viper_sys::wrappers::*;
 
 pub struct Viper {
     jvm: JavaVM,
 }
 
-impl Default for Viper {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl Viper {
-    pub fn new() -> Self {
-        Self::new_with_args(vec![])
+    pub fn new_for_tests() -> Self {
+        let viper_home = env::var("VIPER_HOME")
+            .expect("the VIPER_HOME environment variable should not be empty when running tests");
+        Self::new(&viper_home)
     }
 
-    pub fn new_with_args(java_args: Vec<String>) -> Self {
-        let viper_home = env::var("VIPER_HOME")
-            .expect("the VIPER_HOME environment variable should not be empty");
+    pub fn new(viper_home: &str) -> Self {
+        Self::new_with_args(viper_home, vec![])
+    }
+
+    pub fn new_with_args(viper_home: &str, java_args: Vec<String>) -> Self {
         let heap_size = env::var("JAVA_HEAP_SIZE").unwrap_or_else(|_| "512".to_string());
 
         debug!("Using Viper home: '{}'", &viper_home);

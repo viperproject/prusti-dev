@@ -1,7 +1,7 @@
-use polonius_engine::FactTypes;
-use rustc_borrowck::consumers::RustcFacts;
+use prusti_rustc_interface::{
+    borrowck::consumers::RustcFacts, middle::mir, polonius_engine::FactTypes,
+};
 use rustc_hash::FxHashMap;
-use rustc_middle::mir;
 
 pub mod patch;
 pub mod validation;
@@ -12,8 +12,8 @@ pub type Point = <RustcFacts as FactTypes>::Point;
 pub type Variable = <RustcFacts as FactTypes>::Variable;
 pub type Path = <RustcFacts as FactTypes>::Path;
 
-pub type AllInputFacts = rustc_borrowck::consumers::PoloniusInput;
-pub type AllOutputFacts = rustc_borrowck::consumers::PoloniusOutput;
+pub type AllInputFacts = prusti_rustc_interface::borrowck::consumers::PoloniusInput;
+pub type AllOutputFacts = prusti_rustc_interface::borrowck::consumers::PoloniusOutput;
 
 pub struct BorrowckFacts {
     /// Polonius input facts.
@@ -58,13 +58,23 @@ impl RichLocation {
             statement_index,
         })
     }
+
+    pub fn into_inner(self) -> mir::Location {
+        match self {
+            Self::Start(location) | Self::Mid(location) => location,
+        }
+    }
 }
 
-impl From<rustc_borrowck::consumers::RichLocation> for RichLocation {
-    fn from(location: rustc_borrowck::consumers::RichLocation) -> Self {
+impl From<prusti_rustc_interface::borrowck::consumers::RichLocation> for RichLocation {
+    fn from(location: prusti_rustc_interface::borrowck::consumers::RichLocation) -> Self {
         match location {
-            rustc_borrowck::consumers::RichLocation::Start(l) => RichLocation::Start(l),
-            rustc_borrowck::consumers::RichLocation::Mid(l) => RichLocation::Mid(l),
+            prusti_rustc_interface::borrowck::consumers::RichLocation::Start(l) => {
+                RichLocation::Start(l)
+            }
+            prusti_rustc_interface::borrowck::consumers::RichLocation::Mid(l) => {
+                RichLocation::Mid(l)
+            }
         }
     }
 }
@@ -78,7 +88,9 @@ pub struct LocationTable {
 }
 
 impl LocationTable {
-    pub fn new(location_table: &rustc_borrowck::consumers::LocationTable) -> Self {
+    pub fn new(
+        location_table: &prusti_rustc_interface::borrowck::consumers::LocationTable,
+    ) -> Self {
         let mut locations = FxHashMap::default();
         let mut points = FxHashMap::default();
         for point in location_table.all_points() {

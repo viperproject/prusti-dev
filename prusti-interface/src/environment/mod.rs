@@ -6,15 +6,16 @@
 
 //! This module defines the interface provided to a verifier.
 
-use rustc_middle::mir;
-use rustc_hir::hir_id::HirId;
-use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_middle::ty::{self, TyCtxt};
-use rustc_middle::ty::subst::{Subst, SubstsRef};
-use rustc_trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
+use prusti_rustc_interface::middle::mir;
+use prusti_rustc_interface::hir::hir_id::HirId;
+use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
+use prusti_rustc_interface::middle::ty::{self, TyCtxt};
+use prusti_rustc_interface::middle::ty::subst::{Subst, SubstsRef};
+use prusti_rustc_interface::trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
+use prusti_rustc_interface::middle::ty::TypeSuperFoldable;
 use std::path::PathBuf;
-use rustc_errors::{DiagnosticBuilder, EmissionGuarantee, MultiSpan};
-use rustc_span::{Span, symbol::Symbol};
+use prusti_rustc_interface::errors::{DiagnosticBuilder, EmissionGuarantee, MultiSpan};
+use prusti_rustc_interface::span::{Span, symbol::Symbol};
 use std::collections::HashSet;
 use log::{debug, trace};
 use std::rc::Rc;
@@ -40,13 +41,12 @@ pub mod debug_utils;
 
 use self::collect_prusti_spec_visitor::CollectPrustiSpecVisitor;
 use self::collect_closure_defs_visitor::CollectClosureDefsVisitor;
-use rustc_hir::intravisit::Visitor;
 pub use self::loops::{PlaceAccess, PlaceAccessKind, ProcedureLoops};
 pub use self::loops_utils::*;
-pub use self::procedure::{BasicBlockIndex, Procedure, is_marked_specification_block, is_loop_invariant_block, get_loop_invariant};
+pub use self::procedure::{BasicBlockIndex, Procedure, is_marked_specification_block, is_loop_invariant_block, get_loop_invariant, is_ghost_begin_marker, is_ghost_end_marker};
 use self::borrowck::facts::BorrowckFacts;
 use crate::data::ProcedureDefId;
-use rustc_span::source_map::SourceMap;
+use prusti_rustc_interface::span::source_map::SourceMap;
 
 struct CachedBody<'tcx> {
     /// MIR body as known to the compiler.
@@ -71,7 +71,7 @@ pub struct Environment<'tcx> {
     bodies: RefCell<HashMap<LocalDefId, CachedBody<'tcx>>>,
     external_bodies: RefCell<HashMap<DefId, CachedExternalBody<'tcx>>>,
     tcx: TyCtxt<'tcx>,
-    warn_buffer: RefCell<Vec<rustc_errors::Diagnostic>>,
+    warn_buffer: RefCell<Vec<prusti_rustc_interface::errors::Diagnostic>>,
 }
 
 impl<'tcx> Environment<'tcx> {
@@ -99,7 +99,7 @@ impl<'tcx> Environment<'tcx> {
     /// Returns the name of the crate that is being compiled
     pub fn crate_name(&self) -> String {
         self.tcx
-            .crate_name(rustc_span::def_id::LOCAL_CRATE)
+            .crate_name(prusti_rustc_interface::span::def_id::LOCAL_CRATE)
             .to_string()
     }
 
@@ -209,21 +209,21 @@ impl<'tcx> Environment<'tcx> {
     pub fn get_annotated_procedures(&self) -> Vec<ProcedureDefId> {
         let tcx = self.tcx;
         let mut visitor = CollectPrustiSpecVisitor::new(self);
-        tcx.hir().visit_all_item_likes(&mut visitor);
+        visitor.visit_all_item_likes();
 
         let mut cl_visitor = CollectClosureDefsVisitor::new(self);
-        tcx.hir().visit_all_item_likes(&mut cl_visitor.as_deep_visitor());
+        tcx.hir().deep_visit_all_item_likes(&mut cl_visitor);
 
         let mut result: Vec<_> = visitor.get_annotated_procedures();
         result.extend(cl_visitor.get_closure_defs());
         result
     }
 
-    pub fn get_local_attributes(&self, def_id: LocalDefId) -> &[rustc_ast::ast::Attribute] {
+    pub fn get_local_attributes(&self, def_id: LocalDefId) -> &[prusti_rustc_interface::ast::ast::Attribute] {
         crate::utils::get_local_attributes(self.tcx(), def_id)
     }
 
-    pub fn get_attributes(&self, def_id: ProcedureDefId) -> &[rustc_ast::ast::Attribute] {
+    pub fn get_attributes(&self, def_id: ProcedureDefId) -> &[prusti_rustc_interface::ast::ast::Attribute] {
         crate::utils::get_attributes(self.tcx(), def_id)
     }
 
@@ -474,7 +474,7 @@ impl<'tcx> Environment<'tcx> {
             let param_env = ty::ParamEnv::reveal_all();
             let key = ty::ParamEnvAnd { param_env, value: (proc_def_id, substs) };
             let resolved_instance = traits::resolve_instance(self.tcx(), key);
-            return match resolved_instance {
+            match resolved_instance {
                 Ok(method_impl_instance) => {
                     let impl_method_def_id = method_impl_instance.map(|instance| instance.def_id());
                     debug!("Resolved to-be called method: {:?}", impl_method_def_id);
@@ -484,7 +484,7 @@ impl<'tcx> Environment<'tcx> {
                     debug!("Error while resolving the to-be called method: {:?}", err);
                     None
                 }
-            };
+            }
         } else {
             None
         }
@@ -527,7 +527,7 @@ impl<'tcx> Environment<'tcx> {
         let ty = self.resolve_assoc_types(ty, param_env);
         let ty = self.tcx.erase_late_bound_regions(ty);
         let ty = self.tcx.erase_regions(ty);
-        ty.is_copy_modulo_regions(self.tcx.at(rustc_span::DUMMY_SP), param_env)
+        ty.is_copy_modulo_regions(self.tcx.at(prusti_rustc_interface::span::DUMMY_SP), param_env)
     }
 
     /// Checks whether the given type implements the trait with the given DefId.
@@ -557,8 +557,8 @@ impl<'tcx> Environment<'tcx> {
     /// Returns false if the predicate is not fulfilled or it could not be evaluated.
     pub fn evaluate_predicate(&self, predicate: ty::Predicate<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool{
         debug!("Evaluating predicate {:?}", predicate);
-        use rustc_trait_selection::traits;
-        use crate::rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt;
+        use prusti_rustc_interface::trait_selection::traits;
+        use prusti_rustc_interface::trait_selection::traits::query::evaluate_obligation::InferCtxtExt;
 
         let obligation = traits::Obligation::new(
             traits::ObligationCause::dummy(),
@@ -593,7 +593,7 @@ impl<'tcx> Environment<'tcx> {
                 match ty.kind() {
                     ty::TyKind::Projection(_) => {
                         let normalized = self.tcx.infer_ctxt().enter(|infcx| {
-                            use rustc_trait_selection::traits::{fully_normalize, ObligationCause, FulfillmentContext};
+                            use prusti_rustc_interface::trait_selection::traits::{fully_normalize, ObligationCause, FulfillmentContext};
 
                             let normalization_result = fully_normalize(
                                 &infcx,
@@ -618,7 +618,6 @@ impl<'tcx> Environment<'tcx> {
             }
         }
 
-        use crate::rustc_middle::ty::TypeFoldable;
         normalizable.fold_with(&mut Normalizer {tcx: &self.tcx, param_env})
     }
 
@@ -637,7 +636,7 @@ impl<'tcx> Environment<'tcx> {
             type BreakTy = ();
 
             fn visit_ty(&mut self, ty: ty::Ty<'tcx>) -> std::ops::ControlFlow<Self::BreakTy> {
-                use crate::rustc_middle::ty::TypeFoldable;
+                use prusti_rustc_interface::middle::ty::TypeFoldable;
                 if is_nested_ty(ty) {
                     ty.super_visit_with(self)
                 } else if ty.needs_infer() {

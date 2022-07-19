@@ -63,13 +63,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             let result_validity = self
                 .encode_snapshot_valid_call_for_type(result.clone(), &function_decl.return_type)?;
             posts.push(result_validity);
+            let gas = self.function_gas_parameter()?;
+            let gas_expression = gas.clone().into();
             let gas_amount = self.function_gas_constant(2)?;
+            let caller_for_pres: Vec<_> = pres
+                .clone()
+                .into_iter()
+                .map(|expression| expression.replace_place(&gas_expression, &gas_amount))
+                .collect();
+            let caller_for_posts: Vec<_> = posts
+                .clone()
+                .into_iter()
+                .map(|expression| expression.replace_place(&gas_expression, &gas_amount))
+                .collect();
             let function = vir_low::FunctionDecl::new(
                 caller_function_name,
                 parameters.clone(),
                 return_type.clone(),
-                pres.clone(),
-                posts.clone(),
+                caller_for_pres,
+                caller_for_posts,
                 Some(
                     self.create_domain_func_app(
                         "Functions",
@@ -94,7 +106,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             // takes into account gas, (potentially mutual) recursion, predicate
             // unfoldings.
             if function_decl.body.is_some() || !posts.is_empty() {
-                let gas = self.function_gas_parameter()?;
                 parameters.push(gas.clone());
                 let mut arguments_without_gas_level = arguments.clone();
                 arguments.push(self.add_function_gas_level(gas.clone().into())?);

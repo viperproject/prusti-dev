@@ -10,7 +10,7 @@ use prusti_interface::environment::mir_analyses::initialization::{
 use prusti_interface::environment::mir_sets::PlaceSet;
 use prusti_interface::environment::{BasicBlockIndex, PermissionForest, ProcedureLoops, Procedure};
 use prusti_interface::utils;
-use rustc_middle::{mir, ty};
+use prusti_rustc_interface::middle::{mir, ty};
 use log::{trace, debug};
 
 pub enum LoopEncoderError {
@@ -106,13 +106,13 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
 
         let mut all_places = PlaceSet::new();
         for place in &read_leaves {
-            all_places.insert(place, self.mir(), self.tcx)
+            all_places.insert(*place, self.mir(), self.tcx)
         }
         for place in &mut_borrow_leaves {
-            all_places.insert(place, self.mir(), self.tcx)
+            all_places.insert(*place, self.mir(), self.tcx)
         }
         for place in &write_leaves {
-            all_places.insert(place, self.mir(), self.tcx)
+            all_places.insert(*place, self.mir(), self.tcx)
         }
 
         // Construct the permission forest.
@@ -123,11 +123,11 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
     }
 
     /// Is the ``place`` definitely initialised at the beginning of ``bbi``?
-    pub fn is_definitely_initialised(&self, place: &mir::Place, bbi: BasicBlockIndex) -> bool {
+    pub fn is_definitely_initialised(&self, place: mir::Place<'tcx>, bbi: BasicBlockIndex) -> bool {
         self.initialization
             .get_before_block(bbi)
             .iter()
-            .any(|def_init_place| utils::is_prefix(place, def_init_place))
+            .any(|def_init_place| utils::is_prefix(place, *def_init_place))
     }
 
     /// Return the block at whose end the loop invariant holds
@@ -152,7 +152,7 @@ impl<'p, 'tcx: 'p> LoopEncoder<'p, 'tcx> {
             .iter()
             .find(|&&bb| {
                 loop_info.get_loop_depth(bb) == loop_depth
-                    && self.mir()[bb].terminator().successors().any(|&succ_bb| {
+                    && self.mir()[bb].terminator().successors().any(|succ_bb| {
                         self.procedure.is_reachable_block(succ_bb)
                             && self.procedure.is_spec_block(succ_bb)
                     })

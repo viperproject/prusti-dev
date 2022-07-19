@@ -1,7 +1,7 @@
 use super::encoder::{encode_invariant_def, encode_invariant_stub, needs_invariant_func};
 use crate::encoder::errors::EncodingResult;
+use prusti_rustc_interface::middle::ty;
 use rustc_hash::FxHashMap;
-use rustc_middle::ty;
 use std::cell::RefCell;
 use vir_crate::polymorphic::{self as vir};
 

@@ -4,23 +4,25 @@ use prusti_interface::{
     environment::{mir_storage, Environment},
     specs,
 };
-use regex::Regex;
-use rustc_driver::Compilation;
-use rustc_hir::def_id::LocalDefId;
-use rustc_interface::{interface::Compiler, Config, Queries};
-use rustc_middle::ty::{
-    self,
-    query::{query_values::mir_borrowck, ExternProviders, Providers},
-    TyCtxt,
+use prusti_rustc_interface::{
+    driver::Compilation,
+    hir::def_id::LocalDefId,
+    interface::{interface::Compiler, Config, Queries},
+    middle::ty::{
+        self,
+        query::{query_values::mir_borrowck, ExternProviders, Providers},
+        TyCtxt,
+    },
+    session::Session,
 };
-use rustc_session::Session;
+use regex::Regex;
 
 #[derive(Default)]
 pub struct PrustiCompilerCalls;
 
 #[allow(clippy::needless_lifetimes)]
 fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tcx> {
-    let body_with_facts = rustc_borrowck::consumers::get_body_with_borrowck_facts(
+    let body_with_facts = prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts(
         tcx,
         ty::WithOptConstParam::unknown(def_id),
     );
@@ -30,7 +32,7 @@ fn mir_borrowck<'tcx>(tcx: TyCtxt<'tcx>, def_id: LocalDefId) -> mir_borrowck<'tc
         mir_storage::store_mir_body(tcx, def_id, body_with_facts);
     }
     let mut providers = Providers::default();
-    rustc_borrowck::provide(&mut providers);
+    prusti_rustc_interface::borrowck::provide(&mut providers);
     let original_mir_borrowck = providers.mir_borrowck;
     original_mir_borrowck(tcx, def_id)
 }
@@ -39,7 +41,7 @@ fn override_queries(_session: &Session, local: &mut Providers, _external: &mut E
     local.mir_borrowck = mir_borrowck;
 }
 
-impl rustc_driver::Callbacks for PrustiCompilerCalls {
+impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     fn config(&mut self, config: &mut Config) {
         assert!(config.override_queries.is_none());
         config.override_queries = Some(override_queries);
@@ -52,11 +54,13 @@ impl rustc_driver::Callbacks for PrustiCompilerCalls {
         compiler.session().abort_if_errors();
         let (krate, _resolver, _lint_store) = &mut *queries.expansion().unwrap().peek_mut();
         if config::print_desugared_specs() {
-            rustc_driver::pretty::print_after_parsing(
+            prusti_rustc_interface::driver::pretty::print_after_parsing(
                 compiler.session(),
                 compiler.input(),
                 krate,
-                rustc_session::config::PpMode::Source(rustc_session::config::PpSourceMode::Normal),
+                prusti_rustc_interface::session::config::PpMode::Source(
+                    prusti_rustc_interface::session::config::PpSourceMode::Normal,
+                ),
                 None,
             );
         }

@@ -5,8 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{abstract_interpretation::AbstractState, AnalysisError};
-use rustc_data_structures::fx::FxHashSet;
-use rustc_middle::mir;
+use prusti_rustc_interface::{data_structures::fx::FxHashSet, middle::mir};
 use serde::{ser::SerializeSeq, Serialize, Serializer};
 use std::{collections::BTreeSet, fmt};
 
@@ -95,7 +94,7 @@ impl<'mir, 'tcx: 'mir> DefinitelyAllocatedState<'mir, 'tcx> {
     ) -> Result<Vec<(mir::BasicBlock, Self)>, AnalysisError> {
         let mut res_vec = Vec::new();
         let terminator = self.mir[location.block].terminator();
-        for &bb in terminator.successors() {
+        for bb in terminator.successors() {
             res_vec.push((bb, self.clone()));
         }
         Ok(res_vec)

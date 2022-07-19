@@ -91,10 +91,16 @@ impl CollectPermissionChanges for vir_high::Statement {
             vir_high::Statement::EndLft(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
-            vir_high::Statement::Dead(statement) => {
+            vir_high::Statement::DeadLifetime(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::DeadInclusion(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
             vir_high::Statement::LifetimeTake(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::ObtainMutRef(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
             vir_high::Statement::OpenMutRef(statement) => {
@@ -107,6 +113,9 @@ impl CollectPermissionChanges for vir_high::Statement {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
             vir_high::Statement::CloseFracRef(statement) => {
+                statement.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            vir_high::Statement::BorShorten(statement) => {
                 statement.collect(encoder, consumed_permissions, produced_permissions)
             }
             vir_high::Statement::LifetimeReturn(statement) => {
@@ -331,10 +340,19 @@ impl CollectPermissionChanges for vir_high::Rvalue {
         produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
         match self {
+            Self::Repeat(rvalue) => {
+                rvalue.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            Self::Reborrow(rvalue) => {
+                rvalue.collect(encoder, consumed_permissions, produced_permissions)
+            }
             Self::Ref(rvalue) => {
                 rvalue.collect(encoder, consumed_permissions, produced_permissions)
             }
             Self::AddressOf(rvalue) => {
+                rvalue.collect(encoder, consumed_permissions, produced_permissions)
+            }
+            Self::Len(rvalue) => {
                 rvalue.collect(encoder, consumed_permissions, produced_permissions)
             }
             Self::UnaryOp(rvalue) => {
@@ -356,6 +374,39 @@ impl CollectPermissionChanges for vir_high::Rvalue {
     }
 }
 
+impl CollectPermissionChanges for vir_high::ast::rvalue::Repeat {
+    fn collect<'v, 'tcx>(
+        &self,
+        encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        self.argument
+            .collect(encoder, consumed_permissions, produced_permissions)?;
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::ast::rvalue::Reborrow {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        if self.is_mut {
+            produced_permissions.push(Permission::MutBorrowed(MutBorrowed {
+                lifetime: self.operand_lifetime.clone(),
+                place: self.place.clone(),
+            }));
+        } else {
+            produced_permissions.push(Permission::Owned(self.place.clone()));
+        }
+        Ok(())
+    }
+}
+
 impl CollectPermissionChanges for vir_high::ast::rvalue::Ref {
     fn collect<'v, 'tcx>(
         &self,
@@ -365,7 +416,7 @@ impl CollectPermissionChanges for vir_high::ast::rvalue::Ref {
     ) -> SpannedEncodingResult<()> {
         consumed_permissions.push(Permission::Owned(self.place.clone()));
         produced_permissions.push(Permission::MutBorrowed(MutBorrowed {
-            lifetime: self.lifetime.clone(),
+            lifetime: self.operand_lifetime.clone(),
             place: self.place.clone(),
         }));
         Ok(())
@@ -396,6 +447,19 @@ impl CollectPermissionChanges for vir_high::ast::rvalue::AddressOf {
         //     let _x = std::ptr::addr_of!(c);
         // }
         // ```
+        consumed_permissions.push(Permission::Owned(self.place.clone()));
+        produced_permissions.push(Permission::Owned(self.place.clone()));
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::ast::rvalue::Len {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
         consumed_permissions.push(Permission::Owned(self.place.clone()));
         produced_permissions.push(Permission::Owned(self.place.clone()));
         Ok(())
@@ -549,7 +613,18 @@ impl CollectPermissionChanges for vir_high::EndLft {
     }
 }
 
-impl CollectPermissionChanges for vir_high::Dead {
+impl CollectPermissionChanges for vir_high::DeadLifetime {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        _consumed_permissions: &mut Vec<Permission>,
+        _produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        unreachable!("DeadLifetime is special cased in the caller");
+    }
+}
+
+impl CollectPermissionChanges for vir_high::DeadInclusion {
     fn collect<'v, 'tcx>(
         &self,
         _encoder: &mut Encoder<'v, 'tcx>,
@@ -578,6 +653,21 @@ impl CollectPermissionChanges for vir_high::LifetimeReturn {
         _consumed_permissions: &mut Vec<Permission>,
         _produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::ObtainMutRef {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        let ty = *self.place.get_type().clone().unwrap_reference().target_type;
+        let place = self.place.clone().deref(ty, self.position);
+        consumed_permissions.push(Permission::Owned(place.clone()));
+        produced_permissions.push(Permission::Owned(place));
         Ok(())
     }
 }
@@ -630,6 +720,21 @@ impl CollectPermissionChanges for vir_high::CloseFracRef {
     ) -> SpannedEncodingResult<()> {
         consumed_permissions.push(Permission::Owned(self.place.clone()));
         produced_permissions.push(Permission::Owned(self.place.clone()));
+        Ok(())
+    }
+}
+
+impl CollectPermissionChanges for vir_high::BorShorten {
+    fn collect<'v, 'tcx>(
+        &self,
+        _encoder: &mut Encoder<'v, 'tcx>,
+        consumed_permissions: &mut Vec<Permission>,
+        produced_permissions: &mut Vec<Permission>,
+    ) -> SpannedEncodingResult<()> {
+        let ty = *self.value.get_type().clone().unwrap_reference().target_type;
+        let place = self.value.clone().deref(ty, self.position);
+        consumed_permissions.push(Permission::Owned(place.clone()));
+        produced_permissions.push(Permission::Owned(place));
         Ok(())
     }
 }
