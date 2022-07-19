@@ -20,7 +20,7 @@ use std::{collections::HashMap, convert::TryInto, fmt::Debug, path::PathBuf};
 pub mod checker;
 pub mod external;
 pub mod typed;
-pub mod lite;
+pub mod for_export;
 pub mod encoder;
 pub mod decoder;
 
@@ -33,8 +33,7 @@ use crate::specs::{
 use prusti_specs::specifications::common::SpecificationId;
 
 use std::path::Path;
-use lite::DefSpecificationMapLite;
-use crate::specs::lite::DefSpecificationMapLiteOwned;
+use for_export::{DefSpecificationMapForExport, DefSpecificationMapForExportOwned};
 
 #[derive(Debug)]
 struct ProcedureSpecRefs {
@@ -131,9 +130,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn write_specs_to_file(&self, def_spec: &typed::DefSpecificationMap<'tcx>, build_output_dir: &PathBuf) {
-        let def_spec_lite = DefSpecificationMapLite::from_def_spec(def_spec);
+        let def_spec_for_export = DefSpecificationMapForExport::from_def_spec(def_spec);
         let target_filename = self.get_local_crate_specs_path(build_output_dir);
-        return def_spec_lite.write_into_file(
+        return def_spec_for_export.write_into_file(
             self.tcx,
             &target_filename,
         ).unwrap();
@@ -153,12 +152,12 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn merge_specs_from_file(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>, path: &Path) {
-        let def_spec_lite = DefSpecificationMapLiteOwned::read_from_file(
+        let def_spec_for_export = DefSpecificationMapForExportOwned::read_from_file(
             self.tcx,
             path,
         ).unwrap();
 
-        def_spec_lite.extend(def_spec);
+        def_spec_for_export.extend(def_spec);
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
