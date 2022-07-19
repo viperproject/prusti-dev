@@ -8,11 +8,12 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
     - [x] refactor
     - [x] 1-ary propagation method (repacker)
         - [x] temporaries
-        - [ ] uninit
+        - [x] uninit
         - [x] apply-packing
-        - [ ] separating union
+        - [x] separating union
         - [ ] refactor
         - [x] fix lifetimes
+        - [ ] change pcs-after back to pcs-before again
     - [ ] formalize poset interpretation of places
     - [x] MIR -> MicroMIR translation
     - [ ] stable output representation for testing
