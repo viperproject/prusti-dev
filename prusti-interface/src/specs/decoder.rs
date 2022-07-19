@@ -50,7 +50,6 @@ impl<'a, 'tcx> DefSpecsDecoder<'a, 'tcx> {
     }
 }
 
-// the following two instances are from rustc
 // This impl makes sure that we get a runtime error when we try decode a
 // `DefIndex` that is not contained in a `DefId`. Such a case would be problematic
 // because we would not know how to transform the `DefIndex` to the current
@@ -77,8 +76,6 @@ impl<'a, 'tcx> Decodable<DefSpecsDecoder<'a, 'tcx>> for CrateNum {
         d.tcx.stable_crate_id_to_crate_num(stable_id)
     }
 }
-
-//implement_ty_decoder!(DefSpecDecoder<'a, 'tcx>);
 
 macro_rules! decoder_methods {
     ($($name:ident -> $ty:ty;)*) => {

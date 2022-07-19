@@ -230,11 +230,7 @@ pub mod trait_bounds {
             .expect_empty_or_inherent()
             .cloned()
             .unwrap_or_default();
-        for spec_id in pres
-            .iter()
-            .chain(posts.iter())
-            .map(|spec_id| spec_id)
-        {
+        for spec_id in pres.iter().chain(posts.iter()).map(|spec_id| spec_id) {
             let param_env = env.tcx().param_env(spec_id);
             let spec_span = env.tcx().def_span(spec_id);
             let attrs = env.get_attributes(*spec_id);

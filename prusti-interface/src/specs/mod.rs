@@ -118,14 +118,14 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         return format!("{}-{:x}.bin", name, stable_id).to_owned();
     }
 
-    fn get_serialized_mirs_dir(build_output_dir: &PathBuf) -> Box<PathBuf> {
+    fn get_serialized_specs_dir(build_output_dir: &PathBuf) -> Box<PathBuf> {
         let mut output_dir = Box::new(build_output_dir.clone());
-        output_dir.push("serialized_mirs");
+        output_dir.push("serialized_specs");
         return output_dir;
     }
 
     fn get_local_crate_specs_path(&self, build_output_dir: &PathBuf) -> Box<PathBuf> {
-        let mut output_file = Self::get_serialized_mirs_dir(build_output_dir);
+        let mut output_file = Self::get_serialized_specs_dir(build_output_dir);
         output_file.push(self.get_local_crate_specs_filename());
         return output_file;
     }
@@ -142,7 +142,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     fn merge_specs_from_dependencies(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>, build_output_dir: &PathBuf) {
         // TODO: only load serialized specs of dependencies (instead of loading all existing files)
 
-        let serialized_mirs_dir = Self::get_serialized_mirs_dir(build_output_dir);
+        let serialized_mirs_dir = Self::get_serialized_specs_dir(build_output_dir);
         let local_crate_specs_filename = self.get_local_crate_specs_filename();
         for d in serialized_mirs_dir.read_dir().unwrap() {
             let path = d.unwrap().path();
