@@ -16,8 +16,8 @@ pub extern crate rustc_index as index;
 pub extern crate rustc_infer as infer;
 pub extern crate rustc_interface as interface;
 pub extern crate rustc_macros as macros;
-pub extern crate rustc_session as session;
 pub extern crate rustc_serialize as serialize;
+pub extern crate rustc_session as session;
 pub extern crate rustc_span as span;
 pub extern crate rustc_target as target;
 

@@ -2,10 +2,7 @@ use super::borrows::BorrowInfo;
 use crate::encoder::places;
 use prusti_interface::{environment::Environment, specs::typed};
 use prusti_rustc_interface::{
-    hir::{
-        def_id::DefId,
-        Mutability,
-    },
+    hir::{def_id::DefId, Mutability},
     middle::{mir, ty::subst::SubstsRef},
 };
 use rustc_hash::FxHashMap;

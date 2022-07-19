@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-use std::rc::Rc;
 use crate::encoder::{
     errors::MultiSpan,
     mir::specifications::{
@@ -20,6 +18,7 @@ use prusti_interface::{
 use prusti_rustc_interface::hir::def_id::DefId;
 use rustc_hash::FxHashMap;
 use rustc_middle::mir;
+use std::{collections::HashMap, rc::Rc};
 
 /// Defines the context for which we perform refinement.
 /// It can be thought of as the variants of [SpecQuery] for which we can perform refinement.

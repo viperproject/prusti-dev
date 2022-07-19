@@ -140,7 +140,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn merge_specs_from_dependencies(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>, build_output_dir: &PathBuf) {
-        // TODO only load serialized specs of dependencies (instead of loading all existing files)
+        // TODO: only load serialized specs of dependencies (instead of loading all existing files)
 
         let serialized_mirs_dir = Self::get_serialized_mirs_dir(build_output_dir);
         let local_crate_specs_filename = self.get_local_crate_specs_filename();
