@@ -116,25 +116,6 @@ impl<'tcx> PCS<'tcx> {
     }
 }
 
-impl<'mir> MicroMirData<'mir> {
-    // pub fn get_statement_indexed(
-    //     &self,
-    //     index: usize,
-    // ) -> EncodingResult<Result<MicroMirStatement<'mir>, MicroMirTerminator<'mir>>> {
-    //     // index over statemnents, then terminator, then done
-    //     if index == self.statements.len() {
-    //         Ok(Err(todo!()))
-    //     } else if index < self.statements.len() {
-    //         Ok(Ok(todo!()))
-    //     } else {
-    //         Err(PrustiError::internal(
-    //             "attempted access of micromir data outside it's terminator",
-    //             MultiSpan::new(),
-    //         ))
-    //     }
-    // }
-}
-
 impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
     type PRE = PCS<'tcx>;
 

@@ -25,50 +25,42 @@ use prusti_rustc_interface::{
         ty,
     },
 };
-
 /// Intermediate object containing all information for the MIR->Pre-MicroMir translation
-pub struct MicroMirEncoder<'mir> {
-    pub body: &'mir Body<'mir>,
-    // The pureley syntactic encoding of the MicroMir, no elaborations yet.
-    pub encoding: FxHashMap<BasicBlock, MicroMirData<'mir>>,
-    // pub lifetime_endings: FxHashmap<Location,
-    // Tranalation of Polonius's
-    //      ? origin_contains_loan_at (lifetime contains borrow at)
-    //      ? loan_invalidated_at
-    //      ? known_contains
-
-    //      loan_live_at (borrow is alive at) => wand can't be applied
+pub struct MicroMirEncoder<'tcx> {
+    pub encoding: FxHashMap<BasicBlock, MicroMirData<'tcx>>,
 }
 
-impl<'mir> MicroMirEncoder<'mir> {
-    pub fn expand_syntax(mir: &'mir Body<'mir>) -> EncodingResult<Self> {
-        let mut encoding: FxHashMap<BasicBlock, MicroMirData<'mir>> = FxHashMap::default();
+impl<'tcx> MicroMirEncoder<'tcx> {
+    pub fn expand_syntax<'mir>(mir: &'mir Body<'tcx>) -> EncodingResult<Self>
+    where
+        'tcx: 'mir,
+    {
+        let mut encoding: FxHashMap<BasicBlock, MicroMirData<'tcx>> = FxHashMap::default();
         for (bb, bbdata) in mir.basic_blocks().iter_enumerated() {
-            let mut current_block_statements: Vec<MicroMirStatement<'mir>> = vec![];
+            let mut statements: Vec<MicroMirStatement<'tcx>> = vec![];
             for stmt in bbdata.statements.iter() {
-                Self::encode_individual_statement(&mut current_block_statements, stmt, mir)?;
+                Self::encode_individual_statement(&mut statements, stmt, mir)?;
             }
-            let current_block_terminator =
-                Self::encode_terminator(&mut current_block_statements, bbdata.terminator(), mir)?;
+            let terminator = Self::encode_terminator(&mut statements, bbdata.terminator(), mir)?;
             let current_block_data = MicroMirData {
-                statements: current_block_statements,
-                terminator: current_block_terminator,
+                statements,
+                terminator,
             };
             encoding.insert(bb, current_block_data);
         }
-        Ok(Self {
-            body: mir,
-            encoding,
-        })
+        Ok(Self { encoding })
     }
 
     /// Encodes a MIR statement into MicroMir statements
     /// TODO: For now I only have temporaries with exclusive permissions. Is this always the case?
-    fn encode_individual_statement(
-        current: &mut Vec<MicroMirStatement<'mir>>,
-        s: &Statement<'mir>,
-        mir: &Body<'mir>,
-    ) -> EncodingResult<()> {
+    fn encode_individual_statement<'mir>(
+        current: &mut Vec<MicroMirStatement<'tcx>>,
+        s: &Statement<'tcx>,
+        mir: &'mir Body<'tcx>,
+    ) -> EncodingResult<()>
+    where
+        'tcx: 'mir,
+    {
         match &s.kind {
             Assign(box (p_dest, Use(op))) => Self::encode_assign_use(current, p_dest, op, mir),
 
@@ -112,11 +104,14 @@ impl<'mir> MicroMirEncoder<'mir> {
     }
 
     /// Encodes a MIR terminator into a MicroMir terminator, potentially adding steps to the body.
-    pub fn encode_terminator(
-        current: &mut Vec<MicroMirStatement<'mir>>,
-        t: &'mir Terminator<'mir>,
-        mir: &Body,
-    ) -> EncodingResult<MicroMirTerminator<'mir>> {
+    pub fn encode_terminator<'mir>(
+        current: &mut Vec<MicroMirStatement<'tcx>>,
+        t: &'mir Terminator<'tcx>,
+        mir: &'mir Body<'tcx>,
+    ) -> EncodingResult<MicroMirTerminator<'tcx>>
+    where
+        'tcx: 'mir,
+    {
         match &t.kind {
             Goto { target } => Ok(MicroMirTerminator::Jump(*target)),
 
@@ -164,7 +159,7 @@ impl<'mir> MicroMirEncoder<'mir> {
             }
 
             us => Err(PrustiError::unsupported(
-                format!("untranslated statement {:#?}", us),
+                format!("untranslated terminator {:#?}", us),
                 MultiSpan::new(),
             )),
         }
@@ -174,12 +169,15 @@ impl<'mir> MicroMirEncoder<'mir> {
     /// 1. Kill p_dest
     /// 2. Encode operand
     /// 3. Set pl with temp1's mutability
-    fn encode_assign_use(
-        current: &mut Vec<MicroMirStatement<'mir>>,
-        p_dest: &Place<'mir>,
-        op: &Operand<'mir>,
-        mir: &Body,
-    ) -> EncodingResult<()> {
+    fn encode_assign_use<'mir>(
+        current: &mut Vec<MicroMirStatement<'tcx>>,
+        p_dest: &Place<'tcx>,
+        op: &Operand<'tcx>,
+        mir: &'mir Body<'tcx>,
+    ) -> EncodingResult<()>
+    where
+        'tcx: 'mir,
+    {
         current.push(MicroMirStatement::Kill((*p_dest).into()));
         let temp_1 = TemporaryPlace { id: 1 };
         let temp1_mut = Self::encode_operand(current, op, temp_1, mir)?;
@@ -191,12 +189,15 @@ impl<'mir> MicroMirEncoder<'mir> {
     /// 1. Kill p_dest
     /// 2. Compute len into temp
     /// 3. Assign p_dest, with owning permission
-    fn encode_assign_len(
-        current: &mut Vec<MicroMirStatement<'mir>>,
-        p_dest: &Place<'mir>,
-        p0: &Place<'mir>,
-        mir: &Body,
-    ) -> EncodingResult<()> {
+    fn encode_assign_len<'mir>(
+        current: &mut Vec<MicroMirStatement<'tcx>>,
+        p_dest: &Place<'tcx>,
+        p0: &Place<'tcx>,
+        mir: &'mir Body<'tcx>,
+    ) -> EncodingResult<()>
+    where
+        'tcx: 'mir,
+    {
         current.push(MicroMirStatement::Kill((*p_dest).into()));
         let p0_mut = Self::lookup_place_mutability(&p0, mir)?;
         let temp_1 = TemporaryPlace { id: 1 };
@@ -209,9 +210,9 @@ impl<'mir> MicroMirEncoder<'mir> {
     /// 1. Kill p_dest
     /// 2. Encode UnOp statement
     fn encode_nullop(
-        current: &mut Vec<MicroMirStatement<'mir>>,
+        current: &mut Vec<MicroMirStatement<'tcx>>,
         nullop: NullOp,
-        p_dest: &Place<'mir>,
+        p_dest: &Place<'tcx>,
     ) -> EncodingResult<()> {
         current.push(MicroMirStatement::Kill((*p_dest).into()));
         let temp_1 = TemporaryPlace { id: 1 };
@@ -226,13 +227,16 @@ impl<'mir> MicroMirEncoder<'mir> {
     /// 3. Encode UnOp statement
     /// Note: Binop always gets exclusive permission out of it's operands, usually by a copy.
     ///       (&u32 + &u32 is not allowed)
-    fn encode_unop(
-        current: &mut Vec<MicroMirStatement<'mir>>,
+    fn encode_unop<'mir>(
+        current: &mut Vec<MicroMirStatement<'tcx>>,
         unop: UnOp,
-        op1: &Operand<'mir>,
-        p_dest: &Place<'mir>,
-        mir: &Body,
-    ) -> EncodingResult<()> {
+        op1: &Operand<'tcx>,
+        p_dest: &Place<'tcx>,
+        mir: &'mir Body<'tcx>,
+    ) -> EncodingResult<()>
+    where
+        'tcx: 'mir,
+    {
         current.push(MicroMirStatement::Kill((*p_dest).into()));
         let temp_1 = TemporaryPlace { id: 1 };
         let temp_2 = TemporaryPlace { id: 2 };
@@ -254,15 +258,18 @@ impl<'mir> MicroMirEncoder<'mir> {
     /// 3. Encode next operand into temporary
     /// 4. Encode BinOp statement
     /// See UnOp note about exclusive permission to operands.
-    fn encode_binop(
-        current: &mut Vec<MicroMirStatement<'mir>>,
+    fn encode_binop<'mir>(
+        current: &mut Vec<MicroMirStatement<'tcx>>,
         binop: BinOp,
-        op1: &Operand<'mir>,
-        op2: &Operand<'mir>,
-        p_dest: &Place<'mir>,
+        op1: &Operand<'tcx>,
+        op2: &Operand<'tcx>,
+        p_dest: &Place<'tcx>,
         is_checked: bool,
-        mir: &Body,
-    ) -> EncodingResult<()> {
+        mir: &'mir Body<'tcx>,
+    ) -> EncodingResult<()>
+    where
+        'tcx: 'mir,
+    {
         current.push(MicroMirStatement::Kill((*p_dest).into()));
         let temp_1 = TemporaryPlace { id: 1 };
         let temp_2 = TemporaryPlace { id: 2 };
@@ -291,12 +298,15 @@ impl<'mir> MicroMirEncoder<'mir> {
     /// Appends the encoding which constructs a temporary from an operand to a current MicroMir block.
     /// Returns the mutability it decides the temporary should have
     /// TODO: Currently, all operands give exclusive permission, but this will not always be the case.
-    fn encode_operand(
-        current: &mut Vec<MicroMirStatement<'mir>>,
-        op: &Operand<'mir>,
+    fn encode_operand<'mir>(
+        current: &mut Vec<MicroMirStatement<'tcx>>,
+        op: &Operand<'tcx>,
         into: TemporaryPlace,
-        mir: &Body,
-    ) -> EncodingResult<Mutability> {
+        mir: &'mir Body<'tcx>,
+    ) -> EncodingResult<Mutability>
+    where
+        'tcx: 'mir,
+    {
         match op {
             Copy(p) => {
                 let p_mut = Self::lookup_place_mutability(&p, mir)?;
@@ -315,27 +325,36 @@ impl<'mir> MicroMirEncoder<'mir> {
     }
 
     // Appends the encoding for a StorageLive
-    fn encode_storagelive(
-        current: &mut Vec<MicroMirStatement<'mir>>,
+    fn encode_storagelive<'mir>(
+        current: &mut Vec<MicroMirStatement<'tcx>>,
         l: Local,
-        _mir: &Body,
-    ) -> EncodingResult<()> {
+        _mir: &'mir Body<'tcx>,
+    ) -> EncodingResult<()>
+    where
+        'tcx: 'mir,
+    {
         current.push(MicroMirStatement::Allocate(l.into()));
         Ok(())
     }
 
     // Appends the encoding for a StorageDead
-    fn encode_storagedead(
-        current: &mut Vec<MicroMirStatement<'mir>>,
+    fn encode_storagedead<'mir>(
+        current: &mut Vec<MicroMirStatement<'tcx>>,
         l: Local,
-        _mir: &Body,
-    ) -> EncodingResult<()> {
+        _mir: &'mir Body<'tcx>,
+    ) -> EncodingResult<()>
+    where
+        'tcx: 'mir,
+    {
         current.push(MicroMirStatement::Deallocate(l.into()));
         Ok(())
     }
 
     /// Accesses a place's mutability from the current MIR body.
-    fn lookup_place_mutability(p: &Place<'mir>, mir: &Body) -> EncodingResult<Mutability> {
+    fn lookup_place_mutability<'mir>(
+        p: &Place<'tcx>,
+        mir: &'mir Body<'tcx>,
+    ) -> EncodingResult<Mutability> {
         if let Some(localdecl) = mir.local_decls.get(p.local) {
             match localdecl.ty.kind() {
                 ty::TyKind::Ref(_, _, m) => return Ok(*m),
@@ -353,10 +372,7 @@ impl<'mir> MicroMirEncoder<'mir> {
         }
     }
 
-    pub fn get_block<'a>(&'a self, idx: u32) -> EncodingResult<&'a MicroMirData<'mir>>
-    where
-        'mir: 'a,
-    {
+    pub fn get_block(&self, idx: u32) -> EncodingResult<&MicroMirData<'tcx>> {
         match self.encoding.get(&idx.into()) {
             Some(s) => Ok(&s),
             None => Err(PrustiError::internal(
@@ -392,14 +408,14 @@ impl<'mir> MicroMirEncoder<'mir> {
         }
     }
 
-    fn pprint_pcs<'tcx>(pcs: &Option<PCS<'tcx>>) {
+    fn pprint_pcs(pcs: &Option<PCS<'tcx>>) {
         match pcs {
             Some(pcs1) => println!("{:?}", pcs1.set),
             None => println!("None"),
         }
     }
 
-    fn pprint_term<'tcx>(jumps: &Option<Vec<(BasicBlock, PCS<'tcx>)>>) {
+    fn pprint_term(jumps: &Option<Vec<(BasicBlock, PCS<'tcx>)>>) {
         match jumps {
             None => println!("\t|\tNone"),
             Some(jumps1) => {

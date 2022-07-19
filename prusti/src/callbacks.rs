@@ -137,7 +137,10 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             }
 
             if config::dump_operational_pcs() {
-                dump_pcs(env);
+                match dump_pcs(&env) {
+                    Ok(_) => println!("Operational PCS done!"),
+                    Err(e) => e.emit(&env),
+                }
             } else if !config::no_verify() {
                 verify(env, def_spec);
             }
