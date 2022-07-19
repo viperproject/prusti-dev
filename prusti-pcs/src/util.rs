@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use analysis::mir_utils::expand_struct_place;
-use prusti_interface::PrustiError;
+use prusti_interface::{environment::Environment, PrustiError};
 use prusti_rustc_interface::{
     errors::MultiSpan,
     middle::{
@@ -16,6 +16,8 @@ use prusti_rustc_interface::{
 
 /// Wrapper type for all errors
 pub type EncodingResult<A> = Result<A, PrustiError>;
+
+/*
 
 #[allow(dead_code)]
 /// retrieve local_decl from a place in a MIR context
@@ -31,19 +33,20 @@ fn retrieve_local_decl<'a, 'tcx: 'a>(
         )),
     }
 }
+*/
 
 /// Retruns a collection of immediate subplaces
 /// (Modified from analysis/mir_utils)
-pub fn expand_place<'mir, 'tcx: 'mir>(
+pub fn expand_place<'mir, 'env: 'mir, 'tcx: 'env>(
     place: Place<'tcx>,
-    mir: &Body<'tcx>,
-    tcx: TyCtxt<'tcx>,
+    mir: &'mir Body<'tcx>,
+    env: &'env Environment<'tcx>,
 ) -> EncodingResult<Vec<Place<'tcx>>> {
+    let tcx: TyCtxt<'tcx> = env.tcx();
     match place.projection[place.projection.len()] {
         mir::ProjectionElem::Field(projected_field, field_ty) => {
             let mut places = expand_struct_place(place, mir, tcx, Some(projected_field.index()));
             let new_current_place = tcx.mk_place_field(place, projected_field, field_ty).into();
-            // TODO: Is this correct?
             places.push(new_current_place);
             Ok(places)
         }
