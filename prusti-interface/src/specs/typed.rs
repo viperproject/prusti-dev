@@ -24,7 +24,7 @@ pub struct DefSpecificationMap<'tcx> {
     pub ghost_begin: HashMap<DefId, GhostBegin>,
     pub ghost_end: HashMap<DefId, GhostEnd>,
 
-    pub local_mirs: HashMap<DefId, Rc<mir::Body<'tcx>>>,
+    pub mirs_of_specs: HashMap<DefId, Rc<mir::Body<'tcx>>>,
 }
 
 impl<'specs> DefSpecificationMap<'specs> {

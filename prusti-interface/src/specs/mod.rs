@@ -334,7 +334,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                     .flatten()
             }) {
             let base_mir = self.env.local_base_mir(def_id.expect_local());
-            def_spec.local_mirs.insert(*def_id,base_mir);
+            def_spec.mirs_of_specs.insert(*def_id,base_mir);
         }
     }
 }
