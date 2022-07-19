@@ -6,8 +6,8 @@
 use crate::{
     joins::{unify_moves, PCSRepacker},
     syntax::{
-        hoare_semantics::HoareSemantics, MicroMirData, MicroMirEncoder, MicroMirStatement,
-        MicroMirTerminator, PCSPermission, PCS,
+        hoare_semantics::HoareSemantics, LinearResource, MicroMirData, MicroMirEncoder,
+        MicroMirStatement, MicroMirTerminator, PCSPermission, PCS,
     },
     util::{expand_place, EncodingResult},
 };
@@ -16,6 +16,7 @@ use prusti_interface::{
     PrustiError,
 };
 use prusti_rustc_interface::{
+    data_structures::{stable_map::FxHashMap, stable_set::FxHashSet},
     errors::MultiSpan,
     middle::{
         mir::{Body, Mutability, Place},
@@ -62,16 +63,18 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
     loop {
         // Compute PCS for the block
         for statement in current_block.statements.iter() {
-            println!(
-                "  working on {:?} in PCS {:#?}",
-                statement, current_state.set
-            );
+            print!("\tPCS: ");
+            for s in current_state.set.iter() {
+                print!("{:#?}, ", s)
+            }
+            println!();
+            println!("  working on {:?} ", statement);
             // Elaborate the precondition of the statement
             let next_statement_state = naive_elaboration(&statement, &current_state)?;
-            println!(
-                "      attempt to unify: {:#?} and {:#?}",
-                current_state, next_statement_state
-            );
+            // println!(
+            //     "      attempt to unify: {:#?} and {:#?}",
+            //     current_state, next_statement_state
+            // );
             // Go through the packings, apply them and add to encoding.
             let packings = unify_moves(&current_state, &next_statement_state, mir, env)?;
             current_state = apply_packings(
@@ -82,8 +85,6 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
                 mir,
                 env,
             )?;
-
-            println!("  current state becomes {:#?}", current_state.set);
 
             // Now apply the statement's hoare triple
             for p1 in next_statement_state.set.iter() {
@@ -171,23 +172,27 @@ fn naive_elaboration<'tcx>(
     match statement.precondition() {
         Some(s) => Ok(s),
         None => match statement {
-            MicroMirStatement::Kill(p) => {
-                let p_e = PCSPermission::new_initialized(Mutability::Mut, *p);
-                let p_u = PCSPermission::new_uninit(*p);
+            MicroMirStatement::Kill(LinearResource::Mir(p)) => {
+                // Naive kill elaboration will remove all places which are a prefix of the statement to kill (p).
+                let mut set: FxHashSet<PCSPermission<'tcx>> = FxHashSet::default();
 
-                if current_state.set.contains(&p_e) {
-                    Ok(PCS::from_vec(vec![p_e]))
-                } else if current_state.set.contains(&p_u) {
-                    Ok(PCS::from_vec(vec![p_u]))
-                } else {
-                    Err(PrustiError::internal(
-                        format!(
-                            "kill elaboration: place {:?} unkillable in the current PCS {:#?}",
-                            p, current_state.set
-                        ),
-                        MultiSpan::new(),
-                    ))
-                }
+                return Ok(PCS { set });
+                // let p_e = PCSPermission::new_initialized(Mutability::Mut, *p);
+                // let p_u = PCSPermission::new_uninit(*p);
+
+                // if current_state.set.contains(&p_e) {
+                //     Ok(PCS::from_vec(vec![p_e]))
+                // } else if current_state.set.contains(&p_u) {
+                //     Ok(PCS::from_vec(vec![p_u]))
+                // } else {
+                //     Err(PrustiError::internal(
+                //         format!(
+                //             "kill elaboration: place {:?} unkillable in the current PCS {:#?}",
+                //             p, current_state.set
+                //         ),
+                //         MultiSpan::new(),
+                //     ))
+                // }
             }
             _ => Err(PrustiError::unsupported(
                 format!("unsupported elaboration of {:?} precondition", statement),
