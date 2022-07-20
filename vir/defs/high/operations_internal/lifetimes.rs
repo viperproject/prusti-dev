@@ -16,10 +16,10 @@ pub trait WithLifetimes {
 }
 
 fn get_lifetimes_with_arguments(
-    lifetimes: &Vec<ty::LifetimeConst>,
+    lifetimes: &[ty::LifetimeConst],
     arguments: &Vec<ty::Type>,
 ) -> Vec<ty::LifetimeConst> {
-    let mut all_lifetimes = lifetimes.clone();
+    let mut all_lifetimes = lifetimes.to_owned();
     for ty in arguments {
         for lifetime in ty.get_lifetimes() {
             if !all_lifetimes.contains(&lifetime) {

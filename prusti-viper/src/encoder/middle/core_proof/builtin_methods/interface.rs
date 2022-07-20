@@ -2915,6 +2915,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
             self.encode_lifetime_token_predicate()?;
             self.encode_lifetime_included()?;
             self.encode_lifetime_intersect(lft_count)?;
+            self.encode_lifetime_included_id_axiom()?;
             self.encode_lifetime_included_intersect_axiom(lft_count)?;
             use vir_low::macros::*;
 
