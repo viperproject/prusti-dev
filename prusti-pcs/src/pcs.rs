@@ -14,6 +14,7 @@ use crate::{
 use analysis::mir_utils::{expand_one_level, PlaceImpl};
 use prusti_interface::{
     environment::{Environment, Procedure},
+    utils::is_prefix,
     PrustiError,
 };
 use prusti_rustc_interface::{
@@ -133,7 +134,10 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
             for p1 in post.set.iter() {
                 if !current_state.set.insert((*p1).clone()) {
                     return Err(PrustiError::internal(
-                        format!("generated PCS is incoherent (postcondition) {:?}", p1),
+                        format!(
+                            "generated PCS is incoherent (postcondition) {:?} in {:?}",
+                            p1, current_state
+                        ),
                         MultiSpan::new(),
                     ));
                 }
@@ -197,6 +201,14 @@ fn naive_elaboration<'tcx>(
                 // Naive kill elaboration will remove all places which are a prefix of the statement to kill (p).
                 let mut set: FxHashSet<PCSPermission<'tcx>> = FxHashSet::default();
 
+                for current_permission in current_state.set.iter() {
+                    if let LinearResource::Mir(p0) = current_permission.target {
+                        if is_prefix(p0, (*p).clone()) {
+                            set.insert(current_permission.clone());
+                        }
+                    }
+                }
+
                 return Ok(PCS { set });
                 // let p_e = PCSPermission::new_initialized(Mutability::Mut, *p);
                 // let p_u = PCSPermission::new_uninit(*p);
@@ -237,6 +249,7 @@ fn apply_packings<'mir, 'env: 'mir, 'tcx: 'env>(
 
     for (p, unpacked_p) in packings.unpacks.iter() {
         before_pcs.push(state.clone());
+
         let to_lose = p.clone();
         // TODO: We're assuming all places are mutably owned right now
         if !state.set.remove(&PCSPermission::new_initialized(
@@ -260,12 +273,12 @@ fn apply_packings<'mir, 'env: 'mir, 'tcx: 'env>(
                 ));
             }
         }
-
         statements.push(MicroMirStatement::Unpack(to_lose, to_regain));
     }
 
     for (p, pre_p) in packings.packs.iter().rev() {
         before_pcs.push(state.clone());
+
         let mut to_lose: Vec<Place<'tcx>> = pre_p.iter().cloned().collect(); // expand_place(*p, mir, env)?;
         for p1 in to_lose.iter() {
             if !state.set.remove(&PCSPermission::new_initialized(
@@ -273,7 +286,7 @@ fn apply_packings<'mir, 'env: 'mir, 'tcx: 'env>(
                 (*p1).into(),
             )) {
                 return Err(PrustiError::internal(
-                    format!("prusti generated an incoherent pack"),
+                    format!("prusti generated an incoherent pack precondition {:?}", p1),
                     MultiSpan::new(),
                 ));
             }
@@ -281,12 +294,15 @@ fn apply_packings<'mir, 'env: 'mir, 'tcx: 'env>(
 
         let to_regain = p.clone();
 
-        if !state.set.remove(&PCSPermission::new_initialized(
+        if !state.set.insert(PCSPermission::new_initialized(
             Mutability::Mut,
             to_regain.into(),
         )) {
             return Err(PrustiError::internal(
-                format!("prusti generated an incoherent pack"),
+                format!(
+                    "prusti generated an incoherent pack postcondition: {:?}",
+                    to_regain
+                ),
                 MultiSpan::new(),
             ));
         }
