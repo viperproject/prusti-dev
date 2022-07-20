@@ -364,8 +364,8 @@ impl<'tcx> MicroMirEncoder<'tcx> {
 
     // Appends the encoding for a StorageLive
     fn encode_storagelive<'mir>(
-        current: &mut Vec<MicroMirStatement<'tcx>>,
-        l: Local,
+        _current: &mut Vec<MicroMirStatement<'tcx>>,
+        _l: Local,
         _mir: &'mir Body<'tcx>,
     ) -> EncodingResult<()>
     where
@@ -377,8 +377,8 @@ impl<'tcx> MicroMirEncoder<'tcx> {
 
     // Appends the encoding for a StorageDead
     fn encode_storagedead<'mir>(
-        current: &mut Vec<MicroMirStatement<'tcx>>,
-        l: Local,
+        _current: &mut Vec<MicroMirStatement<'tcx>>,
+        _l: Local,
         _mir: &'mir Body<'tcx>,
     ) -> EncodingResult<()>
     where
@@ -455,10 +455,10 @@ impl<'tcx> MicroMirEncoder<'tcx> {
 
     fn pprint_term(jumps: &Option<Vec<(BasicBlock, PCS<'tcx>)>>) {
         match jumps {
-            None => println!("\t|\tNone"),
+            None => println!("\t| => None"),
             Some(jumps1) => {
                 for (bb, pcs) in jumps1 {
-                    println!("\t|\t{:?} -> {:?}", bb, pcs.set)
+                    println!("\t| => {:?} -> {:?}", bb, pcs.set)
                 }
             }
         }

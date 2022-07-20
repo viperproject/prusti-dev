@@ -26,4 +26,4 @@ pub mod syntax;
 
 mod pcs;
 mod util;
-pub use pcs::*;
+pub use pcs::dump_pcs;

@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 use crate::{
-    syntax::{LinearResource, MicroMirStatement, PCSPermissionKind, TemporaryPlace, PCS},
+    syntax::{LinearResource, PCSPermissionKind, PCS},
     util::*,
 };
 use itertools::Itertools;
@@ -16,10 +16,7 @@ use prusti_interface::{
 use prusti_rustc_interface::{
     data_structures::{stable_map::FxHashMap, stable_set::FxHashSet},
     errors::MultiSpan,
-    middle::{
-        mir::{Body, Local, Place},
-        ty::TyCtxt,
-    },
+    middle::mir::{Body, Local, Place},
 };
 
 // Assumption: All places are mutably owned
@@ -152,106 +149,10 @@ pub fn unify_moves<'mir, 'env: 'mir, 'tcx: 'env>(
                 set_rc_b.insert(*b);
             }
         }
-
-        /*
-               loop {
-                   // Remove (mark?) elements which do not need to be considered.
-
-
-                   // If no more elements in set, we are done (they're unified)
-                   if (set_rc_a.len() == 0) && (set_rc_b.len() == 0) {
-                       break;
-                   }
-
-                   // If the set of elements in a already containas all elets in b, done
-                   if set_rc_b.is_subset(&set_rc_a) {
-                       break;
-                   }
-
-
-
-              }
-        */
     }
 
-    // let mut working_pcs: FxHashSet<Place<'tcx>> = a
-    //     .iter()
-    //     .map(|perm| {
-    //         if let LinearResource::Mir(p) = perm.target {
-    //             p
-    //         } else {
-    //             panic!();
-    //         }
-    //     })
-    //     .collect();
-
-    // At this point, we can check that b is a subset of the computed PCS.
-
-    return Ok(PCSRepacker {
+    Ok(PCSRepacker {
         unpacks: a_unpacks,
         packs: b_unpacks,
-    });
+    })
 }
-
-impl<'tcx> PCSRepacker<'tcx> {
-    pub fn encode<'env>(
-        &self,
-        env: &'env Environment,
-    ) -> EncodingResult<Vec<MicroMirStatement<'tcx>>>
-    where
-        'tcx: 'env,
-    {
-        todo!();
-    }
-}
-/*
-    let mut ret: Vec<MicroMirStatement<'tcx>> = vec![];
-    for upk in self.unpacks.iter() {
-        ret.push(MicroMirStatement::Unpack(
-            *upk,
-            expand_place(*upk, mir, tcx)?,
-        ));
-    }
-    for pk in self.packs.iter().rev() {
-        ret.push(MicroMirStatement::Pack(expand_place(*pk, mir, tcx)?, *pk));
-    }
-    return Ok(ret);
-}
-*/
-
-// pub fn separating_union<'tcx>(a: PCS<'tcx>, b: PCS<'tcx>) -> EncodingResult<PCS<'tcx>> {
-//     // Naive solution
-//     for b in b.set.iter() {
-//         for a in a.set.iter() {
-//             match (a.target, b.target) {
-//                 (Mir(pa), Mir(pb)) => {
-//                     todo!();
-//                 }
-//                 (Tmp(pa), Tmp(pb)) => {
-//                     todo!();
-//                 }
-//             }
-//
-//             // match ((a.kind, b.kind)) {
-//             //     (_, Shared) | (Shared, _) => {
-//             //         return Err(PrustiError::internal(
-//             //             "shared permissions not implemented",
-//             //             MultiSpan::new(),
-//             //         ));
-//             //     },
-//
-//             //     }
-//
-//             // }
-//             // if is_prefix(a, b) || is_prefix(b, a) {
-//             //     return Err(PrustiError::internal(
-//             //         "separating union between two PCS's failed",
-//             //         MultiSpan::new(),
-//             //     ));
-//             // }
-//         }
-//     }
-//
-//     todo!();
-// }
-//
