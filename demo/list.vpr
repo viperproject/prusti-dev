@@ -1,0 +1,90 @@
+
+method append(a:Ref, i: Int)
+  requires list(a)
+  ensures list(a)
+{
+  unfold list(a)
+  if(a.next == null) {
+    var n : Ref 
+    n := allocNode(null,i); // n := new List(null,i)
+    fold list(n)
+    a.next := n;
+  } else {
+    append(a.next, i);
+  }
+  fold list(a)
+}
+
+predicate list(x:Ref) {
+  acc(x.val) && acc(x.next) && (x.next != null ==> list(x.next))
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+method example(a:Ref, b:Ref)
+  requires list(a) && list(b)
+{
+  var old_len : Int := len(b)
+  append(a,100);
+  assert len(b) == old_len;
+} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+function len(x:Ref) : Int
+  requires list(x)
+{
+  1 + unfolding list(x) in 
+    (x.next == null ? 0 : len(x.next))
+}
+
+
+
+
+
+
+
+field next : Ref
+field val : Int
+
+
+
+
+
+
+
+
+
+
+
+
+method allocNode(nxt:Ref,i:Int) returns (n:Ref)
+  ensures acc(n.next) && acc(n.val) && n.next == nxt && n.val == i
+{
+  n := new(*); n.next := nxt; n.val := i;
+}
+
+
