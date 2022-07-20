@@ -117,6 +117,12 @@ impl<'tcx> PCS<'tcx> {
             set: FxHashSet::default(),
         }
     }
+
+    pub fn pprint_contents(&self) {
+        for s in self.set.iter() {
+            print!("{:#?}, ", s)
+        }
+    }
 }
 
 impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
@@ -251,7 +257,7 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
             MicroMirStatement::Aggregate(p, subpermissions, m) => {
                 let mut pcs = PCS::from_vec(vec![PCSPermission::new_initialized(*m, (*p).into())]);
                 for permission in subpermissions.iter() {
-                    if let r @ LinearResource::Mir(pl) = permission.target {
+                    if let r @ LinearResource::Mir(_) = permission.target {
                         pcs.set.insert(PCSPermission::new_uninit(r));
                     }
                 }

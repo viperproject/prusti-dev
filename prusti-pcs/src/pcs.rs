@@ -11,21 +11,20 @@ use crate::{
     },
     util::EncodingResult,
 };
-use analysis::mir_utils::{expand_one_level, PlaceImpl};
 use prusti_interface::{
     environment::{Environment, Procedure},
     utils::is_prefix,
     PrustiError,
 };
 use prusti_rustc_interface::{
-    data_structures::{stable_map::FxHashMap, stable_set::FxHashSet},
+    data_structures::stable_set::FxHashSet,
     errors::MultiSpan,
-    middle::{
-        mir::{Body, Mutability, Place},
-        ty::TyCtxt,
-    },
+    middle::mir::{Body, Mutability, Place},
 };
+use std::iter::zip;
 
+/// Computes the PCS and prints it to the console
+/// Currently the entry point for the compiler
 pub fn dump_pcs<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> EncodingResult<()> {
     for proc_id in env.get_annotated_procedures().iter() {
         println!("id: {:#?}", env.get_unique_item_name(*proc_id));
@@ -33,28 +32,7 @@ pub fn dump_pcs<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> EncodingResul
         let mir: &Body<'tcx> = current_procedure.get_mir();
         let micro_mir: MicroMirEncoder<'tcx> = MicroMirEncoder::expand_syntax(mir)?;
         micro_mir.pprint();
-        let operational_pcs = straight_line_pcs(&micro_mir, mir, env)?;
-
-        let mut i = 0;
-        while i < operational_pcs.statements.len() {
-            // Report PCS before
-
-            print!("\tPCS: ");
-            for s in operational_pcs.pcs_before[i].set.iter() {
-                print!("{:#?}, ", s)
-            }
-            println!();
-
-            println!("\t\t{:?}", operational_pcs.statements[i]);
-
-            i += 1;
-        }
-
-        print!("\tPCS: ");
-        for s in operational_pcs.final_pcs.set.iter() {
-            print!("{:#?}, ", s)
-        }
-        println!();
+        straight_line_pcs(&micro_mir, mir, env)?.pprint();
     }
     Ok(())
 }
@@ -63,6 +41,21 @@ pub struct StraitLineOpPCS<'tcx> {
     pub statements: Vec<MicroMirStatement<'tcx>>,
     pub pcs_before: Vec<PCS<'tcx>>,
     pub final_pcs: PCS<'tcx>,
+}
+
+impl<'tcx> StraitLineOpPCS<'tcx> {
+    pub fn pprint(&self) {
+        for (st, pcs) in zip(self.statements.iter(), self.pcs_before.iter()) {
+            print!("\tPCS: ");
+            pcs.pprint_contents();
+            println!();
+            println!("\t\t{:?}", st);
+        }
+
+        print!("\tPCS: ");
+        self.final_pcs.pprint_contents();
+        println!();
+    }
 }
 
 /// Single-pass computation of the PCS for straight-line code
@@ -74,41 +67,28 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
     mir: &'mir Body<'tcx>,
     env: &'env Environment<'tcx>,
 ) -> EncodingResult<StraitLineOpPCS<'tcx>> {
-    // Is this correct? I think not and either way it's a bad way to get the first block.
+    // todo: is this always the correct way to find the first block?
     let mut current_block: &MicroMirData<'tcx> = micro_mir.get_block(0)?;
-
     let mut pcs_before: Vec<PCS<'tcx>> = Vec::default();
     let mut statements: Vec<MicroMirStatement<'tcx>> = Vec::default();
-
-    // Also not correct, read function args
+    // todo: read function arguments to get the initial state
     let mut current_state = PCS::empty();
 
     loop {
         // Compute PCS for the block
         for statement in current_block.statements.iter() {
-            // println!("  working on {:?} ", statement);
-            // Elaborate the precondition of the statement
+            // 1. Precondition elaboration
             let next_statement_state = naive_elaboration(&statement, &current_state)?;
-            // println!(
-            //     "      attempt to unify: {:#?} and {:#?}",
-            //     current_state, next_statement_state
-            // );
-            // Go through the packings, apply them and add to encoding.
+            // 2. Unification of the free PCS via packs and unpacks
             let packings = unify_moves(&current_state, &next_statement_state, mir, env)?;
-            current_state = apply_packings(
-                current_state,
-                &mut statements,
-                &mut pcs_before,
-                packings,
-                mir,
-                env,
-            )?;
+            current_state =
+                apply_packings(current_state, &mut statements, &mut pcs_before, packings)?;
 
-            // Push the statement, should be coherent now
+            // 3. Statement is now coherent, push
             statements.push(statement.clone());
             pcs_before.push(current_state.clone());
 
-            // Now apply the statement's hoare triple
+            // 4. Apply statement's hoare semantics
             for p1 in next_statement_state.set.iter() {
                 if !current_state.set.remove(p1) {
                     return Err(PrustiError::internal(
@@ -144,14 +124,12 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
             }
         }
 
+        // todo: this doesn't generalize.
         // In the straight line problem, the terminator precondition is always
-        // empty since it's always GOTO or JUMP. => do not compute this special case here
-
-        // if JUMP
-        //      => Contiunue verifiaction on jumped-to block
+        // empty since it's always GOTO or JUMP
         match current_block.terminator {
             MicroMirTerminator::Jump(bnext) => {
-                // TODO: refactor into micro_mir implementation
+                // TODO: refactor into CFG representation
                 current_block = match micro_mir.encoding.get(&bnext) {
                     Some(s) => s,
                     None => {
@@ -164,6 +142,7 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
             }
             MicroMirTerminator::Return(_) => {
                 // Log result and break
+                // todo: technically has a precondition, see encoding.
                 break;
             }
             _ => {
@@ -175,10 +154,6 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
         }
     }
 
-    // Report
-    //  interp. final PCS *before* return, so the return statement is not computed
-    //   (some aspects of the theory still to work out here)
-
     return Ok(StraitLineOpPCS {
         statements,
         pcs_before,
@@ -186,10 +161,10 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
     });
 }
 
-// Simplest possible kill-elaboration, can be done
-// in the same pass as pcs computation.
-// { e p } kill p { u p } or
-// { u p } kill p { u p }
+/// Simplest possible kill-elaboration, can be done
+/// in the same pass as pcs computation.
+/// { e p } kill p { u p } or
+/// { u p } kill p { u p }
 fn naive_elaboration<'tcx>(
     statement: &MicroMirStatement<'tcx>,
     current_state: &PCS<'tcx>,
@@ -198,9 +173,8 @@ fn naive_elaboration<'tcx>(
         Some(s) => Ok(s),
         None => match statement {
             MicroMirStatement::Kill(LinearResource::Mir(p)) => {
-                // Naive kill elaboration will remove all places which are a prefix of the statement to kill (p).
+                // Remove all places which are a prefix of the statement to kill (p).
                 let mut set: FxHashSet<PCSPermission<'tcx>> = FxHashSet::default();
-
                 for current_permission in current_state.set.iter() {
                     if let LinearResource::Mir(p0) = current_permission.target {
                         if is_prefix(p0, (*p).clone()) {
@@ -208,24 +182,7 @@ fn naive_elaboration<'tcx>(
                         }
                     }
                 }
-
                 return Ok(PCS { set });
-                // let p_e = PCSPermission::new_initialized(Mutability::Mut, *p);
-                // let p_u = PCSPermission::new_uninit(*p);
-
-                // if current_state.set.contains(&p_e) {
-                //     Ok(PCS::from_vec(vec![p_e]))
-                // } else if current_state.set.contains(&p_u) {
-                //     Ok(PCS::from_vec(vec![p_u]))
-                // } else {
-                //     Err(PrustiError::internal(
-                //         format!(
-                //             "kill elaboration: place {:?} unkillable in the current PCS {:#?}",
-                //             p, current_state.set
-                //         ),
-                //         MultiSpan::new(),
-                //     ))
-                // }
             }
             _ => Err(PrustiError::unsupported(
                 format!("unsupported elaboration of {:?} precondition", statement),
@@ -235,15 +192,11 @@ fn naive_elaboration<'tcx>(
     }
 }
 
-fn apply_packings<'mir, 'env: 'mir, 'tcx: 'env>(
+fn apply_packings<'tcx>(
     mut state: PCS<'tcx>,
     statements: &mut Vec<MicroMirStatement<'tcx>>,
     before_pcs: &mut Vec<PCS<'tcx>>,
     packings: PCSRepacker<'tcx>,
-    mir: &'mir Body<'tcx>,
-    env: &'env Environment<'tcx>,
-    // tcx: TyCtxt<'mir>,
-    // mir: &Body<'mir>,
 ) -> EncodingResult<PCS<'tcx>> {
     // TODO: Move insert and remove (guarded with linearity) into PCS
 
@@ -279,7 +232,7 @@ fn apply_packings<'mir, 'env: 'mir, 'tcx: 'env>(
     for (p, pre_p) in packings.packs.iter().rev() {
         before_pcs.push(state.clone());
 
-        let mut to_lose: Vec<Place<'tcx>> = pre_p.iter().cloned().collect(); // expand_place(*p, mir, env)?;
+        let to_lose: Vec<Place<'tcx>> = pre_p.iter().cloned().collect(); // expand_place(*p, mir, env)?;
         for p1 in to_lose.iter() {
             if !state.set.remove(&PCSPermission::new_initialized(
                 Mutability::Mut,

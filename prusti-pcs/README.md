@@ -13,11 +13,11 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
         - [x] separating union
         - [ ] refactor
         - [x] fix lifetimes
-        - [ ] change pcs-after back to pcs-before again
-    - [ ] formalize poset interpretation of places
-    - [x] MIR -> MicroMIR translation
+        - [x] change pcs-after back to pcs-before again
     - [ ] stable output representation for testing
         - [ ] serialization
+    - [ ] formalize poset interpretation of places
+    - [x] MIR -> MicroMIR translation
     - [ ] graphviz output
     - [ ] test harness
         - [ ] tests
