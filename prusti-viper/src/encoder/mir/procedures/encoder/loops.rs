@@ -86,6 +86,39 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
             }
         }
 
+        // Encode Lifetime Relations
+        let derived_lifetimes = self
+            .lifetimes
+            .get_origin_contains_loan_at_mid(invariant_location);
+        for (derived_lifetime, derived_from) in derived_lifetimes {
+            let derived_from_args: Vec<vir_high::Expression> = derived_from
+                .iter()
+                .map(|x| {
+                    vir_high::VariableDecl {
+                        name: x.clone(),
+                        ty: vir_high::Type::Lifetime,
+                    }
+                    .into()
+                })
+                .collect();
+            let intersect_expr = vir_high::Expression::builtin_func_app_no_pos(
+                vir_high::BuiltinFunc::LifetimeIntersect,
+                vec![], // NOTE: we ignore argument_types for LifetimeItersect
+                derived_from_args,
+                vir_high::ty::Type::Lifetime,
+            );
+            let equality_expr = vir_high::Expression::binary_op_no_pos(
+                vir_high::BinaryOpKind::EqCmp,
+                vir_high::VariableDecl {
+                    name: derived_lifetime,
+                    ty: vir_high::ty::Type::Lifetime,
+                }
+                .into(),
+                intersect_expr,
+            );
+            encoded_specs.push(equality_expr);
+        }
+
         // Construct the info.
         let loop_invariant = vir_high::Statement::loop_invariant_no_pos(
             self.encode_basic_block_label(loop_head),
