@@ -52,6 +52,11 @@ pub(in super::super) fn desugar_loops<'v, 'tcx: 'v>(
             .unwrap()
             .unwrap_loop_invariant();
 
+        invariant_block
+            .statements
+            .push(vir_high::Statement::comment(
+                "Loop Invariant Functional Specifications".to_string(),
+            ));
         for assertion in &loop_invariant.functional_specifications {
             let statement = encoder.set_surrounding_error_context_for_statement(
                 vir_high::Statement::assert_no_pos(assertion.clone()),
@@ -64,6 +69,12 @@ pub(in super::super) fn desugar_loops<'v, 'tcx: 'v>(
         // Note: It is important for soundness that we havoc here everything
         // that could potentially be mutated in the loop body. This means that
         // we should always fully havoc all aliased memory.
+
+        invariant_block
+            .statements
+            .push(vir_high::Statement::comment(
+                "Loop Invariant Maybe Modified Places".to_string(),
+            ));
         for predicate in loop_invariant.maybe_modified_places {
             let statement = encoder.set_surrounding_error_context_for_statement(
                 vir_high::Statement::havoc_no_pos(predicate),

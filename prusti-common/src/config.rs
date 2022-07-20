@@ -179,7 +179,14 @@ lazy_static::lazy_static! {
 
         // 4. Override with env variables (`PRUSTI_VIPER_BACKEND`, ...)
         settings.merge(
-            Environment::with_prefix("PRUSTI").ignore_empty(true)
+            Environment::with_prefix("PRUSTI")
+                .ignore_empty(true)
+                .try_parsing(true)
+                .with_list_parse_key("delete_basic_blocks")
+                .with_list_parse_key("extra_jvm_args")
+                .with_list_parse_key("extra_verifier_args")
+                .with_list_parse_key("verify_only_basic_block_path")
+                .list_separator(" ")
         ).unwrap();
         check_keys(&settings, &allowed_keys, "environment variables");
 
@@ -245,7 +252,7 @@ fn read_setting<T>(name: &'static str) -> T
 where
     T: Deserialize<'static>,
 {
-    read_optional_setting(name).unwrap_or_else(|| panic!("Failed to read setting {:?}", name))
+    SETTINGS.read().unwrap().get(name).unwrap_or_else(|e| panic!("Failed to read setting {} due to {}", name, e))
 }
 
 // The following methods are all convenience wrappers for the actual call to
