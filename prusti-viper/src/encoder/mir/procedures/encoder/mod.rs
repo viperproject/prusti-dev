@@ -410,13 +410,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             block_builder.set_successor_exit(SuccessorExitKind::Return);
         } else {
             block_builder.set_successor_jump(vir_high::Successor::Goto(
-                self.encode_basic_block_label(self.mir.start_node()),
+                self.encode_basic_block_label(self.mir.basic_blocks.start_node()),
             ));
         }
         block_builder.build();
         procedure_builder.set_entry(entry_label);
         self.encode_specification_blocks()?;
-        self.reachable_blocks.insert(self.mir.start_node());
+        self.reachable_blocks
+            .insert(self.mir.basic_blocks.start_node());
         for (bb, data) in
             prusti_rustc_interface::middle::mir::traversal::reverse_postorder(self.mir)
         {
