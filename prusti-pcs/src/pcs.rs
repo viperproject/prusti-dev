@@ -34,34 +34,34 @@ pub fn dump_pcs<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> EncodingResul
         micro_mir.pprint();
         let operational_pcs = straight_line_pcs(&micro_mir, mir, env)?;
 
-        print!("\tPCS: ");
-        for s in operational_pcs.initial_pcs.set.iter() {
-            print!("{:#?}, ", s)
-        }
-        println!();
-
         let mut i = 0;
         while i < operational_pcs.statements.len() {
             // Report PCS before
 
-            println!("\t\t{:?}", operational_pcs.statements[i]);
-
             print!("\tPCS: ");
-            for s in operational_pcs.pcs_after[i].set.iter() {
+            for s in operational_pcs.pcs_before[i].set.iter() {
                 print!("{:#?}, ", s)
             }
             println!();
 
+            println!("\t\t{:?}", operational_pcs.statements[i]);
+
             i += 1;
         }
+
+        print!("\tPCS: ");
+        for s in operational_pcs.final_pcs.set.iter() {
+            print!("{:#?}, ", s)
+        }
+        println!();
     }
     Ok(())
 }
 
 pub struct StraitLineOpPCS<'tcx> {
     pub statements: Vec<MicroMirStatement<'tcx>>,
-    pub pcs_after: Vec<PCS<'tcx>>,
-    pub initial_pcs: PCS<'tcx>,
+    pub pcs_before: Vec<PCS<'tcx>>,
+    pub final_pcs: PCS<'tcx>,
 }
 
 /// Single-pass computation of the PCS for straight-line code
@@ -76,12 +76,11 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
     // Is this correct? I think not and either way it's a bad way to get the first block.
     let mut current_block: &MicroMirData<'tcx> = micro_mir.get_block(0)?;
 
-    let mut pcs_after: Vec<PCS<'tcx>> = Vec::default();
+    let mut pcs_before: Vec<PCS<'tcx>> = Vec::default();
     let mut statements: Vec<MicroMirStatement<'tcx>> = Vec::default();
 
     // Also not correct, read function args
     let mut current_state = PCS::empty();
-    let initial_pcs = current_state.clone();
 
     loop {
         // Compute PCS for the block
@@ -98,11 +97,15 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
             current_state = apply_packings(
                 current_state,
                 &mut statements,
-                &mut pcs_after,
+                &mut pcs_before,
                 packings,
                 mir,
                 env,
             )?;
+
+            // Push the statement, should be coherent now
+            statements.push(statement.clone());
+            pcs_before.push(current_state.clone());
 
             // Now apply the statement's hoare triple
             for p1 in next_statement_state.set.iter() {
@@ -135,10 +138,6 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
                     ));
                 }
             }
-
-            // Push the statement, should be coherent now
-            statements.push(statement.clone());
-            pcs_after.push(current_state.clone());
         }
 
         // In the straight line problem, the terminator precondition is always
@@ -178,8 +177,8 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
 
     return Ok(StraitLineOpPCS {
         statements,
-        pcs_after,
-        initial_pcs,
+        pcs_before,
+        final_pcs: current_state.clone(),
     });
 }
 
