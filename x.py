@@ -196,6 +196,22 @@ def setup(args):
     setup_rustup()
 
 
+def setup_prusti_assistant(args):
+    setup(args)
+    cargo(['build', '--all', '--release'])
+    pwd = os.getcwd()
+    run_command([
+        'ln', '-s',
+        os.path.join(pwd, 'viper_tools'),
+        os.path.join(pwd, 'target', 'release'),
+    ])
+    run_command([
+        'ln', '-s',
+        os.path.join(pwd, 'rust-toolchain'),
+        os.path.join(pwd, 'target', 'release'),
+    ])
+
+
 def ide(args):
     """Start VS Code with the given arguments."""
     run_command(['code'] + args)
@@ -275,6 +291,9 @@ def main(argv):
             break
         elif arg == 'ide':
             ide(argv[i+1:])
+            break
+        elif arg == 'setup-prusti-assistant':
+            setup_prusti_assistant(argv[i+1:])
             break
         elif arg == 'run-benchmarks':
             cargo(['build', '--all', '--release'])
