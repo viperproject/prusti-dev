@@ -174,13 +174,7 @@ pub fn find_viper_home(base_dir: &Path) -> Option<PathBuf> {
             .join("backends"),
     ];
 
-    for candidate in candidates.into_iter() {
-        if candidate.is_dir() {
-            return Some(candidate);
-        }
-    }
-
-    None
+    candidates.into_iter().find(|candidate| candidate.is_dir())
 }
 
 /// Find Z3 executable
@@ -206,13 +200,7 @@ pub fn find_z3_exe(base_dir: &Path) -> Option<PathBuf> {
         });
     }
 
-    for candidate in candidates.into_iter() {
-        if candidate.is_file() {
-            return Some(candidate);
-        }
-    }
-
-    None
+    candidates.into_iter().find(|candidate| candidate.is_file())
 }
 
 #[cfg(target_family = "unix")]

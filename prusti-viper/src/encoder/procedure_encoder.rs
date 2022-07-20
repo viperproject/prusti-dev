@@ -589,10 +589,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let left = self.fold_boxed(left);
                 let right = self.fold_boxed(right);
                 match op_kind {
-                    vir::BinaryOpKind::And if is_const_true(&*left) => *right,
-                    vir::BinaryOpKind::And if is_const_true(&*right) => *left,
-                    vir::BinaryOpKind::Or if is_const_true(&*left) => *left,
-                    vir::BinaryOpKind::Or if is_const_true(&*right) => *right,
+                    vir::BinaryOpKind::And if is_const_true(&left) => *right,
+                    vir::BinaryOpKind::And if is_const_true(&right) => *left,
+                    vir::BinaryOpKind::Or if is_const_true(&left) => *left,
+                    vir::BinaryOpKind::Or if is_const_true(&right) => *right,
                     _ => vir::Expr::BinOp(vir::BinOp {
                         op_kind, left, right, position,
                     }),
@@ -1486,6 +1486,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ty,
                     location,
                 )?
+            }
+            mir::Rvalue::CopyForDeref(ref place) => {
+                self.encode_assign_operand(&encoded_lhs, &mir::Operand::Copy(*place), location)?
             }
         })
     }
