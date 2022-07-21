@@ -3,6 +3,7 @@ use crate::encoder::{
     mir::{
         errors::ErrorInterface,
         procedures::encoder::{scc::*, ProcedureEncoder},
+        types::*,
     },
 };
 use prusti_interface::environment::{
@@ -62,6 +63,8 @@ pub(super) trait LifetimesEncoder<'tcx> {
         new_derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
         subset_base_created: &mut BTreeSet<(String, String)>,
         new_subset_base: &mut BTreeSet<(String, String)>,
+        statement: Option<&mir::Statement<'tcx>>,
+        set_static: bool,
         shorten_lifetime_takes: bool,
         new_reborrow_lifetime_to_remove: Option<String>,
         reborrow_lifetimes: Option<(String, BTreeSet<String>)>,
@@ -261,6 +264,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             &mut new_derived_lifetimes,
             subset_base_created,
             &mut new_subset_base,
+            statement,
+            false,
             false,
             new_reborrow_lifetime_to_ignore,
             None,
@@ -295,6 +300,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             &mut new_derived_lifetimes,
             subset_base_created,
             &mut new_subset_base,
+            statement,
+            true,
             false,
             new_reborrow_lifetime_to_ignore,
             reborrow_lifetimes,
@@ -374,6 +381,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             &mut needed_derived_lifetimes,
             &mut s1,
             &mut s2,
+            None, // TODO: add statement?
+            false,
             true,
             None,
             None,
@@ -419,6 +428,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             &mut needed_derived_lifetimes,
             &mut s1,
             &mut s2,
+            None, // TODO: add statement?
+            false,
             true,
             None,
             None,
@@ -450,6 +461,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         new_derived_lifetimes: &mut BTreeMap<String, BTreeSet<String>>,
         subset_base_created: &mut BTreeSet<(String, String)>,
         new_subset_base: &mut BTreeSet<(String, String)>,
+        statement: Option<&mir::Statement<'tcx>>,
+        set_static: bool,
         shorten_lifetimes: bool,
         new_reborrow_lifetime_to_remove: Option<String>,
         reborrow_lifetimes: Option<(String, BTreeSet<String>)>,
@@ -508,12 +521,56 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             &reborrow_lifetimes,
         )?;
         self.encode_bor_shorten(block_builder, location, &lifetime_backups)?;
-        self.encode_subset_base_assumptions(
-            block_builder,
-            location,
-            subset_base_created,
-            new_subset_base,
-        )?;
+        // self.encode_subset_base_assumptions(
+        //     block_builder,
+        //     location,
+        //     subset_base_created,
+        //     new_subset_base,
+        // )?;
+
+        // Create Lifetimes which are not in derived lifetimes
+        if set_static {
+            let lifetimes_required_for_statement: Vec<String> = if let Some(statement) = statement {
+                match statement.kind {
+                    mir::StatementKind::StorageLive(local) => {
+                        let ty = self.procedure.get_ty_of_var(local);
+                        if let Some(ty) = ty {
+                            self.encoder.get_lifetimes_high(&ty)?.iter().map(|x| x.name.clone()).collect()
+                        } else {
+                            unreachable!()
+                        }
+                    },
+                    _ => vec![]
+                }
+            } else {
+                vec![]
+            };
+            let static_lifetime = self.lifetimes.get_static_lifetime();
+            println!("--------------------------------");
+            dbg!(&statement);
+            // dbg!(&static_lifetime);
+            for required_lifetime in &lifetimes_required_for_statement {
+                if !new_derived_lifetimes.contains_key(required_lifetime) {
+                    println!("----  we need");
+                    dbg!(&required_lifetime);
+
+
+                    let encoded_required_lifetime = self.encode_lft_variable(required_lifetime.clone())?;
+                    block_builder.add_statement(self.set_statement_error(
+                        location,
+                        ErrorCtxt::LifetimeEncoding,
+                        vir_high::Statement::lifetime_take_no_pos(
+                            encoded_required_lifetime,
+                            vec![self.encode_lft_variable(static_lifetime.clone())?],
+                            self.lifetime_token_fractional_permission(self.lifetime_count),
+                        ),
+                    )?);
+                } else {
+                    println!("----  no need");
+                    dbg!(&required_lifetime);
+                }
+            }
+        }
 
         *old_original_lifetimes = new_original_lifetimes.clone();
         *old_derived_lifetimes = new_derived_lifetimes.clone();
@@ -710,6 +767,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
         location: mir::Location,
         lifetime_backups: &BTreeMap<String, (String, vir_high::Local)>,
     ) -> SpannedEncodingResult<()> {
+        // let static_lifetime = self.encode_lft_variable(self.lifetimes.get_static_lifetime())?;
         for (lifetime, (backup_var_name, _object)) in lifetime_backups {
             let lifetime_var = vir_high::VariableDecl::new(lifetime, vir_high::ty::Type::Lifetime);
             let backup_var =
@@ -719,7 +777,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
                 ErrorCtxt::LifetimeEncoding,
                 vir_high::Statement::lifetime_take_no_pos(
                     backup_var,
-                    vec![lifetime_var],
+                    vec![
+                        lifetime_var,
+                        // static_lifetime.clone(),
+                    ],
                     self.lifetime_token_fractional_permission(self.lifetime_count),
                 ),
             )?);
@@ -773,12 +834,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
     ) -> SpannedEncodingResult<()> {
         let lifetimes_to_return =
             self.lifetimes_to_return(old_derived_lifetimes, new_derived_lifetimes);
+        let static_lifetime = self.encode_lft_variable(self.lifetimes.get_static_lifetime())?;
         for (lifetime, derived_from) in lifetimes_to_return {
             let encoded_target = self.encode_lft_variable(lifetime.clone())?;
             let mut lifetimes: Vec<vir_high::VariableDecl> = Vec::new();
             for lifetime_name in &derived_from {
                 lifetimes.push(self.encode_lft_variable(lifetime_name.to_string())?);
             }
+            lifetimes.push(static_lifetime.clone());
             self.derived_lifetimes_yet_to_kill
                 .insert(lifetime.clone(), derived_from.clone());
             block_builder.add_statement(self.set_statement_error(
@@ -804,6 +867,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
     ) -> SpannedEncodingResult<()> {
         let lifetimes_to_take =
             self.lifetimes_to_take(old_derived_lifetimes, new_derived_lifetimes);
+        let static_lifetime = self.encode_lft_variable(self.lifetimes.get_static_lifetime())?;
         for (lifetime, derived_from) in lifetimes_to_take {
             let encoded_target = self.encode_lft_variable(lifetime.clone())?;
             let mut lifetimes: Vec<vir_high::VariableDecl> = Vec::new();
@@ -811,6 +875,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             for lifetime_name in derived_from {
                 lifetimes.push(self.encode_lft_variable(lifetime_name)?);
             }
+            lifetimes.push(static_lifetime.clone());
             self.derived_lifetimes_yet_to_kill.remove(&lifetime[..]);
             block_builder.add_statement(self.set_statement_error(
                 location,
@@ -823,7 +888,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             )?);
         }
         if let Some((value_lifetime, lifetimes)) = reborrow_lifetimes {
-            let existing_lifetime = [self.encode_lft_variable(value_lifetime.clone())?].to_vec();
+            let existing_lifetime = vec![
+                self.encode_lft_variable(value_lifetime.clone())?,
+                static_lifetime,
+            ];
             for lifetime in lifetimes {
                 if !new_derived_lifetimes.contains_key(lifetime) {
                     let encoded_target = self.encode_lft_variable(lifetime.clone())?;
@@ -1149,6 +1217,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> LifetimesEncoder<'tcx> for ProcedureEncoder<'p, 'v, '
             for lifetime_name in opaque {
                 lifetimes.push(self.encode_lft_variable(lifetime_name.clone())?);
             }
+            let static_lifetime = self.encode_lft_variable(self.lifetimes.get_static_lifetime())?;
+            lifetimes.push(static_lifetime);
             preconditions.push(self.encoder.set_statement_error_ctxt(
                 vir_high::Statement::lifetime_take_no_pos(
                     encoded_target,

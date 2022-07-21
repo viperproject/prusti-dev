@@ -4,6 +4,7 @@ use super::{
             default_fold_expression, default_fold_quantifier, default_walk_expression,
             ExpressionFolder, ExpressionWalker,
         },
+        statement::*,
         position::Position,
         rvalue::*,
         ty::{self, LifetimeConst},
@@ -29,6 +30,35 @@ fn get_lifetimes_with_arguments(
     }
     all_lifetimes
 }
+
+// impl WithLifetimes for mir::Statement {
+//     fn get_lifetimes(&self) -> Vec<LifetimeConst> {
+//         match self.kind() {
+//             _ => vec![]
+//         }
+//     }
+// }
+
+// impl WithLifetimes for Statement {
+//     fn get_lifetimes(&self) -> Vec<LifetimeConst> {
+//         match self {
+//             Self::LifetimeTake(lifetime_take) => lifetime_take.get_lifetimes(),
+//             _ => vec![]
+//         }
+//     }
+// }
+//
+// impl WithLifetimes for LifetimeTake {
+//     fn get_lifetimes(&self) -> Vec<LifetimeConst> {
+//         let mut lifetimes = vec![ LifetimeConst{ name: self.target.name.clone() }];
+//         for value in &self.value {
+//             lifetimes.push(
+//                 LifetimeConst{ name: value.name.clone() }
+//             );
+//         }
+//         lifetimes
+//     }
+// }
 
 impl WithLifetimes for ty::Type {
     fn get_lifetimes(&self) -> Vec<LifetimeConst> {

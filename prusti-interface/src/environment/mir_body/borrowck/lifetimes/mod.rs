@@ -47,6 +47,18 @@ impl Lifetimes {
         }
     }
 
+    pub fn get_static_lifetime(&self) -> String {
+        "bw6".to_string()
+        // let opaque_lifetimes: BTreeMap<String, BTreeSet<String>> =
+        //     self.get_opaque_lifetimes_with_inclusions_names();
+        // for (lifetime, derived_from) in opaque_lifetimes {
+        //     if derived_from.is_empty() {
+        //         return lifetime.to_text();
+        //     }
+        // }
+        // unreachable!("There must be a static lifetime everywhere");
+    }
+
     pub fn get_loan_live_at_start(&self, location: mir::Location) -> BTreeSet<String> {
         let info = self.get_loan_live_at(RichLocation::Start(location));
         info.into_iter()
