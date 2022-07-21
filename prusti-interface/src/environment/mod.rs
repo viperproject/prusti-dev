@@ -203,7 +203,6 @@ impl<'tcx> Environment<'tcx> {
     pub fn has_errors(&self) -> bool {
         self.tcx.sess.has_errors().is_some()
     }
-
     /// Get ids of Rust procedures that are annotated with a Prusti specification
     pub fn get_annotated_procedures(&self) -> Vec<ProcedureDefId> {
         let tcx = self.tcx;
@@ -211,7 +210,7 @@ impl<'tcx> Environment<'tcx> {
         visitor.visit_all_item_likes();
 
         let mut cl_visitor = CollectClosureDefsVisitor::new(self);
-        tcx.hir().deep_visit_all_item_likes(&mut cl_visitor);
+        tcx.hir().visit_all_item_likes_in_crate(&mut cl_visitor);
 
         let mut result: Vec<_> = visitor.get_annotated_procedures();
         result.extend(cl_visitor.get_closure_defs());
@@ -496,7 +495,7 @@ impl<'tcx> Environment<'tcx> {
         called_def_id: ProcedureDefId, // what are we calling?
         call_substs: SubstsRef<'tcx>,
     ) -> (ProcedureDefId, SubstsRef<'tcx>) {
-        use prusti_rustc_interface::middle::ty::TypeFoldable;
+        use prusti_rustc_interface::middle::ty::TypeVisitable;
 
         // avoids a compiler-internal panic
         if call_substs.needs_infer() {

@@ -79,12 +79,12 @@ impl<'a, 'p, 'v, 'tcx> GhostChecker<'a, 'p, 'v, 'tcx> {
 }
 
 impl<'a, 'p, 'v, 'tcx> Visitor<'tcx> for GhostChecker<'a, 'p, 'v, 'tcx> {
-    fn visit_local(&mut self, local: &mir::Local, context: PlaceContext, location: mir::Location) {
-        let is_ghost = self.is_ghost_place(location) || self.is_ghost_local(local);
+    fn visit_local(&mut self, local: mir::Local, context: PlaceContext, location: mir::Location) {
+        let is_ghost = self.is_ghost_place(location) || self.is_ghost_local(&local);
         if !is_ghost && context.is_use() {
-            self.normal_vars.insert(*local);
+            self.normal_vars.insert(local);
         }
-        if is_ghost && context.is_mutating_use() && self.normal_vars.contains(local) {
+        if is_ghost && context.is_mutating_use() && self.normal_vars.contains(&local) {
             let stmt =
                 &self.p.mir.basic_blocks()[location.block].statements[location.statement_index];
             let span = stmt.source_info.span;
