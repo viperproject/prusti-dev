@@ -91,6 +91,7 @@ fn struct_mut_references_assert_false(){
     let mut s2 = &mut s1;
     let mut s3 = &mut s2;
     let mut _s4 = &mut s3;
+    assert!(false);      //~ ERROR: the asserted expression might not hold
 }
 
 struct S4I<'a> {
@@ -176,6 +177,26 @@ fn test_deeply_nested_assert_false(){
     let mut s1 = S7_1{ x: &mut n };
     let mut s2 = S7_2{ x: &mut s1 };
     let mut s3 = S7_3{ x: &mut s2 };
+    assert!(false);      //~ ERROR: the asserted expression might not hold
+}
+
+struct S8<'a, T> {
+    x: &'a mut T,
+}
+struct X8<'a> {
+    x: &'a mut i32,
+}
+fn test_generic_struct_assert_false(){
+    let mut n = 4;
+    let mut x = X8{ x: &mut n };
+    let mut s1 = S8{ x: &mut x };
+    let mut s2 = &mut s1;
+}
+fn test_generic_struct(){
+    let mut n = 4;
+    let mut x = X8{ x: &mut n };
+    let mut s1 = S8{ x: &mut x };
+    let mut s2 = &mut s1;
     assert!(false);      //~ ERROR: the asserted expression might not hold
 }
 
