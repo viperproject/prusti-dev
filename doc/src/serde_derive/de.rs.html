@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.137/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../serde_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_derive-1.0.140/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../serde_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../serde_derive/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
@@ -3142,12 +3142,12 @@
 <span class="kw">use</span> <a class="ident" href="../../syn/spanned/trait.Spanned.html">syn::spanned::Spanned</a>;
 <span class="kw">use</span> <span class="ident">syn</span>::{<a class="self" href="../../syn/index.html">self</a>, <span class="ident">Ident</span>, <a class="ident" href="../../syn/expr/struct.Index.html">Index</a>, <a class="ident" href="../../syn/expr/enum.Member.html">Member</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../src/serde_derive/lib.rs.html#79">bound</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/serde_derive/lib.rs.html#84">dummy</a>;
-<span class="kw">use</span> <span class="ident">fragment</span>::{<a class="ident" href="../../src/serde_derive/fragment.rs.html#27">Expr</a>, <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a>, <a class="ident" href="../../src/serde_derive/fragment.rs.html#52">Match</a>, <a class="ident" href="../../src/serde_derive/fragment.rs.html#40">Stmts</a>};
-<span class="kw">use</span> <span class="ident">internals::ast</span>::{<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11-22">Container</a>, <a class="ident" href="../../src/serde_derive/internals/ast.rs.html#27-30">Data</a>, <a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42-47">Field</a>, <a class="ident" href="../../src/serde_derive/internals/ast.rs.html#50-59">Style</a>, <a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33-39">Variant</a>};
-<span class="kw">use</span> <span class="ident">internals</span>::{<a class="ident" href="../../src/serde_derive/internals/mod.rs.html#2">attr</a>, <a class="ident" href="../../src/serde_derive/internals/receiver.rs.html#11">replace_receiver</a>, <a class="ident" href="../../src/serde_derive/internals/mod.rs.html#23">ungroup</a>, <a class="ident" href="../../src/serde_derive/internals/ctxt.rs.html#13-17">Ctxt</a>, <a class="ident" href="../../src/serde_derive/internals/mod.rs.html#18-21">Derive</a>};
-<span class="kw">use</span> <a class="ident" href="../../src/serde_derive/lib.rs.html#85">pretend</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/serde_derive/lib.rs.html#80">bound</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/serde_derive/lib.rs.html#85">dummy</a>;
+<span class="kw">use</span> <span class="ident">fragment</span>::{<a class="ident" href="../../src/serde_derive/fragment.rs.html#27">Expr</a>, <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a>, <a class="ident" href="../../src/serde_derive/fragment.rs.html#52">Match</a>, <a class="ident" href="../../src/serde_derive/fragment.rs.html#40">Stmts</a>};
+<span class="kw">use</span> <span class="ident">internals::ast</span>::{<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11">Container</a>, <a class="ident" href="../../src/serde_derive/internals/ast.rs.html#27">Data</a>, <a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42">Field</a>, <a class="ident" href="../../src/serde_derive/internals/ast.rs.html#50">Style</a>, <a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33">Variant</a>};
+<span class="kw">use</span> <span class="ident">internals</span>::{<a class="ident" href="../../src/serde_derive/internals/mod.rs.html#2">attr</a>, <a class="ident" href="../../src/serde_derive/internals/receiver.rs.html#11">replace_receiver</a>, <a class="ident" href="../../src/serde_derive/internals/mod.rs.html#23">ungroup</a>, <a class="ident" href="../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <a class="ident" href="../../src/serde_derive/internals/mod.rs.html#18">Derive</a>};
+<span class="kw">use</span> <a class="ident" href="../../src/serde_derive/lib.rs.html#86">pretend</a>;
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">std::collections::BTreeSet</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
@@ -3212,12 +3212,12 @@
     ))
 }
 
-<span class="kw">fn</span> <span class="ident">precondition</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ctxt.rs.html#13-17">Ctxt</a>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11-22">Container</a>) {
+<span class="kw">fn</span> <span class="ident">precondition</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
     <a class="ident" href="../../src/serde_derive/de.rs.html#82">precondition_sized</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#77">cx</a>, <a class="ident" href="../../src/serde_derive/de.rs.html#77">cont</a>);
     <a class="ident" href="../../src/serde_derive/de.rs.html#95">precondition_no_de_lifetime</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#77">cx</a>, <a class="ident" href="../../src/serde_derive/de.rs.html#77">cont</a>);
 }
 
-<span class="kw">fn</span> <span class="ident">precondition_sized</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ctxt.rs.html#13-17">Ctxt</a>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11-22">Container</a>) {
+<span class="kw">fn</span> <span class="ident">precondition_sized</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
     <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, <span class="ident">fields</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#82">cont</a>.<span class="ident">data</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last</span>) <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#83">fields</a>.<span class="ident">last</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">syn::Type::Slice</span>(<span class="kw">_</span>) <span class="op">=</span> <a class="ident" href="../../src/serde_derive/internals/mod.rs.html#23">ungroup</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#84">last</a>.<span class="ident">ty</span>) {
@@ -3230,7 +3230,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">precondition_no_de_lifetime</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ctxt.rs.html#13-17">Ctxt</a>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11-22">Container</a>) {
+<span class="kw">fn</span> <span class="ident">precondition_no_de_lifetime</span>(<span class="ident">cx</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ctxt.rs.html#13">Ctxt</a>, <span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11">Container</a>) {
     <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/serde_derive/de.rs.html#231">BorrowedLifetimes::Borrowed</a>(<span class="kw">_</span>) <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#265">borrowed_lifetimes</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#95">cont</a>) {
         <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">cont</span>.<span class="ident">generics</span>.<span class="ident">lifetimes</span>() {
             <span class="kw">if</span> <span class="ident">param</span>.<span class="ident">lifetime</span>.<span class="ident">to_string</span>() <span class="op">==</span> <span class="string">&quot;&#39;de&quot;</span> {
@@ -3258,7 +3258,7 @@
 
     <span class="doccomment">/// Lifetimes borrowed from the deserializer. These will become bounds on</span>
     <span class="doccomment">/// the `&#39;de` lifetime of the deserializer.</span>
-    <span class="ident">borrowed</span>: <a class="ident" href="../../src/serde_derive/de.rs.html#230-233">BorrowedLifetimes</a>,
+    <span class="ident">borrowed</span>: <a class="ident" href="../../src/serde_derive/de.rs.html#230">BorrowedLifetimes</a>,
 
     <span class="doccomment">/// At least one field has a serde(getter) attribute, implying that the</span>
     <span class="doccomment">/// remote type has a private field.</span>
@@ -3268,8 +3268,8 @@
     <span class="ident">is_packed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a> {
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11-22">Container</a>) -&gt; <span class="self">Self</span> {
+<span class="kw">impl</span> <a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11">Container</a>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#134">cont</a>.<span class="ident">ident</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/serde_derive/de.rs.html#134">cont</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#670">remote</a>() {
             <span class="prelude-val">Some</span>(<span class="ident">remote</span>) =&gt; <a class="ident" href="../../src/serde_derive/de.rs.html#137">remote</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
@@ -3280,7 +3280,7 @@
         <span class="kw">let</span> <span class="ident">has_getter</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#134">cont</a>.<span class="ident">data</span>.<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#133">has_getter</a>();
         <span class="kw">let</span> <span class="ident">is_packed</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#134">cont</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#674">is_packed</a>();
 
-        <a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a> {
+        <a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a> {
             <a class="ident" href="../../src/serde_derive/de.rs.html#135">local</a>,
             <a class="ident" href="../../src/serde_derive/de.rs.html#136">this</a>,
             <a class="ident" href="../../src/serde_derive/de.rs.html#141">generics</a>,
@@ -3300,7 +3300,7 @@
 <span class="comment">// All the generics in the input, plus a bound `T: Deserialize` for each generic</span>
 <span class="comment">// field type that will be deserialized by us, plus a bound `T: Default` for</span>
 <span class="comment">// each generic field type that will be set to a default value.</span>
-<span class="kw">fn</span> <span class="ident">build_generics</span>(<span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11-22">Container</a>, <span class="ident">borrowed</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#230-233">BorrowedLifetimes</a>) -&gt; <a class="ident" href="../../syn/generics/struct.Generics.html">syn::Generics</a> {
+<span class="kw">fn</span> <span class="ident">build_generics</span>(<span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11">Container</a>, <span class="ident">borrowed</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#230">BorrowedLifetimes</a>) -&gt; <a class="ident" href="../../syn/generics/struct.Generics.html">syn::Generics</a> {
     <span class="kw">let</span> <span class="ident">generics</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/bound.rs.html#14">bound::without_defaults</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#165">cont</a>.<span class="ident">generics</span>);
 
     <span class="kw">let</span> <span class="ident">generics</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/bound.rs.html#44-48">bound::with_where_predicates_from_fields</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#165">cont</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#166">generics</a>, <span class="ident">attr::Field::de_bound</span>);
@@ -3344,7 +3344,7 @@
 <span class="comment">// with a `bound` attribute specify their own bound so we do not generate one.</span>
 <span class="comment">// All other fields may need a `T: Deserialize` bound where T is the type of the</span>
 <span class="comment">// field.</span>
-<span class="kw">fn</span> <span class="ident">needs_deserialize_bound</span>(<span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1107-1121">attr::Field</a>, <span class="ident">variant</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#845-856">attr::Variant</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">fn</span> <span class="ident">needs_deserialize_bound</span>(<span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1107">attr::Field</a>, <span class="ident">variant</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#845">attr::Variant</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <span class="op">!</span><a class="ident" href="../../src/serde_derive/de.rs.html#209">field</a>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1449">skip_deserializing</a>()
         <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/serde_derive/de.rs.html#209">field</a>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1465">deserialize_with</a>().<span class="ident">is_none</span>()
         <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/serde_derive/de.rs.html#209">field</a>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1473">de_bound</a>().<span class="ident">is_none</span>()
@@ -3357,7 +3357,7 @@
 
 <span class="comment">// Fields with a `default` attribute (not `default=...`), and fields with a</span>
 <span class="comment">// `skip_deserializing` attribute that do not also have `default=...`.</span>
-<span class="kw">fn</span> <span class="ident">requires_default</span>(<span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1107-1121">attr::Field</a>, <span class="ident">_variant</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#845-856">attr::Variant</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">fn</span> <span class="ident">requires_default</span>(<span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1107">attr::Field</a>, <span class="ident">_variant</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#845">attr::Variant</a><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1128">attr::Default::Default</a> <span class="op">=</span> <span class="kw-2">*</span><a class="ident" href="../../src/serde_derive/de.rs.html#222">field</a>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1457">default</a>() {
         <span class="bool-val">true</span>
     } <span class="kw">else</span> {
@@ -3370,7 +3370,7 @@
     <span class="ident">Static</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/serde_derive/de.rs.html#230-233">BorrowedLifetimes</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/serde_derive/de.rs.html#230">BorrowedLifetimes</a> {
     <span class="kw">fn</span> <span class="ident">de_lifetime</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../syn/lifetime/struct.Lifetime.html">syn::Lifetime</a> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="self" href="../../src/serde_derive/de.rs.html#236">self</a> {
             <a class="ident" href="../../src/serde_derive/de.rs.html#231">BorrowedLifetimes::Borrowed</a>(<span class="kw">_</span>) =&gt; <span class="ident">syn::Lifetime::new</span>(<span class="string">&quot;&#39;de&quot;</span>, <span class="ident">Span::call_site</span>()),
@@ -3400,7 +3400,7 @@
 <span class="comment">//</span>
 <span class="comment">// If any borrowed lifetime is `&#39;static`, then `&#39;de: &#39;static` would be redundant</span>
 <span class="comment">// and we use plain `&#39;static` instead of `&#39;de`.</span>
-<span class="kw">fn</span> <span class="ident">borrowed_lifetimes</span>(<span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11-22">Container</a>) -&gt; <a class="ident" href="../../src/serde_derive/de.rs.html#230-233">BorrowedLifetimes</a> {
+<span class="kw">fn</span> <span class="ident">borrowed_lifetimes</span>(<span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11">Container</a>) -&gt; <a class="ident" href="../../src/serde_derive/de.rs.html#230">BorrowedLifetimes</a> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lifetimes</span> <span class="op">=</span> <span class="ident">BTreeSet::new</span>();
     <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="ident">cont</span>.<span class="ident">data</span>.<span class="ident">all_fields</span>() {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">skip_deserializing</span>() {
@@ -3414,7 +3414,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">deserialize_body</span>(<span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11-22">Container</a>, <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+<span class="kw">fn</span> <span class="ident">deserialize_body</span>(<span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11">Container</a>, <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">if</span> <span class="ident">cont</span>.<span class="ident">attrs</span>.<span class="ident">transparent</span>() {
         <a class="ident" href="../../src/serde_derive/de.rs.html#355">deserialize_transparent</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#279">cont</a>, <a class="ident" href="../../src/serde_derive/de.rs.html#279">params</a>)
     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">type_from</span>) <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#279">cont</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#658">type_from</a>() {
@@ -3486,11 +3486,11 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deserialize_in_place&quot;</span>))]</span>
-<span class="kw">fn</span> <span class="ident">deserialize_in_place_body</span>(<span class="ident">_cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11-22">Container</a>, <span class="ident">_params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/serde_derive/fragment.rs.html#40">Stmts</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">deserialize_in_place_body</span>(<span class="ident">_cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11">Container</a>, <span class="ident">_params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/serde_derive/fragment.rs.html#40">Stmts</a><span class="op">&gt;</span> {
     <span class="prelude-val">None</span>
 }
 
-<span class="kw">fn</span> <span class="ident">deserialize_transparent</span>(<span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11-22">Container</a>, <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+<span class="kw">fn</span> <span class="ident">deserialize_transparent</span>(<span class="ident">cont</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#11">Container</a>, <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">let</span> <span class="ident">fields</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#355">cont</a>.<span class="ident">data</span> {
         <a class="ident" href="../../src/serde_derive/internals/ast.rs.html#29">Data::Struct</a>(<span class="kw">_</span>, <span class="ident">fields</span>) =&gt; <a class="ident" href="../../src/serde_derive/de.rs.html#357">fields</a>,
         <a class="ident" href="../../src/serde_derive/internals/ast.rs.html#28">Data::Enum</a>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(),
@@ -3528,7 +3528,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">deserialize_from</span>(<span class="ident">type_from</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+<span class="kw">fn</span> <span class="ident">deserialize_from</span>(<span class="ident">type_from</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <a class="macro" href="../../src/serde_derive/fragment.rs.html#19-23">quote_block!</a> {
         <span class="ident">_serde::__private::Result::map</span>(
             <span class="op">&lt;</span>#<span class="ident">type_from</span> <span class="kw">as</span> <span class="ident">_serde::Deserialize</span><span class="op">&gt;</span><span class="ident">::deserialize</span>(<span class="ident">__deserializer</span>),
@@ -3536,7 +3536,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">deserialize_try_from</span>(<span class="ident">type_try_from</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+<span class="kw">fn</span> <span class="ident">deserialize_try_from</span>(<span class="ident">type_try_from</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/ty/enum.Type.html">syn::Type</a>) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <a class="macro" href="../../src/serde_derive/fragment.rs.html#19-23">quote_block!</a> {
         <span class="ident">_serde::__private::Result::and_then</span>(
             <span class="op">&lt;</span>#<span class="ident">type_try_from</span> <span class="kw">as</span> <span class="ident">_serde::Deserialize</span><span class="op">&gt;</span><span class="ident">::deserialize</span>(<span class="ident">__deserializer</span>),
@@ -3544,7 +3544,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">deserialize_unit_struct</span>(<span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>, <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+<span class="kw">fn</span> <span class="ident">deserialize_unit_struct</span>(<span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>, <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#409">params</a>.<span class="ident">this</span>;
     <span class="kw">let</span> <span class="ident">type_name</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#409">cattrs</a>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#626">name</a>().<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#189">deserialize_name</a>();
 
@@ -3576,11 +3576,11 @@
 
 <span class="kw">fn</span> <span class="ident">deserialize_tuple</span>(
     <span class="ident">variant_ident</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span>,
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42-47">Field</a>],
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42">Field</a>],
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
     <span class="ident">deserializer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#441">params</a>.<span class="ident">this</span>;
     <span class="kw">let</span> (<span class="ident">de_impl_generics</span>, <span class="ident">de_ty_generics</span>, <span class="ident">ty_generics</span>, <span class="ident">where_clause</span>) <span class="op">=</span>
         <a class="ident" href="../../src/serde_derive/de.rs.html#3120-3127">split_with_de_lifetime</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#441">params</a>);
@@ -3766,12 +3766,12 @@
 
 <span class="kw">fn</span> <span class="ident">deserialize_seq</span>(
     <span class="ident">type_path</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42-47">Field</a>],
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42">Field</a>],
     <span class="ident">is_struct</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
     <span class="ident">expecting</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">let</span> <span class="ident">vars</span> <span class="op">=</span> (<span class="number">0</span>..<a class="ident" href="../../src/serde_derive/de.rs.html#632">fields</a>.<span class="ident">len</span>()).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#2836">field_i</a> <span class="kw">as</span> <span class="kw">fn</span>(<span class="kw">_</span>) -&gt; <span class="kw">_</span>);
 
     <span class="kw">let</span> <span class="ident">deserialized_count</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#632">fields</a>
@@ -3964,8 +3964,8 @@
 
 <span class="kw">fn</span> <span class="ident">deserialize_newtype_struct</span>(
     <span class="ident">type_path</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42-47">Field</a>,
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42">Field</a>,
 ) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let</span> <span class="ident">delife</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#829">params</a>.<span class="ident">borrowed</span>.<a class="ident" href="../../src/serde_derive/de.rs.html#236">de_lifetime</a>();
     <span class="kw">let</span> <span class="ident">field_ty</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#830">field</a>.<span class="ident">ty</span>;
@@ -4031,12 +4031,12 @@
 
 <span class="kw">fn</span> <span class="ident">deserialize_struct</span>(
     <span class="ident">variant_ident</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">syn::Ident</a><span class="op">&gt;</span>,
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42-47">Field</a>],
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42">Field</a>],
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
     <span class="ident">deserializer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span>,
-    <span class="ident">untagged</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#889-892">Untagged</a>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+    <span class="ident">untagged</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#889">Untagged</a>,
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">let</span> <span class="ident">is_enum</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#895">variant_ident</a>.<span class="ident">is_some</span>();
 
     <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#896">params</a>.<span class="ident">this</span>;
@@ -4290,10 +4290,10 @@
 }
 
 <span class="kw">fn</span> <span class="ident">deserialize_enum</span>(
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">variants</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33-39">Variant</a>],
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">variants</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33">Variant</a>],
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">match</span> <a class="ident" href="../../src/serde_derive/de.rs.html#1157">cattrs</a>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#654">tag</a>() {
         <a class="ident" href="../../src/serde_derive/internals/attr.rs.html#237">attr::TagType::External</a> =&gt; <a class="ident" href="../../src/serde_derive/de.rs.html#1210-1214">deserialize_externally_tagged_enum</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#1155">params</a>, <a class="ident" href="../../src/serde_derive/de.rs.html#1156">variants</a>, <a class="ident" href="../../src/serde_derive/de.rs.html#1157">cattrs</a>),
         <a class="ident" href="../../src/serde_derive/internals/attr.rs.html#244">attr::TagType::Internal</a> { <span class="ident">tag</span> } =&gt; {
@@ -4307,8 +4307,8 @@
 }
 
 <span class="kw">fn</span> <span class="ident">prepare_enum_variant_enum</span>(
-    <span class="ident">variants</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33-39">Variant</a>],
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
+    <span class="ident">variants</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33">Variant</a>],
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
 ) -&gt; (<a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a class="ident" href="../../src/serde_derive/fragment.rs.html#40">Stmts</a>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">deserialized_variants</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#1172">variants</a>
         .<span class="ident">iter</span>()
@@ -4346,10 +4346,10 @@
 }
 
 <span class="kw">fn</span> <span class="ident">deserialize_externally_tagged_enum</span>(
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">variants</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33-39">Variant</a>],
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">variants</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33">Variant</a>],
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#1211">params</a>.<span class="ident">this</span>;
     <span class="kw">let</span> (<span class="ident">de_impl_generics</span>, <span class="ident">de_ty_generics</span>, <span class="ident">ty_generics</span>, <span class="ident">where_clause</span>) <span class="op">=</span>
         <a class="ident" href="../../src/serde_derive/de.rs.html#3120-3127">split_with_de_lifetime</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#1211">params</a>);
@@ -4438,11 +4438,11 @@
 }
 
 <span class="kw">fn</span> <span class="ident">deserialize_internally_tagged_enum</span>(
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">variants</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33-39">Variant</a>],
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">variants</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33">Variant</a>],
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
     <span class="ident">tag</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">let</span> (<span class="ident">variants_stmt</span>, <span class="ident">variant_visitor</span>) <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#1171-1174">prepare_enum_variant_enum</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#1304">variants</a>, <a class="ident" href="../../src/serde_derive/de.rs.html#1305">cattrs</a>);
 
     <span class="comment">// Match arms to extract a variant from a string</span>
@@ -4486,12 +4486,12 @@
 }
 
 <span class="kw">fn</span> <span class="ident">deserialize_adjacently_tagged_enum</span>(
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">variants</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33-39">Variant</a>],
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">variants</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33">Variant</a>],
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
     <span class="ident">tag</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     <span class="ident">content</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#1351">params</a>.<span class="ident">this</span>;
     <span class="kw">let</span> (<span class="ident">de_impl_generics</span>, <span class="ident">de_ty_generics</span>, <span class="ident">ty_generics</span>, <span class="ident">where_clause</span>) <span class="op">=</span>
         <a class="ident" href="../../src/serde_derive/de.rs.html#3120-3127">split_with_de_lifetime</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#1351">params</a>);
@@ -4784,10 +4784,10 @@
 }
 
 <span class="kw">fn</span> <span class="ident">deserialize_untagged_enum</span>(
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">variants</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33-39">Variant</a>],
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">variants</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33">Variant</a>],
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">let</span> <span class="ident">attempts</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#1650">variants</a>
         .<span class="ident">iter</span>()
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../src/serde_derive/de.rs.html#1655">variant</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1085">skip_deserializing</a>())
@@ -4828,10 +4828,10 @@
 }
 
 <span class="kw">fn</span> <span class="ident">deserialize_externally_tagged_variant</span>(
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33-39">Variant</a>,
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33">Variant</a>,
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#1694">variant</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1101">deserialize_with</a>() {
         <span class="kw">let</span> (<span class="ident">wrapper</span>, <span class="ident">wrapper_ty</span>, <span class="ident">unwrap_fn</span>) <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#2886-2890">wrap_deserialize_variant_with</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#1693">params</a>, <a class="ident" href="../../src/serde_derive/de.rs.html#1694">variant</a>, <a class="ident" href="../../src/serde_derive/de.rs.html#1697">path</a>);
         <span class="kw">return</span> <a class="macro" href="../../src/serde_derive/fragment.rs.html#19-23">quote_block!</a> {
@@ -4874,11 +4874,11 @@
 <span class="comment">// Generates significant part of the visit_seq and visit_map bodies of visitors</span>
 <span class="comment">// for the variants of internally tagged enum.</span>
 <span class="kw">fn</span> <span class="ident">deserialize_internally_tagged_variant</span>(
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33-39">Variant</a>,
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33">Variant</a>,
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
     <span class="ident">deserializer</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">if</span> <span class="ident">variant</span>.<span class="ident">attrs</span>.<span class="ident">deserialize_with</span>().<span class="ident">is_some</span>() {
         <span class="kw">return</span> <a class="ident" href="../../src/serde_derive/de.rs.html#1782-1787">deserialize_untagged_variant</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#1739">params</a>, <a class="ident" href="../../src/serde_derive/de.rs.html#1740">variant</a>, <a class="ident" href="../../src/serde_derive/de.rs.html#1741">cattrs</a>, <a class="ident" href="../../src/serde_derive/de.rs.html#1742">deserializer</a>);
     }
@@ -4918,11 +4918,11 @@
 }
 
 <span class="kw">fn</span> <span class="ident">deserialize_untagged_variant</span>(
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33-39">Variant</a>,
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33">Variant</a>,
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
     <span class="ident">deserializer</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">path</span>) <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#1784">variant</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1101">deserialize_with</a>() {
         <span class="kw">let</span> <span class="ident">unwrap_fn</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#2901-2905">unwrap_to_variant_closure</a>(<a class="ident" href="../../src/serde_derive/de.rs.html#1783">params</a>, <a class="ident" href="../../src/serde_derive/de.rs.html#1784">variant</a>, <span class="bool-val">false</span>);
         <span class="kw">return</span> <a class="macro" href="../../src/serde_derive/fragment.rs.html#19-23">quote_block!</a> {
@@ -4977,10 +4977,10 @@
 
 <span class="kw">fn</span> <span class="ident">deserialize_externally_tagged_newtype_variant</span>(
     <span class="ident">variant_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42-47">Field</a>,
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42">Field</a>,
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#1842">params</a>.<span class="ident">this</span>;
 
     <span class="kw">if</span> <span class="ident">field</span>.<span class="ident">attrs</span>.<span class="ident">skip_deserializing</span>() {
@@ -5016,10 +5016,10 @@
 
 <span class="kw">fn</span> <span class="ident">deserialize_untagged_newtype_variant</span>(
     <span class="ident">variant_ident</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.Ident.html">syn::Ident</a>,
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42-47">Field</a>,
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42">Field</a>,
     <span class="ident">deserializer</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#1881">params</a>.<span class="ident">this</span>;
     <span class="kw">let</span> <span class="ident">field_ty</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#1882">field</a>.<span class="ident">ty</span>;
     <span class="kw">match</span> <a class="ident" href="../../src/serde_derive/de.rs.html#1882">field</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1465">deserialize_with</a>() {
@@ -5041,10 +5041,10 @@
 
 <span class="kw">fn</span> <span class="ident">deserialize_generated_identifier</span>(
     <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../proc_macro2/struct.Ident.html">Ident</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>)],
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
     <span class="ident">is_variant</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="ident">other_idx</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <a class="macro" href="../../quote/quote/macro.quote.html">quote!</a>(<span class="ident">__Field</span>);
     <span class="kw">let</span> <span class="ident">field_idents</span>: <span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#1905">fields</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">ident</span>, <span class="kw">_</span>)<span class="op">|</span> <a class="ident" href="../../src/serde_derive/de.rs.html#1911">ident</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
@@ -5110,10 +5110,10 @@
 <span class="comment">// Generates `Deserialize::deserialize` body for an enum with</span>
 <span class="comment">// `serde(field_identifier)` or `serde(variant_identifier)` attribute.</span>
 <span class="kw">fn</span> <span class="ident">deserialize_custom_identifier</span>(
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">variants</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33-39">Variant</a>],
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">variants</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33">Variant</a>],
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">let</span> <span class="ident">is_variant</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/serde_derive/de.rs.html#1977">cattrs</a>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#678">identifier</a>() {
         <a class="ident" href="../../src/serde_derive/internals/attr.rs.html#275">attr::Identifier::Variant</a> =&gt; <span class="bool-val">true</span>,
         <a class="ident" href="../../src/serde_derive/internals/attr.rs.html#271">attr::Identifier::Field</a> =&gt; <span class="bool-val">false</span>,
@@ -5227,7 +5227,7 @@
     <span class="ident">fallthrough_borrowed</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a><span class="op">&gt;</span>,
     <span class="ident">collect_other_fields</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
     <span class="ident">expecting</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flat_fields</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">ident</span>, <span class="ident">aliases</span>) <span class="kw">in</span> <span class="ident">fields</span> {
         <span class="ident">flat_fields</span>.<span class="ident">extend</span>(<span class="ident">aliases</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">alias</span><span class="op">|</span> (<span class="ident">alias</span>, <span class="ident">ident</span>)));
@@ -5509,10 +5509,10 @@
 
 <span class="kw">fn</span> <span class="ident">deserialize_struct_as_struct_visitor</span>(
     <span class="ident">struct_path</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42-47">Field</a>],
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
-) -&gt; (<a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a><span class="op">&gt;</span>, <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a>) {
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42">Field</a>],
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
+) -&gt; (<a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a><span class="op">&gt;</span>, <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a>) {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">cattrs</span>.<span class="ident">has_flatten</span>());
 
     <span class="kw">let</span> <span class="ident">field_names_idents</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#2375">fields</a>
@@ -5544,10 +5544,10 @@
 
 <span class="kw">fn</span> <span class="ident">deserialize_struct_as_map_visitor</span>(
     <span class="ident">struct_path</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42-47">Field</a>],
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
-) -&gt; (<a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a><span class="op">&gt;</span>, <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a>) {
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42">Field</a>],
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
+) -&gt; (<a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a><span class="op">&gt;</span>, <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a>) {
     <span class="kw">let</span> <span class="ident">field_names_idents</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#2410">fields</a>
         .<span class="ident">iter</span>()
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>()
@@ -5570,10 +5570,10 @@
 
 <span class="kw">fn</span> <span class="ident">deserialize_map</span>(
     <span class="ident">struct_path</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42-47">Field</a>],
-    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>,
-) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">fields</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42">Field</a>],
+    <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>,
+) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="comment">// Create the field names for the fields.</span>
     <span class="kw">let</span> <span class="ident">fields_names</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#2436">fields</a>
         .<span class="ident">iter</span>()
@@ -5978,7 +5978,7 @@
 <span class="doccomment">/// This function wraps the expression in `#[serde(deserialize_with = &quot;...&quot;)]`</span>
 <span class="doccomment">/// in a trait to prevent it from accessing the internal `Deserialize` state.</span>
 <span class="kw">fn</span> <span class="ident">wrap_deserialize_with</span>(
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
     <span class="ident">value_ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>,
     <span class="ident">deserialize_with</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/expr/struct.ExprPath.html">syn::ExprPath</a>,
 ) -&gt; (<a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
@@ -6014,7 +6014,7 @@
 }
 
 <span class="kw">fn</span> <span class="ident">wrap_deserialize_field_with</span>(
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
     <span class="ident">field_ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/ty/enum.Type.html">syn::Type</a>,
     <span class="ident">deserialize_with</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/expr/struct.ExprPath.html">syn::ExprPath</a>,
 ) -&gt; (<a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
@@ -6022,8 +6022,8 @@
 }
 
 <span class="kw">fn</span> <span class="ident">wrap_deserialize_variant_with</span>(
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33-39">Variant</a>,
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33">Variant</a>,
     <span class="ident">deserialize_with</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../syn/expr/struct.ExprPath.html">syn::ExprPath</a>,
 ) -&gt; (<a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) {
     <span class="kw">let</span> <span class="ident">field_tys</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#2888">variant</a>.<span class="ident">fields</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">field</span><span class="op">|</span> <a class="ident" href="../../src/serde_derive/de.rs.html#2891">field</a>.<span class="ident">ty</span>);
@@ -6037,8 +6037,8 @@
 
 <span class="comment">// Generates closure that converts single input parameter to the final value.</span>
 <span class="kw">fn</span> <span class="ident">unwrap_to_variant_closure</span>(
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
-    <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33-39">Variant</a>,
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
+    <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33">Variant</a>,
     <span class="ident">with_wrapper</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 ) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
     <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#2902">params</a>.<span class="ident">this</span>;
@@ -6083,7 +6083,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">expr_is_missing</span>(<span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42-47">Field</a>, <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209-228">attr::Container</a>) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5-11">Fragment</a> {
+<span class="kw">fn</span> <span class="ident">expr_is_missing</span>(<span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#42">Field</a>, <span class="ident">cattrs</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/attr.rs.html#209">attr::Container</a>) -&gt; <a class="ident" href="../../src/serde_derive/fragment.rs.html#5">Fragment</a> {
     <span class="kw">match</span> <a class="ident" href="../../src/serde_derive/de.rs.html#2948">field</a>.<span class="ident">attrs</span>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1457">default</a>() {
         <a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1128">attr::Default::Default</a> =&gt; {
             <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../src/serde_derive/de.rs.html#2948">field</a>.<span class="ident">original</span>.<a class="ident" href="../../syn/spanned/trait.Spanned.html">span</a>();
@@ -6121,14 +6121,14 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">effective_style</span>(<span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33-39">Variant</a>) -&gt; <a class="ident" href="../../src/serde_derive/internals/ast.rs.html#50-59">Style</a> {
+<span class="kw">fn</span> <span class="ident">effective_style</span>(<span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/internals/ast.rs.html#33">Variant</a>) -&gt; <a class="ident" href="../../src/serde_derive/internals/ast.rs.html#50">Style</a> {
     <span class="kw">match</span> <a class="ident" href="../../src/serde_derive/de.rs.html#2986">variant</a>.<span class="ident">style</span> {
         <a class="ident" href="../../src/serde_derive/internals/ast.rs.html#56">Style::Newtype</a> <span class="kw">if</span> <a class="ident" href="../../src/serde_derive/de.rs.html#2986">variant</a>.<span class="ident">fields</span>[<span class="number">0</span>].<span class="ident">attrs</span>.<a class="ident" href="../../src/serde_derive/internals/attr.rs.html#1449">skip_deserializing</a>() =&gt; <a class="ident" href="../../src/serde_derive/internals/ast.rs.html#58">Style::Unit</a>,
         <span class="ident">other</span> =&gt; <a class="ident" href="../../src/serde_derive/de.rs.html#2989">other</a>,
     }
 }
 
-<span class="kw">struct</span> <span class="ident">DeImplGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>);
+<span class="kw">struct</span> <span class="ident">DeImplGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>);
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deserialize_in_place&quot;</span>)]</span>
 <span class="kw">struct</span> <span class="ident">InPlaceImplGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Parameters</span>);
 
@@ -6188,7 +6188,7 @@
     }
 }
 
-<span class="kw">struct</span> <span class="ident">DeTypeGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>);
+<span class="kw">struct</span> <span class="ident">DeTypeGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>);
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deserialize_in_place&quot;</span>)]</span>
 <span class="kw">struct</span> <span class="ident">InPlaceTypeGenerics</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Parameters</span>);
 
@@ -6256,7 +6256,7 @@
 }
 
 <span class="kw">fn</span> <span class="ident">split_with_de_lifetime</span>(
-    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109-131">Parameters</a>,
+    <span class="ident">params</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/serde_derive/de.rs.html#109">Parameters</a>,
 ) -&gt; (
     <a class="ident" href="../../src/serde_derive/de.rs.html#2993">DeImplGenerics</a>,
     <a class="ident" href="../../src/serde_derive/de.rs.html#3053">DeTypeGenerics</a>,
@@ -6269,5 +6269,5 @@
     (<a class="ident" href="../../src/serde_derive/de.rs.html#3128">de_impl_generics</a>, <a class="ident" href="../../src/serde_derive/de.rs.html#3129">de_ty_generics</a>, <a class="ident" href="../../src/serde_derive/de.rs.html#3130">ty_generics</a>, <a class="ident" href="../../src/serde_derive/de.rs.html#3130">where_clause</a>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="serde_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="serde_derive" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

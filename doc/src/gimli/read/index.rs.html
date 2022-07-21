@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.1/src/read/index.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>index.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/index.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>index.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
@@ -541,10 +541,10 @@
 <span id="535">535</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/slice/index.html">core::slice</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../src/gimli/common.rs.html#245-290"><span class="kw">crate</span>::common::SectionId</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/gimli/common.rs.html#245"><span class="kw">crate</span>::common::SectionId</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/gimli/lib.rs.html#57"><span class="kw">crate</span>::constants</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/gimli/endianity.rs.html#7-172"><span class="kw">crate</span>::endianity::Endianity</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../src/gimli/read/endian_slice.rs.html#17-23">EndianSlice</a>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#271-434">Error</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-52">ReaderOffset</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#612-661">Section</a>};
+<span class="kw">use</span> <a class="ident" href="../../../src/gimli/endianity.rs.html#7"><span class="kw">crate</span>::endianity::Endianity</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../src/gimli/read/endian_slice.rs.html#17">EndianSlice</a>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#271">Error</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#612">Section</a>};
 
 <span class="doccomment">/// The data in the `.debug_cu_index` section of a `.dwp` file.</span>
 <span class="doccomment">///</span>
@@ -556,7 +556,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">DebugCuIndex</span><span class="op">&lt;</span><span class="ident">EndianSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Endian</span>: <a class="ident" href="../../../src/gimli/endianity.rs.html#7-172">Endianity</a>,
+    <span class="ident">Endian</span>: <a class="ident" href="../../../src/gimli/endianity.rs.html#7">Endianity</a>,
 {
     <span class="doccomment">/// Construct a new `DebugCuIndex` instance from the data in the `.debug_cu_index`</span>
     <span class="doccomment">/// section.</span>
@@ -566,7 +566,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Section</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugCuIndex</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245-290">SectionId</a> {
+    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a> {
         <a class="ident" href="../../../src/gimli/common.rs.html#253">SectionId::DebugCuIndex</a>
     }
 
@@ -577,11 +577,11 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugCuIndex</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">section</span>: <span class="ident">R</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/index.rs.html#12-14">DebugCuIndex</a> { <a class="ident" href="../../../src/gimli/read/index.rs.html#38">section</a> }
+        <a class="ident" href="../../../src/gimli/read/index.rs.html#12">DebugCuIndex</a> { <a class="ident" href="../../../src/gimli/read/index.rs.html#38">section</a> }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> <span class="ident">DebugCuIndex</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">DebugCuIndex</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Parse the index header.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">UnitIndex</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">UnitIndex::parse</span>(<a class="self" href="../../../src/gimli/read/index.rs.html#45">self</a>.<span class="ident">section</span>)
@@ -598,7 +598,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">DebugTuIndex</span><span class="op">&lt;</span><span class="ident">EndianSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Endian</span>: <a class="ident" href="../../../src/gimli/endianity.rs.html#7-172">Endianity</a>,
+    <span class="ident">Endian</span>: <a class="ident" href="../../../src/gimli/endianity.rs.html#7">Endianity</a>,
 {
     <span class="doccomment">/// Construct a new `DebugTuIndex` instance from the data in the `.debug_tu_index`</span>
     <span class="doccomment">/// section.</span>
@@ -608,7 +608,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Section</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugTuIndex</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245-290">SectionId</a> {
+    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a> {
         <a class="ident" href="../../../src/gimli/common.rs.html#287">SectionId::DebugTuIndex</a>
     }
 
@@ -619,11 +619,11 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugTuIndex</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">section</span>: <span class="ident">R</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/index.rs.html#54-56">DebugTuIndex</a> { <a class="ident" href="../../../src/gimli/read/index.rs.html#80">section</a> }
+        <a class="ident" href="../../../src/gimli/read/index.rs.html#54">DebugTuIndex</a> { <a class="ident" href="../../../src/gimli/read/index.rs.html#80">section</a> }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> <span class="ident">DebugTuIndex</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">DebugTuIndex</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Parse the index header.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">index</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">UnitIndex</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">UnitIndex::parse</span>(<a class="self" href="../../../src/gimli/read/index.rs.html#87">self</a>.<span class="ident">section</span>)
@@ -634,7 +634,7 @@
 
 <span class="doccomment">/// The partially parsed index from a `DebugCuIndex` or `DebugTuIndex`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnitIndex</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnitIndex</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> {
     <span class="ident">version</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u16.html">u16</a>,
     <span class="ident">section_count</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
     <span class="ident">unit_count</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
@@ -642,15 +642,15 @@
     <span class="ident">hash_ids</span>: <span class="ident">R</span>,
     <span class="ident">hash_rows</span>: <span class="ident">R</span>,
     <span class="comment">// Only `section_count` values are valid.</span>
-    <span class="ident">sections</span>: [<a class="ident" href="../../../src/gimli/common.rs.html#245-290">SectionId</a>; <a class="ident" href="../../../src/gimli/read/index.rs.html#92">SECTION_COUNT_MAX</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>],
+    <span class="ident">sections</span>: [<a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a>; <a class="ident" href="../../../src/gimli/read/index.rs.html#92">SECTION_COUNT_MAX</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>],
     <span class="ident">offsets</span>: <span class="ident">R</span>,
     <span class="ident">sizes</span>: <span class="ident">R</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> <span class="ident">UnitIndex</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">UnitIndex</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">R</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">UnitIndex</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/index.rs.html#96-107">UnitIndex</a> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/index.rs.html#96">UnitIndex</a> {
                 <span class="ident">version</span>: <span class="number">5</span>,
                 <span class="ident">section_count</span>: <span class="number">0</span>,
                 <span class="ident">unit_count</span>: <span class="number">0</span>,
@@ -725,7 +725,7 @@
             <span class="ident">u64::from</span>(<span class="ident">unit_count</span>) <span class="op">*</span> <span class="ident">u64::from</span>(<span class="ident">section_count</span>) <span class="op">*</span> <span class="number">4</span>,
         )<span class="question-mark">?</span>)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/index.rs.html#96-107">UnitIndex</a> {
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/index.rs.html#96">UnitIndex</a> {
             <a class="ident" href="../../../src/gimli/read/index.rs.html#128">version</a>,
             <a class="ident" href="../../../src/gimli/read/index.rs.html#138">section_count</a>,
             <a class="ident" href="../../../src/gimli/read/index.rs.html#139">unit_count</a>,
@@ -785,7 +785,7 @@
         <span class="ident">sizes</span>.<span class="ident">skip</span>(<span class="ident">R::Offset::from_u64</span>(
             <span class="ident">u64::from</span>(<span class="ident">row</span>) <span class="op">*</span> <span class="ident">u64::from</span>(<span class="self">self</span>.<span class="ident">section_count</span>) <span class="op">*</span> <span class="number">4</span>,
         )<span class="question-mark">?</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/index.rs.html#277-281">UnitIndexSectionIterator</a> {
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/index.rs.html#277">UnitIndexSectionIterator</a> {
             <span class="ident">sections</span>: <a class="self" href="../../../src/gimli/read/index.rs.html#231">self</a>.<span class="ident">sections</span>[..<a class="self" href="../../../src/gimli/read/index.rs.html#231">self</a>.<span class="ident">section_count</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>].<span class="ident">iter</span>(),
             <a class="ident" href="../../../src/gimli/read/index.rs.html#239">offsets</a>,
             <a class="ident" href="../../../src/gimli/read/index.rs.html#243">sizes</a>,
@@ -815,21 +815,21 @@
 
 <span class="doccomment">/// An iterator over the section offsets and sizes for a row in a `UnitIndex`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnitIndexSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;index</span>, <span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> {
-    <span class="ident">sections</span>: <span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;index</span>, <a class="ident" href="../../../src/gimli/common.rs.html#245-290">SectionId</a><span class="op">&gt;</span>,
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnitIndexSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;index</span>, <span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> {
+    <span class="ident">sections</span>: <span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;index</span>, <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a><span class="op">&gt;</span>,
     <span class="ident">offsets</span>: <span class="ident">R</span>,
     <span class="ident">sizes</span>: <span class="ident">R</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;index</span>, <span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">UnitIndexSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;index</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/index.rs.html#301-308">UnitIndexSection</a>;
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;index</span>, <span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">UnitIndexSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;index</span>, <span class="ident">R</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/index.rs.html#301">UnitIndexSection</a>;
 
-    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/index.rs.html#301-308">UnitIndexSection</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/index.rs.html#301">UnitIndexSection</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">section</span> <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">sections</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
         <span class="comment">// The length of these arrays was validated in `UnitIndex::parse`.</span>
         <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">offsets</span>.<span class="ident">read_u32</span>().<span class="ident">ok</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">sizes</span>.<span class="ident">read_u32</span>().<span class="ident">ok</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/gimli/read/index.rs.html#301-308">UnitIndexSection</a> {
+        <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/gimli/read/index.rs.html#301">UnitIndexSection</a> {
             <a class="ident" href="../../../src/gimli/read/index.rs.html#287">section</a>,
             <a class="ident" href="../../../src/gimli/read/index.rs.html#289">offset</a>,
             <a class="ident" href="../../../src/gimli/read/index.rs.html#290">size</a>,
@@ -841,7 +841,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnitIndexSection</span> {
     <span class="doccomment">/// The section kind.</span>
-    <span class="kw">pub</span> <span class="ident">section</span>: <a class="ident" href="../../../src/gimli/common.rs.html#245-290">SectionId</a>,
+    <span class="kw">pub</span> <span class="ident">section</span>: <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a>,
     <span class="doccomment">/// The base offset of the unit&#39;s contribution to the section.</span>
     <span class="kw">pub</span> <span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a>,
     <span class="doccomment">/// The size of the unit&#39;s contribution to the section.</span>
@@ -1075,5 +1075,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

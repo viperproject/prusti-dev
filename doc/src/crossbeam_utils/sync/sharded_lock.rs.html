@@ -645,7 +645,7 @@
 <span class="kw">use</span> <span class="ident">std::sync</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLock.html">RwLock</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLockReadGuard.html">RwLockReadGuard</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLockWriteGuard.html">RwLockWriteGuard</a>};
 <span class="kw">use</span> <span class="ident">std::thread</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/thread/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/thread/struct.ThreadId.html">ThreadId</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../src/crossbeam_utils/cache_padded.rs.html#128-130"><span class="kw">crate</span>::CachePadded</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/crossbeam_utils/cache_padded.rs.html#128"><span class="kw">crate</span>::CachePadded</a>;
 <span class="kw">use</span> <a class="ident" href="../../../once_cell/sync/struct.Lazy.html">once_cell::sync::Lazy</a>;
 
 <span class="doccomment">/// The number of shards per sharded lock. Must be a power of two.</span>
@@ -711,7 +711,7 @@
 <span class="doccomment">/// [`RwLock`]: std::sync::RwLock</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ShardedLock</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> {
     <span class="doccomment">/// A list of locks protecting the internal data.</span>
-    <span class="ident">shards</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">CachePadded</span><span class="op">&lt;</span><a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#19-28">Shard</a><span class="op">&gt;</span>]<span class="op">&gt;</span>,
+    <span class="ident">shards</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">CachePadded</span><span class="op">&lt;</span><a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#19">Shard</a><span class="op">&gt;</span>]<span class="op">&gt;</span>,
 
     <span class="doccomment">/// The internal data.</span>
     <span class="ident">value</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
@@ -734,10 +734,10 @@
     <span class="doccomment">/// let lock = ShardedLock::new(5);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">ShardedLock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#76-82">ShardedLock</a> {
+        <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#76">ShardedLock</a> {
             <span class="ident">shards</span>: (<span class="number">0</span>..<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#16">NUM_SHARDS</a>)
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                    <span class="ident">CachePadded::new</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#19-28">Shard</a> {
+                    <span class="ident">CachePadded::new</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#19">Shard</a> {
                         <span class="ident">lock</span>: <span class="ident">RwLock::new</span>(()),
                         <span class="ident">write_guard</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>),
                     })
@@ -864,13 +864,13 @@
         <span class="kw">let</span> <span class="ident">shard_index</span> <span class="op">=</span> <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#227">current_index</a> <span class="op">&amp;</span> (<a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#224">self</a>.<span class="ident">shards</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>);
 
         <span class="kw">match</span> <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#224">self</a>.<span class="ident">shards</span>[<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#228">shard_index</a>].<span class="ident">lock</span>.<span class="ident">try_read</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">guard</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#483-487">ShardedLockReadGuard</a> {
+            <span class="prelude-val">Ok</span>(<span class="ident">guard</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#483">ShardedLockReadGuard</a> {
                 <span class="ident">lock</span>: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#224">self</a>,
                 <span class="ident">_guard</span>: <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#231">guard</a>,
                 <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
             }),
             <span class="prelude-val">Err</span>(<span class="ident">TryLockError::Poisoned</span>(<span class="ident">err</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#483-487">ShardedLockReadGuard</a> {
+                <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#483">ShardedLockReadGuard</a> {
                     <span class="ident">lock</span>: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#224">self</a>,
                     <span class="ident">_guard</span>: <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#236">err</a>.<span class="ident">into_inner</span>(),
                     <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
@@ -924,12 +924,12 @@
         <span class="kw">let</span> <span class="ident">shard_index</span> <span class="op">=</span> <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#287">current_index</a> <span class="op">&amp;</span> (<a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#284">self</a>.<span class="ident">shards</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>);
 
         <span class="kw">match</span> <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#284">self</a>.<span class="ident">shards</span>[<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#288">shard_index</a>].<span class="ident">lock</span>.<span class="ident">read</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident">guard</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#483-487">ShardedLockReadGuard</a> {
+            <span class="prelude-val">Ok</span>(<span class="ident">guard</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#483">ShardedLockReadGuard</a> {
                 <span class="ident">lock</span>: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#284">self</a>,
                 <span class="ident">_guard</span>: <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#291">guard</a>,
                 <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
             }),
-            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">PoisonError::new</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#483-487">ShardedLockReadGuard</a> {
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">PoisonError::new</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#483">ShardedLockReadGuard</a> {
                 <span class="ident">lock</span>: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#284">self</a>,
                 <span class="ident">_guard</span>: <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#296">err</a>.<span class="ident">into_inner</span>(),
                 <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
@@ -998,13 +998,13 @@
             }
             <span class="prelude-val">Err</span>(<span class="ident">TryLockError::WouldBlock</span>)
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">poisoned</span> {
-            <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#514-517">ShardedLockWriteGuard</a> {
+            <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#514">ShardedLockWriteGuard</a> {
                 <span class="ident">lock</span>: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#328">self</a>,
                 <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
             };
             <span class="prelude-val">Err</span>(<span class="ident">TryLockError::Poisoned</span>(<span class="ident">PoisonError::new</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#365">guard</a>)))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#514-517">ShardedLockWriteGuard</a> {
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#514">ShardedLockWriteGuard</a> {
                 <span class="ident">lock</span>: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#328">self</a>,
                 <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
             })
@@ -1064,12 +1064,12 @@
         }
 
         <span class="kw">if</span> <span class="ident">poisoned</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">PoisonError::new</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#514-517">ShardedLockWriteGuard</a> {
+            <span class="prelude-val">Err</span>(<span class="ident">PoisonError::new</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#514">ShardedLockWriteGuard</a> {
                 <span class="ident">lock</span>: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#408">self</a>,
                 <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
             }))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#514-517">ShardedLockWriteGuard</a> {
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#514">ShardedLockWriteGuard</a> {
                 <span class="ident">lock</span>: <a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#408">self</a>,
                 <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
             })
@@ -1219,8 +1219,8 @@
     <span class="ident">next_index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">static</span> <span class="ident">THREAD_INDICES</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#575-584">ThreadIndices</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> {
-    <span class="ident">Mutex::new</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#575-584">ThreadIndices</a> {
+<span class="kw">static</span> <span class="ident">THREAD_INDICES</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#575">ThreadIndices</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> {
+    <span class="ident">Mutex::new</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#575">ThreadIndices</a> {
         <span class="ident">mapping</span>: <span class="ident">HashMap::new</span>(),
         <span class="ident">free_list</span>: <span class="ident">Vec::new</span>(),
         <span class="ident">next_index</span>: <span class="number">0</span>,
@@ -1235,9 +1235,9 @@
     <span class="ident">thread_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/thread/struct.ThreadId.html">ThreadId</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#597-600">Registration</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#597">Registration</a> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indices</span> <span class="op">=</span> <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#586-592">THREAD_INDICES</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indices</span> <span class="op">=</span> <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#586">THREAD_INDICES</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
         <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#604">indices</a>.<span class="ident">mapping</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#603">self</a>.<span class="ident">thread_id</span>);
         <a class="ident" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#604">indices</a>.<span class="ident">free_list</span>.<span class="ident">push</span>(<a class="self" href="../../../src/crossbeam_utils/sync/sharded_lock.rs.html#603">self</a>.<span class="ident">index</span>);
     }
@@ -1265,5 +1265,5 @@
     };
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

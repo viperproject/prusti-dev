@@ -1127,7 +1127,7 @@
     <span class="ident">kill_on_drop</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/async_process/lib.rs.html#85-89">ChildGuard</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/async_process/lib.rs.html#85">ChildGuard</a> {
     <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Child.html">std::process::Child</a> {
         <a class="self" href="../../src/async_process/lib.rs.html#92">self</a>.<span class="ident">inner</span>.<span class="ident">as_mut</span>().<span class="ident">unwrap</span>()
     }
@@ -1153,30 +1153,30 @@
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Child</span> {
     <span class="doccomment">/// The handle for writing to the child&#39;s standard input (stdin), if it has been captured.</span>
-    <span class="kw">pub</span> <span class="ident">stdin</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/async_process/lib.rs.html#445-448">ChildStdin</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">stdin</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/async_process/lib.rs.html#445">ChildStdin</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// The handle for reading from the child&#39;s standard output (stdout), if it has been captured.</span>
-    <span class="kw">pub</span> <span class="ident">stdout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/async_process/lib.rs.html#504-507">ChildStdout</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">stdout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/async_process/lib.rs.html#504">ChildStdout</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// The handle for reading from the child&#39;s standard error (stderr), if it has been captured.</span>
-    <span class="kw">pub</span> <span class="ident">stderr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/async_process/lib.rs.html#558-561">ChildStderr</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">stderr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/async_process/lib.rs.html#558">ChildStderr</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// The inner child process handle.</span>
-    <span class="ident">child</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../src/async_process/lib.rs.html#85-89">ChildGuard</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">child</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../src/async_process/lib.rs.html#85">ChildGuard</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/async_process/lib.rs.html#115-127">Child</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/async_process/lib.rs.html#115">Child</a> {
     <span class="doccomment">/// Wraps the inner child process handle and registers it in the global process list.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The &quot;async-process&quot; thread waits for processes in the global list and cleans up the</span>
     <span class="doccomment">/// resources when they exit.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/async_process/lib.rs.html#115-127">Child</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/async_process/lib.rs.html#115">Child</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">child</span> <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">inner</span>.<span class="ident">spawn</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// Convert sync I/O types into async I/O types.</span>
-        <span class="kw">let</span> <span class="ident">stdin</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">stdin</span>.<span class="ident">take</span>().<span class="ident">map</span>(<span class="ident">wrap</span>).<span class="ident">transpose</span>()<span class="question-mark">?</span>.<span class="ident">map</span>(<a class="ident" href="../../src/async_process/lib.rs.html#445-448">ChildStdin</a>);
-        <span class="kw">let</span> <span class="ident">stdout</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">stdout</span>.<span class="ident">take</span>().<span class="ident">map</span>(<span class="ident">wrap</span>).<span class="ident">transpose</span>()<span class="question-mark">?</span>.<span class="ident">map</span>(<a class="ident" href="../../src/async_process/lib.rs.html#504-507">ChildStdout</a>);
-        <span class="kw">let</span> <span class="ident">stderr</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">stderr</span>.<span class="ident">take</span>().<span class="ident">map</span>(<span class="ident">wrap</span>).<span class="ident">transpose</span>()<span class="question-mark">?</span>.<span class="ident">map</span>(<a class="ident" href="../../src/async_process/lib.rs.html#558-561">ChildStderr</a>);
+        <span class="kw">let</span> <span class="ident">stdin</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">stdin</span>.<span class="ident">take</span>().<span class="ident">map</span>(<span class="ident">wrap</span>).<span class="ident">transpose</span>()<span class="question-mark">?</span>.<span class="ident">map</span>(<a class="ident" href="../../src/async_process/lib.rs.html#445">ChildStdin</a>);
+        <span class="kw">let</span> <span class="ident">stdout</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">stdout</span>.<span class="ident">take</span>().<span class="ident">map</span>(<span class="ident">wrap</span>).<span class="ident">transpose</span>()<span class="question-mark">?</span>.<span class="ident">map</span>(<a class="ident" href="../../src/async_process/lib.rs.html#504">ChildStdout</a>);
+        <span class="kw">let</span> <span class="ident">stderr</span> <span class="op">=</span> <span class="ident">child</span>.<span class="ident">stderr</span>.<span class="ident">take</span>().<span class="ident">map</span>(<span class="ident">wrap</span>).<span class="ident">transpose</span>()<span class="question-mark">?</span>.<span class="ident">map</span>(<a class="ident" href="../../src/async_process/lib.rs.html#558">ChildStderr</a>);
 
         <span class="macro">cfg_if::cfg_if!</span> {
             <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">windows</span>)]</span> {
@@ -1235,11 +1235,11 @@
                 });
 
                 <span class="comment">// Make sure the signal handler is registered before interacting with the process.</span>
-                <span class="ident">Lazy::force</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/async_process/lib.rs.html#191-196">SIGNALS</a>);
+                <span class="ident">Lazy::force</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/async_process/lib.rs.html#191">SIGNALS</a>);
 
                 <span class="comment">// Waits for the next SIGCHLD signal.</span>
                 <span class="kw">fn</span> <span class="ident">wait_sigchld</span>() {
-                    <a class="ident" href="../../src/async_process/lib.rs.html#191-196">SIGNALS</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">forever</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
+                    <a class="ident" href="../../src/async_process/lib.rs.html#191">SIGNALS</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>().<span class="ident">forever</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>();
                 }
 
                 <span class="comment">// Wraps a sync I/O type into an async I/O type.</span>
@@ -1262,7 +1262,7 @@
                         <a class="ident" href="../../src/async_process/lib.rs.html#82">SIGCHLD</a>.<span class="ident">notify</span>(<span class="ident">std::usize::MAX</span>);
 
                         <span class="comment">// Reap zombie processes.</span>
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zombies</span> <span class="op">=</span> <a class="ident" href="../../src/async_process/lib.rs.html#213-240">ZOMBIES</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zombies</span> <span class="op">=</span> <a class="ident" href="../../src/async_process/lib.rs.html#213">ZOMBIES</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
                         <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">zombies</span>.<span class="ident">len</span>() {
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="op">=</span> <span class="ident">zombies</span>[<span class="ident">i</span>].<span class="ident">try_wait</span>() {
@@ -1279,16 +1279,16 @@
         });
 
         <span class="comment">// Make sure the thread is started.</span>
-        <span class="ident">Lazy::force</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/async_process/lib.rs.html#213-240">ZOMBIES</a>);
+        <span class="ident">Lazy::force</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/async_process/lib.rs.html#213">ZOMBIES</a>);
 
         <span class="comment">// When the last reference to the child process is dropped, push it into the zombie list.</span>
-        <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/async_process/lib.rs.html#85-89">ChildGuard</a> {
+        <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/async_process/lib.rs.html#85">ChildGuard</a> {
             <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">kill_on_drop</span> {
                     <a class="self" href="../../src/async_process/lib.rs.html#247">self</a>.<a class="ident" href="../../src/async_process/lib.rs.html#92">get_mut</a>().<span class="ident">kill</span>().<span class="ident">ok</span>();
                 }
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">reap_on_drop</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zombies</span> <span class="op">=</span> <a class="ident" href="../../src/async_process/lib.rs.html#213-240">ZOMBIES</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zombies</span> <span class="op">=</span> <a class="ident" href="../../src/async_process/lib.rs.html#213">ZOMBIES</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) <span class="op">=</span> <a class="self" href="../../src/async_process/lib.rs.html#247">self</a>.<a class="ident" href="../../src/async_process/lib.rs.html#92">get_mut</a>().<span class="ident">try_wait</span>() {
                         <a class="ident" href="../../src/async_process/lib.rs.html#252">zombies</a>.<span class="ident">push</span>(<a class="self" href="../../src/async_process/lib.rs.html#247">self</a>.<span class="ident">inner</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>());
                     }
@@ -1296,11 +1296,11 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/async_process/lib.rs.html#115-127">Child</a> {
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/async_process/lib.rs.html#115">Child</a> {
             <a class="ident" href="../../src/async_process/lib.rs.html#138">stdin</a>,
             <a class="ident" href="../../src/async_process/lib.rs.html#139">stdout</a>,
             <a class="ident" href="../../src/async_process/lib.rs.html#140">stderr</a>,
-            <span class="ident">child</span>: <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<a class="ident" href="../../src/async_process/lib.rs.html#85-89">ChildGuard</a> {
+            <span class="ident">child</span>: <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<a class="ident" href="../../src/async_process/lib.rs.html#85">ChildGuard</a> {
                 <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/async_process/lib.rs.html#135">child</a>),
                 <span class="ident">reap_on_drop</span>: <a class="ident" href="../../src/async_process/lib.rs.html#134">cmd</a>.<span class="ident">reap_on_drop</span>,
                 <span class="ident">kill_on_drop</span>: <a class="ident" href="../../src/async_process/lib.rs.html#134">cmd</a>.<span class="ident">kill_on_drop</span>,
@@ -1466,7 +1466,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/async_process/lib.rs.html#115-127">Child</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/async_process/lib.rs.html#115">Child</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="ident" href="../../src/async_process/lib.rs.html#431">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Child&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;stdin&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/async_process/lib.rs.html#431">self</a>.<span class="ident">stdin</span>)
@@ -1486,7 +1486,7 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span> <span class="ident">Async</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdin.html">std::process::ChildStdin</a><span class="op">&gt;</span>,
 );
 
-<span class="kw">impl</span> <a class="ident" href="../../src/async_process/lib.rs.html#445-448">ChildStdin</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/async_process/lib.rs.html#445">ChildStdin</a> {
     <span class="doccomment">/// Convert async_process::ChildStdin into std::process::Stdio.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// You can use it to associate to the next process.</span>
@@ -1518,7 +1518,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../futures_io/if_std/trait.AsyncWrite.html">io::AsyncWrite</a> <span class="kw">for</span> <a class="ident" href="../../src/async_process/lib.rs.html#445-448">ChildStdin</a> {
+<span class="kw">impl</span> <a class="ident" href="../../futures_io/if_std/trait.AsyncWrite.html">io::AsyncWrite</a> <span class="kw">for</span> <a class="ident" href="../../src/async_process/lib.rs.html#445">ChildStdin</a> {
     <span class="kw">fn</span> <span class="ident">poll_write</span>(
         <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
@@ -1545,7 +1545,7 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span> <span class="ident">Async</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStdout.html">std::process::ChildStdout</a><span class="op">&gt;</span>,
 );
 
-<span class="kw">impl</span> <a class="ident" href="../../src/async_process/lib.rs.html#504-507">ChildStdout</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/async_process/lib.rs.html#504">ChildStdout</a> {
     <span class="doccomment">/// Convert async_process::ChildStdout into std::process::Stdio.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// You can use it to associate to the next process.</span>
@@ -1580,7 +1580,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../futures_io/if_std/trait.AsyncRead.html">io::AsyncRead</a> <span class="kw">for</span> <a class="ident" href="../../src/async_process/lib.rs.html#504-507">ChildStdout</a> {
+<span class="kw">impl</span> <a class="ident" href="../../futures_io/if_std/trait.AsyncRead.html">io::AsyncRead</a> <span class="kw">for</span> <a class="ident" href="../../src/async_process/lib.rs.html#504">ChildStdout</a> {
     <span class="kw">fn</span> <span class="ident">poll_read</span>(
         <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
@@ -1599,7 +1599,7 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">unix</span>)]</span> <span class="ident">Async</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.ChildStderr.html">std::process::ChildStderr</a><span class="op">&gt;</span>,
 );
 
-<span class="kw">impl</span> <a class="ident" href="../../src/async_process/lib.rs.html#558-561">ChildStderr</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/async_process/lib.rs.html#558">ChildStderr</a> {
     <span class="doccomment">/// Convert async_process::ChildStderr into std::process::Stdio.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// You can use it to associate to the next process.</span>
@@ -1630,7 +1630,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../futures_io/if_std/trait.AsyncRead.html">io::AsyncRead</a> <span class="kw">for</span> <a class="ident" href="../../src/async_process/lib.rs.html#558-561">ChildStderr</a> {
+<span class="kw">impl</span> <a class="ident" href="../../futures_io/if_std/trait.AsyncRead.html">io::AsyncRead</a> <span class="kw">for</span> <a class="ident" href="../../src/async_process/lib.rs.html#558">ChildStderr</a> {
     <span class="kw">fn</span> <span class="ident">poll_read</span>(
         <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
@@ -1664,7 +1664,7 @@
     <span class="ident">kill_on_drop</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a> {
     <span class="doccomment">/// Constructs a new [`Command`] for launching `program`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The initial configuration (the working directory and environment variables) is inherited</span>
@@ -1677,7 +1677,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let mut cmd = Command::new(&quot;ls&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">program</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">program</span>: <span class="ident">S</span>) -&gt; <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a> {
         <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">std::process::Command::new</span>(<a class="ident" href="../../src/async_process/lib.rs.html#641">program</a>))
     }
 
@@ -1692,7 +1692,7 @@
     <span class="doccomment">/// cmd.arg(&quot;hello&quot;);</span>
     <span class="doccomment">/// cmd.arg(&quot;world&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">arg</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="ident">S</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">arg</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">arg</span>: <span class="ident">S</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a> {
         <a class="self" href="../../src/async_process/lib.rs.html#656">self</a>.<span class="ident">inner</span>.<span class="ident">arg</span>(<a class="ident" href="../../src/async_process/lib.rs.html#656">arg</a>);
         <a class="self" href="../../src/async_process/lib.rs.html#656">self</a>
     }
@@ -1707,7 +1707,7 @@
     <span class="doccomment">/// let mut cmd = Command::new(&quot;echo&quot;);</span>
     <span class="doccomment">/// cmd.args(&amp;[&quot;hello&quot;, &quot;world&quot;]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">args</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">args</span>: <span class="ident">I</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">args</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">args</span>: <span class="ident">I</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">S</span><span class="op">&gt;</span>,
         <span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span>,
@@ -1729,7 +1729,7 @@
     <span class="doccomment">/// let mut cmd = Command::new(&quot;ls&quot;);</span>
     <span class="doccomment">/// cmd.env(&quot;PATH&quot;, &quot;/bin&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">env</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">val</span>: <span class="ident">V</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">env</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">val</span>: <span class="ident">V</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a>
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span>,
         <span class="ident">V</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span>,
@@ -1751,7 +1751,7 @@
     <span class="doccomment">/// let mut cmd = Command::new(&quot;ls&quot;);</span>
     <span class="doccomment">/// cmd.envs(vec![(&quot;PATH&quot;, &quot;/bin&quot;), (&quot;TERM&quot;, &quot;xterm-256color&quot;)]);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">envs</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">vars</span>: <span class="ident">I</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">envs</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">vars</span>: <span class="ident">I</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a>
     <span class="kw">where</span>
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> (<span class="ident">K</span>, <span class="ident">V</span>)<span class="op">&gt;</span>,
         <span class="ident">K</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span>,
@@ -1771,7 +1771,7 @@
     <span class="doccomment">/// let mut cmd = Command::new(&quot;ls&quot;);</span>
     <span class="doccomment">/// cmd.env_remove(&quot;PATH&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">env_remove</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">env_remove</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a> {
         <a class="self" href="../../src/async_process/lib.rs.html#735">self</a>.<span class="ident">inner</span>.<span class="ident">env_remove</span>(<a class="ident" href="../../src/async_process/lib.rs.html#735">key</a>);
         <a class="self" href="../../src/async_process/lib.rs.html#735">self</a>
     }
@@ -1786,7 +1786,7 @@
     <span class="doccomment">/// let mut cmd = Command::new(&quot;ls&quot;);</span>
     <span class="doccomment">/// cmd.env_clear();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">env_clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">env_clear</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a> {
         <a class="self" href="../../src/async_process/lib.rs.html#750">self</a>.<span class="ident">inner</span>.<span class="ident">env_clear</span>();
         <a class="self" href="../../src/async_process/lib.rs.html#750">self</a>
     }
@@ -1801,7 +1801,7 @@
     <span class="doccomment">/// let mut cmd = Command::new(&quot;ls&quot;);</span>
     <span class="doccomment">/// cmd.current_dir(&quot;/&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_dir</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dir</span>: <span class="ident">P</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_dir</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">dir</span>: <span class="ident">P</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a> {
         <a class="self" href="../../src/async_process/lib.rs.html#765">self</a>.<span class="ident">inner</span>.<span class="ident">current_dir</span>(<a class="ident" href="../../src/async_process/lib.rs.html#765">dir</a>);
         <a class="self" href="../../src/async_process/lib.rs.html#765">self</a>
     }
@@ -1816,7 +1816,7 @@
     <span class="doccomment">/// let mut cmd = Command::new(&quot;cat&quot;);</span>
     <span class="doccomment">/// cmd.stdin(Stdio::null());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stdin</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cfg</span>: <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stdin</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cfg</span>: <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a> {
         <a class="self" href="../../src/async_process/lib.rs.html#780">self</a>.<span class="ident">stdin</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <a class="self" href="../../src/async_process/lib.rs.html#780">self</a>.<span class="ident">inner</span>.<span class="ident">stdin</span>(<a class="ident" href="../../src/async_process/lib.rs.html#780">cfg</a>);
         <a class="self" href="../../src/async_process/lib.rs.html#780">self</a>
@@ -1832,7 +1832,7 @@
     <span class="doccomment">/// let mut cmd = Command::new(&quot;ls&quot;);</span>
     <span class="doccomment">/// cmd.stdout(Stdio::piped());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stdout</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cfg</span>: <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stdout</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cfg</span>: <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a> {
         <a class="self" href="../../src/async_process/lib.rs.html#796">self</a>.<span class="ident">stdout</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <a class="self" href="../../src/async_process/lib.rs.html#796">self</a>.<span class="ident">inner</span>.<span class="ident">stdout</span>(<a class="ident" href="../../src/async_process/lib.rs.html#796">cfg</a>);
         <a class="self" href="../../src/async_process/lib.rs.html#796">self</a>
@@ -1848,7 +1848,7 @@
     <span class="doccomment">/// let mut cmd = Command::new(&quot;ls&quot;);</span>
     <span class="doccomment">/// cmd.stderr(Stdio::piped());</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stderr</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cfg</span>: <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stderr</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Stdio.html">Stdio</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cfg</span>: <span class="ident">T</span>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a> {
         <a class="self" href="../../src/async_process/lib.rs.html#812">self</a>.<span class="ident">stderr</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <a class="self" href="../../src/async_process/lib.rs.html#812">self</a>.<span class="ident">inner</span>.<span class="ident">stderr</span>(<a class="ident" href="../../src/async_process/lib.rs.html#812">cfg</a>);
         <a class="self" href="../../src/async_process/lib.rs.html#812">self</a>
@@ -1874,7 +1874,7 @@
     <span class="doccomment">/// let mut cmd = Command::new(&quot;cat&quot;);</span>
     <span class="doccomment">/// cmd.reap_on_drop(false);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reap_on_drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">reap_on_drop</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reap_on_drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">reap_on_drop</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a> {
         <a class="self" href="../../src/async_process/lib.rs.html#838">self</a>.<span class="ident">reap_on_drop</span> <span class="op">=</span> <a class="ident" href="../../src/async_process/lib.rs.html#838">reap_on_drop</a>;
         <a class="self" href="../../src/async_process/lib.rs.html#838">self</a>
     }
@@ -1891,7 +1891,7 @@
     <span class="doccomment">/// let mut cmd = Command::new(&quot;cat&quot;);</span>
     <span class="doccomment">/// cmd.kill_on_drop(true);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kill_on_drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">kill_on_drop</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kill_on_drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">kill_on_drop</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a> {
         <a class="self" href="../../src/async_process/lib.rs.html#855">self</a>.<span class="ident">kill_on_drop</span> <span class="op">=</span> <a class="ident" href="../../src/async_process/lib.rs.html#855">kill_on_drop</a>;
         <a class="self" href="../../src/async_process/lib.rs.html#855">self</a>
     }
@@ -1909,7 +1909,7 @@
     <span class="doccomment">/// let child = Command::new(&quot;ls&quot;).spawn()?;</span>
     <span class="doccomment">/// # std::io::Result::Ok(()) });</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/async_process/lib.rs.html#115-127">Child</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">spawn</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../src/async_process/lib.rs.html#115">Child</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">stdin</span> {
             <a class="self" href="../../src/async_process/lib.rs.html#873">self</a>.<span class="ident">inner</span>.<span class="ident">stdin</span>(<span class="ident">Stdio::inherit</span>());
         }
@@ -1978,7 +1978,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">std::process::Command</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">std::process::Command</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">inner</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/struct.Command.html">std::process::Command</a>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <a class="ident" href="../../src/async_process/lib.rs.html#943">inner</a>,
@@ -1991,7 +1991,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/async_process/lib.rs.html#619-626">Command</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/async_process/lib.rs.html#619">Command</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">alternate</span>() {
             <a class="ident" href="../../src/async_process/lib.rs.html#956">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Command&quot;</span>)
@@ -2071,5 +2071,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_process" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_process" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

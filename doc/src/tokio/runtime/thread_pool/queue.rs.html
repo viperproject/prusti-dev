@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/runtime/thread_pool/queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.0/src/runtime/thread_pool/queue.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>queue.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
@@ -518,9 +518,9 @@
 </pre><pre class="rust"><code><span class="doccomment">//! Run-queue structures to support a work-stealing scheduler</span>
 
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::loom::sync::atomic</span>::{<a class="ident" href="../../../../src/tokio/loom/std/atomic_u16.rs.html#6-8">AtomicU16</a>, <a class="ident" href="../../../../src/tokio/loom/std/atomic_u32.rs.html#6-8">AtomicU32</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::loom::sync::atomic</span>::{<a class="ident" href="../../../../src/tokio/loom/std/atomic_u16.rs.html#6">AtomicU16</a>, <a class="ident" href="../../../../src/tokio/loom/std/atomic_u32.rs.html#6">AtomicU32</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html"><span class="kw">crate</span>::loom::sync::Arc</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime::task</span>::{<a class="self" href="../../../../src/tokio/runtime/mod.rs.html#183">self</a>, <a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#13-22">Inject</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime::task</span>::{<a class="self" href="../../../../src/tokio/runtime/mod.rs.html#183">self</a>, <a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#13">Inject</a>};
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/runtime/metrics/mock.rs.html#7"><span class="kw">crate</span>::runtime::MetricsBatch</a>;
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
@@ -547,10 +547,10 @@
     <span class="doccomment">/// When both `u16` values are the same, there is no active stealer.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Tracking an in-progress stealer prevents a wrapping scenario.</span>
-    <span class="ident">head</span>: <a class="ident" href="../../../../src/tokio/loom/std/atomic_u32.rs.html#6-8">AtomicU32</a>,
+    <span class="ident">head</span>: <a class="ident" href="../../../../src/tokio/loom/std/atomic_u32.rs.html#6">AtomicU32</a>,
 
     <span class="doccomment">/// Only updated by producer thread but read by many threads.</span>
-    <span class="ident">tail</span>: <a class="ident" href="../../../../src/tokio/loom/std/atomic_u16.rs.html#6-8">AtomicU16</a>,
+    <span class="ident">tail</span>: <a class="ident" href="../../../../src/tokio/loom/std/atomic_u16.rs.html#6">AtomicU16</a>,
 
     <span class="doccomment">/// Elements</span>
     <span class="ident">buffer</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">task::Notified</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>; <a class="ident" href="../../../../src/tokio/runtime/thread_pool/queue.rs.html#46">LOCAL_QUEUE_CAPACITY</a>]<span class="op">&gt;</span>,
@@ -589,13 +589,13 @@
         <span class="ident">buffer</span>.<span class="ident">push</span>(<span class="ident">UnsafeCell::new</span>(<span class="ident">MaybeUninit::uninit</span>()));
     }
 
-    <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/queue.rs.html#21-40">Inner</a> {
+    <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/queue.rs.html#21">Inner</a> {
         <span class="ident">head</span>: <span class="ident">AtomicU32::new</span>(<span class="number">0</span>),
         <span class="ident">tail</span>: <span class="ident">AtomicU16::new</span>(<span class="number">0</span>),
         <span class="ident">buffer</span>: <a class="ident" href="../../../../src/tokio/runtime/thread_pool/queue.rs.html#60">make_fixed_size</a>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/queue.rs.html#69">buffer</a>.<span class="ident">into_boxed_slice</span>()),
     });
 
-    <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/queue.rs.html#14-16">Local</a> {
+    <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/queue.rs.html#14">Local</a> {
         <span class="ident">inner</span>: <a class="ident" href="../../../../src/tokio/runtime/thread_pool/queue.rs.html#75">inner</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
     };
 
@@ -762,7 +762,7 @@
 
         <span class="comment">// safety: The CAS above ensures that no consumer will look at these</span>
         <span class="comment">// values again, and we are the only producer.</span>
-        <span class="kw">let</span> <span class="ident">batch_iter</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/queue.rs.html#220-224">BatchTaskIter</a> {
+        <span class="kw">let</span> <span class="ident">batch_iter</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/queue.rs.html#220">BatchTaskIter</a> {
             <span class="ident">buffer</span>: <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/tokio/runtime/thread_pool/queue.rs.html#166">self</a>.<span class="ident">inner</span>.<span class="ident">buffer</span>,
             <span class="ident">head</span>: <a class="ident" href="../../../../src/tokio/runtime/thread_pool/queue.rs.html#168">head</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
             <span class="ident">i</span>: <span class="number">0</span>,
@@ -1027,5 +1027,5 @@
     <span class="macro">assert!</span>(<span class="ident">LOCAL_QUEUE_CAPACITY</span> <span class="op">-</span> <span class="number">1</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">u8::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/sync/mpsc/unbounded.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unbounded.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.0/src/sync/mpsc/unbounded.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unbounded.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
@@ -388,9 +388,10 @@
 <span id="382">382</span>
 <span id="383">383</span>
 <span id="384">384</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
+<span id="385">385</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/mod.rs.html#95"><span class="kw">crate</span>::sync::mpsc::chan</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::sync::mpsc::error</span>::{<a class="ident" href="../../../../src/tokio/sync/mpsc/error.rs.html#8">SendError</a>, <a class="ident" href="../../../../src/tokio/sync/mpsc/error.rs.html#58-65">TryRecvError</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::sync::mpsc::error</span>::{<a class="ident" href="../../../../src/tokio/sync/mpsc/error.rs.html#8">SendError</a>, <a class="ident" href="../../../../src/tokio/sync/mpsc/error.rs.html#58">TryRecvError</a>};
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>};
@@ -405,7 +406,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <span class="ident">UnboundedSender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#12-14">UnboundedSender</a> {
+        <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#12">UnboundedSender</a> {
             <span class="ident">chan</span>: <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#17">self</a>.<span class="ident">chan</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
@@ -460,11 +461,11 @@
 }
 
 <span class="doccomment">/// No capacity</span>
-<span class="kw">type</span> <span class="ident">Semaphore</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>;
+<span class="kw">type</span> <span class="ident">Semaphore</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>;
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">UnboundedReceiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">chan</span>: <span class="ident">chan::Rx</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#73">Semaphore</a><span class="op">&gt;</span>) -&gt; <span class="ident">UnboundedReceiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#40-43">UnboundedReceiver</a> { <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#76">chan</a> }
+        <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#40">UnboundedReceiver</a> { <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#76">chan</a> }
     }
 
     <span class="doccomment">/// Receives the next value for this receiver.</span>
@@ -567,7 +568,7 @@
     <span class="doccomment">///     assert_eq!(Err(TryRecvError::Disconnected), rx.try_recv());</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../../src/tokio/sync/mpsc/error.rs.html#58-65">TryRecvError</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../../src/tokio/sync/mpsc/error.rs.html#58">TryRecvError</a><span class="op">&gt;</span> {
         <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#180">self</a>.<span class="ident">chan</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#271">try_recv</a>()
     }
 
@@ -596,9 +597,10 @@
     <span class="doccomment">///     sync_code.join().unwrap();</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sync&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">blocking_recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/tokio/future/block_on.rs.html#4"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#210">self</a>.<a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#134">recv</a>())
+        <a class="ident" href="../../../../src/tokio/future/block_on.rs.html#5"><span class="kw">crate</span>::future::block_on</a>(<a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#211">self</a>.<a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#134">recv</a>())
     }
 
     <span class="doccomment">/// Closes the receiving half of a channel, without dropping it.</span>
@@ -609,7 +611,7 @@
     <span class="doccomment">/// To guarantee that no messages are dropped, after calling `close()`,</span>
     <span class="doccomment">/// `recv()` must be called until `None` is returned.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#221">self</a>.<span class="ident">chan</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#203">close</a>();
+        <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#222">self</a>.<span class="ident">chan</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#203">close</a>();
     }
 
     <span class="doccomment">/// Polls to receive the next message on this channel.</span>
@@ -634,13 +636,13 @@
     <span class="doccomment">/// guarantee that the next call will succeed — it could fail with another</span>
     <span class="doccomment">/// spurious failure.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">poll_recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#246">self</a>.<span class="ident">chan</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">recv</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#246">cx</a>)
+        <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#247">self</a>.<span class="ident">chan</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#219">recv</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#247">cx</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">UnboundedSender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">chan</span>: <span class="ident">chan::Tx</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#73">Semaphore</a><span class="op">&gt;</span>) -&gt; <span class="ident">UnboundedSender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#12-14">UnboundedSender</a> { <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#252">chan</a> }
+        <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#12">UnboundedSender</a> { <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#253">chan</a> }
     }
 
     <span class="doccomment">/// Attempts to send a message on this `UnboundedSender` without blocking.</span>
@@ -657,10 +659,10 @@
     <span class="doccomment">/// [`UnboundedReceiver`]: UnboundedReceiver</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">message</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">inc_num_messages</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/error.rs.html#8">SendError</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#268">message</a>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/error.rs.html#8">SendError</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#269">message</a>));
         }
 
-        <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#268">self</a>.<span class="ident">chan</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#137">send</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#268">message</a>);
+        <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#269">self</a>.<span class="ident">chan</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#137">send</a>(<a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#269">message</a>);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -668,7 +670,7 @@
         <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/index.html">std::process</a>;
         <span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering</span>::{<span class="ident">AcqRel</span>, <span class="ident">Acquire</span>};
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#277">self</a>.<span class="ident">chan</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#132">semaphore</a>().<span class="ident">load</span>(<span class="ident">Acquire</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#278">self</a>.<span class="ident">chan</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#132">semaphore</a>().<span class="ident">load</span>(<span class="ident">Acquire</span>);
 
         <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="ident">curr</span> <span class="op">&amp;</span> <span class="number">1</span> <span class="op">==</span> <span class="number">1</span> {
@@ -681,14 +683,14 @@
                 <span class="ident">process::abort</span>()
             }
 
-            <span class="kw">match</span> <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#277">self</a>
+            <span class="kw">match</span> <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#278">self</a>
                 .<span class="ident">chan</span>
                 .<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#132">semaphore</a>()
-                .<span class="ident">compare_exchange</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#281">curr</a>, <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#281">curr</a> <span class="op">+</span> <span class="number">2</span>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>)
+                .<span class="ident">compare_exchange</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#282">curr</a>, <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#282">curr</a> <span class="op">+</span> <span class="number">2</span>, <span class="ident">AcqRel</span>, <span class="ident">Acquire</span>)
             {
                 <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
                 <span class="prelude-val">Err</span>(<span class="ident">actual</span>) =&gt; {
-                    <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#281">curr</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#300">actual</a>;
+                    <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#282">curr</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#301">actual</a>;
                 }
             }
         }
@@ -753,7 +755,7 @@
     <span class="doccomment">/// assert!(tx2.is_closed());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#365">self</a>.<span class="ident">chan</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#153">is_closed</a>()
+        <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#366">self</a>.<span class="ident">chan</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#153">is_closed</a>()
     }
 
     <span class="doccomment">/// Returns `true` if senders belong to the same channel.</span>
@@ -769,9 +771,9 @@
     <span class="doccomment">/// assert!(!tx3.same_channel(&amp;tx2));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">same_channel</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#381">self</a>.<span class="ident">chan</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#147">same_channel</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#381">other</a>.<span class="ident">chan</span>)
+        <a class="self" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#382">self</a>.<span class="ident">chan</span>.<a class="ident" href="../../../../src/tokio/sync/mpsc/chan.rs.html#147">same_channel</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/sync/mpsc/unbounded.rs.html#382">other</a>.<span class="ident">chan</span>)
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

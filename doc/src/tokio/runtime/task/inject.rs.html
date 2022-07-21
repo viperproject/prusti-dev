@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/runtime/task/inject.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>inject.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.0/src/runtime/task/inject.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>inject.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
@@ -226,7 +226,7 @@
 <span id="220">220</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Inject queue used to send wakeups to a work-stealing scheduler</span>
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#6"><span class="kw">crate</span>::loom::sync::Mutex</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/runtime/mod.rs.html#183"><span class="kw">crate</span>::runtime::task</a>;
 
@@ -238,11 +238,11 @@
 <span class="doccomment">/// overflow queue when the local, fixed-size, array queue overflows.</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Inject</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Pointers to the head and tail of the queue.</span>
-    <span class="ident">pointers</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#24-33">Pointers</a><span class="op">&gt;</span>,
+    <span class="ident">pointers</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#24">Pointers</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Number of pending tasks in the queue. This helps prevent unnecessary</span>
     <span class="doccomment">/// locking in the hot path.</span>
-    <span class="ident">len</span>: <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>,
+    <span class="ident">len</span>: <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
 
     <span class="ident">_p</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 }
@@ -252,10 +252,10 @@
     <span class="ident">is_closed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 
     <span class="doccomment">/// Linked-list head.</span>
-    <span class="ident">head</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">task::Header</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">head</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">task::Header</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Linked-list tail.</span>
-    <span class="ident">tail</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">task::Header</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">tail</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">task::Header</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">Inject</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
@@ -263,8 +263,8 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">Inject</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">Inject</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#13-22">Inject</a> {
-            <span class="ident">pointers</span>: <span class="ident">Mutex::new</span>(<a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#24-33">Pointers</a> {
+        <a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#13">Inject</a> {
+            <span class="ident">pointers</span>: <span class="ident">Mutex::new</span>(<a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#24">Pointers</a> {
                 <span class="ident">is_closed</span>: <span class="bool-val">false</span>,
                 <span class="ident">head</span>: <span class="prelude-val">None</span>,
                 <span class="ident">tail</span>: <span class="prelude-val">None</span>,
@@ -312,7 +312,7 @@
 
         <span class="comment">// safety: only mutated with the lock held</span>
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../../../src/tokio/runtime/task/inject.rs.html#79">self</a>.<span class="ident">len</span>.<a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#25">unsync_load</a>() };
-        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#79">task</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#356">into_raw</a>();
+        <span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#79">task</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#361">into_raw</a>();
 
         <span class="comment">// The next pointer should already be null</span>
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">get_next</span>(<span class="ident">task</span>).<span class="ident">is_none</span>());
@@ -337,7 +337,7 @@
         <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">task::Notified</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#109">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-            <span class="prelude-val">Some</span>(<span class="ident">first</span>) =&gt; <a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#114">first</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#356">into_raw</a>(),
+            <span class="prelude-val">Some</span>(<span class="ident">first</span>) =&gt; <a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#114">first</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#361">into_raw</a>(),
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span>,
         };
 
@@ -349,7 +349,7 @@
         <span class="comment">// iterator overrides `for_each` to something that is easier for the</span>
         <span class="comment">// compiler to optimize than a loop.</span>
         <a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#109">iter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">for_each</a>(<span class="op">|</span><span class="ident">next</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#125">next</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#356">into_raw</a>();
+            <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#125">next</a>.<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#361">into_raw</a>();
 
             <span class="comment">// safety: Holding the Notified for a task guarantees exclusive</span>
             <span class="comment">// access to the `queue_next` field.</span>
@@ -370,8 +370,8 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">push_batch_inner</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">batch_head</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">task::Header</a><span class="op">&gt;</span>,
-        <span class="ident">batch_tail</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">task::Header</a><span class="op">&gt;</span>,
+        <span class="ident">batch_head</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">task::Header</a><span class="op">&gt;</span>,
+        <span class="ident">batch_tail</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">task::Header</a><span class="op">&gt;</span>,
         <span class="ident">num</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">get_next</span>(<span class="ident">batch_tail</span>).<span class="ident">is_none</span>());
@@ -435,15 +435,15 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">get_next</span>(<span class="ident">header</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">task::Header</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">task::Header</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">get_next</span>(<span class="ident">header</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">task::Header</a><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">task::Header</a><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">unsafe</span> { <a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#212">header</a>.<span class="ident">as_ref</span>().<span class="ident">queue_next</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#213">ptr</a>) }
 }
 
-<span class="kw">fn</span> <span class="ident">set_next</span>(<span class="ident">header</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">task::Header</a><span class="op">&gt;</span>, <span class="ident">val</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">task::Header</a><span class="op">&gt;</span><span class="op">&gt;</span>) {
+<span class="kw">fn</span> <span class="ident">set_next</span>(<span class="ident">header</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">task::Header</a><span class="op">&gt;</span>, <span class="ident">val</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">task::Header</a><span class="op">&gt;</span><span class="op">&gt;</span>) {
     <span class="kw">unsafe</span> {
         <a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#216">header</a>.<span class="ident">as_ref</span>().<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#224">set_next</a>(<a class="ident" href="../../../../src/tokio/runtime/task/inject.rs.html#216">val</a>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

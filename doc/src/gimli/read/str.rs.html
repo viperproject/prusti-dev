@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.1/src/read/str.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/str.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
@@ -326,12 +326,12 @@
 <span id="320">320</span>
 <span id="321">321</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{
-    <a class="ident" href="../../../src/gimli/common.rs.html#116">DebugLineStrOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#162">DebugStrOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#166">DebugStrOffsetsBase</a>, <a class="ident" href="../../../src/gimli/common.rs.html#170">DebugStrOffsetsIndex</a>, <a class="ident" href="../../../src/gimli/common.rs.html#351-357">DwarfFileType</a>,
-    <a class="ident" href="../../../src/gimli/common.rs.html#37-48">Encoding</a>, <a class="ident" href="../../../src/gimli/common.rs.html#245-290">SectionId</a>,
+    <a class="ident" href="../../../src/gimli/common.rs.html#116">DebugLineStrOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#162">DebugStrOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#166">DebugStrOffsetsBase</a>, <a class="ident" href="../../../src/gimli/common.rs.html#170">DebugStrOffsetsIndex</a>, <a class="ident" href="../../../src/gimli/common.rs.html#351">DwarfFileType</a>,
+    <a class="ident" href="../../../src/gimli/common.rs.html#37">Encoding</a>, <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a>,
 };
-<span class="kw">use</span> <a class="ident" href="../../../src/gimli/endianity.rs.html#7-172"><span class="kw">crate</span>::endianity::Endianity</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../src/gimli/read/endian_slice.rs.html#17-23">EndianSlice</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-52">ReaderOffset</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#612-661">Section</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/gimli/common.rs.html#3-8"><span class="kw">crate</span>::Format</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/gimli/endianity.rs.html#7"><span class="kw">crate</span>::endianity::Endianity</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../src/gimli/read/endian_slice.rs.html#17">EndianSlice</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#612">Section</a>};
+<span class="kw">use</span> <a class="ident" href="../../../src/gimli/common.rs.html#3"><span class="kw">crate</span>::Format</a>;
 
 <span class="doccomment">/// The `DebugStr` struct represents the DWARF strings</span>
 <span class="doccomment">/// found in the `.debug_str` section.</span>
@@ -342,14 +342,14 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">DebugStr</span><span class="op">&lt;</span><span class="ident">EndianSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Endian</span>: <a class="ident" href="../../../src/gimli/endianity.rs.html#7-172">Endianity</a>,
+    <span class="ident">Endian</span>: <a class="ident" href="../../../src/gimli/endianity.rs.html#7">Endianity</a>,
 {
     <span class="doccomment">/// Construct a new `DebugStr` instance from the data in the `.debug_str`</span>
     <span class="doccomment">/// section.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// It is the caller&#39;s responsibility to read the `.debug_str` section and</span>
     <span class="doccomment">/// present it as a `&amp;[u8]` slice. That means using some ELF loader on</span>
-    <span class="doccomment">/// Linux, a Mach-O loader on OSX, etc.</span>
+    <span class="doccomment">/// Linux, a Mach-O loader on macOS, etc.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// use gimli::{DebugStr, LittleEndian};</span>
@@ -363,7 +363,7 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> <span class="ident">DebugStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">DebugStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Lookup a string from the `.debug_str` section by DebugStrOffset.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
@@ -408,7 +408,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Section</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245-290">SectionId</a> {
+    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a> {
         <a class="ident" href="../../../src/gimli/common.rs.html#283">SectionId::DebugStr</a>
     }
 
@@ -419,7 +419,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">debug_str_section</span>: <span class="ident">R</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/str.rs.html#12-14">DebugStr</a> { <a class="ident" href="../../../src/gimli/read/str.rs.html#94">debug_str_section</a> }
+        <a class="ident" href="../../../src/gimli/read/str.rs.html#12">DebugStr</a> { <a class="ident" href="../../../src/gimli/read/str.rs.html#94">debug_str_section</a> }
     }
 }
 
@@ -429,7 +429,7 @@
     <span class="ident">section</span>: <span class="ident">R</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> <span class="ident">DebugStrOffsets</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">DebugStrOffsets</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="comment">// TODO: add an iterator over the sets of entries in the section.</span>
     <span class="comment">// This is not needed for common usage of the section though.</span>
 
@@ -448,7 +448,7 @@
     <span class="doccomment">/// since locating the header is unreliable, and the GNU extensions do not emit it.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_str_offset</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">format</span>: <a class="ident" href="../../../src/gimli/common.rs.html#3-8">Format</a>,
+        <span class="ident">format</span>: <a class="ident" href="../../../src/gimli/common.rs.html#3">Format</a>,
         <span class="ident">base</span>: <span class="ident">DebugStrOffsetsBase</span><span class="op">&lt;</span><span class="ident">R::Offset</span><span class="op">&gt;</span>,
         <span class="ident">index</span>: <span class="ident">DebugStrOffsetsIndex</span><span class="op">&lt;</span><span class="ident">R::Offset</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DebugStrOffset</span><span class="op">&lt;</span><span class="ident">R::Offset</span><span class="op">&gt;</span><span class="op">&gt;</span> {
@@ -486,7 +486,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Section</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugStrOffsets</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245-290">SectionId</a> {
+    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a> {
         <a class="ident" href="../../../src/gimli/common.rs.html#285">SectionId::DebugStrOffsets</a>
     }
 
@@ -497,19 +497,19 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugStrOffsets</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">section</span>: <span class="ident">R</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/str.rs.html#101-103">DebugStrOffsets</a> { <a class="ident" href="../../../src/gimli/read/str.rs.html#172">section</a> }
+        <a class="ident" href="../../../src/gimli/read/str.rs.html#101">DebugStrOffsets</a> { <a class="ident" href="../../../src/gimli/read/str.rs.html#172">section</a> }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Offset</span><span class="op">&gt;</span> <span class="ident">DebugStrOffsetsBase</span><span class="op">&lt;</span><span class="ident">Offset</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Offset</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-52">ReaderOffset</a>,
+    <span class="ident">Offset</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
 {
     <span class="doccomment">/// Returns a `DebugStrOffsetsBase` with the default value of DW_AT_str_offsets_base</span>
     <span class="doccomment">/// for the given `Encoding` and `DwarfFileType`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_for_encoding_and_file</span>(
-        <span class="ident">encoding</span>: <a class="ident" href="../../../src/gimli/common.rs.html#37-48">Encoding</a>,
-        <span class="ident">file_type</span>: <a class="ident" href="../../../src/gimli/common.rs.html#351-357">DwarfFileType</a>,
+        <span class="ident">encoding</span>: <a class="ident" href="../../../src/gimli/common.rs.html#37">Encoding</a>,
+        <span class="ident">file_type</span>: <a class="ident" href="../../../src/gimli/common.rs.html#351">DwarfFileType</a>,
     ) -&gt; <span class="ident">DebugStrOffsetsBase</span><span class="op">&lt;</span><span class="ident">Offset</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">encoding</span>.<span class="ident">version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">5</span> <span class="op">&amp;&amp;</span> <span class="ident">file_type</span> <span class="op">==</span> <span class="ident">DwarfFileType::Dwo</span> {
             <span class="comment">// In .dwo files, the compiler omits the DW_AT_str_offsets_base attribute (because there is</span>
@@ -534,14 +534,14 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span> <span class="ident">DebugLineStr</span><span class="op">&lt;</span><span class="ident">EndianSlice</span><span class="op">&lt;</span><span class="lifetime">&#39;input</span>, <span class="ident">Endian</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Endian</span>: <a class="ident" href="../../../src/gimli/endianity.rs.html#7-172">Endianity</a>,
+    <span class="ident">Endian</span>: <a class="ident" href="../../../src/gimli/endianity.rs.html#7">Endianity</a>,
 {
     <span class="doccomment">/// Construct a new `DebugLineStr` instance from the data in the `.debug_line_str`</span>
     <span class="doccomment">/// section.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// It is the caller&#39;s responsibility to read the `.debug_line_str` section and</span>
     <span class="doccomment">/// present it as a `&amp;[u8]` slice. That means using some ELF loader on</span>
-    <span class="doccomment">/// Linux, a Mach-O loader on OSX, etc.</span>
+    <span class="doccomment">/// Linux, a Mach-O loader on macOS, etc.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// use gimli::{DebugLineStr, LittleEndian};</span>
@@ -555,7 +555,7 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> <span class="ident">DebugLineStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">DebugLineStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Lookup a string from the `.debug_line_str` section by DebugLineStrOffset.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">offset</span>: <span class="ident">DebugLineStrOffset</span><span class="op">&lt;</span><span class="ident">R::Offset</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <a class="self" href="../../../src/gimli/read/str.rs.html#233">self</a>.<span class="ident">section</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
@@ -589,7 +589,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Section</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugLineStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245-290">SectionId</a> {
+    <span class="kw">fn</span> <span class="ident">id</span>() -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a> {
         <a class="ident" href="../../../src/gimli/common.rs.html#265">SectionId::DebugLineStr</a>
     }
 
@@ -600,7 +600,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DebugLineStr</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">section</span>: <span class="ident">R</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/gimli/read/str.rs.html#204-206">DebugLineStr</a> { <a class="ident" href="../../../src/gimli/read/str.rs.html#275">section</a> }
+        <a class="ident" href="../../../src/gimli/read/str.rs.html#204">DebugLineStr</a> { <a class="ident" href="../../../src/gimli/read/str.rs.html#275">section</a> }
     }
 }
 
@@ -647,5 +647,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.8/src/parser/validator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.14/src/parser/validator.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>validator.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
@@ -699,30 +699,30 @@
 <span id="691">691</span>
 <span id="692">692</span>
 </pre><pre class="rust"><code><span class="comment">// Internal</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::builder</span>::{<a class="ident" href="../../../src/clap/builder/app_settings.rs.html#34-523">AppSettings</a>, <a class="ident" href="../../../src/clap/builder/arg.rs.html#61-101">Arg</a>, <a class="ident" href="../../../src/clap/builder/arg_predicate.rs.html#2-5">ArgPredicate</a>, <a class="ident" href="../../../src/clap/builder/command.rs.html#70">Command</a>, <a class="ident" href="../../../src/clap/builder/possible_value.rs.html#30-35">PossibleValue</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../../src/clap/error/mod.rs.html#40-54">Error</a>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">ClapResult</span>};
-<span class="kw">use</span> <a class="ident" href="../../../src/clap/output/fmt.rs.html#9-12"><span class="kw">crate</span>::output::fmt::Stream</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/clap/output/usage.rs.html#11-14"><span class="kw">crate</span>::output::Usage</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parser</span>::{<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17-20">ArgMatcher</a>, <a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#16-24">MatchedArg</a>, <a class="ident" href="../../../src/clap/parser/parser.rs.html#1681-1685">ParseState</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::builder</span>::{<a class="ident" href="../../../src/clap/builder/app_settings.rs.html#34">AppSettings</a>, <a class="ident" href="../../../src/clap/builder/arg.rs.html#61">Arg</a>, <a class="ident" href="../../../src/clap/builder/arg_predicate.rs.html#2">ArgPredicate</a>, <a class="ident" href="../../../src/clap/builder/command.rs.html#70">Command</a>, <a class="ident" href="../../../src/clap/builder/possible_value.rs.html#30">PossibleValue</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<a class="ident" href="../../../src/clap/error/mod.rs.html#40">Error</a>, <span class="prelude-ty">Result</span> <span class="kw">as</span> <span class="ident">ClapResult</span>};
+<span class="kw">use</span> <a class="ident" href="../../../src/clap/output/fmt.rs.html#9"><span class="kw">crate</span>::output::fmt::Stream</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/clap/output/usage.rs.html#11"><span class="kw">crate</span>::output::Usage</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parser</span>::{<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a>, <a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a>, <a class="ident" href="../../../src/clap/parser/parser.rs.html#1681">ParseState</a>};
 <span class="kw">use</span> <a class="ident" href="../../../src/clap/util/graph.rs.html#17"><span class="kw">crate</span>::util::ChildGraph</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/clap/util/id.rs.html#11-15"><span class="kw">crate</span>::util::Id</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/clap/lib.rs.html#109-110">INTERNAL_ERROR_MSG</a>, <a class="ident" href="../../../src/clap/lib.rs.html#111">INVALID_UTF8</a>};
+<span class="kw">use</span> <a class="ident" href="../../../src/clap/util/id.rs.html#11"><span class="kw">crate</span>::util::Id</a>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/clap/lib.rs.html#189">INTERNAL_ERROR_MSG</a>, <a class="ident" href="../../../src/clap/lib.rs.html#191">INVALID_UTF8</a>};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Validator</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span>, <span class="lifetime">&#39;cmd</span><span class="op">&gt;</span> {
     <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd</span> <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>,
-    <span class="ident">required</span>: <span class="ident">ChildGraph</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a><span class="op">&gt;</span>,
+    <span class="ident">required</span>: <span class="ident">ChildGraph</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span>, <span class="lifetime">&#39;cmd</span><span class="op">&gt;</span> <span class="ident">Validator</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span>, <span class="lifetime">&#39;cmd</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;cmd</span> <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">required</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#17">cmd</a>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4937">required_graph</a>();
-        <a class="ident" href="../../../src/clap/parser/validator.rs.html#11-14">Validator</a> { <a class="ident" href="../../../src/clap/parser/validator.rs.html#17">cmd</a>, <a class="ident" href="../../../src/clap/parser/validator.rs.html#18">required</a> }
+        <span class="kw">let</span> <span class="ident">required</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#17">cmd</a>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4943">required_graph</a>();
+        <a class="ident" href="../../../src/clap/parser/validator.rs.html#11">Validator</a> { <a class="ident" href="../../../src/clap/parser/validator.rs.html#17">cmd</a>, <a class="ident" href="../../../src/clap/parser/validator.rs.html#18">required</a> }
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">validate</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">parse_state</span>: <a class="ident" href="../../../src/clap/parser/parser.rs.html#1681-1685">ParseState</a>,
-        <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17-20">ArgMatcher</a>,
+        <span class="ident">parse_state</span>: <a class="ident" href="../../../src/clap/parser/parser.rs.html#1681">ParseState</a>,
+        <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a>,
     ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conflicts</span> <span class="op">=</span> <span class="ident">Conflicts::new</span>();
@@ -788,7 +788,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">validate_arg_values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/builder/arg.rs.html#61-101">Arg</a>, <span class="ident">ma</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#16-24">MatchedArg</a>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">validate_arg_values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/builder/arg.rs.html#61">Arg</a>, <span class="ident">ma</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_arg_values: arg={:?}&quot;</span>, <span class="ident">arg</span>.<span class="ident">name</span>);
         <span class="kw">for</span> <span class="ident">val</span> <span class="kw">in</span> <span class="ident">ma</span>.<span class="ident">raw_vals_flatten</span>() {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">arg</span>.<span class="ident">possible_vals</span>.<span class="ident">is_empty</span>() {
@@ -866,8 +866,8 @@
 
     <span class="kw">fn</span> <span class="ident">validate_conflicts</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17-20">ArgMatcher</a>,
-        <span class="ident">conflicts</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#606-608">Conflicts</a>,
+        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a>,
+        <span class="ident">conflicts</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#606">Conflicts</a>,
     ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_conflicts&quot;</span>);
 
@@ -886,7 +886,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">validate_exclusive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17-20">ArgMatcher</a>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">validate_exclusive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_exclusive&quot;</span>);
         <span class="kw">let</span> <span class="ident">args_count</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#189">matcher</a>
             .<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#119">arg_ids</a>()
@@ -907,9 +907,9 @@
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> {
                 <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_exclusive:iter:{:?}&quot;</span>, <span class="ident">name</span>);
                 <a class="self" href="../../../src/clap/parser/validator.rs.html#189">self</a>.<span class="ident">cmd</span>
-                    .<a class="ident" href="../../../src/clap/builder/command.rs.html#4841">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#207">name</a>)
+                    .<a class="ident" href="../../../src/clap/builder/command.rs.html#4847">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#207">name</a>)
                     <span class="comment">// Find `arg`s which are exclusive but also appear with other args.</span>
-                    .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">arg</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#212">arg</a>.<a class="ident" href="../../../src/clap/builder/arg.rs.html#4639">is_exclusive_set</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#191">args_count</a> <span class="op">&gt;</span> <span class="number">1</span>)
+                    .<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">arg</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#212">arg</a>.<a class="ident" href="../../../src/clap/builder/arg.rs.html#4659">is_exclusive_set</a>() <span class="op">&amp;&amp;</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#191">args_count</a> <span class="op">&gt;</span> <span class="number">1</span>)
             })
             <span class="comment">// Throw an error for the first conflict found.</span>
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">try_for_each</a>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> {
@@ -926,9 +926,9 @@
 
     <span class="kw">fn</span> <span class="ident">build_conflict_err</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>,
-        <span class="ident">conflict_ids</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>],
-        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17-20">ArgMatcher</a>,
+        <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>,
+        <span class="ident">conflict_ids</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>],
+        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a>,
     ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">conflict_ids</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
@@ -940,20 +940,20 @@
             .<span class="ident">iter</span>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<span class="op">|</span><span class="ident">c_id</span><span class="op">|</span> {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">find_group</span>(<span class="ident">c_id</span>).<span class="ident">is_some</span>() {
-                    <a class="self" href="../../../src/clap/parser/validator.rs.html#228">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4954">unroll_args_in_group</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#241">c_id</a>)
+                    <a class="self" href="../../../src/clap/parser/validator.rs.html#228">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4960">unroll_args_in_group</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#241">c_id</a>)
                 } <span class="kw">else</span> {
                     <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">c_id</span>.<span class="ident">clone</span>()]
                 }
             })
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="op">|</span><span class="ident">c_id</span><span class="op">|</span> {
                 <a class="ident" href="../../../src/clap/parser/validator.rs.html#238">seen</a>.<span class="ident">insert</span>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#248">c_id</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="kw">let</span> <span class="ident">c_arg</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/validator.rs.html#228">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4841">find</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/validator.rs.html#248">c_id</a>).<span class="ident">expect</span>(<a class="ident" href="../../../src/clap/lib.rs.html#109-110">INTERNAL_ERROR_MSG</a>);
+                    <span class="kw">let</span> <span class="ident">c_arg</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/validator.rs.html#228">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4847">find</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/validator.rs.html#248">c_id</a>).<span class="ident">expect</span>(<a class="ident" href="../../../src/clap/lib.rs.html#189">INTERNAL_ERROR_MSG</a>);
                     <a class="ident" href="../../../src/clap/parser/validator.rs.html#250">c_arg</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
                 })
             })
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
 
-        <span class="kw">let</span> <span class="ident">former_arg</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/validator.rs.html#228">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4841">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#229">name</a>).<span class="ident">expect</span>(<a class="ident" href="../../../src/clap/lib.rs.html#109-110">INTERNAL_ERROR_MSG</a>);
+        <span class="kw">let</span> <span class="ident">former_arg</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/validator.rs.html#228">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4847">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#229">name</a>).<span class="ident">expect</span>(<a class="ident" href="../../../src/clap/lib.rs.html#189">INTERNAL_ERROR_MSG</a>);
         <span class="kw">let</span> <span class="ident">usg</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/validator.rs.html#228">self</a>.<a class="ident" href="../../../src/clap/parser/validator.rs.html#266">build_conflict_err_usage</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#231">matcher</a>, <a class="ident" href="../../../src/clap/parser/validator.rs.html#230">conflict_ids</a>);
         <span class="prelude-val">Err</span>(<span class="ident">Error::argument_conflict</span>(
             <a class="self" href="../../../src/clap/parser/validator.rs.html#228">self</a>.<span class="ident">cmd</span>,
@@ -963,20 +963,20 @@
         ))
     }
 
-    <span class="kw">fn</span> <span class="ident">build_conflict_err_usage</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17-20">ArgMatcher</a>, <span class="ident">conflicting_keys</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <span class="kw">let</span> <span class="ident">used_filtered</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#266">matcher</a>
+    <span class="kw">fn</span> <span class="ident">build_conflict_err_usage</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a>, <span class="ident">conflicting_keys</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+        <span class="kw">let</span> <span class="ident">used_filtered</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#266">matcher</a>
             .<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#119">arg_ids</a>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">arg_id</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#266">matcher</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#139">check_explicit</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#269">arg_id</a>, <a class="ident" href="../../../src/clap/builder/arg_predicate.rs.html#3">ArgPredicate::IsPresent</a>))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> {
                 <span class="comment">// Filter out the args we don&#39;t want to specify.</span>
-                <a class="self" href="../../../src/clap/parser/validator.rs.html#266">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4841">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#270">n</a>).<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/clap/parser/validator.rs.html#272">a</a>.<a class="ident" href="../../../src/clap/builder/arg.rs.html#4587">is_hide_set</a>())
+                <a class="self" href="../../../src/clap/parser/validator.rs.html#266">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4847">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#270">n</a>).<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/clap/parser/validator.rs.html#272">a</a>.<a class="ident" href="../../../src/clap/builder/arg.rs.html#4607">is_hide_set</a>())
             })
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/clap/parser/validator.rs.html#266">conflicting_keys</a>.<span class="ident">contains</span>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#274">key</a>))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let</span> <span class="ident">required</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#267">used_filtered</a>
+        <span class="kw">let</span> <span class="ident">required</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#267">used_filtered</a>
             .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> <a class="self" href="../../../src/clap/parser/validator.rs.html#266">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4841">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#279">key</a>))
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter_map</a>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> <a class="self" href="../../../src/clap/parser/validator.rs.html#266">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4847">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#279">key</a>))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#280">arg</a>.<span class="ident">requires</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/validator.rs.html#280">item</a>.<span class="number">1</span>))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">key</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/clap/parser/validator.rs.html#267">used_filtered</a>.<span class="ident">contains</span>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#281">key</a>) <span class="op">&amp;&amp;</span> <span class="op">!</span><a class="ident" href="../../../src/clap/parser/validator.rs.html#266">conflicting_keys</a>.<span class="ident">contains</span>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#281">key</a>))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#267">used_filtered</a>.<span class="ident">iter</span>())
@@ -987,7 +987,7 @@
             .<a class="ident" href="../../../src/clap/output/usage.rs.html#31">create_usage_with_title</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/validator.rs.html#277">required</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">gather_requires</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17-20">ArgMatcher</a>) {
+    <span class="kw">fn</span> <span class="ident">gather_requires</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a>) {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::gather_requires&quot;</span>);
         <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">matcher</span>
             .<span class="ident">arg_ids</span>()
@@ -1012,7 +1012,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">validate_matched_args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17-20">ArgMatcher</a>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">validate_matched_args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_matched_args&quot;</span>);
         <a class="ident" href="../../../src/clap/parser/validator.rs.html#315">matcher</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#135">iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">try_for_each</a>(<span class="op">|</span>(<span class="ident">name</span>, <span class="ident">ma</span>)<span class="op">|</span> {
             <span class="macro">debug!</span>(
@@ -1020,7 +1020,7 @@
                 <span class="ident">name</span>,
                 <span class="ident">ma</span>.<span class="ident">vals_flatten</span>()
             );
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span> <a class="self" href="../../../src/clap/parser/validator.rs.html#315">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4841">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#317">name</a>) {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span> <a class="self" href="../../../src/clap/parser/validator.rs.html#315">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4847">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#317">name</a>) {
                 <span class="self">self</span>.<span class="ident">validate_arg_num_vals</span>(<span class="ident">arg</span>, <span class="ident">ma</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">validate_arg_values</span>(<span class="ident">arg</span>, <span class="ident">ma</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">validate_arg_num_occurs</span>(<span class="ident">arg</span>, <span class="ident">ma</span>)<span class="question-mark">?</span>;
@@ -1029,7 +1029,7 @@
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">validate_arg_num_occurs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/builder/arg.rs.html#61-101">Arg</a>, <span class="ident">ma</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#16-24">MatchedArg</a>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">validate_arg_num_occurs</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/builder/arg.rs.html#61">Arg</a>, <span class="ident">ma</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
         <span class="macro">debug!</span>(
             <span class="string">&quot;Validator::validate_arg_num_occurs: {:?}={}&quot;</span>,
@@ -1070,7 +1070,7 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">validate_arg_num_vals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/builder/arg.rs.html#61-101">Arg</a>, <span class="ident">ma</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#16-24">MatchedArg</a>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">validate_arg_num_vals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/builder/arg.rs.html#61">Arg</a>, <span class="ident">ma</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#16">MatchedArg</a>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_arg_num_vals&quot;</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">num</span>) <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#373">a</a>.<span class="ident">num_vals</span> {
             <span class="kw">let</span> <span class="ident">total_num</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#373">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#137">num_vals</a>();
@@ -1107,9 +1107,9 @@
                     <a class="self" href="../../../src/clap/parser/validator.rs.html#373">self</a>.<span class="ident">cmd</span>,
                     <a class="ident" href="../../../src/clap/parser/validator.rs.html#373">ma</a>.<a class="ident" href="../../../src/clap/parser/matches/matched_arg.rs.html#110">raw_vals_flatten</a>()
                         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">last</a>()
-                        .<span class="ident">expect</span>(<a class="ident" href="../../../src/clap/lib.rs.html#109-110">INTERNAL_ERROR_MSG</a>)
+                        .<span class="ident">expect</span>(<a class="ident" href="../../../src/clap/lib.rs.html#189">INTERNAL_ERROR_MSG</a>)
                         .<span class="ident">to_str</span>()
-                        .<span class="ident">expect</span>(<a class="ident" href="../../../src/clap/lib.rs.html#111">INVALID_UTF8</a>)
+                        .<span class="ident">expect</span>(<a class="ident" href="../../../src/clap/lib.rs.html#191">INVALID_UTF8</a>)
                         .<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                     <a class="ident" href="../../../src/clap/parser/validator.rs.html#373">a</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
                     <span class="ident">Usage::new</span>(<a class="self" href="../../../src/clap/parser/validator.rs.html#373">self</a>.<span class="ident">cmd</span>)
@@ -1154,8 +1154,8 @@
 
     <span class="kw">fn</span> <span class="ident">validate_required</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17-20">ArgMatcher</a>,
-        <span class="ident">conflicts</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#606-608">Conflicts</a>,
+        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a>,
+        <span class="ident">conflicts</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#606">Conflicts</a>,
     ) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_required: required={:?}&quot;</span>, <span class="self">self</span>.<span class="ident">required</span>);
         <a class="self" href="../../../src/clap/parser/validator.rs.html#456">self</a>.<a class="ident" href="../../../src/clap/parser/validator.rs.html#290">gather_requires</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#457">matcher</a>);
@@ -1165,8 +1165,8 @@
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">arg_id</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#457">matcher</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#139">check_explicit</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#465">arg_id</a>, <a class="ident" href="../../../src/clap/builder/arg_predicate.rs.html#3">ArgPredicate::IsPresent</a>))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> {
                 <a class="self" href="../../../src/clap/parser/validator.rs.html#456">self</a>.<span class="ident">cmd</span>
-                    .<a class="ident" href="../../../src/clap/builder/command.rs.html#4841">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#466">id</a>)
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#469">arg</a>.<a class="ident" href="../../../src/clap/builder/arg.rs.html#4639">is_exclusive_set</a>())
+                    .<a class="ident" href="../../../src/clap/builder/command.rs.html#4847">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#466">id</a>)
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#469">arg</a>.<a class="ident" href="../../../src/clap/builder/arg.rs.html#4659">is_exclusive_set</a>())
                     .<span class="ident">unwrap_or_default</span>()
             });
         <span class="macro">debug!</span>(
@@ -1227,15 +1227,15 @@
     <span class="kw">fn</span> <span class="ident">is_missing_required_ok</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>,
-        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17-20">ArgMatcher</a>,
-        <span class="ident">conflicts</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#606-608">Conflicts</a>,
+        <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a>,
+        <span class="ident">conflicts</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#606">Conflicts</a>,
     ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::is_missing_required_ok: {}&quot;</span>, <span class="ident">a</span>.<span class="ident">name</span>);
         <span class="kw">let</span> <span class="ident">conflicts</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#531">conflicts</a>.<a class="ident" href="../../../src/clap/parser/validator.rs.html#615">gather_conflicts</a>(<a class="self" href="../../../src/clap/parser/validator.rs.html#528">self</a>.<span class="ident">cmd</span>, <a class="ident" href="../../../src/clap/parser/validator.rs.html#530">matcher</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/validator.rs.html#529">a</a>.<span class="ident">id</span>);
         <span class="op">!</span><a class="ident" href="../../../src/clap/parser/validator.rs.html#534">conflicts</a>.<span class="ident">is_empty</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">validate_required_unless</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17-20">ArgMatcher</a>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">validate_required_unless</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::validate_required_unless&quot;</span>);
         <span class="kw">let</span> <span class="ident">failed_args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="self" href="../../../src/clap/parser/validator.rs.html#538">self</a>
             .<span class="ident">cmd</span>
@@ -1255,7 +1255,7 @@
     }
 
     <span class="comment">// Failing a required unless means, the arg&#39;s &quot;unless&quot; wasn&#39;t present, and neither were they</span>
-    <span class="kw">fn</span> <span class="ident">fails_arg_required_unless</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17-20">ArgMatcher</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <span class="kw">fn</span> <span class="ident">fails_arg_required_unless</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::fails_arg_required_unless: a={:?}&quot;</span>, <span class="ident">a</span>.<span class="ident">name</span>);
         <span class="kw">let</span> <span class="ident">exists</span> <span class="op">=</span> <span class="op">|</span><span class="ident">id</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#558">matcher</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#139">check_explicit</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#560">id</a>, <a class="ident" href="../../../src/clap/builder/arg_predicate.rs.html#3">ArgPredicate::IsPresent</a>);
 
@@ -1264,7 +1264,7 @@
     }
 
     <span class="comment">// `incl`: an arg to include in the error even if not used</span>
-    <span class="kw">fn</span> <span class="ident">missing_required_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17-20">ArgMatcher</a>, <span class="ident">incl</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a><span class="op">&gt;</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">missing_required_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a>, <span class="ident">incl</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a><span class="op">&gt;</span>) -&gt; <span class="ident">ClapResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">debug!</span>(<span class="string">&quot;Validator::missing_required_error; incl={:?}&quot;</span>, <span class="ident">incl</span>);
         <span class="macro">debug!</span>(
             <span class="string">&quot;Validator::missing_required_error: reqs={:?}&quot;</span>,
@@ -1283,12 +1283,12 @@
             <span class="ident">req_args</span>
         );
 
-        <span class="kw">let</span> <span class="ident">used</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#567">matcher</a>
+        <span class="kw">let</span> <span class="ident">used</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#567">matcher</a>
             .<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#119">arg_ids</a>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">arg_id</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#567">matcher</a>.<a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#139">check_explicit</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#588">arg_id</a>, <a class="ident" href="../../../src/clap/builder/arg_predicate.rs.html#3">ArgPredicate::IsPresent</a>))
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">n</span><span class="op">|</span> {
                 <span class="comment">// Filter out the args we don&#39;t want to specify.</span>
-                <a class="self" href="../../../src/clap/parser/validator.rs.html#567">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4841">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#589">n</a>).<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/clap/parser/validator.rs.html#591">a</a>.<a class="ident" href="../../../src/clap/builder/arg.rs.html#4587">is_hide_set</a>())
+                <a class="self" href="../../../src/clap/parser/validator.rs.html#567">self</a>.<span class="ident">cmd</span>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4847">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#589">n</a>).<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../../src/clap/parser/validator.rs.html#591">a</a>.<a class="ident" href="../../../src/clap/builder/arg.rs.html#4607">is_hide_set</a>())
             })
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#567">incl</a>)
@@ -1304,15 +1304,15 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Conflicts</span> {
-    <span class="ident">potential</span>: <span class="ident">std::collections::HashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">potential</span>: <span class="ident">std::collections::HashMap</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#606-608">Conflicts</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#606">Conflicts</a> {
     <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::default</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">gather_conflicts</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/builder/command.rs.html#70">Command</a>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17-20">ArgMatcher</a>, <span class="ident">arg_id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">gather_conflicts</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/builder/command.rs.html#70">Command</a>, <span class="ident">matcher</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/parser/arg_matcher.rs.html#17">ArgMatcher</a>, <span class="ident">arg_id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a><span class="op">&gt;</span> {
         <span class="macro">debug!</span>(<span class="string">&quot;Conflicts::gather_conflicts: arg={:?}&quot;</span>, <span class="ident">arg_id</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conflicts</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">for</span> <span class="ident">other_arg_id</span> <span class="kw">in</span> <span class="ident">matcher</span>
@@ -1340,9 +1340,9 @@
         <a class="ident" href="../../../src/clap/parser/validator.rs.html#617">conflicts</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">gather_direct_conflicts</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/builder/command.rs.html#70">Command</a>, <span class="ident">arg_id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/clap/util/id.rs.html#11-15">Id</a>] {
+    <span class="kw">fn</span> <span class="ident">gather_direct_conflicts</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/builder/command.rs.html#70">Command</a>, <span class="ident">arg_id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="../../../src/clap/util/id.rs.html#11">Id</a>] {
         <a class="self" href="../../../src/clap/parser/validator.rs.html#643">self</a>.<span class="ident">potential</span>.<span class="ident">entry</span>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#643">arg_id</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<span class="ident">or_insert_with</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">conf</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#643">cmd</a>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4841">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#643">arg_id</a>) {
+            <span class="kw">let</span> <span class="ident">conf</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#643">cmd</a>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4847">find</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#643">arg_id</a>) {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">conf</span> <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#645">arg</a>.<span class="ident">blacklist</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
                 <span class="kw">for</span> <span class="ident">group_id</span> <span class="kw">in</span> <span class="ident">cmd</span>.<span class="ident">groups_for_arg</span>(<span class="ident">arg_id</span>) {
                     <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">find_group</span>(<span class="kw-2">&amp;</span><span class="ident">group_id</span>).<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>);
@@ -1360,7 +1360,7 @@
                 <a class="ident" href="../../../src/clap/parser/validator.rs.html#646">conf</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#645">arg</a>.<span class="ident">overrides</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>());
 
                 <a class="ident" href="../../../src/clap/parser/validator.rs.html#646">conf</a>
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">group</span>) <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#643">cmd</a>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4923">find_group</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#643">arg_id</a>) {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">group</span>) <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#643">cmd</a>.<a class="ident" href="../../../src/clap/builder/command.rs.html#4929">find_group</a>(<a class="ident" href="../../../src/clap/parser/validator.rs.html#643">arg_id</a>) {
                 <a class="ident" href="../../../src/clap/parser/validator.rs.html#663">group</a>.<span class="ident">conflicts</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
             } <span class="kw">else</span> {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="bool-val">false</span>, <span class="string">&quot;id={:?} is unknown&quot;</span>, <span class="ident">arg_id</span>);
@@ -1379,17 +1379,17 @@
     <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
     <span class="kw">if</span> <span class="op">!</span><span class="ident">a</span>.<span class="ident">is_takes_value_set</span>() {
         <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pvs</span>) <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#678">a</a>.<a class="ident" href="../../../src/clap/builder/arg.rs.html#4375">get_possible_values</a>() {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pvs</span>) <span class="op">=</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#678">a</a>.<a class="ident" href="../../../src/clap/builder/arg.rs.html#4395">get_possible_values</a>() {
         <span class="comment">// Check old first in case the user explicitly set possible values and the derive inferred</span>
         <span class="comment">// a `ValueParser` with some.</span>
         <a class="ident" href="../../../src/clap/parser/validator.rs.html#682">pvs</a>.<span class="ident">to_vec</span>()
     } <span class="kw">else</span> {
-        <a class="ident" href="../../../src/clap/parser/validator.rs.html#678">a</a>.<a class="ident" href="../../../src/clap/builder/arg.rs.html#4564">get_value_parser</a>()
+        <a class="ident" href="../../../src/clap/parser/validator.rs.html#678">a</a>.<a class="ident" href="../../../src/clap/builder/arg.rs.html#4584">get_value_parser</a>()
             .<a class="ident" href="../../../src/clap/builder/value_parser.rs.html#245-247">possible_values</a>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pvs</span><span class="op">|</span> <a class="ident" href="../../../src/clap/parser/validator.rs.html#689">pvs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>())
             .<span class="ident">unwrap_or_default</span>()
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="clap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.28.4/src/read/pe/section.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>section.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/pe/section.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>section.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
@@ -445,41 +445,41 @@
 
 <span class="kw">use</span> <a class="ident" href="../../../../src/object/endian.rs.html#317"><span class="kw">crate</span>::endian::LittleEndian</a> <span class="kw">as</span> <span class="ident">LE</span>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/object/lib.rs.html#112"><span class="kw">crate</span>::pe</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/pe.rs.html#683-694"><span class="kw">crate</span>::pe::ImageSectionHeader</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/object/pe.rs.html#683"><span class="kw">crate</span>::pe::ImageSectionHeader</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{
-    <a class="self" href="../../../../src/object/lib.rs.html#98">self</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#659-666">CompressedData</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#612-621">CompressedFileRange</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#270-350">ObjectSection</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#233-267">ObjectSegment</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#79-81">ReadError</a>, <a class="ident" href="../../../../src/object/read/read_ref.rs.html#37-112">ReadRef</a>,
-    <a class="ident" href="../../../../src/object/read/mod.rs.html#540-547">Relocation</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../../src/object/common.rs.html#401-419">SectionFlags</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>, <a class="ident" href="../../../../src/object/common.rs.html#96-178">SectionKind</a>, <a class="ident" href="../../../../src/object/common.rs.html#374-396">SegmentFlags</a>,
+    <a class="self" href="../../../../src/object/lib.rs.html#98">self</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#659">CompressedData</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#612">CompressedFileRange</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#270">ObjectSection</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#233">ObjectSegment</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a class="ident" href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>,
+    <a class="ident" href="../../../../src/object/read/mod.rs.html#540">Relocation</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../../src/object/common.rs.html#405">SectionFlags</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>, <a class="ident" href="../../../../src/object/common.rs.html#96">SectionKind</a>, <a class="ident" href="../../../../src/object/common.rs.html#378">SegmentFlags</a>,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/object/read/pe/file.rs.html#534-616">ImageNtHeaders</a>, <a class="ident" href="../../../../src/object/read/pe/file.rs.html#26-36">PeFile</a>, <a class="ident" href="../../../../src/object/read/coff/section.rs.html#16-18">SectionTable</a>};
+<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>, <a class="ident" href="../../../../src/object/read/pe/file.rs.html#26">PeFile</a>, <a class="ident" href="../../../../src/object/read/coff/section.rs.html#16">SectionTable</a>};
 
 <span class="doccomment">/// An iterator over the loadable sections of a `PeFile32`.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSegmentIterator32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#491-495">pe::ImageNtHeaders32</a>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="ident">PeSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#491">pe::ImageNtHeaders32</a>, <span class="ident">R</span><span class="op">&gt;</span>;
 <span class="doccomment">/// An iterator over the loadable sections of a `PeFile64`.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSegmentIterator64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#483-487">pe::ImageNtHeaders64</a>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="ident">PeSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#483">pe::ImageNtHeaders64</a>, <span class="ident">R</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// An iterator over the loadable sections of a `PeFile`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PeSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534-616">ImageNtHeaders</a>,
+    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">PeFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">iter</span>: <span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <a class="ident" href="../../../../src/object/pe.rs.html#683-694">pe::ImageSectionHeader</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">iter</span>: <span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <a class="ident" href="../../../../src/object/pe.rs.html#683">pe::ImageSectionHeader</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">PeSegmentIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534-616">ImageNtHeaders</a>,
+    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">PeSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#39">self</a>.<span class="ident">iter</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">section</span><span class="op">|</span> <a class="ident" href="../../../../src/object/read/pe/section.rs.html#56-63">PeSegment</a> {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#39">self</a>.<span class="ident">iter</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">section</span><span class="op">|</span> <a class="ident" href="../../../../src/object/read/pe/section.rs.html#56">PeSegment</a> {
             <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/pe/section.rs.html#39">self</a>.<span class="ident">file</span>,
             <a class="ident" href="../../../../src/object/read/pe/section.rs.html#40">section</a>,
         })
@@ -488,32 +488,32 @@
 
 <span class="doccomment">/// A loadable section of a `PeFile32`.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSegment32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#491-495">pe::ImageNtHeaders32</a>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="ident">PeSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#491">pe::ImageNtHeaders32</a>, <span class="ident">R</span><span class="op">&gt;</span>;
 <span class="doccomment">/// A loadable section of a `PeFile64`.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSegment64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#483-487">pe::ImageNtHeaders64</a>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="ident">PeSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#483">pe::ImageNtHeaders64</a>, <span class="ident">R</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// A loadable section of a `PeFile`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PeSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534-616">ImageNtHeaders</a>,
+    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">PeFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="ident">section</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <a class="ident" href="../../../../src/object/pe.rs.html#683-694">pe::ImageSectionHeader</a>,
+    <span class="ident">section</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <a class="ident" href="../../../../src/object/pe.rs.html#683">pe::ImageSectionHeader</a>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/mod.rs.html#59">read::private::Sealed</a> <span class="kw">for</span> <span class="ident">PeSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534-616">ImageNtHeaders</a>,
+    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">ObjectSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PeSegment</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534-616">ImageNtHeaders</a>,
+    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -568,40 +568,40 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#374-396">SegmentFlags</a> {
+    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#378">SegmentFlags</a> {
         <span class="kw">let</span> <span class="ident">characteristics</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/pe/section.rs.html#129">self</a>.<span class="ident">section</span>.<span class="ident">characteristics</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>);
-        <a class="ident" href="../../../../src/object/common.rs.html#392-395">SegmentFlags::Coff</a> { <a class="ident" href="../../../../src/object/read/pe/section.rs.html#130">characteristics</a> }
+        <a class="ident" href="../../../../src/object/common.rs.html#396">SegmentFlags::Coff</a> { <a class="ident" href="../../../../src/object/read/pe/section.rs.html#130">characteristics</a> }
     }
 }
 
 <span class="doccomment">/// An iterator over the sections of a `PeFile32`.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSectionIterator32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#491-495">pe::ImageNtHeaders32</a>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="ident">PeSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#491">pe::ImageNtHeaders32</a>, <span class="ident">R</span><span class="op">&gt;</span>;
 <span class="doccomment">/// An iterator over the sections of a `PeFile64`.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSectionIterator64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#483-487">pe::ImageNtHeaders64</a>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="ident">PeSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#483">pe::ImageNtHeaders64</a>, <span class="ident">R</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// An iterator over the sections of a `PeFile`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PeSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534-616">ImageNtHeaders</a>,
+    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">PeFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">iter</span>: <span class="ident">iter::Enumerate</span><span class="op">&lt;</span><span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <a class="ident" href="../../../../src/object/pe.rs.html#683-694">pe::ImageSectionHeader</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">iter</span>: <span class="ident">iter::Enumerate</span><span class="op">&lt;</span><span class="ident">slice::Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <a class="ident" href="../../../../src/object/pe.rs.html#683">pe::ImageSectionHeader</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">PeSectionIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534-616">ImageNtHeaders</a>,
+    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">PeSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/object/read/pe/section.rs.html#161">self</a>.<span class="ident">iter</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">index</span>, <span class="ident">section</span>)<span class="op">|</span> <a class="ident" href="../../../../src/object/read/pe/section.rs.html#179-188">PeSection</a> {
+        <a class="self" href="../../../../src/object/read/pe/section.rs.html#161">self</a>.<span class="ident">iter</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">index</span>, <span class="ident">section</span>)<span class="op">|</span> <a class="ident" href="../../../../src/object/read/pe/section.rs.html#179">PeSection</a> {
             <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/pe/section.rs.html#161">self</a>.<span class="ident">file</span>,
             <span class="ident">index</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>(<a class="ident" href="../../../../src/object/read/pe/section.rs.html#162">index</a> <span class="op">+</span> <span class="number">1</span>),
             <a class="ident" href="../../../../src/object/read/pe/section.rs.html#162">section</a>,
@@ -611,34 +611,34 @@
 
 <span class="doccomment">/// A section of a `PeFile32`.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSection32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#491-495">pe::ImageNtHeaders32</a>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="ident">PeSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#491">pe::ImageNtHeaders32</a>, <span class="ident">R</span><span class="op">&gt;</span>;
 <span class="doccomment">/// A section of a `PeFile64`.</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">PeSection64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
-    <span class="ident">PeSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#483-487">pe::ImageNtHeaders64</a>, <span class="ident">R</span><span class="op">&gt;</span>;
+    <span class="ident">PeSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <a class="ident" href="../../../../src/object/pe.rs.html#483">pe::ImageNtHeaders64</a>, <span class="ident">R</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// A section of a `PeFile`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PeSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="lifetime">&#39;data</span>: <span class="lifetime">&#39;file</span>,
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534-616">ImageNtHeaders</a>,
+    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">PeFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">index</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">section</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <a class="ident" href="../../../../src/object/pe.rs.html#683-694">pe::ImageSectionHeader</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">section</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <a class="ident" href="../../../../src/object/pe.rs.html#683">pe::ImageSectionHeader</a>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/mod.rs.html#59">read::private::Sealed</a> <span class="kw">for</span> <span class="ident">PeSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534-616">ImageNtHeaders</a>,
+    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">ObjectSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PeSection</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Pe</span>, <span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534-616">ImageNtHeaders</a>,
+    <span class="ident">Pe</span>: <a class="ident" href="../../../../src/object/read/pe/file.rs.html#534">ImageNtHeaders</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">RelocationIterator</span> <span class="op">=</span> <span class="ident">PeRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span>;
@@ -687,7 +687,7 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">compressed_file_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/object/read/mod.rs.html#612-621">CompressedFileRange</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">compressed_file_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../src/object/read/mod.rs.html#612">CompressedFileRange</a><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">CompressedFileRange::none</span>(<a class="self" href="../../../../src/object/read/pe/section.rs.html#248">self</a>.<a class="ident" href="../../../../src/object/read/traits.rs.html#290">file_range</a>()))
     }
 
@@ -720,16 +720,16 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#96-178">SectionKind</a> {
+    <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#96">SectionKind</a> {
         <a class="self" href="../../../../src/object/read/pe/section.rs.html#281">self</a>.<span class="ident">section</span>.<a class="ident" href="../../../../src/object/read/coff/section.rs.html#334">kind</a>()
     }
 
     <span class="kw">fn</span> <span class="ident">relocations</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">PeRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../src/object/read/pe/section.rs.html#426-428">PeRelocationIterator</a>(<span class="ident">PhantomData</span>)
+        <a class="ident" href="../../../../src/object/read/pe/section.rs.html#426">PeRelocationIterator</a>(<span class="ident">PhantomData</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#401-419">SectionFlags</a> {
-        <a class="ident" href="../../../../src/object/common.rs.html#415-418">SectionFlags::Coff</a> {
+    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#405">SectionFlags</a> {
+        <a class="ident" href="../../../../src/object/common.rs.html#419">SectionFlags::Coff</a> {
             <span class="ident">characteristics</span>: <a class="self" href="../../../../src/object/read/pe/section.rs.html#289">self</a>.<span class="ident">section</span>.<span class="ident">characteristics</span>.<a class="ident" href="../../../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../../../src/object/endian.rs.html#317">LE</a>),
         }
     }
@@ -769,12 +769,12 @@
     }
 
     <span class="doccomment">/// Return the section that contains a given virtual address.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">section_containing</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">va</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <a class="ident" href="../../../../src/object/pe.rs.html#683-694">ImageSectionHeader</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">section_containing</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">va</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <a class="ident" href="../../../../src/object/pe.rs.html#683">ImageSectionHeader</a><span class="op">&gt;</span> {
         <a class="self" href="../../../../src/object/read/pe/section.rs.html#330">self</a>.<a class="ident" href="../../../../src/object/read/coff/section.rs.html#40">iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<span class="op">|</span><span class="ident">section</span><span class="op">|</span> <a class="ident" href="../../../../src/object/read/pe/section.rs.html#331">section</a>.<a class="ident" href="../../../../src/object/read/pe/section.rs.html#388">contains_rva</a>(<a class="ident" href="../../../../src/object/read/pe/section.rs.html#330">va</a>))
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/object/pe.rs.html#683-694">pe::ImageSectionHeader</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/object/pe.rs.html#683">pe::ImageSectionHeader</a> {
     <span class="doccomment">/// Return the offset and size of the section in a PE file.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The size of the range will be the minimum of the file size and virtual size.</span>
@@ -870,12 +870,12 @@
 );
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">PeRelocationIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">R</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#540-547">Relocation</a>);
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#540">Relocation</a>);
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

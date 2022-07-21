@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/sync/broadcast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>broadcast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.0/src/sync/broadcast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>broadcast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
@@ -1182,6 +1182,7 @@
 <span id="1176">1176</span>
 <span id="1177">1177</span>
 <span id="1178">1178</span>
+<span id="1179">1179</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A multi-producer, multi-consumer broadcast queue. Each sent value is seen by</span>
 <span class="doccomment">//! all consumers.</span>
 <span class="doccomment">//!</span>
@@ -1294,9 +1295,9 @@
 <span class="doccomment">//! ```</span>
 
 <span class="kw">use</span> <a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::loom::sync</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#6">Mutex</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLock.html">RwLock</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/rwlock/struct.RwLockReadGuard.html">RwLockReadGuard</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::linked_list</span>::{<a class="self" href="../../../src/tokio/util/mod.rs.html#41">self</a>, <a class="ident" href="../../../src/tokio/util/linked_list.rs.html#19-28">LinkedList</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::linked_list</span>::{<a class="self" href="../../../src/tokio/util/mod.rs.html#41">self</a>, <a class="ident" href="../../../src/tokio/util/linked_list.rs.html#19">LinkedList</a>};
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
@@ -1427,7 +1428,7 @@
         <span class="ident">Lagged</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
     }
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#234-244">RecvError</a> {
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#234">RecvError</a> {
         <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
             <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#247">self</a> {
                 <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#237">RecvError::Closed</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<span class="ident">f</span>, <span class="string">&quot;channel closed&quot;</span>),
@@ -1436,7 +1437,7 @@
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#234-244">RecvError</a> {}
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#234">RecvError</a> {}
 
     <span class="doccomment">/// An error returned from the [`try_recv`] function on a [`Receiver`].</span>
     <span class="doccomment">///</span>
@@ -1462,7 +1463,7 @@
         <span class="ident">Lagged</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>),
     }
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#262-279">TryRecvError</a> {
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#262">TryRecvError</a> {
         <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
             <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#282">self</a> {
                 <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#267">TryRecvError::Empty</a> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<span class="ident">f</span>, <span class="string">&quot;channel empty&quot;</span>),
@@ -1472,10 +1473,10 @@
         }
     }
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#262-279">TryRecvError</a> {}
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#262">TryRecvError</a> {}
 }
 
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#205-292"><span class="self">self</span>::error</a>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#205"><span class="self">self</span>::error</a>::<span class="kw-2">*</span>;
 
 <span class="doccomment">/// Data shared between senders and receivers.</span>
 <span class="kw">struct</span> <span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -1486,10 +1487,10 @@
     <span class="ident">mask</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 
     <span class="doccomment">/// Tail of the queue. Includes the rx wait list.</span>
-    <span class="ident">tail</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#312-324">Tail</a><span class="op">&gt;</span>,
+    <span class="ident">tail</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#312">Tail</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Number of outstanding Sender handles.</span>
-    <span class="ident">num_tx</span>: <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>,
+    <span class="ident">num_tx</span>: <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
 }
 
 <span class="doccomment">/// Next position to write a value.</span>
@@ -1504,7 +1505,7 @@
     <span class="ident">closed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 
     <span class="doccomment">/// Receivers waiting for a value.</span>
-    <span class="ident">waiters</span>: <span class="ident">LinkedList</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a>, <span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a> <span class="kw">as</span> <span class="ident">linked_list::Link</span><span class="op">&gt;</span><span class="ident">::Target</span><span class="op">&gt;</span>,
+    <span class="ident">waiters</span>: <span class="ident">LinkedList</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a>, <span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a> <span class="kw">as</span> <span class="ident">linked_list::Link</span><span class="op">&gt;</span><span class="ident">::Target</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Slot in the buffer.</span>
@@ -1515,7 +1516,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// An atomic is used as it is mutated concurrently with the slot read lock</span>
     <span class="doccomment">/// acquired.</span>
-    <span class="ident">rem</span>: <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>,
+    <span class="ident">rem</span>: <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
 
     <span class="doccomment">/// Uniquely identifies the `send` stored in the slot.</span>
     <span class="ident">pos</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
@@ -1539,7 +1540,7 @@
     <span class="ident">waker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Intrusive linked-list pointers.</span>
-    <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a><span class="op">&gt;</span>,
+    <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Should not be `Unpin`.</span>
     <span class="ident">_p</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">PhantomPinned</a>,
@@ -1555,7 +1556,7 @@
     <span class="ident">receiver</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Entry in the waiter `LinkedList`.</span>
-    <span class="ident">waiter</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a><span class="op">&gt;</span>,
+    <span class="ident">waiter</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">Recv</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {}
@@ -1614,14 +1615,15 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// This will panic if `capacity` is equal to `0` or larger</span>
 <span class="doccomment">/// than `usize::MAX / 2`.</span>
+<span class="attribute">#[<span class="ident">track_caller</span>]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">channel</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">capacity</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">capacity</span> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;capacity is empty&quot;</span>);
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">capacity</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">usize::MAX</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">1</span>, <span class="string">&quot;requested capacity too large&quot;</span>);
 
     <span class="comment">// Round to a power of two</span>
-    <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#433">capacity</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#433">capacity</a>.<span class="ident">next_power_of_two</span>();
+    <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#434">capacity</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#434">capacity</a>.<span class="ident">next_power_of_two</span>();
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#433">capacity</a>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#434">capacity</a>);
 
     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">capacity</span> {
         <span class="ident">buffer</span>.<span class="ident">push</span>(<span class="ident">RwLock::new</span>(<span class="ident">Slot</span> {
@@ -1632,10 +1634,10 @@
         }));
     }
 
-    <span class="kw">let</span> <span class="ident">shared</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#297-309">Shared</a> {
-        <span class="ident">buffer</span>: <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#440">buffer</a>.<span class="ident">into_boxed_slice</span>(),
-        <span class="ident">mask</span>: <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#433">capacity</a> <span class="op">-</span> <span class="number">1</span>,
-        <span class="ident">tail</span>: <span class="ident">Mutex::new</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#312-324">Tail</a> {
+    <span class="kw">let</span> <span class="ident">shared</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#297">Shared</a> {
+        <span class="ident">buffer</span>: <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#441">buffer</a>.<span class="ident">into_boxed_slice</span>(),
+        <span class="ident">mask</span>: <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#434">capacity</a> <span class="op">-</span> <span class="number">1</span>,
+        <span class="ident">tail</span>: <span class="ident">Mutex::new</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#312">Tail</a> {
             <span class="ident">pos</span>: <span class="number">0</span>,
             <span class="ident">rx_cnt</span>: <span class="number">1</span>,
             <span class="ident">closed</span>: <span class="bool-val">false</span>,
@@ -1644,14 +1646,14 @@
         <span class="ident">num_tx</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">1</span>),
     });
 
-    <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#197-203">Receiver</a> {
-        <span class="ident">shared</span>: <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#451">shared</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+    <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#197">Receiver</a> {
+        <span class="ident">shared</span>: <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#452">shared</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         <span class="ident">next</span>: <span class="number">0</span>,
     };
 
-    <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#157-159">Sender</a> { <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#451">shared</a> };
+    <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#157">Sender</a> { <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#452">shared</a> };
 
-    (<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#468">tx</a>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#463">rx</a>)
+    (<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#469">tx</a>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#464">rx</a>)
 }
 
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {}
@@ -1712,8 +1714,8 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">send</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">SendError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#530">self</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#604">send2</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#530">value</a>))
-            .<span class="ident">map_err</span>(<span class="op">|</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#219">SendError</a>(<span class="ident">maybe_v</span>)<span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#219">SendError</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#532">maybe_v</a>.<span class="ident">unwrap</span>()))
+        <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#531">self</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#605">send2</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#531">value</a>))
+            .<span class="ident">map_err</span>(<span class="op">|</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#219">SendError</a>(<span class="ident">maybe_v</span>)<span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#219">SendError</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#533">maybe_v</a>.<span class="ident">unwrap</span>()))
     }
 
     <span class="doccomment">/// Creates a new [`Receiver`] handle that will receive values sent **after**</span>
@@ -1740,8 +1742,8 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">subscribe</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">shared</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#558">self</a>.<span class="ident">shared</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#651">new_receiver</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#559">shared</a>)
+        <span class="kw">let</span> <span class="ident">shared</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#559">self</a>.<span class="ident">shared</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#652">new_receiver</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#560">shared</a>)
     }
 
     <span class="doccomment">/// Returns the number of active receivers</span>
@@ -1781,74 +1783,74 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">receiver_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#599">self</a>.<span class="ident">shared</span>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
-        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#600">tail</a>.<span class="ident">rx_cnt</span>
+        <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#600">self</a>.<span class="ident">shared</span>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#601">tail</a>.<span class="ident">rx_cnt</span>
     }
 
     <span class="kw">fn</span> <span class="ident">send2</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">SendError</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#604">self</a>.<span class="ident">shared</span>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#605">self</a>.<span class="ident">shared</span>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
         <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">rx_cnt</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#219">SendError</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#604">value</a>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#219">SendError</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#605">value</a>));
         }
 
         <span class="comment">// Position to write into</span>
-        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#605">tail</a>.<span class="ident">pos</span>;
-        <span class="kw">let</span> <span class="ident">rem</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#605">tail</a>.<span class="ident">rx_cnt</span>;
-        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> (<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#612">pos</a> <span class="op">&amp;</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#604">self</a>.<span class="ident">shared</span>.<span class="ident">mask</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#606">tail</a>.<span class="ident">pos</span>;
+        <span class="kw">let</span> <span class="ident">rem</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#606">tail</a>.<span class="ident">rx_cnt</span>;
+        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> (<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#613">pos</a> <span class="op">&amp;</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#605">self</a>.<span class="ident">shared</span>.<span class="ident">mask</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
         <span class="comment">// Update the tail position</span>
-        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#605">tail</a>.<span class="ident">pos</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#605">tail</a>.<span class="ident">pos</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
+        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#606">tail</a>.<span class="ident">pos</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#606">tail</a>.<span class="ident">pos</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
 
         <span class="comment">// Get the slot</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">slot</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#604">self</a>.<span class="ident">shared</span>.<span class="ident">buffer</span>[<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#614">idx</a>].<span class="ident">write</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">slot</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#605">self</a>.<span class="ident">shared</span>.<span class="ident">buffer</span>[<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#615">idx</a>].<span class="ident">write</span>().<span class="ident">unwrap</span>();
 
         <span class="comment">// Track the position</span>
-        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#620">slot</a>.<span class="ident">pos</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#612">pos</a>;
+        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#621">slot</a>.<span class="ident">pos</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#613">pos</a>;
 
         <span class="comment">// Set remaining receivers</span>
-        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#620">slot</a>.<span class="ident">rem</span>.<a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#29">with_mut</a>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#626">v</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#613">rem</a>);
+        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#621">slot</a>.<span class="ident">rem</span>.<a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#29">with_mut</a>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#627">v</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#614">rem</a>);
 
         <span class="comment">// Set the closed bit if the value is `None`; otherwise write the value</span>
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_none</span>() {
-            <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#605">tail</a>.<span class="ident">closed</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#620">slot</a>.<span class="ident">closed</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#606">tail</a>.<span class="ident">closed</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#621">slot</a>.<span class="ident">closed</span> <span class="op">=</span> <span class="bool-val">true</span>;
         } <span class="kw">else</span> {
-            <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#620">slot</a>.<span class="ident">val</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#633">ptr</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#604">value</a> });
+            <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#621">slot</a>.<span class="ident">val</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#634">ptr</a> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#605">value</a> });
         }
 
         <span class="comment">// Release the slot lock before notifying the receivers.</span>
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#620">slot</a>);
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#621">slot</a>);
 
-        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#605">tail</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#668">notify_rx</a>();
+        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#606">tail</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#669">notify_rx</a>();
 
         <span class="comment">// Release the mutex. This must happen after the slot lock is released,</span>
         <span class="comment">// otherwise the writer lock bit could be cleared while another thread</span>
         <span class="comment">// is in the critical section.</span>
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#605">tail</a>);
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#606">tail</a>);
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#613">rem</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#614">rem</a>)
     }
 }
 
 <span class="doccomment">/// Create a new `Receiver` which reads starting from the tail.</span>
 <span class="kw">fn</span> <span class="ident">new_receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#651">shared</a>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#652">shared</a>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
     <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">rx_cnt</span> <span class="op">==</span> <span class="ident">MAX_RECEIVERS</span> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;max receivers&quot;</span>);
     }
 
-    <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#652">tail</a>.<span class="ident">rx_cnt</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#652">tail</a>.<span class="ident">rx_cnt</span>.<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;overflow&quot;</span>);
+    <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#653">tail</a>.<span class="ident">rx_cnt</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#653">tail</a>.<span class="ident">rx_cnt</span>.<span class="ident">checked_add</span>(<span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;overflow&quot;</span>);
 
-    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#652">tail</a>.<span class="ident">pos</span>;
+    <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#653">tail</a>.<span class="ident">pos</span>;
 
-    <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#652">tail</a>);
+    <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#653">tail</a>);
 
-    <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#197-203">Receiver</a> { <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#651">shared</a>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#660">next</a> }
+    <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#197">Receiver</a> { <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#652">shared</a>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#661">next</a> }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#312-324">Tail</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#312">Tail</a> {
     <span class="kw">fn</span> <span class="ident">notify_rx</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">waiter</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">waiters</span>.<span class="ident">pop_back</span>() {
             <span class="comment">// Safety: `waiters` lock is still held.</span>
@@ -1865,17 +1867,17 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">shared</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#683">self</a>.<span class="ident">shared</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#684">shared</a>.<span class="ident">num_tx</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">SeqCst</span>);
+        <span class="kw">let</span> <span class="ident">shared</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#684">self</a>.<span class="ident">shared</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#685">shared</a>.<span class="ident">num_tx</span>.<span class="ident">fetch_add</span>(<span class="number">1</span>, <span class="ident">SeqCst</span>);
 
-        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#157-159">Sender</a> { <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#684">shared</a> }
+        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#157">Sender</a> { <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#685">shared</a> }
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Sender</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">if</span> <span class="number">1</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">shared</span>.<span class="ident">num_tx</span>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">SeqCst</span>) {
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#692">self</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#604">send2</a>(<span class="prelude-val">None</span>);
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#693">self</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#605">send2</a>(<span class="prelude-val">None</span>);
         }
     }
 }
@@ -1915,8 +1917,8 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">let</span> <span class="ident">next_send_pos</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#733">self</a>.<span class="ident">shared</span>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<span class="ident">pos</span>;
-        (<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#734">next_send_pos</a> <span class="op">-</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#733">self</a>.<span class="ident">next</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+        <span class="kw">let</span> <span class="ident">next_send_pos</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#734">self</a>.<span class="ident">shared</span>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<span class="ident">pos</span>;
+        (<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#735">next_send_pos</a> <span class="op">-</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#734">self</a>.<span class="ident">next</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
     }
 
     <span class="doccomment">/// Returns true if there aren&#39;t any messages in the channel that the [`Receiver`]</span>
@@ -1945,21 +1947,21 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#763">self</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#733">len</a>() <span class="op">==</span> <span class="number">0</span>
+        <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#764">self</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#734">len</a>() <span class="op">==</span> <span class="number">0</span>
     }
 
     <span class="doccomment">/// Locks the next value if there is one.</span>
     <span class="kw">fn</span> <span class="ident">recv_ref</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">waiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>)<span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RecvGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#262-279">TryRecvError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> (<a class="self" href="../../../src/tokio/sync/broadcast.rs.html#769">self</a>.<span class="ident">next</span> <span class="op">&amp;</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#769">self</a>.<span class="ident">shared</span>.<span class="ident">mask</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
+        <span class="ident">waiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>)<span class="op">&gt;</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RecvGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#262">TryRecvError</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> (<a class="self" href="../../../src/tokio/sync/broadcast.rs.html#770">self</a>.<span class="ident">next</span> <span class="op">&amp;</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#770">self</a>.<span class="ident">shared</span>.<span class="ident">mask</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
 
         <span class="comment">// The slot holding the next value to read</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">slot</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#769">self</a>.<span class="ident">shared</span>.<span class="ident">buffer</span>[<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#772">idx</a>].<span class="ident">read</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">slot</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#770">self</a>.<span class="ident">shared</span>.<span class="ident">buffer</span>[<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#773">idx</a>].<span class="ident">read</span>().<span class="ident">unwrap</span>();
 
         <span class="kw">if</span> <span class="ident">slot</span>.<span class="ident">pos</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span> {
-            <span class="kw">let</span> <span class="ident">next_pos</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#775">slot</a>.<span class="ident">pos</span>.<span class="ident">wrapping_add</span>(<a class="self" href="../../../src/tokio/sync/broadcast.rs.html#769">self</a>.<span class="ident">shared</span>.<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+            <span class="kw">let</span> <span class="ident">next_pos</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#776">slot</a>.<span class="ident">pos</span>.<span class="ident">wrapping_add</span>(<a class="self" href="../../../src/tokio/sync/broadcast.rs.html#770">self</a>.<span class="ident">shared</span>.<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
 
             <span class="comment">// The receiver has read all current values in the channel and there</span>
             <span class="comment">// is no waiter to register</span>
@@ -1974,40 +1976,40 @@
             <span class="comment">// acquires the `slot` lock and attempts to acquire the `tail` lock</span>
             <span class="comment">// while `send2` acquired the `tail` lock and attempts to acquire</span>
             <span class="comment">// the slot lock.</span>
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#775">slot</a>);
+            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#776">slot</a>);
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#769">self</a>.<span class="ident">shared</span>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#770">self</a>.<span class="ident">shared</span>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
             <span class="comment">// Acquire slot lock again</span>
-            <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#775">slot</a> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#769">self</a>.<span class="ident">shared</span>.<span class="ident">buffer</span>[<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#772">idx</a>].<span class="ident">read</span>().<span class="ident">unwrap</span>();
+            <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#776">slot</a> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#770">self</a>.<span class="ident">shared</span>.<span class="ident">buffer</span>[<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#773">idx</a>].<span class="ident">read</span>().<span class="ident">unwrap</span>();
 
             <span class="comment">// Make sure the position did not change. This could happen in the</span>
             <span class="comment">// unlikely event that the buffer is wrapped between dropping the</span>
             <span class="comment">// read lock and acquiring the tail lock.</span>
             <span class="kw">if</span> <span class="ident">slot</span>.<span class="ident">pos</span> <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">next</span> {
-                <span class="kw">let</span> <span class="ident">next_pos</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#775">slot</a>.<span class="ident">pos</span>.<span class="ident">wrapping_add</span>(<a class="self" href="../../../src/tokio/sync/broadcast.rs.html#769">self</a>.<span class="ident">shared</span>.<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
+                <span class="kw">let</span> <span class="ident">next_pos</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#776">slot</a>.<span class="ident">pos</span>.<span class="ident">wrapping_add</span>(<a class="self" href="../../../src/tokio/sync/broadcast.rs.html#770">self</a>.<span class="ident">shared</span>.<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>);
 
                 <span class="kw">if</span> <span class="ident">next_pos</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">next</span> {
                     <span class="comment">// Store the waker</span>
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">waiter</span>, <span class="ident">waker</span>)) <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#770">waiter</a> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">waiter</span>, <span class="ident">waker</span>)) <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#771">waiter</a> {
                         <span class="comment">// Safety: called while locked.</span>
                         <span class="kw">unsafe</span> {
                             <span class="comment">// Only queue if not already queued</span>
-                            <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#808">waiter</a>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> {
+                            <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#809">waiter</a>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> {
                                 <span class="comment">// If there is no waker **or** if the currently</span>
                                 <span class="comment">// stored waker references a **different** task,</span>
                                 <span class="comment">// track the tasks&#39; waker to be notified on</span>
                                 <span class="comment">// receipt of a new value.</span>
-                                <span class="kw">match</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#812">ptr</a>).<span class="ident">waker</span> {
-                                    <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">w</span>) <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#818">w</a>.<span class="ident">will_wake</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#808">waker</a>) =&gt; {}
+                                <span class="kw">match</span> (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#813">ptr</a>).<span class="ident">waker</span> {
+                                    <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">w</span>) <span class="kw">if</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#819">w</a>.<span class="ident">will_wake</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#809">waker</a>) =&gt; {}
                                     <span class="kw">_</span> =&gt; {
-                                        (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#812">ptr</a>).<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#808">waker</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+                                        (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#813">ptr</a>).<span class="ident">waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#809">waker</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
                                     }
                                 }
 
                                 <span class="kw">if</span> <span class="op">!</span>(<span class="kw-2">*</span><span class="ident">ptr</span>).<span class="ident">queued</span> {
-                                    (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#812">ptr</a>).<span class="ident">queued</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                                    <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#795">tail</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#126">push_front</a>(<span class="ident">NonNull::new_unchecked</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#812">ptr</a>));
+                                    (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#813">ptr</a>).<span class="ident">queued</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                                    <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#796">tail</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#126">push_front</a>(<span class="ident">NonNull::new_unchecked</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#813">ptr</a>));
                                 }
                             });
                         }
@@ -2032,36 +2034,36 @@
                 <span class="comment">// position is decremented by `buffer-size + 1`.</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">adjust</span> <span class="op">=</span> <span class="number">0</span>;
                 <span class="kw">if</span> <span class="ident">tail</span>.<span class="ident">closed</span> {
-                    <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#849">adjust</a> <span class="op">=</span> <span class="number">1</span>
+                    <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#850">adjust</a> <span class="op">=</span> <span class="number">1</span>
                 }
-                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#795">tail</a>
+                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#796">tail</a>
                     .<span class="ident">pos</span>
-                    .<span class="ident">wrapping_sub</span>(<a class="self" href="../../../src/tokio/sync/broadcast.rs.html#769">self</a>.<span class="ident">shared</span>.<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">+</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#849">adjust</a>);
+                    .<span class="ident">wrapping_sub</span>(<a class="self" href="../../../src/tokio/sync/broadcast.rs.html#770">self</a>.<span class="ident">shared</span>.<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">+</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#850">adjust</a>);
 
-                <span class="kw">let</span> <span class="ident">missed</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#853">next</a>.<span class="ident">wrapping_sub</span>(<a class="self" href="../../../src/tokio/sync/broadcast.rs.html#769">self</a>.<span class="ident">next</span>);
+                <span class="kw">let</span> <span class="ident">missed</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#854">next</a>.<span class="ident">wrapping_sub</span>(<a class="self" href="../../../src/tokio/sync/broadcast.rs.html#770">self</a>.<span class="ident">next</span>);
 
-                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#795">tail</a>);
+                <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#796">tail</a>);
 
                 <span class="comment">// The receiver is slow but no values have been missed</span>
                 <span class="kw">if</span> <span class="ident">missed</span> <span class="op">==</span> <span class="number">0</span> {
-                    <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#769">self</a>.<span class="ident">next</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#769">self</a>.<span class="ident">next</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
+                    <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#770">self</a>.<span class="ident">next</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#770">self</a>.<span class="ident">next</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
 
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#364-366">RecvGuard</a> { <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#775">slot</a> });
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#364">RecvGuard</a> { <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#776">slot</a> });
                 }
 
-                <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#769">self</a>.<span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#853">next</a>;
+                <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#770">self</a>.<span class="ident">next</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#854">next</a>;
 
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#278">TryRecvError::Lagged</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#857">missed</a>));
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#278">TryRecvError::Lagged</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#858">missed</a>));
             }
         }
 
-        <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#769">self</a>.<span class="ident">next</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#769">self</a>.<span class="ident">next</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
+        <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#770">self</a>.<span class="ident">next</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#770">self</a>.<span class="ident">next</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>);
 
         <span class="kw">if</span> <span class="ident">slot</span>.<span class="ident">closed</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#271">TryRecvError::Closed</a>);
         }
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#364-366">RecvGuard</a> { <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#775">slot</a> })
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#364">RecvGuard</a> { <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#776">slot</a> })
     }
 }
 
@@ -2090,8 +2092,8 @@
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resubscribe</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">shared</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#908">self</a>.<span class="ident">shared</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#651">new_receiver</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#909">shared</a>)
+        <span class="kw">let</span> <span class="ident">shared</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#909">self</a>.<span class="ident">shared</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#652">new_receiver</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#910">shared</a>)
     }
     <span class="doccomment">/// Receives the next value for this receiver.</span>
     <span class="doccomment">///</span>
@@ -2165,7 +2167,7 @@
     <span class="doccomment">///     assert_eq!(30, rx.recv().await.unwrap());</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#234-244">RecvError</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#234">RecvError</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="ident">Recv::new</span>(<span class="self">self</span>);
         <span class="ident">fut</span>.<span class="kw">await</span>
     }
@@ -2210,20 +2212,20 @@
     <span class="doccomment">///     assert_eq!(10, value);</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#262-279">TryRecvError</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_recv</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#262">TryRecvError</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">recv_ref</span>(<span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1030">guard</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1160-1162">clone_value</a>().<span class="ident">ok_or</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#271">TryRecvError::Closed</a>)
+        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1031">guard</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1161-1163">clone_value</a>().<span class="ident">ok_or</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#271">TryRecvError::Closed</a>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1036">self</a>.<span class="ident">shared</span>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1037">self</a>.<span class="ident">shared</span>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
-        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1037">tail</a>.<span class="ident">rx_cnt</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-        <span class="kw">let</span> <span class="ident">until</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1037">tail</a>.<span class="ident">pos</span>;
+        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1038">tail</a>.<span class="ident">rx_cnt</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="kw">let</span> <span class="ident">until</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1038">tail</a>.<span class="ident">pos</span>;
 
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1037">tail</a>);
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1038">tail</a>);
 
         <span class="kw">while</span> <span class="self">self</span>.<span class="ident">next</span> <span class="op">&lt;</span> <span class="ident">until</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">recv_ref</span>(<span class="prelude-val">None</span>) {
@@ -2241,9 +2243,9 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Recv</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">receiver</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">Recv</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#369-375">Recv</a> {
-            <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1059">receiver</a>,
-            <span class="ident">waiter</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a> {
+        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#369">Recv</a> {
+            <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1060">receiver</a>,
+            <span class="ident">waiter</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a> {
                 <span class="ident">queued</span>: <span class="bool-val">false</span>,
                 <span class="ident">waker</span>: <span class="prelude-val">None</span>,
                 <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers::new</span>(),
@@ -2254,13 +2256,13 @@
 
     <span class="doccomment">/// A custom `project` implementation is used in place of `pin-project-lite`</span>
     <span class="doccomment">/// as a custom drop implementation is needed.</span>
-    <span class="kw">fn</span> <span class="ident">project</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; (<span class="kw-2">&amp;mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">project</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; (<span class="kw-2">&amp;mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a><span class="op">&gt;</span>) {
         <span class="kw">unsafe</span> {
             <span class="comment">// Safety: Receiver is Unpin</span>
             <span class="ident">is_unpin</span>::<span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">Receiver</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
-            <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1073">self</a>.<span class="ident">get_unchecked_mut</span>();
-            (<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1078">me</a>.<span class="ident">receiver</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1078">me</a>.<span class="ident">waiter</span>)
+            <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1074">self</a>.<span class="ident">get_unchecked_mut</span>();
+            (<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1079">me</a>.<span class="ident">receiver</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1079">me</a>.<span class="ident">waiter</span>)
         }
     }
 }
@@ -2269,19 +2271,19 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#234-244">RecvError</a><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#234">RecvError</a><span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#234-244">RecvError</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">receiver</span>, <span class="ident">waiter</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1090">self</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1073">project</a>();
+    <span class="kw">fn</span> <span class="ident">poll</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#234">RecvError</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> (<span class="ident">receiver</span>, <span class="ident">waiter</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1091">self</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1074">project</a>();
 
-        <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1091">receiver</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#768-771">recv_ref</a>(<span class="prelude-val">Some</span>((<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1091">waiter</a>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1090">cx</a>.<span class="ident">waker</span>()))) {
-            <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1094">value</a>,
+        <span class="kw">let</span> <span class="ident">guard</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1092">receiver</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#769-772">recv_ref</a>(<span class="prelude-val">Some</span>((<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1092">waiter</a>, <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1091">cx</a>.<span class="ident">waker</span>()))) {
+            <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1095">value</a>,
             <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#267">TryRecvError::Empty</a>) =&gt; <span class="kw">return</span> <span class="ident">Poll::Pending</span>,
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#278">TryRecvError::Lagged</a>(<span class="ident">n</span>)) =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#243">RecvError::Lagged</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1096">n</a>))),
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#278">TryRecvError::Lagged</a>(<span class="ident">n</span>)) =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#243">RecvError::Lagged</a>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1097">n</a>))),
             <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#271">TryRecvError::Closed</a>) =&gt; <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#237">RecvError::Closed</a>)),
         };
 
-        <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1093">guard</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1160-1162">clone_value</a>().<span class="ident">ok_or</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#237">RecvError::Closed</a>))
+        <span class="ident">Poll::Ready</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1094">guard</a>.<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1161-1163">clone_value</a>().<span class="ident">ok_or</span>(<a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#237">RecvError::Closed</a>))
     }
 }
 
@@ -2289,10 +2291,10 @@
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// Acquire the tail lock. This is required for safety before accessing</span>
         <span class="comment">// the waiter node.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1105">self</a>.<span class="ident">receiver</span>.<span class="ident">shared</span>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1106">self</a>.<span class="ident">receiver</span>.<span class="ident">shared</span>.<span class="ident">tail</span>.<a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>();
 
         <span class="comment">// safety: tail lock is held</span>
-        <span class="kw">let</span> <span class="ident">queued</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1105">self</a>.<span class="ident">waiter</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1111">ptr</a>).<span class="ident">queued</span> });
+        <span class="kw">let</span> <span class="ident">queued</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1106">self</a>.<span class="ident">waiter</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1112">ptr</a>).<span class="ident">queued</span> });
 
         <span class="kw">if</span> <span class="ident">queued</span> {
             <span class="comment">// Remove the node</span>
@@ -2300,8 +2302,8 @@
             <span class="comment">// safety: tail lock is held and the wait node is verified to be in</span>
             <span class="comment">// the list.</span>
             <span class="kw">unsafe</span> {
-                <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1105">self</a>.<span class="ident">waiter</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> {
-                    <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1108">tail</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#183">remove</a>((<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1119">ptr</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+                <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1106">self</a>.<span class="ident">waiter</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> {
+                    <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1109">tail</a>.<span class="ident">waiters</span>.<a class="ident" href="../../../src/tokio/util/linked_list.rs.html#183">remove</a>((<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1120">ptr</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
                 });
             }
         }
@@ -2311,20 +2313,20 @@
 <span class="doccomment">/// # Safety</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// `Waiter` is forced to be !Unpin.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../../src/tokio/util/linked_list.rs.html#43-68">linked_list::Link</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a> {
-    <span class="kw">type</span> <span class="ident">Handle</span> <span class="op">=</span> <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a>;
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../../src/tokio/util/linked_list.rs.html#43">linked_list::Link</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a> {
+    <span class="kw">type</span> <span class="ident">Handle</span> <span class="op">=</span> <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a>;
 
-    <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a><span class="op">&gt;</span> {
-        <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1134">handle</a>
+    <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a><span class="op">&gt;</span> {
+        <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1135">handle</a>
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1138">ptr</a>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1139">ptr</a>
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pointers</span>(<span class="kw-2">mut</span> <span class="ident">target</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350-362">Waiter</a><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="ident">NonNull::from</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1142">target</a>.<span class="ident">as_mut</span>().<span class="ident">pointers</span>)
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pointers</span>(<span class="kw-2">mut</span> <span class="ident">target</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#350">Waiter</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">NonNull::from</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1143">target</a>.<span class="ident">as_mut</span>().<span class="ident">pointers</span>)
     }
 }
 
@@ -2345,7 +2347,7 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a>,
     {
-        <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1160">self</a>.<span class="ident">slot</span>.<span class="ident">val</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1164">ptr</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() })
+        <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1161">self</a>.<span class="ident">slot</span>.<span class="ident">val</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#9">with</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> { (<span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1165">ptr</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>() })
     }
 }
 
@@ -2354,12 +2356,12 @@
         <span class="comment">// Decrement the remaining counter</span>
         <span class="kw">if</span> <span class="number">1</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">slot</span>.<span class="ident">rem</span>.<span class="ident">fetch_sub</span>(<span class="number">1</span>, <span class="ident">SeqCst</span>) {
             <span class="comment">// Safety: Last receiver, drop the value</span>
-            <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1169">self</a>.<span class="ident">slot</span>.<span class="ident">val</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1173">ptr</a> <span class="op">=</span> <span class="prelude-val">None</span> });
+            <a class="self" href="../../../src/tokio/sync/broadcast.rs.html#1170">self</a>.<span class="ident">slot</span>.<span class="ident">val</span>.<a class="ident" href="../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw">unsafe</span> { <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/broadcast.rs.html#1174">ptr</a> <span class="op">=</span> <span class="prelude-val">None</span> });
         }
     }
 }
 
 <span class="kw">fn</span> <span class="ident">is_unpin</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span>() {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

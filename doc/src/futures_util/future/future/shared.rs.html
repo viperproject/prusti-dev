@@ -395,7 +395,7 @@
 
 <span class="kw">struct</span> <span class="ident">Inner</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> {
     <span class="ident">future_or_output</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">FutureOrOutput</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="ident">notifier</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#24-27">Notifier</a><span class="op">&gt;</span>,
+    <span class="ident">notifier</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#24">Notifier</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">struct</span> <span class="ident">Notifier</span> {
@@ -465,9 +465,9 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Fut</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> <span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">future</span>: <span class="ident">Fut</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#19-22">Inner</a> {
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#19">Inner</a> {
             <span class="ident">future_or_output</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#64">FutureOrOutput::Future</a>(<a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#90">future</a>)),
-            <span class="ident">notifier</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#24-27">Notifier</a> {
+            <span class="ident">notifier</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#24">Notifier</a> {
                 <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#82">IDLE</a>),
                 <span class="ident">wakers</span>: <span class="ident">Mutex::new</span>(<span class="prelude-val">Some</span>(<span class="ident">Slab::new</span>())),
             }),
@@ -724,7 +724,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../futures_util/task/trait.ArcWake.html">ArcWake</a> <span class="kw">for</span> <a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#24-27">Notifier</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../futures_util/task/trait.ArcWake.html">ArcWake</a> <span class="kw">for</span> <a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#24">Notifier</a> {
     <span class="kw">fn</span> <span class="ident">wake_by_ref</span>(<span class="ident">arc_self</span>: <span class="kw-2">&amp;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
         <span class="kw">let</span> <span class="ident">wakers</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#351">arc_self</a>.<span class="ident">wakers</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">wakers</span>) <span class="op">=</span> <a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#352">wakers</a>.<span class="ident">as_mut</span>() {
@@ -743,9 +743,9 @@
     <span class="doccomment">/// Returns [`None`] if all clones of the [`Shared`] have been dropped or polled</span>
     <span class="doccomment">/// to completion.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Shared</span><span class="op">&lt;</span><span class="ident">Fut</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#14-17">Shared</a> { <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">upgrade</span>()<span class="question-mark">?</span>), <span class="ident">waker_key</span>: <a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#87">NULL_WAKER_KEY</a> })
+        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#14">Shared</a> { <span class="ident">inner</span>: <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">upgrade</span>()<span class="question-mark">?</span>), <span class="ident">waker_key</span>: <a class="ident" href="../../../../src/futures_util/future/future/shared.rs.html#87">NULL_WAKER_KEY</a> })
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.1.0/src/buf/uninit_slice.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>uninit_slice.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bytes-1.2.0/src/buf/uninit_slice.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>uninit_slice.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
@@ -187,6 +187,32 @@
 <span id="181">181</span>
 <span id="182">182</span>
 <span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">core::fmt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">core::mem::MaybeUninit</a>;
 <span class="kw">use</span> <span class="ident">core::ops</span>::{
@@ -288,7 +314,7 @@
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.<span class="ident">len</span>(), <span class="ident">src</span>.<span class="ident">len</span>());
 
         <span class="kw">unsafe</span> {
-            <span class="ident">ptr::copy_nonoverlapping</span>(<a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#96">src</a>.<span class="ident">as_ptr</span>(), <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#96">self</a>.<a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#123">as_mut_ptr</a>(), <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#96">self</a>.<a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#141">len</a>());
+            <span class="ident">ptr::copy_nonoverlapping</span>(<a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#96">src</a>.<span class="ident">as_ptr</span>(), <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#96">self</a>.<a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#123">as_mut_ptr</a>(), <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#96">self</a>.<a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#167">len</a>());
         }
     }
 
@@ -313,6 +339,32 @@
         <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#123">self</a>.<span class="number">0</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>
     }
 
+    <span class="doccomment">/// Return a `&amp;mut [MaybeUninit&lt;u8&gt;]` to this slice&#39;s buffer.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The caller **must not** read from the referenced memory and **must not** write</span>
+    <span class="doccomment">/// **uninitialized** bytes to the slice either. This is because `BufMut` implementation</span>
+    <span class="doccomment">/// that created the `UninitSlice` knows which parts are initialized. Writing uninitalized</span>
+    <span class="doccomment">/// bytes to the slice may cause the `BufMut` to read those bytes and trigger undefined</span>
+    <span class="doccomment">/// behavior.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use bytes::BufMut;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut data = [0, 1, 2];</span>
+    <span class="doccomment">/// let mut slice = &amp;mut data[..];</span>
+    <span class="doccomment">/// unsafe {</span>
+    <span class="doccomment">///     let uninit_slice = BufMut::chunk_mut(&amp;mut slice).as_uninit_slice_mut();</span>
+    <span class="doccomment">/// };</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">as_uninit_slice_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>] {
+        <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span>(<a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#149">self</a> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span> <span class="kw">as</span> <span class="kw-2">*mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>])
+    }
+
     <span class="doccomment">/// Returns the number of bytes in the slice.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
@@ -328,13 +380,13 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#141">self</a>.<span class="number">0</span>.<span class="ident">len</span>()
+        <a class="self" href="../../../src/bytes/buf/uninit_slice.rs.html#167">self</a>.<span class="number">0</span>.<span class="ident">len</span>()
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#22">UninitSlice</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#147">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;UninitSlice[...]&quot;</span>).<span class="ident">finish</span>()
+        <a class="ident" href="../../../src/bytes/buf/uninit_slice.rs.html#173">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;UninitSlice[...]&quot;</span>).<span class="ident">finish</span>()
     }
 }
 
@@ -362,7 +414,7 @@
     };
 }
 
-<a class="macro" href="../../../src/bytes/buf/uninit_slice.rs.html#152-174">impl_index!</a>(
+<a class="macro" href="../../../src/bytes/buf/uninit_slice.rs.html#178-200">impl_index!</a>(
     <span class="ident">Range</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
     <span class="ident">RangeFrom</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
     <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/range/struct.RangeFull.html">RangeFull</a>,
@@ -371,5 +423,5 @@
     <span class="ident">RangeToInclusive</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>
 );
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

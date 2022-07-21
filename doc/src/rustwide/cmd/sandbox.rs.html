@@ -425,8 +425,8 @@
 <span id="419">419</span>
 <span id="420">420</span>
 <span id="421">421</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cmd</span>::{<a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#192-204">Command</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62-106">CommandError</a>, <a class="ident" href="../../../src/rustwide/cmd/process_lines_actions.rs.html#19-21">ProcessLinesActions</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#521-524">ProcessOutput</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195"><span class="kw">crate</span>::Workspace</a>;
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cmd</span>::{<a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#192">Command</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62">CommandError</a>, <a class="ident" href="../../../src/rustwide/cmd/process_lines_actions.rs.html#19">ProcessLinesActions</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#521">ProcessOutput</a>};
+<span class="kw">use</span> <a class="ident" href="../../../src/rustwide/workspace.rs.html#193"><span class="kw">crate</span>::Workspace</a>;
 <span class="kw">use</span> <span class="ident">log</span>::{<a class="ident" href="../../../log/macro.error.html">error</a>, <a class="ident" href="../../../log/macro.info.html">info</a>};
 <span class="kw">use</span> <a class="ident" href="../../../serde_derive/derive.Deserialize.html">serde::Deserialize</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">std::error::Error</a>;
@@ -439,12 +439,12 @@
     <span class="ident">name</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#11-13">SandboxImage</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#11">SandboxImage</a> {
     <span class="doccomment">/// Load a local image present in the host machine.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the image is not available locally an error will be returned instead.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62-106">CommandError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">image</span> <span class="op">=</span> <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#11-13">SandboxImage</a> { <span class="ident">name</span>: <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#19">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() };
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">local</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62">CommandError</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">image</span> <span class="op">=</span> <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#11">SandboxImage</a> { <span class="ident">name</span>: <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#19">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() };
         <a class="macro" href="../../../log/macro.info.html">info!</a>(<span class="string">&quot;sandbox image is local, skipping pull&quot;</span>);
         <span class="ident">image</span>.<span class="ident">ensure_exists_locally</span>()<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#20">image</a>)
@@ -454,8 +454,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This will access the network to download the image from the registry. If pulling fails an</span>
     <span class="doccomment">/// error will be returned instead.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remote</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62-106">CommandError</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">image</span> <span class="op">=</span> <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#11-13">SandboxImage</a> { <span class="ident">name</span>: <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#30">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() };
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remote</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62">CommandError</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">image</span> <span class="op">=</span> <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#11">SandboxImage</a> { <span class="ident">name</span>: <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#30">name</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>() };
         <a class="macro" href="../../../log/macro.info.html">info!</a>(<span class="string">&quot;pulling image {} from Docker Hub&quot;</span>, <span class="ident">name</span>);
         <span class="ident">Command::new_workspaceless</span>(<span class="string">&quot;docker&quot;</span>)
             .<span class="ident">args</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;pull&quot;</span>, <span class="ident">name</span>])
@@ -469,7 +469,7 @@
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#31">image</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">ensure_exists_locally</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62-106">CommandError</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">ensure_exists_locally</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62">CommandError</a><span class="op">&gt;</span> {
         <a class="macro" href="../../../log/macro.info.html">info!</a>(<span class="string">&quot;checking the image {} is available locally&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>);
         <span class="ident">Command::new_workspaceless</span>(<span class="string">&quot;docker&quot;</span>)
             .<span class="ident">args</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;image&quot;</span>, <span class="string">&quot;inspect&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span>])
@@ -510,11 +510,11 @@
 <span class="kw">struct</span> <span class="ident">MountConfig</span> {
     <span class="ident">host_path</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>,
     <span class="ident">sandbox_path</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>,
-    <span class="ident">perm</span>: <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#75-80">MountKind</a>,
+    <span class="ident">perm</span>: <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#75">MountKind</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#83-87">MountConfig</a> {
-    <span class="kw">fn</span> <span class="ident">host_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62-106">CommandError</a><span class="op">&gt;</span> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#83">MountConfig</a> {
+    <span class="kw">fn</span> <span class="ident">host_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193">Workspace</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62">CommandError</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">container</span>) <span class="op">=</span> <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#90">workspace</a>.<a class="ident" href="../../../src/rustwide/workspace.rs.html#302">current_container</a>() {
             <span class="comment">// If we&#39;re inside a Docker container we&#39;ll need to remap the mount sources to point to</span>
             <span class="comment">// the directories in the host system instead of the containers. To do that we try to</span>
@@ -532,7 +532,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">to_volume_arg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62-106">CommandError</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">to_volume_arg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193">Workspace</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62">CommandError</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">perm</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../src/rustwide/cmd/sandbox.rs.html#108">self</a>.<span class="ident">perm</span> {
             <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#77">MountKind::ReadWrite</a> =&gt; <span class="string">&quot;rw&quot;</span>,
             <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#79">MountKind::ReadOnly</a> =&gt; <span class="string">&quot;ro&quot;</span>,
@@ -545,7 +545,7 @@
         ))
     }
 
-    <span class="kw">fn</span> <span class="ident">to_mount_arg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62-106">CommandError</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">to_mount_arg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193">Workspace</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62">CommandError</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">opts_with_leading_comma</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">perm</span> <span class="op">==</span> <span class="ident">MountKind::ReadOnly</span> {
@@ -565,7 +565,7 @@
 <span class="doccomment">/// [`Command`](struct.Command.html).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SandboxBuilder</span> {
-    <span class="ident">mounts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#83-87">MountConfig</a><span class="op">&gt;</span>,
+    <span class="ident">mounts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#83">MountConfig</a><span class="op">&gt;</span>,
     <span class="ident">env</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>)<span class="op">&gt;</span>,
     <span class="ident">memory_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
     <span class="ident">cpu_limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.f32.html">f32</a><span class="op">&gt;</span>,
@@ -575,7 +575,7 @@
     <span class="ident">enable_networking</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#140-149">SandboxBuilder</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#140">SandboxBuilder</a> {
     <span class="doccomment">/// Create a new sandbox builder.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
@@ -592,8 +592,8 @@
 
     <span class="doccomment">/// Mount a path inside the sandbox. It&#39;s possible to choose whether to mount the path</span>
     <span class="doccomment">/// read-only or writeable through the [`MountKind`](enum.MountKind.html) enum.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mount</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">host_path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <span class="ident">sandbox_path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <span class="ident">kind</span>: <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#75-80">MountKind</a>) -&gt; <span class="self">Self</span> {
-        <a class="self" href="../../../src/rustwide/cmd/sandbox.rs.html#168">self</a>.<span class="ident">mounts</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#83-87">MountConfig</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">mount</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">host_path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <span class="ident">sandbox_path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>, <span class="ident">kind</span>: <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#75">MountKind</a>) -&gt; <span class="self">Self</span> {
+        <a class="self" href="../../../src/rustwide/cmd/sandbox.rs.html#168">self</a>.<span class="ident">mounts</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#83">MountConfig</a> {
             <span class="ident">host_path</span>: <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#168">host_path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             <span class="ident">sandbox_path</span>: <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#168">sandbox_path</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
             <span class="ident">perm</span>: <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#168">kind</a>,
@@ -650,7 +650,7 @@
         <a class="self" href="../../../src/rustwide/cmd/sandbox.rs.html#221">self</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">create</span>(<span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62-106">CommandError</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">create</span>(<span class="self">self</span>, <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193">Workspace</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62">CommandError</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="string">&quot;create&quot;</span>.<span class="ident">into</span>()];
 
         <span class="kw">for</span> <span class="ident">mount</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">mounts</span> {
@@ -710,7 +710,7 @@
         <span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="ident">Command::new</span>(<span class="ident">workspace</span>, <span class="string">&quot;docker&quot;</span>)
             .<span class="ident">args</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">args</span>)
             .<span class="ident">run_capture</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#342-346">Container</a> {
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#342">Container</a> {
             <span class="ident">id</span>: <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#283">out</a>.<a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#528">stdout_lines</a>()[<span class="number">0</span>].<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
             <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#226">workspace</a>,
         })
@@ -719,14 +719,14 @@
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::too_many_arguments</span>)]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">run</span>(
         <span class="self">self</span>,
-        <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>,
+        <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193">Workspace</a>,
         <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>,
         <span class="ident">no_output_timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>,
-        <span class="ident">process_lines</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/rustwide/cmd/process_lines_actions.rs.html#19-21">ProcessLinesActions</a>)<span class="op">&gt;</span>,
+        <span class="ident">process_lines</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/rustwide/cmd/process_lines_actions.rs.html#19">ProcessLinesActions</a>)<span class="op">&gt;</span>,
         <span class="ident">log_output</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         <span class="ident">log_command</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         <span class="ident">capture</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#521-524">ProcessOutput</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62-106">CommandError</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#521">ProcessOutput</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62">CommandError</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">container</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">create</span>(<span class="ident">workspace</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// Ensure the container is properly deleted even if something panics</span>
@@ -756,7 +756,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>)]</span>
 <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;PascalCase&quot;</span>)]</span>
 <span class="kw">struct</span> <span class="ident">InspectContainer</span> {
-    <span class="ident">state</span>: <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#336-339">InspectState</a>,
+    <span class="ident">state</span>: <a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#336">InspectState</a>,
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>)]</span>
@@ -769,7 +769,7 @@
 <span class="kw">struct</span> <span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;w</span><span class="op">&gt;</span> {
     <span class="comment">// Docker container ID</span>
     <span class="ident">id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
-    <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;w</span> <a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>,
+    <span class="ident">workspace</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;w</span> <a class="ident" href="../../../src/rustwide/workspace.rs.html#193">Workspace</a>,
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
@@ -779,13 +779,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Container</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">inspect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#331-333">InspectContainer</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62-106">CommandError</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">inspect</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#331">InspectContainer</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62">CommandError</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">Command::new</span>(<span class="self">self</span>.<span class="ident">workspace</span>, <span class="string">&quot;docker&quot;</span>)
             .<span class="ident">args</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;inspect&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">id</span>])
             .<span class="ident">log_output</span>(<span class="bool-val">false</span>)
             .<span class="ident">run_capture</span>()<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#331-333">InspectContainer</a><span class="op">&gt;</span> <span class="op">=</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#331">InspectContainer</a><span class="op">&gt;</span> <span class="op">=</span>
             <span class="ident">::serde_json::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>.<span class="ident">stdout_lines</span>().<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>))
                 .<span class="ident">map_err</span>(<span class="ident">CommandError::InvalidDockerInspectOutput</span>)<span class="question-mark">?</span>;
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">data</span>.<span class="ident">len</span>(), <span class="number">1</span>);
@@ -796,11 +796,11 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>,
         <span class="ident">no_output_timeout</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a><span class="op">&gt;</span>,
-        <span class="ident">process_lines</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/rustwide/cmd/process_lines_actions.rs.html#19-21">ProcessLinesActions</a>)<span class="op">&gt;</span>,
+        <span class="ident">process_lines</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/rustwide/cmd/process_lines_actions.rs.html#19">ProcessLinesActions</a>)<span class="op">&gt;</span>,
         <span class="ident">log_output</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         <span class="ident">log_command</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
         <span class="ident">capture</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#521-524">ProcessOutput</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62-106">CommandError</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#521">ProcessOutput</a>, <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62">CommandError</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cmd</span> <span class="op">=</span> <span class="ident">Command::new</span>(<a class="self" href="../../../src/rustwide/cmd/sandbox.rs.html#369">self</a>.<span class="ident">workspace</span>, <span class="string">&quot;docker&quot;</span>)
             .<a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#259">args</a>(<span class="kw-2">&amp;</span>[<span class="string">&quot;start&quot;</span>, <span class="string">&quot;-a&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/rustwide/cmd/sandbox.rs.html#369">self</a>.<span class="ident">id</span>])
             .<a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#284">timeout</a>(<a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#370">timeout</a>)
@@ -826,7 +826,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">delete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62-106">CommandError</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">delete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#62">CommandError</a><span class="op">&gt;</span> {
         <span class="ident">Command::new</span>(<a class="self" href="../../../src/rustwide/cmd/sandbox.rs.html#402">self</a>.<span class="ident">workspace</span>, <span class="string">&quot;docker&quot;</span>)
             .<a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#259">args</a>(<span class="kw-2">&amp;</span>[<span class="string">&quot;rm&quot;</span>, <span class="string">&quot;-f&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../src/rustwide/cmd/sandbox.rs.html#402">self</a>.<span class="ident">id</span>])
             .<a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#347">run</a>()
@@ -838,7 +838,7 @@
 <span class="doccomment">/// The Docker daemon is required for sandboxing to work, and this function returns whether the</span>
 <span class="doccomment">/// daemon is online and reachable or not. Calling a sandboxed command when the daemon is offline</span>
 <span class="doccomment">/// will error too, but this function allows the caller to error earlier.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">docker_running</span>(<span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193-195">Workspace</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">docker_running</span>(<span class="ident">workspace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/rustwide/workspace.rs.html#193">Workspace</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <a class="macro" href="../../../log/macro.info.html">info!</a>(<span class="string">&quot;checking if the docker daemon is running&quot;</span>);
     <span class="ident">Command::new</span>(<a class="ident" href="../../../src/rustwide/cmd/sandbox.rs.html#414">workspace</a>, <span class="string">&quot;docker&quot;</span>)
         .<a class="ident" href="../../../src/rustwide/cmd/mod.rs.html#259">args</a>(<span class="kw-2">&amp;</span>[<span class="string">&quot;info&quot;</span>])
@@ -847,5 +847,5 @@
         .<span class="ident">is_ok</span>()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rustwide" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="rustwide" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

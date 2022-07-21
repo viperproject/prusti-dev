@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/time/driver/entry.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>entry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.0/src/time/driver/entry.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>entry.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
@@ -697,11 +697,11 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU64.html"><span class="kw">crate</span>::loom::sync::atomic::AtomicU64</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html"><span class="kw">crate</span>::loom::sync::atomic::Ordering</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27-30"><span class="kw">crate</span>::sync::AtomicWaker</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34-36"><span class="kw">crate</span>::time::Instant</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27"><span class="kw">crate</span>::sync::AtomicWaker</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34"><span class="kw">crate</span>::time::Instant</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/util/mod.rs.html#41"><span class="kw">crate</span>::util::linked_list</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/time/driver/handle.rs.html#7-10"><span class="kw">super</span>::Handle</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/time/driver/handle.rs.html#7"><span class="kw">super</span>::Handle</a>;
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a> <span class="kw">as</span> <span class="ident">StdUnsafeCell</span>;
 <span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
@@ -734,22 +734,22 @@
     <span class="doccomment">/// without holding the driver lock is undefined behavior.</span>
     <span class="ident">result</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#71">TimerResult</a><span class="op">&gt;</span>,
     <span class="doccomment">/// The currently-registered waker</span>
-    <span class="ident">waker</span>: <span class="ident">CachePadded</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27-30">AtomicWaker</a><span class="op">&gt;</span>,
+    <span class="ident">waker</span>: <span class="ident">CachePadded</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/sync/task/atomic_waker.rs.html#27">AtomicWaker</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#88-99">StateCell</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#88">StateCell</a> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#88-99">StateCell</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#88">StateCell</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.write.html">write!</a>(<span class="ident">f</span>, <span class="string">&quot;StateCell({:?})&quot;</span>, <span class="self">self</span>.<span class="ident">read_state</span>())
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#88-99">StateCell</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#88">StateCell</a> {
     <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">state</span>: <span class="ident">AtomicU64::new</span>(<a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#73">STATE_DEREGISTERED</a>),
@@ -925,23 +925,23 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">TimerEntry</span> {
     <span class="doccomment">/// Arc reference to the driver. We can only free the driver after</span>
     <span class="doccomment">/// deregistering everything from their respective timer wheels.</span>
-    <span class="ident">driver</span>: <a class="ident" href="../../../../src/tokio/time/driver/handle.rs.html#7-10">Handle</a>,
+    <span class="ident">driver</span>: <a class="ident" href="../../../../src/tokio/time/driver/handle.rs.html#7">Handle</a>,
     <span class="doccomment">/// Shared inner structure; this is part of an intrusive linked list, and</span>
     <span class="doccomment">/// therefore other references can exist to it while mutable references to</span>
     <span class="doccomment">/// Entry exist.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is manipulated only under the inner mutex. TODO: Can we use loom</span>
     <span class="doccomment">/// cells for this?</span>
-    <span class="ident">inner</span>: <span class="ident">StdUnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330-340">TimerShared</a><span class="op">&gt;</span>,
+    <span class="ident">inner</span>: <span class="ident">StdUnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a><span class="op">&gt;</span>,
     <span class="doccomment">/// Initial deadline for the timer. This is used to register on the first</span>
     <span class="doccomment">/// poll, as we can&#39;t register prior to being pinned.</span>
-    <span class="ident">initial_deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/time/instant.rs.html#34-36">Instant</a><span class="op">&gt;</span>,
+    <span class="ident">initial_deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/time/instant.rs.html#34">Instant</a><span class="op">&gt;</span>,
     <span class="doccomment">/// Ensure the type is !Unpin</span>
     <span class="ident">_m</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">std::marker::PhantomPinned</a>,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#286-302">TimerEntry</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#286-302">TimerEntry</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#286">TimerEntry</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#286">TimerEntry</a> {}
 
 <span class="doccomment">/// An TimerHandle is the (non-enforced) &quot;unique&quot; pointer from the driver to the</span>
 <span class="doccomment">/// timer entry. Generally, at most one TimerHandle exists for a timer at a time</span>
@@ -955,10 +955,10 @@
 <span class="doccomment">/// memory safety, all operations are unsafe.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">TimerHandle</span> {
-    <span class="ident">inner</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330-340">TimerShared</a><span class="op">&gt;</span>,
+    <span class="ident">inner</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type</span> <span class="ident">EntryList</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::util::linked_list::LinkedList</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330-340">TimerShared</a>, <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330-340">TimerShared</a><span class="op">&gt;</span>;
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type</span> <span class="ident">EntryList</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::util::linked_list::LinkedList</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a>, <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a><span class="op">&gt;</span>;
 
 <span class="doccomment">/// The shared state structure of a timer. This structure is shared between the</span>
 <span class="doccomment">/// frontend (`Entry`) and driver backend.</span>
@@ -968,17 +968,17 @@
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span> <span class="comment">// required by `link_list::Link` impl</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">TimerShared</span> {
     <span class="doccomment">/// Data manipulated by the driver thread itself, only.</span>
-    <span class="ident">driver_state</span>: <span class="ident">CachePadded</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#425-439">TimerSharedPadded</a><span class="op">&gt;</span>,
+    <span class="ident">driver_state</span>: <span class="ident">CachePadded</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#425">TimerSharedPadded</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Current state. This records whether the timer entry is currently under</span>
     <span class="doccomment">/// the ownership of the driver, and if not, its current state (not</span>
     <span class="doccomment">/// complete, fired, error, etc).</span>
-    <span class="ident">state</span>: <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#88-99">StateCell</a>,
+    <span class="ident">state</span>: <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#88">StateCell</a>,
 
     <span class="ident">_p</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">PhantomPinned</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330-340">TimerShared</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">state</span>: <span class="ident">StateCell::default</span>(),
@@ -1041,8 +1041,8 @@
     }
 
     <span class="doccomment">/// Returns a TimerHandle for this timer.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#318-320">TimerHandle</a> {
-        <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#318-320">TimerHandle</a> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">handle</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#318">TimerHandle</a> {
+        <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#318">TimerHandle</a> {
             <span class="ident">inner</span>: <span class="ident">NonNull::from</span>(<a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#405">self</a>),
         }
     }
@@ -1066,7 +1066,7 @@
     <span class="doccomment">/// slot. Valid only if state is equal to Registered.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Only accessed under the entry lock.</span>
-    <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330-340">TimerShared</a><span class="op">&gt;</span>,
+    <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// The expiration time for which this entry is currently registered.</span>
     <span class="doccomment">/// Generally owned by the driver, but is accessed by the entry when not</span>
@@ -1077,7 +1077,7 @@
     <span class="ident">true_when</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicU64.html">AtomicU64</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#425-439">TimerSharedPadded</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#425">TimerSharedPadded</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
         <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#442">f</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;TimerSharedPadded&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;when&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#442">self</a>.<span class="ident">true_when</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>))
@@ -1086,7 +1086,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#425-439">TimerSharedPadded</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#425">TimerSharedPadded</a> {
     <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">cached_when</span>: <span class="ident">AtomicU64::new</span>(<span class="number">0</span>),
@@ -1096,20 +1096,20 @@
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330-340">TimerShared</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330-340">TimerShared</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a> {}
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#43-68">linked_list::Link</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330-340">TimerShared</a> {
-    <span class="kw">type</span> <span class="ident">Handle</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#318-320">TimerHandle</a>;
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/util/linked_list.rs.html#43">linked_list::Link</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a> {
+    <span class="kw">type</span> <span class="ident">Handle</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#318">TimerHandle</a>;
 
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330-340">TimerShared</a>;
+    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a>;
 
     <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Handle</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#468">handle</a>.<span class="ident">inner</span>
     }
 
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span><span class="op">&gt;</span>) -&gt; <span class="ident"><span class="self">Self</span>::Handle</span> {
-        <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#318-320">TimerHandle</a> { <span class="ident">inner</span>: <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#472">ptr</a> }
+        <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#318">TimerHandle</a> { <span class="ident">inner</span>: <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#472">ptr</a> }
     }
 
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pointers</span>(
@@ -1121,8 +1121,8 @@
 
 <span class="comment">// ===== impl Entry =====</span>
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#286-302">TimerEntry</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/time/driver/handle.rs.html#7-10">Handle</a>, <span class="ident">deadline</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34-36">Instant</a>) -&gt; <span class="self">Self</span> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#286">TimerEntry</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/time/driver/handle.rs.html#7">Handle</a>, <span class="ident">deadline</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">driver</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#486">handle</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
 
         <span class="self">Self</span> {
@@ -1133,7 +1133,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330-340">TimerShared</a> {
+    <span class="kw">fn</span> <span class="ident">inner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#330">TimerShared</a> {
         <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#497">self</a>.<span class="ident">inner</span>.<span class="ident">get</span>() }
     }
 
@@ -1168,7 +1168,7 @@
         <span class="kw">unsafe</span> { <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#506">self</a>.<span class="ident">driver</span>.<a class="ident" href="../../../../src/tokio/time/driver/mod.rs.html#355">clear_entry</a>(<span class="ident">NonNull::from</span>(<a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#506">self</a>.<a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#497">inner</a>())) };
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">new_time</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34-36">Instant</a>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">reset</span>(<span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">new_time</span>: <a class="ident" href="../../../../src/tokio/time/instant.rs.html#34">Instant</a>) {
         <span class="kw">unsafe</span> { <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#532">self</a>.<span class="ident">as_mut</span>().<span class="ident">get_unchecked_mut</span>() }.<span class="ident">initial_deadline</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
         <span class="kw">let</span> <span class="ident">tick</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#532">self</a>.<span class="ident">driver</span>.<a class="ident" href="../../../../src/tokio/time/driver/handle.rs.html#20">time_source</a>().<a class="ident" href="../../../../src/tokio/time/driver/mod.rs.html#120">deadline_to_tick</a>(<a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#532">new_time</a>);
@@ -1200,7 +1200,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#318-320">TimerHandle</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#318">TimerHandle</a> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">cached_when</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
         <span class="kw">unsafe</span> { <a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#565">self</a>.<span class="ident">inner</span>.<span class="ident">as_ref</span>().<a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#352">cached_when</a>() }
     }
@@ -1260,7 +1260,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#286-302">TimerEntry</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#286">TimerEntry</a> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> { <span class="ident">Pin::new_unchecked</span>(<a class="self" href="../../../../src/tokio/time/driver/entry.rs.html#625">self</a>) }.<span class="ident">as_mut</span>().<a class="ident" href="../../../../src/tokio/time/driver/entry.rs.html#506">cancel</a>()
     }
@@ -1271,5 +1271,5 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">struct</span> <span class="ident">CachePadded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">T</span>);
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

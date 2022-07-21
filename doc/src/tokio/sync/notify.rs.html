@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/sync/notify.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>notify.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.0/src/sync/notify.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>notify.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
@@ -968,10 +968,10 @@
 <span class="comment">// triggers this warning but it is safe to ignore in this case.</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sync&quot;</span>), <span class="ident">allow</span>(<span class="ident">unreachable_pub</span>, <span class="ident">dead_code</span>))]</span>
 
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/tokio/loom/std/mutex.rs.html#6"><span class="kw">crate</span>::loom::sync::Mutex</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::linked_list</span>::{<a class="self" href="../../../src/tokio/util/mod.rs.html#41">self</a>, <a class="ident" href="../../../src/tokio/util/linked_list.rs.html#19-28">LinkedList</a>};
-<span class="kw">use</span> <a class="ident" href="../../../src/tokio/util/wake_list.rs.html#7-10"><span class="kw">crate</span>::util::WakeList</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::linked_list</span>::{<a class="self" href="../../../src/tokio/util/mod.rs.html#41">self</a>, <a class="ident" href="../../../src/tokio/util/linked_list.rs.html#19">LinkedList</a>};
+<span class="kw">use</span> <a class="ident" href="../../../src/tokio/util/wake_list.rs.html#7"><span class="kw">crate</span>::util::WakeList</a>;
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">std::future::Future</a>;
@@ -981,7 +981,7 @@
 <span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering::SeqCst</span>;
 <span class="kw">use</span> <span class="ident">std::task</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Context.html">Context</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>};
 
-<span class="kw">type</span> <span class="ident">WaitList</span> <span class="op">=</span> <span class="ident">LinkedList</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218-230">Waiter</a>, <span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218-230">Waiter</a> <span class="kw">as</span> <span class="ident">linked_list::Link</span><span class="op">&gt;</span><span class="ident">::Target</span><span class="op">&gt;</span>;
+<span class="kw">type</span> <span class="ident">WaitList</span> <span class="op">=</span> <span class="ident">LinkedList</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a>, <span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a> <span class="kw">as</span> <span class="ident">linked_list::Link</span><span class="op">&gt;</span><span class="ident">::Target</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// Notifies a single task to wake up.</span>
 <span class="doccomment">///</span>
@@ -1164,7 +1164,7 @@
     <span class="comment">// `WAITING` or `NOTIFIED`. The rest of the bits</span>
     <span class="comment">// are used to store the number of times `notify_waiters`</span>
     <span class="comment">// was called.</span>
-    <span class="ident">state</span>: <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>,
+    <span class="ident">state</span>: <a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
     <span class="ident">waiters</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#21">WaitList</a><span class="op">&gt;</span>,
 }
 
@@ -1180,13 +1180,13 @@
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span> <span class="comment">// required by `linked_list::Link` impl</span>
 <span class="kw">struct</span> <span class="ident">Waiter</span> {
     <span class="doccomment">/// Intrusive linked-list pointers.</span>
-    <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218-230">Waiter</a><span class="op">&gt;</span>,
+    <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Waiting task&#39;s waker.</span>
     <span class="ident">waker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// `true` if the notification has been assigned to this waiter.</span>
-    <span class="ident">notified</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#209-214">NotificationType</a><span class="op">&gt;</span>,
+    <span class="ident">notified</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#209">NotificationType</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Should not be `Unpin`.</span>
     <span class="ident">_p</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/struct.PhantomPinned.html">PhantomPinned</a>,
@@ -1199,13 +1199,13 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Notified</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The `Notify` being received on.</span>
-    <span class="ident">notify</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#199-206">Notify</a>,
+    <span class="ident">notify</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#199">Notify</a>,
 
     <span class="doccomment">/// The current state of the receiving process.</span>
-    <span class="ident">state</span>: <a class="ident" href="../../../src/tokio/sync/notify.rs.html#252-256">State</a>,
+    <span class="ident">state</span>: <a class="ident" href="../../../src/tokio/sync/notify.rs.html#252">State</a>,
 
     <span class="doccomment">/// Entry in the waiter `LinkedList`.</span>
-    <span class="ident">waiter</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218-230">Waiter</a><span class="op">&gt;</span>,
+    <span class="ident">waiter</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <span class="ident">Notified</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {}
@@ -1247,11 +1247,11 @@
     <a class="ident" href="../../../src/tokio/sync/notify.rs.html#283">data</a> <span class="op">+</span> (<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#258">NOTIFY_WAITERS_SHIFT</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">atomic_inc_num_notify_waiters_calls</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>) {
+<span class="kw">fn</span> <span class="ident">atomic_inc_num_notify_waiters_calls</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>) {
     <a class="ident" href="../../../src/tokio/sync/notify.rs.html#287">data</a>.<span class="ident">fetch_add</span>(<span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#258">NOTIFY_WAITERS_SHIFT</a>, <span class="ident">SeqCst</span>);
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#199-206">Notify</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#199">Notify</a> {
     <span class="doccomment">/// Create a new `Notify`, initialized without a permit.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
@@ -1261,8 +1261,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let notify = Notify::new();</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/tokio/sync/notify.rs.html#199-206">Notify</a> {
-        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#199-206">Notify</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/tokio/sync/notify.rs.html#199">Notify</a> {
+        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#199">Notify</a> {
             <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>),
             <span class="ident">waiters</span>: <span class="ident">Mutex::new</span>(<span class="ident">LinkedList::new</span>()),
         }
@@ -1340,10 +1340,10 @@
         <span class="comment">// we load the number of times notify_waiters</span>
         <span class="comment">// was called and store that in our initial state</span>
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#376">self</a>.<span class="ident">state</span>.<span class="ident">load</span>(<span class="ident">SeqCst</span>);
-        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#237-246">Notified</a> {
+        <a class="ident" href="../../../src/tokio/sync/notify.rs.html#237">Notified</a> {
             <span class="ident">notify</span>: <a class="self" href="../../../src/tokio/sync/notify.rs.html#376">self</a>,
             <span class="ident">state</span>: <a class="ident" href="../../../src/tokio/sync/notify.rs.html#253">State::Init</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#379">state</a> <span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#258">NOTIFY_WAITERS_SHIFT</a>),
-            <span class="ident">waiter</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#218-230">Waiter</a> {
+            <span class="ident">waiter</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a> {
                 <span class="ident">pointers</span>: <span class="ident">linked_list::Pointers::new</span>(),
                 <span class="ident">waker</span>: <span class="prelude-val">None</span>,
                 <span class="ident">notified</span>: <span class="prelude-val">None</span>,
@@ -1516,13 +1516,13 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#199-206">Notify</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/tokio/sync/notify.rs.html#199-206">Notify</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#199">Notify</a> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/tokio/sync/notify.rs.html#199">Notify</a> {
         <span class="ident">Notify::new</span>()
     }
 }
 
-<span class="kw">fn</span> <span class="ident">notify_locked</span>(<span class="ident">waiters</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#21">WaitList</a>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>, <span class="ident">curr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">notify_locked</span>(<span class="ident">waiters</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#21">WaitList</a>, <span class="ident">state</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>, <span class="ident">curr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span> {
     <span class="kw">loop</span> {
         <span class="kw">match</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#275">get_state</a>(<a class="ident" href="../../../src/tokio/sync/notify.rs.html#562">curr</a>) {
             <a class="ident" href="../../../src/tokio/sync/notify.rs.html#263">EMPTY</a> <span class="op">|</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#269">NOTIFIED</a> =&gt; {
@@ -1682,12 +1682,12 @@
 
     <span class="doccomment">/// A custom `project` implementation is used in place of `pin-project-lite`</span>
     <span class="doccomment">/// as a custom drop implementation is needed.</span>
-    <span class="kw">fn</span> <span class="ident">project</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; (<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#199-206">Notify</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#252-256">State</a>, <span class="kw-2">&amp;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218-230">Waiter</a><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">project</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>) -&gt; (<span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#199">Notify</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#252">State</a>, <span class="kw-2">&amp;</span><span class="ident">UnsafeCell</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a><span class="op">&gt;</span>) {
         <span class="kw">unsafe</span> {
             <span class="comment">// Safety: both `notify` and `state` are `Unpin`.</span>
 
-            <span class="ident">is_unpin</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#199-206">Notify</a><span class="op">&gt;</span>();
-            <span class="ident">is_unpin</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a><span class="op">&gt;</span>();
+            <span class="ident">is_unpin</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#199">Notify</a><span class="op">&gt;</span>();
+            <span class="ident">is_unpin</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a><span class="op">&gt;</span>();
 
             <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#722">self</a>.<span class="ident">get_unchecked_mut</span>();
             (<a class="ident" href="../../../src/tokio/sync/notify.rs.html#729">me</a>.<span class="ident">notify</span>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#729">me</a>.<span class="ident">state</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#729">me</a>.<span class="ident">waiter</span>)
@@ -1695,7 +1695,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">poll_notified</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="ident">waker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#252-256">State</a>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#252">State</a>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> (<span class="ident">notify</span>, <span class="ident">state</span>, <span class="ident">waiter</span>) <span class="op">=</span> <a class="self" href="../../../src/tokio/sync/notify.rs.html#734">self</a>.<a class="ident" href="../../../src/tokio/sync/notify.rs.html#722">project</a>();
 
@@ -1855,7 +1855,7 @@
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Notified</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#252-256">State</a>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#252">State</a>::<span class="kw-2">*</span>;
 
         <span class="comment">// Safety: The type only transitions to a &quot;Waiting&quot; state when pinned.</span>
         <span class="kw">let</span> (<span class="ident">notify</span>, <span class="ident">state</span>, <span class="ident">waiter</span>) <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">Pin::new_unchecked</span>(<a class="self" href="../../../src/tokio/sync/notify.rs.html#894">self</a>).<a class="ident" href="../../../src/tokio/sync/notify.rs.html#722">project</a>() };
@@ -1900,24 +1900,24 @@
 <span class="doccomment">/// # Safety</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// `Waiter` is forced to be !Unpin.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../../src/tokio/util/linked_list.rs.html#43-68">linked_list::Link</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#218-230">Waiter</a> {
-    <span class="kw">type</span> <span class="ident">Handle</span> <span class="op">=</span> <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218-230">Waiter</a><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#218-230">Waiter</a>;
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../../src/tokio/util/linked_list.rs.html#43">linked_list::Link</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a> {
+    <span class="kw">type</span> <span class="ident">Handle</span> <span class="op">=</span> <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a>;
 
-    <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218-230">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218-230">Waiter</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a><span class="op">&gt;</span> {
         <span class="kw-2">*</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#944">handle</a>
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218-230">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218-230">Waiter</a><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a><span class="op">&gt;</span> {
         <a class="ident" href="../../../src/tokio/sync/notify.rs.html#948">ptr</a>
     }
 
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pointers</span>(<span class="ident">target</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218-230">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218-230">Waiter</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">pointers</span>(<span class="ident">target</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a><span class="op">&gt;</span>) -&gt; <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/notify.rs.html#218">Waiter</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <a class="ident" href="../../../src/tokio/sync/notify.rs.html#952">target</a>.<span class="ident">cast</span>()
     }
 }
 
 <span class="kw">fn</span> <span class="ident">is_unpin</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Unpin.html">Unpin</a><span class="op">&gt;</span>() {}
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

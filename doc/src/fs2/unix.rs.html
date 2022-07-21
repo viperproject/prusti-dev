@@ -265,7 +265,7 @@
 <span class="kw">use</span> <span class="ident">std::os::unix::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">std::path::Path</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/fs2/lib.rs.html#131-136">FsStats</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/fs2/lib.rs.html#131">FsStats</a>;
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">duplicate</span>(<span class="ident">file</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">File</a><span class="op">&gt;</span> {
     <span class="kw">unsafe</span> {
@@ -405,7 +405,7 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">statvfs</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/fs2/lib.rs.html#131-136">FsStats</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">statvfs</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.Path.html">Path</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/fs2/lib.rs.html#131">FsStats</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">cstr</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">CString::new</span>(<a class="ident" href="../../src/fs2/unix.rs.html#152">path</a>.<span class="ident">as_os_str</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/ffi/os_str/trait.OsStrExt.html">as_bytes</a>()) {
         <span class="prelude-val">Ok</span>(<span class="ident">cstr</span>) =&gt; <a class="ident" href="../../src/fs2/unix.rs.html#154">cstr</a>,
         <span class="prelude-val">Err</span>(..) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::new</span>(<span class="ident">ErrorKind::InvalidInput</span>, <span class="string">&quot;path contained a null&quot;</span>)),
@@ -417,7 +417,7 @@
         <span class="kw">if</span> <span class="ident">libc::statvfs</span>(<span class="ident">cstr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span>, <span class="kw-2">&amp;mut</span> <span class="ident">stat</span>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="prelude-val">Err</span>(<span class="ident">Error::last_os_error</span>())
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/fs2/lib.rs.html#131-136">FsStats</a> {
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/fs2/lib.rs.html#131">FsStats</a> {
                 <span class="ident">free_space</span>: <a class="ident" href="../../src/fs2/unix.rs.html#159">stat</a>.<span class="ident">f_frsize</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">*</span> <a class="ident" href="../../src/fs2/unix.rs.html#159">stat</a>.<span class="ident">f_bfree</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
                 <span class="ident">available_space</span>: <a class="ident" href="../../src/fs2/unix.rs.html#159">stat</a>.<span class="ident">f_frsize</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">*</span> <a class="ident" href="../../src/fs2/unix.rs.html#159">stat</a>.<span class="ident">f_bavail</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
                 <span class="ident">total_space</span>: <a class="ident" href="../../src/fs2/unix.rs.html#159">stat</a>.<span class="ident">f_frsize</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> <span class="op">*</span> <a class="ident" href="../../src/fs2/unix.rs.html#159">stat</a>.<span class="ident">f_blocks</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
@@ -505,5 +505,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="fs2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="fs2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.28.4/src/elf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>elf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/elf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>elf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
@@ -6396,6 +6396,18 @@
 <span id="6390">6390</span>
 <span id="6391">6391</span>
 <span id="6392">6392</span>
+<span id="6393">6393</span>
+<span id="6394">6394</span>
+<span id="6395">6395</span>
+<span id="6396">6396</span>
+<span id="6397">6397</span>
+<span id="6398">6398</span>
+<span id="6399">6399</span>
+<span id="6400">6400</span>
+<span id="6401">6401</span>
+<span id="6402">6402</span>
+<span id="6403">6403</span>
+<span id="6404">6404</span>
 </pre><pre class="rust"><code><span class="doccomment">//! ELF definitions.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! These definitions are independent of read/write support, although we do implement</span>
@@ -6405,15 +6417,15 @@
 
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::identity_op</span>)]</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::endian</span>::{<a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a>, <a class="ident" href="../../src/object/endian.rs.html#612">U32Bytes</a>, <a class="ident" href="../../src/object/endian.rs.html#634">U64Bytes</a>, <a class="ident" href="../../src/object/endian.rs.html#581">I32</a>, <a class="ident" href="../../src/object/endian.rs.html#585">I64</a>, <a class="ident" href="../../src/object/endian.rs.html#565">U16</a>, <a class="ident" href="../../src/object/endian.rs.html#569">U32</a>, <a class="ident" href="../../src/object/endian.rs.html#573">U64</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::endian</span>::{<a class="ident" href="../../src/object/endian.rs.html#13">Endian</a>, <a class="ident" href="../../src/object/endian.rs.html#612">U32Bytes</a>, <a class="ident" href="../../src/object/endian.rs.html#634">U64Bytes</a>, <a class="ident" href="../../src/object/endian.rs.html#581">I32</a>, <a class="ident" href="../../src/object/endian.rs.html#585">I64</a>, <a class="ident" href="../../src/object/endian.rs.html#565">U16</a>, <a class="ident" href="../../src/object/endian.rs.html#569">U32</a>, <a class="ident" href="../../src/object/endian.rs.html#573">U64</a>};
 <span class="kw">use</span> <a class="ident" href="../../src/object/pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
 
 <span class="doccomment">/// The header at the start of every 32-bit ELF file.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FileHeader32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FileHeader32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Magic number and other information.</span>
-    <span class="kw">pub</span> <span class="ident">e_ident</span>: <a class="ident" href="../../src/object/elf.rs.html#110-127">Ident</a>,
+    <span class="kw">pub</span> <span class="ident">e_ident</span>: <a class="ident" href="../../src/object/elf.rs.html#110">Ident</a>,
     <span class="doccomment">/// Object file type. One of the `ET_*` constants.</span>
     <span class="kw">pub</span> <span class="ident">e_type</span>: <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Architecture. One of the `EM_*` constants.</span>
@@ -6457,9 +6469,9 @@
 <span class="doccomment">/// The header at the start of every 64-bit ELF file.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FileHeader64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FileHeader64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Magic number and other information.</span>
-    <span class="kw">pub</span> <span class="ident">e_ident</span>: <a class="ident" href="../../src/object/elf.rs.html#110-127">Ident</a>,
+    <span class="kw">pub</span> <span class="ident">e_ident</span>: <a class="ident" href="../../src/object/elf.rs.html#110">Ident</a>,
     <span class="doccomment">/// Object file type. One of the `ET_*` constants.</span>
     <span class="kw">pub</span> <span class="ident">e_type</span>: <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Architecture. One of the `EM_*` constants.</span>
@@ -6560,6 +6572,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Compatibility alias.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELFOSABI_LINUX</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#160">ELFOSABI_GNU</a>;
+<span class="doccomment">/// GNU/Hurd.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELFOSABI_HURD</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">4</span>;
 <span class="doccomment">/// Sun Solaris.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELFOSABI_SOLARIS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">6</span>;
 <span class="doccomment">/// IBM AIX.</span>
@@ -6574,6 +6588,16 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELFOSABI_MODESTO</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">11</span>;
 <span class="doccomment">/// OpenBSD.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELFOSABI_OPENBSD</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">12</span>;
+<span class="doccomment">/// OpenVMS.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELFOSABI_OPENVMS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">13</span>;
+<span class="doccomment">/// Hewlett-Packard Non-Stop Kernel.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELFOSABI_NSK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">14</span>;
+<span class="doccomment">/// AROS</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELFOSABI_AROS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">15</span>;
+<span class="doccomment">/// FenixOS</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELFOSABI_FENIXOS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">16</span>;
+<span class="doccomment">/// Nuxi CloudABI</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELFOSABI_CLOUDABI</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">17</span>;
 <span class="doccomment">/// ARM EABI.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ELFOSABI_ARM_AEABI</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">64</span>;
 <span class="doccomment">/// ARM.</span>
@@ -6974,7 +6998,7 @@
 <span class="doccomment">/// Section header.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SectionHeader32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SectionHeader32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Section name.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is an offset into the section header string table.</span>
@@ -7006,7 +7030,7 @@
 <span class="doccomment">/// Section header.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SectionHeader64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SectionHeader64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Section name.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is an offset into the section header string table.</span>
@@ -7173,7 +7197,7 @@
 <span class="doccomment">/// changed in a future version.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CompressionHeader32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CompressionHeader32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Compression format. One of the `ELFCOMPRESS_*` values.</span>
     <span class="kw">pub</span> <span class="ident">ch_type</span>: <span class="ident">U32Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Uncompressed data size.</span>
@@ -7190,7 +7214,7 @@
 <span class="doccomment">/// changed in a future version.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CompressionHeader64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CompressionHeader64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Compression format. One of the `ELFCOMPRESS_*` values.</span>
     <span class="kw">pub</span> <span class="ident">ch_type</span>: <span class="ident">U32Bytes</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Reserved.</span>
@@ -7219,7 +7243,7 @@
 <span class="doccomment">/// Symbol table entry.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sym32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sym32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Symbol name.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is an offset into the symbol string table.</span>
@@ -7240,36 +7264,36 @@
     <span class="kw">pub</span> <span class="ident">st_shndx</span>: <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> <span class="ident">Sym32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">Sym32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Get the `st_bind` component of the `st_info` field.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">st_bind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="../../src/object/elf.rs.html#848">self</a>.<span class="ident">st_info</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">4</span>
+        <a class="self" href="../../src/object/elf.rs.html#860">self</a>.<span class="ident">st_info</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">4</span>
     }
 
     <span class="doccomment">/// Get the `st_type` component of the `st_info` field.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">st_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="../../src/object/elf.rs.html#854">self</a>.<span class="ident">st_info</span> <span class="op">&amp;</span> <span class="number">0xf</span>
+        <a class="self" href="../../src/object/elf.rs.html#866">self</a>.<span class="ident">st_info</span> <span class="op">&amp;</span> <span class="number">0xf</span>
     }
 
     <span class="doccomment">/// Set the `st_info` field given the `st_bind` and `st_type` components.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_st_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">st_bind</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">st_type</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <a class="self" href="../../src/object/elf.rs.html#860">self</a>.<span class="ident">st_info</span> <span class="op">=</span> (<a class="ident" href="../../src/object/elf.rs.html#860">st_bind</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>) <span class="op">+</span> (<a class="ident" href="../../src/object/elf.rs.html#860">st_type</a> <span class="op">&amp;</span> <span class="number">0xf</span>);
+        <a class="self" href="../../src/object/elf.rs.html#872">self</a>.<span class="ident">st_info</span> <span class="op">=</span> (<a class="ident" href="../../src/object/elf.rs.html#872">st_bind</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>) <span class="op">+</span> (<a class="ident" href="../../src/object/elf.rs.html#872">st_type</a> <span class="op">&amp;</span> <span class="number">0xf</span>);
     }
 
     <span class="doccomment">/// Get the `st_visibility` component of the `st_info` field.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">st_visibility</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="../../src/object/elf.rs.html#866">self</a>.<span class="ident">st_other</span> <span class="op">&amp;</span> <span class="number">0x3</span>
+        <a class="self" href="../../src/object/elf.rs.html#878">self</a>.<span class="ident">st_other</span> <span class="op">&amp;</span> <span class="number">0x3</span>
     }
 }
 
 <span class="doccomment">/// Symbol table entry.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sym64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sym64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Symbol name.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is an offset into the symbol string table.</span>
@@ -7290,36 +7314,36 @@
     <span class="kw">pub</span> <span class="ident">st_size</span>: <span class="ident">U64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> <span class="ident">Sym64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">Sym64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Get the `st_bind` component of the `st_info` field.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">st_bind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="../../src/object/elf.rs.html#898">self</a>.<span class="ident">st_info</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">4</span>
+        <a class="self" href="../../src/object/elf.rs.html#910">self</a>.<span class="ident">st_info</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">4</span>
     }
 
     <span class="doccomment">/// Get the `st_type` component of the `st_info` field.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">st_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="../../src/object/elf.rs.html#904">self</a>.<span class="ident">st_info</span> <span class="op">&amp;</span> <span class="number">0xf</span>
+        <a class="self" href="../../src/object/elf.rs.html#916">self</a>.<span class="ident">st_info</span> <span class="op">&amp;</span> <span class="number">0xf</span>
     }
 
     <span class="doccomment">/// Set the `st_info` field given the `st_bind` and `st_type` components.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_st_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">st_bind</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <span class="ident">st_type</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <a class="self" href="../../src/object/elf.rs.html#910">self</a>.<span class="ident">st_info</span> <span class="op">=</span> (<a class="ident" href="../../src/object/elf.rs.html#910">st_bind</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>) <span class="op">+</span> (<a class="ident" href="../../src/object/elf.rs.html#910">st_type</a> <span class="op">&amp;</span> <span class="number">0xf</span>);
+        <a class="self" href="../../src/object/elf.rs.html#922">self</a>.<span class="ident">st_info</span> <span class="op">=</span> (<a class="ident" href="../../src/object/elf.rs.html#922">st_bind</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">4</span>) <span class="op">+</span> (<a class="ident" href="../../src/object/elf.rs.html#922">st_type</a> <span class="op">&amp;</span> <span class="number">0xf</span>);
     }
 
     <span class="doccomment">/// Get the `st_visibility` component of the `st_info` field.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">st_visibility</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> {
-        <a class="self" href="../../src/object/elf.rs.html#916">self</a>.<span class="ident">st_other</span> <span class="op">&amp;</span> <span class="number">0x3</span>
+        <a class="self" href="../../src/object/elf.rs.html#928">self</a>.<span class="ident">st_other</span> <span class="op">&amp;</span> <span class="number">0x3</span>
     }
 }
 
 <span class="doccomment">/// Additional information about a `Sym32`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Syminfo32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Syminfo32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Direct bindings, symbol bound to.</span>
     <span class="kw">pub</span> <span class="ident">si_boundto</span>: <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Per symbol flags.</span>
@@ -7329,7 +7353,7 @@
 <span class="doccomment">/// Additional information about a `Sym64`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Syminfo64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Syminfo64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Direct bindings, symbol bound to.</span>
     <span class="kw">pub</span> <span class="ident">si_boundto</span>: <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Per symbol flags.</span>
@@ -7419,41 +7443,41 @@
 <span class="doccomment">/// Relocation table entry without explicit addend.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Rel32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Rel32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Relocation address.</span>
     <span class="kw">pub</span> <span class="ident">r_offset</span>: <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Relocation type and symbol index.</span>
     <span class="kw">pub</span> <span class="ident">r_info</span>: <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> <span class="ident">Rel32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">Rel32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Get the `r_sym` component of the `r_info` field.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r_sym</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../src/object/elf.rs.html#1034">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../src/object/elf.rs.html#1034">endian</a>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>
+        <a class="self" href="../../src/object/elf.rs.html#1046">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../src/object/elf.rs.html#1046">endian</a>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>
     }
 
     <span class="doccomment">/// Get the `r_type` component of the `r_info` field.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../src/object/elf.rs.html#1040">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../src/object/elf.rs.html#1040">endian</a>) <span class="op">&amp;</span> <span class="number">0xff</span>
+        <a class="self" href="../../src/object/elf.rs.html#1052">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../src/object/elf.rs.html#1052">endian</a>) <span class="op">&amp;</span> <span class="number">0xff</span>
     }
 
     <span class="doccomment">/// Calculate the `r_info` field given the `r_sym` and `r_type` components.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r_info</span>(<span class="ident">endian</span>: <span class="ident">E</span>, <span class="ident">r_sym</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">r_type</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="ident">U32::new</span>(<a class="ident" href="../../src/object/elf.rs.html#1045">endian</a>, (<a class="ident" href="../../src/object/elf.rs.html#1045">r_sym</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">|</span> <span class="ident">u32::from</span>(<a class="ident" href="../../src/object/elf.rs.html#1045">r_type</a>))
+        <span class="ident">U32::new</span>(<a class="ident" href="../../src/object/elf.rs.html#1057">endian</a>, (<a class="ident" href="../../src/object/elf.rs.html#1057">r_sym</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">|</span> <span class="ident">u32::from</span>(<a class="ident" href="../../src/object/elf.rs.html#1057">r_type</a>))
     }
 
     <span class="doccomment">/// Set the `r_info` field given the `r_sym` and `r_type` components.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_r_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>, <span class="ident">r_sym</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">r_type</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <a class="self" href="../../src/object/elf.rs.html#1050">self</a>.<span class="ident">r_info</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::r_info</span>(<a class="ident" href="../../src/object/elf.rs.html#1050">endian</a>, <a class="ident" href="../../src/object/elf.rs.html#1050">r_sym</a>, <a class="ident" href="../../src/object/elf.rs.html#1050">r_type</a>)
+        <a class="self" href="../../src/object/elf.rs.html#1062">self</a>.<span class="ident">r_info</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::r_info</span>(<a class="ident" href="../../src/object/elf.rs.html#1062">endian</a>, <a class="ident" href="../../src/object/elf.rs.html#1062">r_sym</a>, <a class="ident" href="../../src/object/elf.rs.html#1062">r_type</a>)
     }
 }
 
 <span class="doccomment">/// Relocation table entry with explicit addend.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Rela32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Rela32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Relocation address.</span>
     <span class="kw">pub</span> <span class="ident">r_offset</span>: <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Relocation type and symbol index.</span>
@@ -7462,35 +7486,35 @@
     <span class="kw">pub</span> <span class="ident">r_addend</span>: <span class="ident">I32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> <span class="ident">Rela32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">Rela32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Get the `r_sym` component of the `r_info` field.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r_sym</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../src/object/elf.rs.html#1070">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../src/object/elf.rs.html#1070">endian</a>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>
+        <a class="self" href="../../src/object/elf.rs.html#1082">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../src/object/elf.rs.html#1082">endian</a>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>
     }
 
     <span class="doccomment">/// Get the `r_type` component of the `r_info` field.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        <a class="self" href="../../src/object/elf.rs.html#1076">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../src/object/elf.rs.html#1076">endian</a>) <span class="op">&amp;</span> <span class="number">0xff</span>
+        <a class="self" href="../../src/object/elf.rs.html#1088">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../src/object/endian.rs.html#621">get</a>(<a class="ident" href="../../src/object/elf.rs.html#1088">endian</a>) <span class="op">&amp;</span> <span class="number">0xff</span>
     }
 
     <span class="doccomment">/// Calculate the `r_info` field given the `r_sym` and `r_type` components.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r_info</span>(<span class="ident">endian</span>: <span class="ident">E</span>, <span class="ident">r_sym</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">r_type</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) -&gt; <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="ident">U32::new</span>(<a class="ident" href="../../src/object/elf.rs.html#1081">endian</a>, (<a class="ident" href="../../src/object/elf.rs.html#1081">r_sym</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">|</span> <span class="ident">u32::from</span>(<a class="ident" href="../../src/object/elf.rs.html#1081">r_type</a>))
+        <span class="ident">U32::new</span>(<a class="ident" href="../../src/object/elf.rs.html#1093">endian</a>, (<a class="ident" href="../../src/object/elf.rs.html#1093">r_sym</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>) <span class="op">|</span> <span class="ident">u32::from</span>(<a class="ident" href="../../src/object/elf.rs.html#1093">r_type</a>))
     }
 
     <span class="doccomment">/// Set the `r_info` field given the `r_sym` and `r_type` components.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_r_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>, <span class="ident">r_sym</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">r_type</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>) {
-        <a class="self" href="../../src/object/elf.rs.html#1086">self</a>.<span class="ident">r_info</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::r_info</span>(<a class="ident" href="../../src/object/elf.rs.html#1086">endian</a>, <a class="ident" href="../../src/object/elf.rs.html#1086">r_sym</a>, <a class="ident" href="../../src/object/elf.rs.html#1086">r_type</a>)
+        <a class="self" href="../../src/object/elf.rs.html#1098">self</a>.<span class="ident">r_info</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::r_info</span>(<a class="ident" href="../../src/object/elf.rs.html#1098">endian</a>, <a class="ident" href="../../src/object/elf.rs.html#1098">r_sym</a>, <a class="ident" href="../../src/object/elf.rs.html#1098">r_type</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Rel32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Rela32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Rel32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Rela32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">rel</span>: <span class="ident">Rel32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/object/elf.rs.html#1058-1065">Rela32</a> {
-            <span class="ident">r_offset</span>: <a class="ident" href="../../src/object/elf.rs.html#1092">rel</a>.<span class="ident">r_offset</span>,
-            <span class="ident">r_info</span>: <a class="ident" href="../../src/object/elf.rs.html#1092">rel</a>.<span class="ident">r_info</span>,
+        <a class="ident" href="../../src/object/elf.rs.html#1070">Rela32</a> {
+            <span class="ident">r_offset</span>: <a class="ident" href="../../src/object/elf.rs.html#1104">rel</a>.<span class="ident">r_offset</span>,
+            <span class="ident">r_info</span>: <a class="ident" href="../../src/object/elf.rs.html#1104">rel</a>.<span class="ident">r_info</span>,
             <span class="ident">r_addend</span>: <span class="ident">I32::default</span>(),
         }
     }
@@ -7499,42 +7523,42 @@
 <span class="doccomment">/// Relocation table entry without explicit addend.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Rel64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Rel64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Relocation address.</span>
     <span class="kw">pub</span> <span class="ident">r_offset</span>: <span class="ident">U64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Relocation type and symbol index.</span>
     <span class="kw">pub</span> <span class="ident">r_info</span>: <span class="ident">U64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> <span class="ident">Rel64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">Rel64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Get the `r_sym` component of the `r_info` field.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r_sym</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        (<a class="self" href="../../src/object/elf.rs.html#1114">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../src/object/elf.rs.html#1114">endian</a>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+        (<a class="self" href="../../src/object/elf.rs.html#1126">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../src/object/elf.rs.html#1126">endian</a>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
     }
 
     <span class="doccomment">/// Get the `r_type` component of the `r_info` field.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        (<a class="self" href="../../src/object/elf.rs.html#1120">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../src/object/elf.rs.html#1120">endian</a>) <span class="op">&amp;</span> <span class="number">0xffff_ffff</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+        (<a class="self" href="../../src/object/elf.rs.html#1132">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../src/object/elf.rs.html#1132">endian</a>) <span class="op">&amp;</span> <span class="number">0xffff_ffff</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
     }
 
     <span class="doccomment">/// Calculate the `r_info` field given the `r_sym` and `r_type` components.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r_info</span>(<span class="ident">endian</span>: <span class="ident">E</span>, <span class="ident">r_sym</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">r_type</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">U64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="ident">U64::new</span>(<a class="ident" href="../../src/object/elf.rs.html#1125">endian</a>, (<span class="ident">u64::from</span>(<a class="ident" href="../../src/object/elf.rs.html#1125">r_sym</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>) <span class="op">|</span> <span class="ident">u64::from</span>(<a class="ident" href="../../src/object/elf.rs.html#1125">r_type</a>))
+        <span class="ident">U64::new</span>(<a class="ident" href="../../src/object/elf.rs.html#1137">endian</a>, (<span class="ident">u64::from</span>(<a class="ident" href="../../src/object/elf.rs.html#1137">r_sym</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>) <span class="op">|</span> <span class="ident">u64::from</span>(<a class="ident" href="../../src/object/elf.rs.html#1137">r_type</a>))
     }
 
     <span class="doccomment">/// Set the `r_info` field given the `r_sym` and `r_type` components.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_r_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>, <span class="ident">r_sym</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">r_type</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a class="self" href="../../src/object/elf.rs.html#1130">self</a>.<span class="ident">r_info</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::r_info</span>(<a class="ident" href="../../src/object/elf.rs.html#1130">endian</a>, <a class="ident" href="../../src/object/elf.rs.html#1130">r_sym</a>, <a class="ident" href="../../src/object/elf.rs.html#1130">r_type</a>)
+        <a class="self" href="../../src/object/elf.rs.html#1142">self</a>.<span class="ident">r_info</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::r_info</span>(<a class="ident" href="../../src/object/elf.rs.html#1142">endian</a>, <a class="ident" href="../../src/object/elf.rs.html#1142">r_sym</a>, <a class="ident" href="../../src/object/elf.rs.html#1142">r_type</a>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Rel64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Rela64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Rel64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Rela64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">rel</span>: <span class="ident">Rel64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/object/elf.rs.html#1148-1155">Rela64</a> {
-            <span class="ident">r_offset</span>: <a class="ident" href="../../src/object/elf.rs.html#1136">rel</a>.<span class="ident">r_offset</span>,
-            <span class="ident">r_info</span>: <a class="ident" href="../../src/object/elf.rs.html#1136">rel</a>.<span class="ident">r_info</span>,
+        <a class="ident" href="../../src/object/elf.rs.html#1160">Rela64</a> {
+            <span class="ident">r_offset</span>: <a class="ident" href="../../src/object/elf.rs.html#1148">rel</a>.<span class="ident">r_offset</span>,
+            <span class="ident">r_info</span>: <a class="ident" href="../../src/object/elf.rs.html#1148">rel</a>.<span class="ident">r_info</span>,
             <span class="ident">r_addend</span>: <span class="ident">I64::default</span>(),
         }
     }
@@ -7543,7 +7567,7 @@
 <span class="doccomment">/// Relocation table entry with explicit addend.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Rela64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Rela64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Relocation address.</span>
     <span class="kw">pub</span> <span class="ident">r_offset</span>: <span class="ident">U64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Relocation type and symbol index.</span>
@@ -7552,54 +7576,54 @@
     <span class="kw">pub</span> <span class="ident">r_addend</span>: <span class="ident">I64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> <span class="ident">Rela64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> <span class="ident">Rela64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_r_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>, <span class="ident">is_mips64el</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <a class="self" href="../../src/object/elf.rs.html#1158">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../src/object/elf.rs.html#1158">endian</a>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <a class="self" href="../../src/object/elf.rs.html#1170">self</a>.<span class="ident">r_info</span>.<a class="ident" href="../../src/object/endian.rs.html#643">get</a>(<a class="ident" href="../../src/object/elf.rs.html#1170">endian</a>);
         <span class="kw">if</span> <span class="ident">is_mips64el</span> {
-            <a class="ident" href="../../src/object/elf.rs.html#1159">t</a> <span class="op">=</span> (<a class="ident" href="../../src/object/elf.rs.html#1159">t</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>)
-                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1159">t</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="op">&amp;</span> <span class="number">0xff000000</span>)
-                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1159">t</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="op">&amp;</span> <span class="number">0x00ff0000</span>)
-                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1159">t</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">40</span>) <span class="op">&amp;</span> <span class="number">0x0000ff00</span>)
-                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1159">t</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">56</span>) <span class="op">&amp;</span> <span class="number">0x000000ff</span>);
+            <a class="ident" href="../../src/object/elf.rs.html#1171">t</a> <span class="op">=</span> (<a class="ident" href="../../src/object/elf.rs.html#1171">t</a> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>)
+                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1171">t</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="op">&amp;</span> <span class="number">0xff000000</span>)
+                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1171">t</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="op">&amp;</span> <span class="number">0x00ff0000</span>)
+                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1171">t</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">40</span>) <span class="op">&amp;</span> <span class="number">0x0000ff00</span>)
+                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1171">t</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">56</span>) <span class="op">&amp;</span> <span class="number">0x000000ff</span>);
         }
-        <a class="ident" href="../../src/object/elf.rs.html#1159">t</a>
+        <a class="ident" href="../../src/object/elf.rs.html#1171">t</a>
     }
 
     <span class="doccomment">/// Get the `r_sym` component of the `r_info` field.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r_sym</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>, <span class="ident">is_mips64el</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        (<a class="self" href="../../src/object/elf.rs.html#1172">self</a>.<a class="ident" href="../../src/object/elf.rs.html#1158">get_r_info</a>(<a class="ident" href="../../src/object/elf.rs.html#1172">endian</a>, <a class="ident" href="../../src/object/elf.rs.html#1172">is_mips64el</a>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+        (<a class="self" href="../../src/object/elf.rs.html#1184">self</a>.<a class="ident" href="../../src/object/elf.rs.html#1170">get_r_info</a>(<a class="ident" href="../../src/object/elf.rs.html#1184">endian</a>, <a class="ident" href="../../src/object/elf.rs.html#1184">is_mips64el</a>) <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
     }
 
     <span class="doccomment">/// Get the `r_type` component of the `r_info` field.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>, <span class="ident">is_mips64el</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> {
-        (<a class="self" href="../../src/object/elf.rs.html#1178">self</a>.<a class="ident" href="../../src/object/elf.rs.html#1158">get_r_info</a>(<a class="ident" href="../../src/object/elf.rs.html#1178">endian</a>, <a class="ident" href="../../src/object/elf.rs.html#1178">is_mips64el</a>) <span class="op">&amp;</span> <span class="number">0xffff_ffff</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
+        (<a class="self" href="../../src/object/elf.rs.html#1190">self</a>.<a class="ident" href="../../src/object/elf.rs.html#1170">get_r_info</a>(<a class="ident" href="../../src/object/elf.rs.html#1190">endian</a>, <a class="ident" href="../../src/object/elf.rs.html#1190">is_mips64el</a>) <span class="op">&amp;</span> <span class="number">0xffff_ffff</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>
     }
 
     <span class="doccomment">/// Calculate the `r_info` field given the `r_sym` and `r_type` components.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">r_info</span>(<span class="ident">endian</span>: <span class="ident">E</span>, <span class="ident">is_mips64el</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="ident">r_sym</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">r_type</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="ident">U64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> (<span class="ident">u64::from</span>(<a class="ident" href="../../src/object/elf.rs.html#1183">r_sym</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>) <span class="op">|</span> <span class="ident">u64::from</span>(<a class="ident" href="../../src/object/elf.rs.html#1183">r_type</a>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> (<span class="ident">u64::from</span>(<a class="ident" href="../../src/object/elf.rs.html#1195">r_sym</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">32</span>) <span class="op">|</span> <span class="ident">u64::from</span>(<a class="ident" href="../../src/object/elf.rs.html#1195">r_type</a>);
         <span class="kw">if</span> <span class="ident">is_mips64el</span> {
-            <a class="ident" href="../../src/object/elf.rs.html#1184">t</a> <span class="op">=</span> (<a class="ident" href="../../src/object/elf.rs.html#1184">t</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>)
-                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1184">t</a> <span class="op">&amp;</span> <span class="number">0xff000000</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>)
-                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1184">t</a> <span class="op">&amp;</span> <span class="number">0x00ff0000</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>)
-                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1184">t</a> <span class="op">&amp;</span> <span class="number">0x0000ff00</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">40</span>)
-                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1184">t</a> <span class="op">&amp;</span> <span class="number">0x000000ff</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">56</span>);
+            <a class="ident" href="../../src/object/elf.rs.html#1196">t</a> <span class="op">=</span> (<a class="ident" href="../../src/object/elf.rs.html#1196">t</a> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">32</span>)
+                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1196">t</a> <span class="op">&amp;</span> <span class="number">0xff000000</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">8</span>)
+                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1196">t</a> <span class="op">&amp;</span> <span class="number">0x00ff0000</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">24</span>)
+                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1196">t</a> <span class="op">&amp;</span> <span class="number">0x0000ff00</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">40</span>)
+                <span class="op">|</span> ((<a class="ident" href="../../src/object/elf.rs.html#1196">t</a> <span class="op">&amp;</span> <span class="number">0x000000ff</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">56</span>);
         }
-        <span class="ident">U64::new</span>(<a class="ident" href="../../src/object/elf.rs.html#1183">endian</a>, <a class="ident" href="../../src/object/elf.rs.html#1184">t</a>)
+        <span class="ident">U64::new</span>(<a class="ident" href="../../src/object/elf.rs.html#1195">endian</a>, <a class="ident" href="../../src/object/elf.rs.html#1196">t</a>)
     }
 
     <span class="doccomment">/// Set the `r_info` field given the `r_sym` and `r_type` components.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_r_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">endian</span>: <span class="ident">E</span>, <span class="ident">is_mips64el</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="ident">r_sym</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>, <span class="ident">r_type</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) {
-        <a class="self" href="../../src/object/elf.rs.html#1196">self</a>.<span class="ident">r_info</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::r_info</span>(<a class="ident" href="../../src/object/elf.rs.html#1196">endian</a>, <a class="ident" href="../../src/object/elf.rs.html#1196">is_mips64el</a>, <a class="ident" href="../../src/object/elf.rs.html#1196">r_sym</a>, <a class="ident" href="../../src/object/elf.rs.html#1196">r_type</a>);
+        <a class="self" href="../../src/object/elf.rs.html#1208">self</a>.<span class="ident">r_info</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::r_info</span>(<a class="ident" href="../../src/object/elf.rs.html#1208">endian</a>, <a class="ident" href="../../src/object/elf.rs.html#1208">is_mips64el</a>, <a class="ident" href="../../src/object/elf.rs.html#1208">r_sym</a>, <a class="ident" href="../../src/object/elf.rs.html#1208">r_type</a>);
     }
 }
 
 <span class="doccomment">/// Program segment header.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProgramHeader32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProgramHeader32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Segment type. One of the `PT_*` constants.</span>
     <span class="kw">pub</span> <span class="ident">p_type</span>: <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Segment file offset.</span>
@@ -7621,7 +7645,7 @@
 <span class="doccomment">/// Program segment header.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProgramHeader64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProgramHeader64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Segment type. One of the `PT_*` constants.</span>
     <span class="kw">pub</span> <span class="ident">p_type</span>: <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Segment flags. A combination of the `PF_*` constants.</span>
@@ -7837,7 +7861,7 @@
 <span class="doccomment">/// Dynamic section entry.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Dyn32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Dyn32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Dynamic entry type.</span>
     <span class="kw">pub</span> <span class="ident">d_tag</span>: <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Value (integer or address).</span>
@@ -7847,7 +7871,7 @@
 <span class="doccomment">/// Dynamic section entry.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Dyn64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Dyn64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Dynamic entry type.</span>
     <span class="kw">pub</span> <span class="ident">d_tag</span>: <span class="ident">U64</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Value (integer or address).</span>
@@ -8092,7 +8116,7 @@
 <span class="doccomment">/// Version symbol information</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Versym</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Versym</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>);
 
 <span class="doccomment">/// Symbol is hidden.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">VERSYM_HIDDEN</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u16.html">u16</a> <span class="op">=</span> <span class="number">0x8000</span>;
@@ -8102,7 +8126,7 @@
 <span class="doccomment">/// Version definition sections</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Verdef</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Verdef</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Version revision</span>
     <span class="kw">pub</span> <span class="ident">vd_version</span>: <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Version information</span>
@@ -8141,7 +8165,7 @@
 <span class="doccomment">/// Auxiliary version information.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Verdaux</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Verdaux</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Version or dependency names</span>
     <span class="kw">pub</span> <span class="ident">vda_name</span>: <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Offset in bytes to next verdaux</span>
@@ -8151,7 +8175,7 @@
 <span class="doccomment">/// Version dependency.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Verneed</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Verneed</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Version of structure</span>
     <span class="kw">pub</span> <span class="ident">vn_version</span>: <span class="ident">U16</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Number of associated aux entries</span>
@@ -8173,7 +8197,7 @@
 <span class="doccomment">/// Auxiliary needed version information.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Vernaux</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Vernaux</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Hash value of dependency name</span>
     <span class="kw">pub</span> <span class="ident">vna_hash</span>: <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Dependency specific information</span>
@@ -8193,7 +8217,7 @@
 <span class="doccomment">/// A note consists of a header followed by a variable length name and descriptor.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NoteHeader32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NoteHeader32</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Length of the note&#39;s name.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Some known names are defined by the `ELF_NOTE_*` constants.</span>
@@ -8212,7 +8236,7 @@
 <span class="doccomment">/// Note section entry header.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NoteHeader64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">NoteHeader64</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// Length of the note&#39;s name.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Some known names are defined by the `ELF_NOTE_*` constants.</span>
@@ -8285,7 +8309,7 @@
 <span class="doccomment">/// Header of `SHT_HASH` section.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HashHeader</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">HashHeader</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// The number of hash buckets.</span>
     <span class="kw">pub</span> <span class="ident">bucket_count</span>: <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The number of chain values.</span>
@@ -8305,13 +8329,13 @@
         <span class="ident">hash</span> <span class="op">=</span> <span class="ident">hash</span>.<span class="ident">wrapping_mul</span>(<span class="number">16</span>).<span class="ident">wrapping_add</span>(<span class="ident">u32::from</span>(<span class="kw-2">*</span><span class="ident">byte</span>));
         <span class="ident">hash</span> <span class="op">^</span><span class="op">=</span> (<span class="ident">hash</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="op">&amp;</span> <span class="number">0xf0</span>;
     }
-    <a class="ident" href="../../src/object/elf.rs.html#1905">hash</a> <span class="op">&amp;</span> <span class="number">0xfff_ffff</span>
+    <a class="ident" href="../../src/object/elf.rs.html#1917">hash</a> <span class="op">&amp;</span> <span class="number">0xfff_ffff</span>
 }
 
 <span class="doccomment">/// Header of `SHT_GNU_HASH` section.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GnuHashHeader</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13-274">Endian</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GnuHashHeader</span><span class="op">&lt;</span><span class="ident">E</span>: <a class="ident" href="../../src/object/endian.rs.html#13">Endian</a><span class="op">&gt;</span> {
     <span class="doccomment">/// The number of hash buckets.</span>
     <span class="kw">pub</span> <span class="ident">bucket_count</span>: <span class="ident">U32</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The symbol table index of the first symbol in the hash.</span>
@@ -8338,7 +8362,7 @@
     <span class="kw">for</span> <span class="ident">byte</span> <span class="kw">in</span> <span class="ident">name</span> {
         <span class="ident">hash</span> <span class="op">=</span> <span class="ident">hash</span>.<span class="ident">wrapping_mul</span>(<span class="number">33</span>).<span class="ident">wrapping_add</span>(<span class="ident">u32::from</span>(<span class="kw-2">*</span><span class="ident">byte</span>));
     }
-    <a class="ident" href="../../src/object/elf.rs.html#1939">hash</a>
+    <a class="ident" href="../../src/object/elf.rs.html#1951">hash</a>
 }
 
 <span class="comment">// Motorola 68k specific definitions.</span>
@@ -8969,7 +8993,7 @@
 <span class="doccomment">/// Force floating point debug mode?</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OEX_FPDBUG</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">0x40000</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OEX_PRECISEFP</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#2572">OEX_FPDBUG</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OEX_PRECISEFP</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#2584">OEX_FPDBUG</a>;
 <span class="doccomment">/// Dismiss invalid address faults?</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OEX_DISMISS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">0x80000</span>;
 
@@ -9346,9 +9370,9 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STT_PARISC_MILLICODE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">13</span>;
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STT_HP_OPAQUE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1001">STT_LOOS</a> <span class="op">+</span> <span class="number">0x1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STT_HP_OPAQUE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1013">STT_LOOS</a> <span class="op">+</span> <span class="number">0x1</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STT_HP_STUB</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1001">STT_LOOS</a> <span class="op">+</span> <span class="number">0x2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STT_HP_STUB</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1013">STT_LOOS</a> <span class="op">+</span> <span class="number">0x2</span>;
 
 <span class="comment">// PA-RISC values for `Rel*::r_type`.</span>
 
@@ -9559,52 +9583,52 @@
 <span class="doccomment">/// DTP offset 32-bit.</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PARISC_TLS_DTPOFF64</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">245</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PARISC_TLS_LE21L</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3102">R_PARISC_TPREL21L</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PARISC_TLS_LE21L</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3114">R_PARISC_TPREL21L</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PARISC_TLS_LE14R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3104">R_PARISC_TPREL14R</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PARISC_TLS_LE14R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3116">R_PARISC_TPREL14R</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PARISC_TLS_IE21L</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3106">R_PARISC_LTOFF_TP21L</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PARISC_TLS_IE21L</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3118">R_PARISC_LTOFF_TP21L</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PARISC_TLS_IE14R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3108">R_PARISC_LTOFF_TP14R</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PARISC_TLS_IE14R</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3120">R_PARISC_LTOFF_TP14R</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PARISC_TLS_TPREL32</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3100">R_PARISC_TPREL32</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PARISC_TLS_TPREL32</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3112">R_PARISC_TPREL32</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PARISC_TLS_TPREL64</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3112">R_PARISC_TPREL64</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PARISC_TLS_TPREL64</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3124">R_PARISC_TPREL64</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PARISC_HIRESERVE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">255</span>;
 
 <span class="comment">// PA-RISC values for `ProgramHeader*::p_type`.</span>
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_TLS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_TLS</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x0</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_NONE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_NONE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x1</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_VERSION</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_VERSION</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x2</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_KERNEL</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x3</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_KERNEL</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x3</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_COMM</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x4</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_COMM</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x4</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_PROC</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x5</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_PROC</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x5</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_LOADABLE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x6</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_LOADABLE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x6</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_STACK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x7</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_STACK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x7</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_SHM</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x8</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_SHM</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x8</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_MMF</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x9</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_CORE_MMF</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x9</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_PARALLEL</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x10</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_PARALLEL</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x10</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_FASTBIND</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x11</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_FASTBIND</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x11</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_OPT_ANNOT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x12</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_OPT_ANNOT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x12</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_HSL_ANNOT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x13</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_HSL_ANNOT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x13</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_STACK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x14</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_HP_STACK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x14</span>;
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_PARISC_ARCHEXT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">0x7000_0000</span>;
@@ -9744,7 +9768,7 @@
 
 <span class="comment">// Alpha values for `Dyn64::d_tag`.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_ALPHA_PLTRO</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1536">DT_LOPROC</a> <span class="op">+</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_ALPHA_PLTRO</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1548">DT_LOPROC</a> <span class="op">+</span> <span class="number">0</span>;
 
 <span class="comment">// PowerPC specific declarations.</span>
 
@@ -9963,9 +9987,9 @@
 
 <span class="comment">// PowerPC specific values for `Dyn*::d_tag`.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_PPC_GOT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1536">DT_LOPROC</a> <span class="op">+</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_PPC_GOT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1548">DT_LOPROC</a> <span class="op">+</span> <span class="number">0</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_PPC_OPT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1536">DT_LOPROC</a> <span class="op">+</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_PPC_OPT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1548">DT_LOPROC</a> <span class="op">+</span> <span class="number">1</span>;
 
 <span class="comment">// PowerPC specific values for the `DT_PPC_OPT` entry.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
@@ -9973,76 +9997,76 @@
 
 <span class="comment">// PowerPC64 values for `Rel*::r_type` defined by the ABIs.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_NONE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3365">R_PPC_NONE</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_NONE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3377">R_PPC_NONE</a>;
 <span class="doccomment">/// 32bit absolute address</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR32</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3367">R_PPC_ADDR32</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR32</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3379">R_PPC_ADDR32</a>;
 <span class="doccomment">/// 26bit address, word aligned</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR24</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3369">R_PPC_ADDR24</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR24</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3381">R_PPC_ADDR24</a>;
 <span class="doccomment">/// 16bit absolute address</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR16</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3371">R_PPC_ADDR16</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR16</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3383">R_PPC_ADDR16</a>;
 <span class="doccomment">/// lower 16bits of address</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR16_LO</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3373">R_PPC_ADDR16_LO</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR16_LO</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3385">R_PPC_ADDR16_LO</a>;
 <span class="doccomment">/// high 16bits of address.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR16_HI</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3375">R_PPC_ADDR16_HI</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR16_HI</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3387">R_PPC_ADDR16_HI</a>;
 <span class="doccomment">/// adjusted high 16bits.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR16_HA</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3377">R_PPC_ADDR16_HA</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR16_HA</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3389">R_PPC_ADDR16_HA</a>;
 <span class="doccomment">/// 16bit address, word aligned</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR14</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3379">R_PPC_ADDR14</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR14</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3391">R_PPC_ADDR14</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR14_BRTAKEN</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3381">R_PPC_ADDR14_BRTAKEN</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR14_BRTAKEN</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3393">R_PPC_ADDR14_BRTAKEN</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR14_BRNTAKEN</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3383">R_PPC_ADDR14_BRNTAKEN</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR14_BRNTAKEN</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3395">R_PPC_ADDR14_BRNTAKEN</a>;
 <span class="doccomment">/// PC-rel. 26 bit, word aligned</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_REL24</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3385">R_PPC_REL24</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_REL24</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3397">R_PPC_REL24</a>;
 <span class="doccomment">/// PC relative 16 bit</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_REL14</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3387">R_PPC_REL14</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_REL14</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3399">R_PPC_REL14</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_REL14_BRTAKEN</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3389">R_PPC_REL14_BRTAKEN</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_REL14_BRTAKEN</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3401">R_PPC_REL14_BRTAKEN</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_REL14_BRNTAKEN</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3391">R_PPC_REL14_BRNTAKEN</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_REL14_BRNTAKEN</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3403">R_PPC_REL14_BRNTAKEN</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_GOT16</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3393">R_PPC_GOT16</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_GOT16</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3405">R_PPC_GOT16</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_GOT16_LO</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3395">R_PPC_GOT16_LO</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_GOT16_LO</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3407">R_PPC_GOT16_LO</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_GOT16_HI</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3397">R_PPC_GOT16_HI</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_GOT16_HI</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3409">R_PPC_GOT16_HI</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_GOT16_HA</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3399">R_PPC_GOT16_HA</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_GOT16_HA</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3411">R_PPC_GOT16_HA</a>;
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_COPY</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3403">R_PPC_COPY</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_COPY</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3415">R_PPC_COPY</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_GLOB_DAT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3405">R_PPC_GLOB_DAT</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_GLOB_DAT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3417">R_PPC_GLOB_DAT</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_JMP_SLOT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3407">R_PPC_JMP_SLOT</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_JMP_SLOT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3419">R_PPC_JMP_SLOT</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_RELATIVE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3409">R_PPC_RELATIVE</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_RELATIVE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3421">R_PPC_RELATIVE</a>;
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_UADDR32</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3413">R_PPC_UADDR32</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_UADDR32</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3425">R_PPC_UADDR32</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_UADDR16</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3415">R_PPC_UADDR16</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_UADDR16</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3427">R_PPC_UADDR16</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_REL32</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3417">R_PPC_REL32</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_REL32</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3429">R_PPC_REL32</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_PLT32</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3419">R_PPC_PLT32</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_PLT32</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3431">R_PPC_PLT32</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_PLTREL32</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3421">R_PPC_PLTREL32</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_PLTREL32</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3433">R_PPC_PLTREL32</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_PLT16_LO</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3423">R_PPC_PLT16_LO</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_PLT16_LO</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3435">R_PPC_PLT16_LO</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_PLT16_HI</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3425">R_PPC_PLT16_HI</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_PLT16_HI</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3437">R_PPC_PLT16_HI</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_PLT16_HA</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3427">R_PPC_PLT16_HA</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_PLT16_HA</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3439">R_PPC_PLT16_HA</a>;
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_SECTOFF</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3431">R_PPC_SECTOFF</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_SECTOFF</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3443">R_PPC_SECTOFF</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_SECTOFF_LO</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3433">R_PPC_SECTOFF_LO</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_SECTOFF_LO</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3445">R_PPC_SECTOFF_LO</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_SECTOFF_HI</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3435">R_PPC_SECTOFF_HI</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_SECTOFF_HI</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3447">R_PPC_SECTOFF_HI</a>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_SECTOFF_HA</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3437">R_PPC_SECTOFF_HA</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_SECTOFF_HA</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#3449">R_PPC_SECTOFF_HA</a>;
 <span class="doccomment">/// word30 (S + A - P) &gt;&gt; 2</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">R_PPC64_ADDR30</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">37</span>;
 <span class="doccomment">/// doubleword64 S + A</span>
@@ -10232,13 +10256,13 @@
 
 <span class="comment">// PowerPC64 values for `Dyn64::d_tag.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_PPC64_GLINK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1536">DT_LOPROC</a> <span class="op">+</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_PPC64_GLINK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1548">DT_LOPROC</a> <span class="op">+</span> <span class="number">0</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_PPC64_OPD</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1536">DT_LOPROC</a> <span class="op">+</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_PPC64_OPD</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1548">DT_LOPROC</a> <span class="op">+</span> <span class="number">1</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_PPC64_OPDSZ</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1536">DT_LOPROC</a> <span class="op">+</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_PPC64_OPDSZ</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1548">DT_LOPROC</a> <span class="op">+</span> <span class="number">2</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_PPC64_OPT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1536">DT_LOPROC</a> <span class="op">+</span> <span class="number">3</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_PPC64_OPT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1548">DT_LOPROC</a> <span class="op">+</span> <span class="number">3</span>;
 
 <span class="comment">// PowerPC64 bits for `DT_PPC64_OPT` entry.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
@@ -10252,7 +10276,7 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STO_PPC64_LOCAL_BIT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">5</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STO_PPC64_LOCAL_MASK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">7</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/object/elf.rs.html#3855">STO_PPC64_LOCAL_BIT</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STO_PPC64_LOCAL_MASK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <span class="number">7</span> <span class="op">&lt;</span><span class="op">&lt;</span> <a class="ident" href="../../src/object/elf.rs.html#3867">STO_PPC64_LOCAL_BIT</a>;
 
 <span class="comment">// ARM specific declarations.</span>
 
@@ -10319,9 +10343,9 @@
 
 <span class="comment">// ARM Thumb values for `st_type` component of `Sym*::st_info`.</span>
 <span class="doccomment">/// A Thumb function.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STT_ARM_TFUNC</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1007">STT_LOPROC</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STT_ARM_TFUNC</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1019">STT_LOPROC</a>;
 <span class="doccomment">/// A Thumb label.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STT_ARM_16BIT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1009">STT_HIPROC</a>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STT_ARM_16BIT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1021">STT_HIPROC</a>;
 
 <span class="comment">// ARM values for `SectionHeader*::sh_flags`.</span>
 <span class="doccomment">/// Section contains an entry point</span>
@@ -10339,15 +10363,15 @@
 
 <span class="comment">// ARM values for `ProgramHeader*::p_type`.</span>
 <span class="doccomment">/// ARM unwind segment.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_ARM_EXIDX</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1279">PT_LOPROC</a> <span class="op">+</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_ARM_EXIDX</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1291">PT_LOPROC</a> <span class="op">+</span> <span class="number">1</span>;
 
 <span class="comment">// ARM values for `SectionHeader*::sh_type`.</span>
 <span class="doccomment">/// ARM unwind section.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHT_ARM_EXIDX</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#730">SHT_LOPROC</a> <span class="op">+</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHT_ARM_EXIDX</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#742">SHT_LOPROC</a> <span class="op">+</span> <span class="number">1</span>;
 <span class="doccomment">/// Preemption details.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHT_ARM_PREEMPTMAP</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#730">SHT_LOPROC</a> <span class="op">+</span> <span class="number">2</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHT_ARM_PREEMPTMAP</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#742">SHT_LOPROC</a> <span class="op">+</span> <span class="number">2</span>;
 <span class="doccomment">/// ARM attributes section.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHT_ARM_ATTRIBUTES</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#730">SHT_LOPROC</a> <span class="op">+</span> <span class="number">3</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHT_ARM_ATTRIBUTES</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#742">SHT_LOPROC</a> <span class="op">+</span> <span class="number">3</span>;
 
 <span class="comment">// AArch64 values for `Rel*::r_type`.</span>
 
@@ -11023,7 +11047,7 @@
 
 <span class="comment">// C-SKY values for `SectionHeader*::sh_type`.</span>
 <span class="doccomment">/// C-SKY attributes section.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHT_CSKY_ATTRIBUTES</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#730">SHT_LOPROC</a> <span class="op">+</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHT_CSKY_ATTRIBUTES</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#742">SHT_LOPROC</a> <span class="op">+</span> <span class="number">1</span>;
 
 <span class="comment">// IA-64 specific declarations.</span>
 
@@ -11037,15 +11061,15 @@
 
 <span class="comment">// IA-64 values for `ProgramHeader64::p_type`.</span>
 <span class="doccomment">/// arch extension bits</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_IA_64_ARCHEXT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1279">PT_LOPROC</a> <span class="op">+</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_IA_64_ARCHEXT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1291">PT_LOPROC</a> <span class="op">+</span> <span class="number">0</span>;
 <span class="doccomment">/// ia64 unwind bits</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_IA_64_UNWIND</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1279">PT_LOPROC</a> <span class="op">+</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_IA_64_UNWIND</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1291">PT_LOPROC</a> <span class="op">+</span> <span class="number">1</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_IA_64_HP_OPT_ANOT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x12</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_IA_64_HP_OPT_ANOT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x12</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_IA_64_HP_HSL_ANOT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x13</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_IA_64_HP_HSL_ANOT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x13</span>;
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_IA_64_HP_STACK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1269">PT_LOOS</a> <span class="op">+</span> <span class="number">0x14</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PT_IA_64_HP_STACK</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1281">PT_LOOS</a> <span class="op">+</span> <span class="number">0x14</span>;
 
 <span class="comment">// IA-64 values for `ProgramHeader64::p_flags`.</span>
 <span class="doccomment">/// spec insns w/o recovery</span>
@@ -11053,9 +11077,9 @@
 
 <span class="comment">// IA-64 values for `SectionHeader64::sh_type`.</span>
 <span class="doccomment">/// extension bits</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHT_IA_64_EXT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#730">SHT_LOPROC</a> <span class="op">+</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHT_IA_64_EXT</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#742">SHT_LOPROC</a> <span class="op">+</span> <span class="number">0</span>;
 <span class="doccomment">/// unwind bits</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHT_IA_64_UNWIND</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#730">SHT_LOPROC</a> <span class="op">+</span> <span class="number">1</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SHT_IA_64_UNWIND</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#742">SHT_LOPROC</a> <span class="op">+</span> <span class="number">1</span>;
 
 <span class="comment">// IA-64 values for `SectionHeader64::sh_flags`.</span>
 <span class="doccomment">/// section near gp</span>
@@ -11065,7 +11089,7 @@
 
 <span class="comment">// IA-64 values for `Dyn64::d_tag`.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_IA_64_PLT_RESERVE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1536">DT_LOPROC</a> <span class="op">+</span> <span class="number">0</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DT_IA_64_PLT_RESERVE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a> <span class="op">=</span> <a class="ident" href="../../src/object/elf.rs.html#1548">DT_LOPROC</a> <span class="op">+</span> <span class="number">0</span>;
 
 <span class="comment">// IA-64 values for `Rel*::r_type`.</span>
 <span class="doccomment">/// none</span>
@@ -12789,5 +12813,5 @@
     <span class="ident">GnuHashHeader</span>,
 );
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

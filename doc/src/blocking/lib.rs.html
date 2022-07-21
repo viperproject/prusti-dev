@@ -1395,8 +1395,8 @@
 <span class="kw">const</span> <span class="ident">MAX_THREADS_ENV</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;BLOCKING_MAX_THREADS&quot;</span>;
 
 <span class="doccomment">/// Lazily initialized global executor.</span>
-<span class="kw">static</span> <span class="ident">EXECUTOR</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><a class="ident" href="../../src/blocking/lib.rs.html#128-137">Executor</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/blocking/lib.rs.html#128-137">Executor</a> {
-    <span class="ident">inner</span>: <span class="ident">Mutex::new</span>(<a class="ident" href="../../src/blocking/lib.rs.html#140-153">Inner</a> {
+<span class="kw">static</span> <span class="ident">EXECUTOR</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><a class="ident" href="../../src/blocking/lib.rs.html#128">Executor</a><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/blocking/lib.rs.html#128">Executor</a> {
+    <span class="ident">inner</span>: <span class="ident">Mutex::new</span>(<a class="ident" href="../../src/blocking/lib.rs.html#140">Inner</a> {
         <span class="ident">idle_count</span>: <span class="number">0</span>,
         <span class="ident">thread_count</span>: <span class="number">0</span>,
         <span class="ident">queue</span>: <span class="ident">VecDeque::new</span>(),
@@ -1408,7 +1408,7 @@
 <span class="doccomment">/// The blocking executor.</span>
 <span class="kw">struct</span> <span class="ident">Executor</span> {
     <span class="doccomment">/// Inner state of the executor.</span>
-    <span class="ident">inner</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../src/blocking/lib.rs.html#140-153">Inner</a><span class="op">&gt;</span>,
+    <span class="ident">inner</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../src/blocking/lib.rs.html#140">Inner</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Used to put idle threads to sleep and wake them up when new work comes in.</span>
     <span class="ident">cvar</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>,
@@ -1433,7 +1433,7 @@
     <span class="ident">queue</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><a class="ident" href="../../async_task/runnable/struct.Runnable.html">Runnable</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/blocking/lib.rs.html#128-137">Executor</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/blocking/lib.rs.html#128">Executor</a> {
     <span class="kw">fn</span> <span class="ident">max_threads</span>() -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
         <span class="kw">match</span> <span class="ident">env::var</span>(<a class="ident" href="../../src/blocking/lib.rs.html#114">MAX_THREADS_ENV</a>) {
             <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <a class="ident" href="../../src/blocking/lib.rs.html#158">v</a>
@@ -1447,7 +1447,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns a [`Task`] handle for the spawned task.</span>
     <span class="kw">fn</span> <span class="ident">spawn</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">future</span>: <span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>) -&gt; <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">runnable</span>, <span class="ident">task</span>) <span class="op">=</span> <span class="ident">async_task::spawn</span>(<a class="ident" href="../../src/blocking/lib.rs.html#168">future</a>, <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <a class="ident" href="../../src/blocking/lib.rs.html#117-125">EXECUTOR</a>.<a class="ident" href="../../src/blocking/lib.rs.html#213">schedule</a>(<a class="ident" href="../../src/blocking/lib.rs.html#169">r</a>));
+        <span class="kw">let</span> (<span class="ident">runnable</span>, <span class="ident">task</span>) <span class="op">=</span> <span class="ident">async_task::spawn</span>(<a class="ident" href="../../src/blocking/lib.rs.html#168">future</a>, <span class="op">|</span><span class="ident">r</span><span class="op">|</span> <a class="ident" href="../../src/blocking/lib.rs.html#117">EXECUTOR</a>.<a class="ident" href="../../src/blocking/lib.rs.html#213">schedule</a>(<a class="ident" href="../../src/blocking/lib.rs.html#169">r</a>));
         <a class="ident" href="../../src/blocking/lib.rs.html#169">runnable</a>.<span class="ident">schedule</span>();
         <a class="ident" href="../../src/blocking/lib.rs.html#169">task</a>
     }
@@ -1501,7 +1501,7 @@
     }
 
     <span class="doccomment">/// Spawns more blocking threads if the pool is overloaded with work.</span>
-    <span class="kw">fn</span> <span class="ident">grow_pool</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">inner</span>: <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="../../src/blocking/lib.rs.html#140-153">Inner</a><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">grow_pool</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">inner</span>: <span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <a class="ident" href="../../src/blocking/lib.rs.html#140">Inner</a><span class="op">&gt;</span>) {
         <span class="comment">// If runnable tasks greatly outnumber idle threads and there aren&#39;t too many threads</span>
         <span class="comment">// already, then be aggressive: wake all idle threads and spawn one more thread.</span>
         <span class="kw">while</span> <span class="ident">inner</span>.<span class="ident">queue</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">inner</span>.<span class="ident">idle_count</span> <span class="op">*</span> <span class="number">5</span> <span class="op">&amp;&amp;</span> <span class="ident">inner</span>.<span class="ident">thread_count</span> <span class="op">&lt;</span> <span class="ident">EXECUTOR</span>.<span class="ident">thread_limit</span>
@@ -1633,7 +1633,7 @@
     <span class="doccomment">/// let stdin = Unblock::new(std::io::stdin());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">io</span>: <span class="ident">T</span>) -&gt; <span class="ident">Unblock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/blocking/lib.rs.html#339-342">Unblock</a> {
+        <a class="ident" href="../../src/blocking/lib.rs.html#339">Unblock</a> {
             <span class="ident">state</span>: <a class="ident" href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/blocking/lib.rs.html#354">io</a>))),
             <span class="ident">cap</span>: <span class="prelude-val">None</span>,
         }
@@ -1659,7 +1659,7 @@
     <span class="doccomment">/// let stdout = Unblock::with_capacity(64 * 1024, std::io::stdout());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">cap</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">io</span>: <span class="ident">T</span>) -&gt; <span class="ident">Unblock</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../src/blocking/lib.rs.html#339-342">Unblock</a> {
+        <a class="ident" href="../../src/blocking/lib.rs.html#339">Unblock</a> {
             <span class="ident">state</span>: <a class="ident" href="../../src/blocking/lib.rs.html#609">State::Idle</a>(<span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<a class="ident" href="../../src/blocking/lib.rs.html#380">io</a>))),
             <span class="ident">cap</span>: <span class="prelude-val">Some</span>(<a class="ident" href="../../src/blocking/lib.rs.html#380">cap</a>),
         }
@@ -1898,10 +1898,10 @@
     <span class="ident">Streaming</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a><span class="op">&gt;</span><span class="op">&gt;</span>, <span class="ident">Task</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>),
 
     <span class="doccomment">/// The inner value is a [`Read`] currently reading in a task.</span>
-    <span class="ident">Reading</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/blocking/lib.rs.html#936-949">Reader</a><span class="op">&gt;</span>, <span class="ident">Task</span><span class="op">&lt;</span>(<span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>)<span class="op">&gt;</span>),
+    <span class="ident">Reading</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/blocking/lib.rs.html#936">Reader</a><span class="op">&gt;</span>, <span class="ident">Task</span><span class="op">&lt;</span>(<span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>)<span class="op">&gt;</span>),
 
     <span class="doccomment">/// The inner value is a [`Write`] currently writing in a task.</span>
-    <span class="ident">Writing</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/blocking/lib.rs.html#952-972">Writer</a><span class="op">&gt;</span>, <span class="ident">Task</span><span class="op">&lt;</span>(<span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>)<span class="op">&gt;</span>),
+    <span class="ident">Writing</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/blocking/lib.rs.html#952">Writer</a><span class="op">&gt;</span>, <span class="ident">Task</span><span class="op">&lt;</span>(<span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>)<span class="op">&gt;</span>),
 
     <span class="doccomment">/// The inner value is a [`Seek`] currently seeking in a task.</span>
     <span class="ident">Seeking</span>(<span class="ident">Task</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/enum.SeekFrom.html">SeekFrom</a>, <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>)<span class="op">&gt;</span>),
@@ -2178,7 +2178,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// When the receiver is dropped, the pipe is closed and no more bytes and be written into it.</span>
 <span class="doccomment">/// Further writes will result in `Ok(0)`, i.e. they will always &#39;successfully&#39; write 0 bytes.</span>
-<span class="kw">fn</span> <span class="ident">pipe</span>(<span class="ident">cap</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<a class="ident" href="../../src/blocking/lib.rs.html#936-949">Reader</a>, <a class="ident" href="../../src/blocking/lib.rs.html#952-972">Writer</a>) {
+<span class="kw">fn</span> <span class="ident">pipe</span>(<span class="ident">cap</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<a class="ident" href="../../src/blocking/lib.rs.html#936">Reader</a>, <a class="ident" href="../../src/blocking/lib.rs.html#952">Writer</a>) {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">cap</span> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;capacity must be positive&quot;</span>);
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">cap</span>.<span class="ident">checked_mul</span>(<span class="number">2</span>).<span class="ident">is_some</span>(), <span class="string">&quot;capacity is too large&quot;</span>);
 
@@ -2187,7 +2187,7 @@
     <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <a class="ident" href="../../src/blocking/lib.rs.html#905">v</a>.<span class="ident">as_mut_ptr</span>();
     <span class="ident">mem::forget</span>(<a class="ident" href="../../src/blocking/lib.rs.html#905">v</a>);
 
-    <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../src/blocking/lib.rs.html#985-1006">Pipe</a> {
+    <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<a class="ident" href="../../src/blocking/lib.rs.html#985">Pipe</a> {
         <span class="ident">head</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>),
         <span class="ident">tail</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>),
         <span class="ident">reader</span>: <span class="ident">AtomicWaker::new</span>(),
@@ -2197,13 +2197,13 @@
         <a class="ident" href="../../src/blocking/lib.rs.html#900">cap</a>,
     });
 
-    <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <a class="ident" href="../../src/blocking/lib.rs.html#936-949">Reader</a> {
+    <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <a class="ident" href="../../src/blocking/lib.rs.html#936">Reader</a> {
         <span class="ident">inner</span>: <a class="ident" href="../../src/blocking/lib.rs.html#909">inner</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         <span class="ident">head</span>: <span class="number">0</span>,
         <span class="ident">tail</span>: <span class="number">0</span>,
     };
 
-    <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <a class="ident" href="../../src/blocking/lib.rs.html#952-972">Writer</a> {
+    <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <a class="ident" href="../../src/blocking/lib.rs.html#952">Writer</a> {
         <a class="ident" href="../../src/blocking/lib.rs.html#909">inner</a>,
         <span class="ident">head</span>: <span class="number">0</span>,
         <span class="ident">tail</span>: <span class="number">0</span>,
@@ -2216,7 +2216,7 @@
 <span class="doccomment">/// The reading side of a pipe.</span>
 <span class="kw">struct</span> <span class="ident">Reader</span> {
     <span class="doccomment">/// The inner ring buffer.</span>
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../src/blocking/lib.rs.html#985-1006">Pipe</a><span class="op">&gt;</span>,
+    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../src/blocking/lib.rs.html#985">Pipe</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// The head index, moved by the reader, in the range `0..2*cap`.</span>
     <span class="doccomment">///</span>
@@ -2232,7 +2232,7 @@
 <span class="doccomment">/// The writing side of a pipe.</span>
 <span class="kw">struct</span> <span class="ident">Writer</span> {
     <span class="doccomment">/// The inner ring buffer.</span>
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../src/blocking/lib.rs.html#985-1006">Pipe</a><span class="op">&gt;</span>,
+    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../src/blocking/lib.rs.html#985">Pipe</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// The head index, moved by the reader, in the range `0..2*cap`.</span>
     <span class="doccomment">///</span>
@@ -2252,8 +2252,8 @@
     <span class="ident">zeroed_until</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../src/blocking/lib.rs.html#936-949">Reader</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../src/blocking/lib.rs.html#952-972">Writer</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../src/blocking/lib.rs.html#936">Reader</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../src/blocking/lib.rs.html#952">Writer</a> {}
 
 <span class="doccomment">/// The inner ring buffer.</span>
 <span class="doccomment">///</span>
@@ -2286,10 +2286,10 @@
     <span class="ident">cap</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../src/blocking/lib.rs.html#985-1006">Pipe</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../src/blocking/lib.rs.html#985-1006">Pipe</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../src/blocking/lib.rs.html#985">Pipe</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../src/blocking/lib.rs.html#985">Pipe</a> {}
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/blocking/lib.rs.html#985-1006">Pipe</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/blocking/lib.rs.html#985">Pipe</a> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// Deallocate the byte buffer.</span>
         <span class="kw">unsafe</span> {
@@ -2298,7 +2298,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/blocking/lib.rs.html#936-949">Reader</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/blocking/lib.rs.html#936">Reader</a> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// Dropping closes the pipe and then wakes the writer.</span>
         <a class="self" href="../../src/blocking/lib.rs.html#1021">self</a>.<span class="ident">inner</span>.<span class="ident">closed</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::SeqCst</span>);
@@ -2306,7 +2306,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/blocking/lib.rs.html#952-972">Writer</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/blocking/lib.rs.html#952">Writer</a> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="comment">// Dropping closes the pipe and then wakes the reader.</span>
         <a class="self" href="../../src/blocking/lib.rs.html#1029">self</a>.<span class="ident">inner</span>.<span class="ident">closed</span>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::SeqCst</span>);
@@ -2314,7 +2314,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/blocking/lib.rs.html#936-949">Reader</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/blocking/lib.rs.html#936">Reader</a> {
     <span class="doccomment">/// Reads bytes from this reader and writes into blocking `dest`.</span>
     <span class="kw">fn</span> <span class="ident">drain</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="kw-2">mut</span> <span class="ident">dest</span>: <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Write.html">Write</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span> <a class="self" href="../../src/blocking/lib.rs.html#1038">self</a>.<span class="ident">inner</span>.<span class="ident">cap</span>;
@@ -2407,7 +2407,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/blocking/lib.rs.html#952-972">Writer</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/blocking/lib.rs.html#952">Writer</a> {
     <span class="doccomment">/// Reads bytes from blocking `src` and writes into this writer.</span>
     <span class="kw">fn</span> <span class="ident">fill</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="kw-2">mut</span> <span class="ident">src</span>: <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.Read.html">Read</a>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="comment">// Just a quick check if the pipe is closed, which is why a relaxed load is okay.</span>
@@ -2555,5 +2555,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="blocking" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="blocking" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/sync/rwlock/write_guard.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>write_guard.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.0/src/sync/rwlock/write_guard.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>write_guard.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
@@ -286,9 +286,9 @@
 <span id="280">280</span>
 <span id="281">281</span>
 <span id="282">282</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/batch_semaphore.rs.html#36-42"><span class="kw">crate</span>::sync::batch_semaphore::Semaphore</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/read_guard.rs.html#15-21"><span class="kw">crate</span>::sync::rwlock::read_guard::RwLockReadGuard</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#16-23"><span class="kw">crate</span>::sync::rwlock::write_guard_mapped::RwLockMappedWriteGuard</a>;
+</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/batch_semaphore.rs.html#36"><span class="kw">crate</span>::sync::batch_semaphore::Semaphore</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/read_guard.rs.html#15"><span class="kw">crate</span>::sync::rwlock::read_guard::RwLockReadGuard</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#16"><span class="kw">crate</span>::sync::rwlock::write_guard_mapped::RwLockMappedWriteGuard</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/index.html">std::marker</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
@@ -306,7 +306,7 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">resource_span</span>: <span class="ident">tracing::Span</span>,
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">permits_acquired</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../src/tokio/sync/batch_semaphore.rs.html#36-42">Semaphore</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../../src/tokio/sync/batch_semaphore.rs.html#36">Semaphore</a>,
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">data</span>: <span class="kw-2">*mut</span> <span class="ident">T</span>,
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">marker</span>: <span class="ident">marker::PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span>,
 }
@@ -360,7 +360,7 @@
         <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>();
         <span class="comment">// NB: Forget to avoid drop impl from being called.</span>
         <span class="ident">mem::forget</span>(<a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#64">this</a>);
-        <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#16-23">RwLockMappedWriteGuard</a> {
+        <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#16">RwLockMappedWriteGuard</a> {
             <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#70">permits_acquired</a>,
             <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#69">s</a>,
             <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#68">data</a>,
@@ -427,7 +427,7 @@
         <span class="kw">let</span> <span class="ident">resource_span</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">resource_span</span>.<span class="ident">clone</span>();
         <span class="comment">// NB: Forget to avoid drop impl from being called.</span>
         <span class="ident">mem::forget</span>(<a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#126">this</a>);
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#16-23">RwLockMappedWriteGuard</a> {
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard_mapped.rs.html#16">RwLockMappedWriteGuard</a> {
             <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#137">permits_acquired</a>,
             <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#136">s</a>,
             <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#132">data</a>,
@@ -485,7 +485,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`RwLock`]: struct@crate::sync::RwLock</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downgrade</span>(<span class="self">self</span>) -&gt; <span class="ident">RwLockReadGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#17-24">RwLockWriteGuard</a> { <span class="ident">s</span>, <span class="ident">data</span>, .. } <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#199">self</a>;
+        <span class="kw">let</span> <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#17">RwLockWriteGuard</a> { <span class="ident">s</span>, <span class="ident">data</span>, .. } <span class="op">=</span> <a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#199">self</a>;
         <span class="kw">let</span> <span class="ident">to_release</span> <span class="op">=</span> (<a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#199">self</a>.<span class="ident">permits_acquired</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>;
         <span class="comment">// Release all but one of the permits held by the write guard</span>
         <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#200">s</a>.<a class="ident" href="../../../../src/tokio/sync/batch_semaphore.rs.html#201">release</a>(<a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#201">to_release</a>);
@@ -512,7 +512,7 @@
         <span class="comment">// NB: Forget to avoid drop impl from being called.</span>
         <span class="ident">mem::forget</span>(<a class="self" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#199">self</a>);
 
-        <a class="ident" href="../../../../src/tokio/sync/rwlock/read_guard.rs.html#15-21">RwLockReadGuard</a> {
+        <a class="ident" href="../../../../src/tokio/sync/rwlock/read_guard.rs.html#15">RwLockReadGuard</a> {
             <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#200">s</a>,
             <a class="ident" href="../../../../src/tokio/sync/rwlock/write_guard.rs.html#200">data</a>,
             <span class="ident">marker</span>: <span class="ident">marker::PhantomData</span>,
@@ -569,5 +569,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

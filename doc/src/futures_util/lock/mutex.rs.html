@@ -431,7 +431,7 @@
 <span class="doccomment">/// indefinitely.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Mutex</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a><span class="op">&gt;</span> {
     <span class="ident">state</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
-    <span class="ident">waiters</span>: <span class="ident">StdMutex</span><span class="op">&lt;</span><span class="ident">Slab</span><span class="op">&lt;</span><a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#48-51">Waiter</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">waiters</span>: <span class="ident">StdMutex</span><span class="op">&lt;</span><span class="ident">Slab</span><span class="op">&lt;</span><a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#48">Waiter</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">value</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 }
 
@@ -462,7 +462,7 @@
     <span class="ident">Woken</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#48-51">Waiter</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#48">Waiter</a> {
     <span class="kw">fn</span> <span class="ident">register</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">waker</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>) {
         <span class="kw">match</span> <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#54">self</a> {
             <span class="ident"><span class="self">Self</span>::Waiting</span>(<span class="ident">w</span>) <span class="kw">if</span> <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#54">waker</a>.<span class="ident">will_wake</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#56">w</a>) =&gt; {}
@@ -513,7 +513,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MutexGuard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">old_state</span> <span class="op">=</span> <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#101">self</a>.<span class="ident">state</span>.<span class="ident">fetch_or</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#69">IS_LOCKED</a>, <span class="ident">Ordering::Acquire</span>);
         <span class="kw">if</span> (<span class="ident">old_state</span> <span class="op">&amp;</span> <span class="ident">IS_LOCKED</span>) <span class="op">==</span> <span class="number">0</span> {
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#255-257">MutexGuard</a> { <span class="ident">mutex</span>: <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#101">self</a> })
+            <span class="prelude-val">Some</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#255">MutexGuard</a> { <span class="ident">mutex</span>: <a class="self" href="../../../src/futures_util/lock/mutex.rs.html#101">self</a> })
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         }
@@ -524,7 +524,7 @@
     <span class="doccomment">/// This method returns a future that will resolve once the lock has been</span>
     <span class="doccomment">/// successfully acquired.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lock</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">MutexLockFuture</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#179-183">MutexLockFuture</a> { <span class="ident">mutex</span>: <span class="prelude-val">Some</span>(<a class="self" href="../../../src/futures_util/lock/mutex.rs.html#114">self</a>), <span class="ident">wait_key</span>: <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#176">WAIT_KEY_NONE</a> }
+        <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#179">MutexLockFuture</a> { <span class="ident">mutex</span>: <span class="prelude-val">Some</span>(<a class="self" href="../../../src/futures_util/lock/mutex.rs.html#114">self</a>), <span class="ident">wait_key</span>: <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#176">WAIT_KEY_NONE</a> }
     }
 
     <span class="doccomment">/// Returns a mutable reference to the underlying data.</span>
@@ -694,7 +694,7 @@
         <span class="comment">// Don&#39;t run the `drop` method for MutexGuard. The ownership of the underlying</span>
         <span class="comment">// locked state is being moved to the returned MappedMutexGuard.</span>
         <span class="ident">mem::forget</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#276">this</a>);
-        <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#316-320">MappedMutexGuard</a> { <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#280">mutex</a>, <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#281">value</a>, <span class="ident">_marker</span>: <span class="ident">PhantomData</span> }
+        <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#316">MappedMutexGuard</a> { <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#280">mutex</a>, <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#281">value</a>, <span class="ident">_marker</span>: <span class="ident">PhantomData</span> }
     }
 }
 
@@ -758,7 +758,7 @@
         <span class="comment">// Don&#39;t run the `drop` method for MappedMutexGuard. The ownership of the underlying</span>
         <span class="comment">// locked state is being moved to the returned MappedMutexGuard.</span>
         <span class="ident">mem::forget</span>(<a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#340">this</a>);
-        <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#316-320">MappedMutexGuard</a> { <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#344">mutex</a>, <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#345">value</a>, <span class="ident">_marker</span>: <span class="ident">PhantomData</span> }
+        <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#316">MappedMutexGuard</a> { <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#344">mutex</a>, <a class="ident" href="../../../src/futures_util/lock/mutex.rs.html#345">value</a>, <span class="ident">_marker</span>: <span class="ident">PhantomData</span> }
     }
 }
 
@@ -817,5 +817,5 @@
     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">guard</span>);
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

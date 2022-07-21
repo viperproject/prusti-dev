@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/runtime/task/core.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>core.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.0/src/runtime/task/core.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>core.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
@@ -288,9 +288,9 @@
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html"><span class="kw">crate</span>::future::Future</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#2"><span class="kw">crate</span>::loom::cell::UnsafeCell</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime::task::raw</span>::{<a class="self" href="../../../../src/tokio/runtime/task/mod.rs.html#172">self</a>, <a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#12-38">Vtable</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#7-9"><span class="kw">crate</span>::runtime::task::state::State</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime::task</span>::{<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>, <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#249-265">Schedule</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime::task::raw</span>::{<a class="self" href="../../../../src/tokio/runtime/task/mod.rs.html#172">self</a>, <a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#12">Vtable</a>};
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#7"><span class="kw">crate</span>::runtime::task::state::State</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::runtime::task</span>::{<a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>, <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a>};
 <span class="kw">use</span> <a class="ident" href="../../../../src/tokio/util/mod.rs.html#41"><span class="kw">crate</span>::util::linked_list</a>;
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">std::pin::Pin</a>;
@@ -304,13 +304,13 @@
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Hot task state data</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">header</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">Header</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">header</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a>,
 
     <span class="doccomment">/// Either the future or output, depending on the execution stage.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">core</span>: <span class="ident">Core</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Cold data</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">trailer</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#93-96">Trailer</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">trailer</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a>,
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">CoreStage</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a><span class="op">&gt;</span> {
@@ -335,15 +335,15 @@
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Header</span> {
     <span class="doccomment">/// Task state.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">state</span>: <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#7-9">State</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">state</span>: <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#7">State</a>,
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">owned</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">Header</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">owned</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">linked_list::Pointers</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Pointer to next task, used with the injection queue.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">queue_next</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">Header</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">queue_next</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Table of function pointers for executing actions on the task.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">vtable</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#12-38">Vtable</a>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">vtable</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../../../src/tokio/runtime/task/raw.rs.html#12">Vtable</a>,
 
     <span class="doccomment">/// This integer contains the id of the OwnedTasks or LocalOwnedTasks that</span>
     <span class="doccomment">/// this task is stored in. If the task is not in any list, should be the</span>
@@ -363,8 +363,8 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">tracing::Id</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">Header</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">Header</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {}
 
 <span class="doccomment">/// Cold data is stored after the future.</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Trailer</span> {
@@ -379,14 +379,14 @@
     <span class="ident">Consumed</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#249-265">Schedule</a><span class="op">&gt;</span> <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/future/future/trait.Future.html">Future</a>, <span class="ident">S</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#249">Schedule</a><span class="op">&gt;</span> <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Allocates a new task cell, containing the header, trailer, and core</span>
     <span class="doccomment">/// structures.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">future</span>: <span class="ident">T</span>, <span class="ident">scheduler</span>: <span class="ident">S</span>, <span class="ident">state</span>: <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#7-9">State</a>, <span class="ident">task_id</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">future</span>: <span class="ident">T</span>, <span class="ident">scheduler</span>: <span class="ident">S</span>, <span class="ident">state</span>: <a class="ident" href="../../../../src/tokio/runtime/task/state.rs.html#7">State</a>, <span class="ident">task_id</span>: <a class="ident" href="../../../../src/tokio/runtime/task/mod.rs.html#206">Id</a>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
         <span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">future</span>.<span class="ident">id</span>();
-        <span class="ident">Box::new</span>(<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#28-37">Cell</a> {
-            <span class="ident">header</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">Header</a> {
+        <span class="ident">Box::new</span>(<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#28">Cell</a> {
+            <span class="ident">header</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {
                 <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#108">state</a>,
                 <span class="ident">owned</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">linked_list::Pointers::new</span>()),
                 <span class="ident">queue_next</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>),
@@ -395,14 +395,14 @@
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
                 <span class="ident">id</span>,
             },
-            <span class="ident">core</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#46-55">Core</a> {
+            <span class="ident">core</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#46">Core</a> {
                 <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#108">scheduler</a>,
-                <span class="ident">stage</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#39-41">CoreStage</a> {
+                <span class="ident">stage</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#39">CoreStage</a> {
                     <span class="ident">stage</span>: <span class="ident">UnsafeCell::new</span>(<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#100">Stage::Running</a>(<a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#108">future</a>)),
                 },
                 <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#108">task_id</a>,
             },
-            <span class="ident">trailer</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#93-96">Trailer</a> {
+            <span class="ident">trailer</span>: <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a> {
                 <span class="ident">waker</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>),
             },
         })
@@ -497,14 +497,14 @@
 }
 
 <span class="macro">cfg_rt_multi_thread!</span> {
-    <span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">Header</a> {
-        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">next</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">Header</a><span class="op">&gt;</span><span class="op">&gt;</span>) {
+    <span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_next</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">next</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a><span class="op">&gt;</span><span class="op">&gt;</span>) {
             <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#224">self</a>.<span class="ident">queue_next</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#225">ptr</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#224">next</a>);
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59-87">Header</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#59">Header</a> {
     <span class="comment">// safety: The caller must guarantee exclusive access to this field, and</span>
     <span class="comment">// must ensure that the id is either 0 or the id of the OwnedTasks</span>
     <span class="comment">// containing this task.</span>
@@ -519,7 +519,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#93-96">Trailer</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#93">Trailer</a> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">set_waker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">waker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span>) {
         <a class="self" href="../../../../src/tokio/runtime/task/core.rs.html#246">self</a>.<span class="ident">waker</span>.<a class="ident" href="../../../../src/tokio/loom/std/unsafe_cell.rs.html#13">with_mut</a>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span> {
             <span class="kw-2">*</span><a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#247">ptr</a> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/task/core.rs.html#246">waker</a>;
@@ -547,5 +547,5 @@
     <span class="macro">assert!</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">Header</span><span class="op">&gt;</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="number">8</span> <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="kw-2">*const</span> ()<span class="op">&gt;</span>());
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

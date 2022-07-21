@@ -687,7 +687,7 @@
 <span class="kw">use</span> <a class="ident" href="../../../../viper/verification_result/struct.VerificationError.html">viper::VerificationError</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../prusti_interface/prusti_error/struct.PrustiError.html">prusti_interface::PrustiError</a>;
 <span class="kw">use</span> <span class="ident">log</span>::{<a class="ident" href="../../../../log/macro.debug.html">debug</a>, <a class="ident" href="../../../../log/macro.trace.html">trace</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#18-25"><span class="kw">super</span>::PositionManager</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#18"><span class="kw">super</span>::PositionManager</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../prusti_interface/data/type.ProcedureDefId.html">prusti_interface::data::ProcedureDefId</a>;
 
 
@@ -721,7 +721,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ErrorCtxt</span> {
     <span class="doccomment">/// A Viper `assert false` that encodes a Rust panic</span>
-    <span class="ident">Panic</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#20-33">PanicCause</a>),
+    <span class="ident">Panic</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#20">PanicCause</a>),
     <span class="doccomment">/// A Viper `exhale expr` that encodes the call of a Rust procedure with precondition `expr`</span>
     <span class="ident">ExhaleMethodPrecondition</span>,
     <span class="doccomment">/// An error when assuming method&#39;s functional specification.</span>
@@ -759,7 +759,7 @@
     <span class="doccomment">/// An error that should never happen</span>
     <span class="ident">Unexpected</span>,
     <span class="doccomment">/// An unexpected verification error happenning inside built-in method.</span>
-    <span class="ident">UnexpectedBuiltinMethod</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#37-41">BuiltinMethodKind</a>),
+    <span class="ident">UnexpectedBuiltinMethod</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#37">BuiltinMethodKind</a>),
     <span class="doccomment">/// Unexpected error when verifying a `StorageLive` statement.</span>
     <span class="ident">UnexpectedStorageLive</span>,
     <span class="doccomment">/// Unexpected error when verifying a `StorageDead` statement.</span>
@@ -790,7 +790,7 @@
     <span class="doccomment">/// A diverging function call performed in a pure function</span>
     <span class="ident">DivergingCallInPureFunction</span>,
     <span class="doccomment">/// A Viper pure function call with `false` precondition that encodes a Rust panic in a pure function</span>
-    <span class="ident">PanicInPureFunction</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#20-33">PanicCause</a>),
+    <span class="ident">PanicInPureFunction</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#20">PanicCause</a>),
     <span class="doccomment">/// A Viper `assert e1 ==&gt; e2` that encodes a weakening of the precondition</span>
     <span class="doccomment">/// of a method implementation of a trait</span>
     <span class="ident">AssertMethodPreconditionWeakening</span>,
@@ -840,20 +840,20 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ErrorManager</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="ident">position_manager</span>: <span class="ident">PositionManager</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">error_contexts</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-161">ErrorCtxt</a><span class="op">&gt;</span>,
+    <span class="ident">error_contexts</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46">ErrorCtxt</a><span class="op">&gt;</span>,
     <span class="ident">inner_positions</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">ErrorManager</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">codemap</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/source_map/struct.SourceMap.html">SourceMap</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#165-169">ErrorManager</a> {
+        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#165">ErrorManager</a> {
             <span class="ident">position_manager</span>: <span class="ident">PositionManager::new</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#172">codemap</a>),
             <span class="ident">error_contexts</span>: <span class="ident">FxHashMap::default</span>(),
             <span class="ident">inner_positions</span>: <span class="ident">FxHashMap::default</span>(),
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">position_manager</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#18-25">PositionManager</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">position_manager</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#18">PositionManager</a> {
         <span class="kw-2">&amp;</span><a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#180">self</a>.<span class="ident">position_manager</span>
     }
 
@@ -868,7 +868,7 @@
     }
 
     <span class="doccomment">/// Register the ErrorCtxt on an existing VIR position.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_error</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>, <span class="ident">error_ctxt</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-161">ErrorCtxt</a>) {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_error</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>, <span class="ident">error_ctxt</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46">ErrorCtxt</a>) {
         <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Register error {:?} at position id {:?}&quot;</span>, <span class="ident">error_ctxt</span>, <span class="ident">pos</span>.<span class="ident">id</span>());
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_ne.html">assert_ne!</a>(<span class="ident">pos</span>, <span class="ident">Position::default</span>(), <span class="string">&quot;Trying to register an error on a default position&quot;</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">existing_error_ctxt</span>) <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#195">self</a>.<span class="ident">error_contexts</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#195">pos</a>.<span class="ident">id</span>()) {
@@ -889,7 +889,7 @@
     <span class="doccomment">/// Creates a new position with `error_ctxt` that is linked to `pos`. This</span>
     <span class="doccomment">/// method is used for setting the surrounding context position of an</span>
     <span class="doccomment">/// expression&#39;s position.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_surrounding_error_context</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>, <span class="ident">error_ctxt</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-161">ErrorCtxt</a>) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_surrounding_error_context</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>, <span class="ident">error_ctxt</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46">ErrorCtxt</a>) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
         <span class="kw">let</span> <span class="ident">surrounding_position</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#216">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#190">duplicate_position</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#216">pos</a>);
         <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#216">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#195">set_error</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#217">surrounding_position</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#216">error_ctxt</a>);
         <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#216">self</a>.<span class="ident">inner_positions</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#217">surrounding_position</a>.<span class="ident">id</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#216">pos</a>);
@@ -898,7 +898,7 @@
 
     <span class="doccomment">/// Register a new VIR position with the given ErrorCtxt.</span>
     <span class="doccomment">/// Equivalent to calling `set_error` on the output of `register_span`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_error</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">MultiSpan</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">span</span>: <span class="ident">T</span>, <span class="ident">error_ctxt</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-161">ErrorCtxt</a>, <span class="ident">def_id</span>: <a class="ident" href="../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_error</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">MultiSpan</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">span</span>: <span class="ident">T</span>, <span class="ident">error_ctxt</span>: <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46">ErrorCtxt</a>, <span class="ident">def_id</span>: <a class="ident" href="../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#225">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#185">register_span</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#225">def_id</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#225">span</a>);
         <a class="self" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#225">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#195">set_error</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#226">pos</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#225">error_ctxt</a>);
         <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#226">pos</a>
@@ -1011,7 +1011,7 @@
         <span class="ident">ver_error</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../viper/verification_result/struct.VerificationError.html">VerificationError</a>,
         <span class="ident">error_span</span>: <span class="ident">MultiSpan</span>,
         <span class="ident">opt_cause_span</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">MultiSpan</span><span class="op">&gt;</span>,
-        <span class="ident">error_ctxt</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46-161">ErrorCtxt</a>,
+        <span class="ident">error_ctxt</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46">ErrorCtxt</a>,
     ) -&gt; <a class="ident" href="../../../../prusti_interface/prusti_error/struct.PrustiError.html">PrustiError</a> {
         <span class="kw">match</span> (<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#335">ver_error</a>.<span class="ident">full_id</span>.<span class="ident">as_str</span>(), <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#338">error_ctxt</a>) {
             (<span class="string">&quot;assert.failed:assertion.false&quot;</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#48">ErrorCtxt::Panic</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#22">PanicCause::Generic</a>)) =&gt; {
@@ -1345,5 +1345,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

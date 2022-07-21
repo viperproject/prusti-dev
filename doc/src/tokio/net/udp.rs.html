@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/net/udp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>udp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.0/src/net/udp.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>udp.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
@@ -1617,7 +1617,7 @@
 <span id="1611">1611</span>
 <span id="1612">1612</span>
 <span id="1613">1613</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io</span>::{<a class="ident" href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>, <a class="ident" href="../../../src/tokio/io/poll_evented.rs.html#62-65">PollEvented</a>, <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#23-27">ReadBuf</a>, <a class="ident" href="../../../src/tokio/io/driver/ready.rs.html#16">Ready</a>};
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io</span>::{<a class="ident" href="../../../src/tokio/io/driver/interest.rs.html#14">Interest</a>, <a class="ident" href="../../../src/tokio/io/poll_evented.rs.html#62">PollEvented</a>, <a class="ident" href="../../../src/tokio/io/read_buf.rs.html#23">ReadBuf</a>, <a class="ident" href="../../../src/tokio/io/driver/ready.rs.html#16">Ready</a>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::net</span>::{<a class="ident" href="../../../src/tokio/net/addr.rs.html#24-26">to_socket_addrs</a>, <a class="ident" href="../../../src/tokio/net/addr.rs.html#19">ToSocketAddrs</a>};
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html">std::convert::TryFrom</a>;
@@ -1743,7 +1743,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/net/udp.rs.html#122-124">UdpSocket</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a> {
     <span class="doccomment">/// This function will create a new UDP socket and attempt to bind it to</span>
     <span class="doccomment">/// the `addr` provided.</span>
     <span class="doccomment">///</span>
@@ -1765,7 +1765,7 @@
     <span class="doccomment">///     Ok(())</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">bind</span><span class="op">&lt;</span><span class="ident">A</span>: <a class="ident" href="../../../src/tokio/net/addr.rs.html#19">ToSocketAddrs</a><span class="op">&gt;</span>(<span class="ident">addr</span>: <span class="ident">A</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/net/udp.rs.html#122-124">UdpSocket</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">bind</span><span class="op">&lt;</span><span class="ident">A</span>: <a class="ident" href="../../../src/tokio/net/addr.rs.html#19">ToSocketAddrs</a><span class="op">&gt;</span>(<span class="ident">addr</span>: <span class="ident">A</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">addrs</span> <span class="op">=</span> <span class="ident">to_socket_addrs</span>(<span class="ident">addr</span>).<span class="kw">await</span><span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_err</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
@@ -1784,14 +1784,14 @@
         }))
     }
 
-    <span class="kw">fn</span> <span class="ident">bind_addr</span>(<span class="ident">addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/net/udp.rs.html#122-124">UdpSocket</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">bind_addr</span>(<span class="ident">addr</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/addr/enum.SocketAddr.html">SocketAddr</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">sys</span> <span class="op">=</span> <span class="ident">mio::net::UdpSocket::bind</span>(<span class="ident">addr</span>)<span class="question-mark">?</span>;
         <span class="ident">UdpSocket::new</span>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#169">sys</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">socket</span>: <a class="ident" href="../../../mio/net/udp/struct.UdpSocket.html">mio::net::UdpSocket</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/net/udp.rs.html#122-124">UdpSocket</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">socket</span>: <a class="ident" href="../../../mio/net/udp/struct.UdpSocket.html">mio::net::UdpSocket</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">PollEvented::new</span>(<span class="ident">socket</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#122-124">UdpSocket</a> { <a class="ident" href="../../../src/tokio/net/udp.rs.html#174">io</a> })
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a> { <a class="ident" href="../../../src/tokio/net/udp.rs.html#174">io</a> })
     }
 
     <span class="doccomment">/// Creates new `UdpSocket` from a previously bound `std::net::UdpSocket`.</span>
@@ -1829,7 +1829,7 @@
     <span class="doccomment">/// # Ok(())</span>
     <span class="doccomment">/// # }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_std</span>(<span class="ident">socket</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">net::UdpSocket</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/net/udp.rs.html#122-124">UdpSocket</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_std</span>(<span class="ident">socket</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">net::UdpSocket</a>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">io</span> <span class="op">=</span> <span class="ident">mio::net::UdpSocket::from_std</span>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#213">socket</a>);
         <span class="ident">UdpSocket::new</span>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#214">io</a>)
     }
@@ -2420,9 +2420,9 @@
 
         <span class="comment">// Safety: We trust `recv` to have filled up `n` bytes in the buffer.</span>
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../../src/tokio/net/udp.rs.html#792">buf</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#231">assume_init</a>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#793">n</a>);
+            <a class="ident" href="../../../src/tokio/net/udp.rs.html#792">buf</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#234">assume_init</a>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#793">n</a>);
         }
-        <a class="ident" href="../../../src/tokio/net/udp.rs.html#792">buf</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#198">advance</a>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#793">n</a>);
+        <a class="ident" href="../../../src/tokio/net/udp.rs.html#792">buf</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#200">advance</a>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#793">n</a>);
         <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
     }
 
@@ -2821,9 +2821,9 @@
 
         <span class="comment">// Safety: We trust `recv` to have filled up `n` bytes in the buffer.</span>
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../../src/tokio/net/udp.rs.html#1192">buf</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#231">assume_init</a>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#1194">n</a>);
+            <a class="ident" href="../../../src/tokio/net/udp.rs.html#1192">buf</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#234">assume_init</a>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#1194">n</a>);
         }
-        <a class="ident" href="../../../src/tokio/net/udp.rs.html#1192">buf</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#198">advance</a>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#1194">n</a>);
+        <a class="ident" href="../../../src/tokio/net/udp.rs.html#1192">buf</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#200">advance</a>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#1194">n</a>);
         <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#1194">addr</a>))
     }
 
@@ -2997,9 +2997,9 @@
 
         <span class="comment">// Safety: We trust `recv` to have filled up `n` bytes in the buffer.</span>
         <span class="kw">unsafe</span> {
-            <a class="ident" href="../../../src/tokio/net/udp.rs.html#1368">buf</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#231">assume_init</a>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#1370">n</a>);
+            <a class="ident" href="../../../src/tokio/net/udp.rs.html#1368">buf</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#234">assume_init</a>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#1370">n</a>);
         }
-        <a class="ident" href="../../../src/tokio/net/udp.rs.html#1368">buf</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#198">advance</a>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#1370">n</a>);
+        <a class="ident" href="../../../src/tokio/net/udp.rs.html#1368">buf</a>.<a class="ident" href="../../../src/tokio/io/read_buf.rs.html#200">advance</a>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#1370">n</a>);
         <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#1370">addr</a>))
     }
 
@@ -3189,7 +3189,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">std::net::UdpSocket</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/net/udp.rs.html#122-124">UdpSocket</a> {
+<span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/net/udp/struct.UdpSocket.html">std::net::UdpSocket</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">io::Error</a>;
 
     <span class="doccomment">/// Consumes stream, returning the tokio I/O object.</span>
@@ -3201,7 +3201,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/net/udp.rs.html#122-124">UdpSocket</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <a class="self" href="../../../src/tokio/net/udp.rs.html#1586">self</a>.<span class="ident">io</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt</a>(<a class="ident" href="../../../src/tokio/net/udp.rs.html#1586">f</a>)
     }
@@ -3209,10 +3209,10 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">unix</span>))]</span>
 <span class="kw">mod</span> <span class="ident">sys</span> {
-    <span class="kw">use</span> <a class="ident" href="../../../src/tokio/net/udp.rs.html#122-124"><span class="kw">super</span>::UdpSocket</a>;
+    <span class="kw">use</span> <a class="ident" href="../../../src/tokio/net/udp.rs.html#122"><span class="kw">super</span>::UdpSocket</a>;
     <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/unix/prelude/index.html">std::os::unix::prelude</a>::<span class="kw-2">*</span>;
 
-    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/net/udp.rs.html#122-124">UdpSocket</a> {
+    <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/net/udp.rs.html#122">UdpSocket</a> {
         <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
             <a class="self" href="../../../src/tokio/net/udp.rs.html#1597">self</a>.<span class="ident">io</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">as_raw_fd</a>()
         }
@@ -3231,5 +3231,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

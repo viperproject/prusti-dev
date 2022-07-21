@@ -380,27 +380,49 @@
 <span id="374">374</span>
 <span id="375">375</span>
 <span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
 </pre><pre class="rust"><code><span class="comment">// This file was taken from the compiler:</span>
-<span class="comment">// https://raw.githubusercontent.com/rust-lang/rust/949b98cab8a186b98bf87e64374b8d0848c55271/compiler/rustc_ty_utils/src/instance.rs</span>
+<span class="comment">// https://raw.githubusercontent.com/rust-lang/rust/03d488b48af9f66b91e9400387f781b82411fa82/compiler/rustc_ty_utils/src/instance.rs</span>
 <span class="comment">// This file is licensed under Apache 2.0</span>
-<span class="comment">// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-APACHE)</span>
+<span class="comment">// (https://github.com/rust-lang/rust/blob/03d488b48af9f66b91e9400387f781b82411fa82/LICENSE-APACHE)</span>
 <span class="comment">// and MIT</span>
-<span class="comment">// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-MIT).</span>
+<span class="comment">// (https://github.com/rust-lang/rust/blob/03d488b48af9f66b91e9400387f781b82411fa82/LICENSE-MIT).</span>
 <span class="comment">//</span>
 <span class="comment">// Changes:</span>
 <span class="comment">// + Fix compilation errors.</span>
 <span class="comment">// + Use our copy of `codegen_fulfill_obligation` that does not record delayed</span>
 <span class="comment">//   span bugs, which is the main motivation for duplication.</span>
-<span class="comment">// + `ErrorGuaranteed` changed to `()` (private constructor).</span>
+<span class="comment">// + `ErrorGuaranteed` and `CodegenObligationError` changed to `()`.</span>
+<span class="comment">// + Replace `crate::*` imports with `prusti_rustc_interface::*` imports.</span>
+<span class="comment">// + Remove unused `resolve_instance_of_const_arg`.</span>
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">prusti_rustc_interface::hir::def_id::DefId</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/infer/trait.TyCtxtInferExt.html">prusti_rustc_interface::infer::infer::TyCtxtInferExt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/subst/type.SubstsRef.html">prusti_rustc_interface::middle::ty::subst::SubstsRef</a>;
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface::middle::ty</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.Binder.html">Binder</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/instance/struct.Instance.html">Instance</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html">Ty</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">TyCtxt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/fold/trait.TypeFoldable.html">TypeFoldable</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/fold/trait.TypeVisitor.html">TypeVisitor</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/fold/trait.TypeSuperFoldable.html">TypeSuperFoldable</a>};
+<span class="kw">use</span> <span class="ident">prusti_rustc_interface::middle::ty</span>::{
+    <a class="self" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/struct.Binder.html">Binder</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/instance/struct.Instance.html">Instance</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html">Ty</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">TyCtxt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/visit/trait.TypeSuperVisitable.html">TypeSuperVisitable</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/visit/trait.TypeVisitable.html">TypeVisitable</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/visit/trait.TypeVisitor.html">TypeVisitor</a>,
+};
 <span class="kw">use</span> <span class="ident">prusti_rustc_interface::span</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/symbol/sym/index.html">sym</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/constant.DUMMY_SP.html">DUMMY_SP</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_target/spec/abi/enum.Abi.html">prusti_rustc_interface::target::spec::abi::Abi</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_trait_selection/traits/index.html">prusti_rustc_interface::trait_selection::traits</a>;
 <span class="kw">use</span> <span class="ident">traits</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_trait_selection/traits/specialize/fn.translate_substs.html">translate_substs</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/traits/enum.Reveal.html">Reveal</a>};
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/traits/enum.CodegenObligationError.html">prusti_rustc_interface::middle::traits::CodegenObligationError</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_data_structures/sso/set/struct.SsoHashSet.html">prusti_rustc_interface::data_structures::sso::SsoHashSet</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/entry/enum.Entry.html">std::collections::btree_map::Entry</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">std::collections::BTreeMap</a>;
@@ -424,7 +446,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">BoundVarsCollector</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#35-41">BoundVarsCollector</a> {
+        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#39">BoundVarsCollector</a> {
             <span class="ident">binder_index</span>: <span class="ident">ty::INNERMOST</span>,
             <span class="ident">vars</span>: <span class="ident">BTreeMap::new</span>(),
             <span class="ident">visited</span>: <span class="ident">SsoHashSet::default</span>(),
@@ -432,28 +454,28 @@
     }
 
     <span class="kw">fn</span> <span class="ident">into_vars</span>(<span class="self">self</span>, <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">ty::List</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/enum.BoundVariableKind.html">ty::BoundVariableKind</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#52">self</a>.<span class="ident">vars</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">k</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#53">k</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">max</a>().<span class="ident">unwrap_or</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#56">self</a>.<span class="ident">vars</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">k</span>, <span class="kw">_</span>)<span class="op">|</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#57">k</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">max</a>().<span class="ident">unwrap_or</span>(<span class="number">0</span>);
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">max</span> {
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vars</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">i</span>).<span class="ident">is_none</span>() {
                 <span class="macro">panic!</span>(<span class="string">&quot;Unknown variable: {:?}&quot;</span>, <span class="ident">i</span>);
             }
         }
 
-        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#52">tcx</a>.<span class="ident">mk_bound_variable_kinds</span>(<a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#52">self</a>.<span class="ident">vars</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">v</span>)<span class="op">|</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#60">v</a>))
+        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#56">tcx</a>.<span class="ident">mk_bound_variable_kinds</span>(<a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#56">self</a>.<span class="ident">vars</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">v</span>)<span class="op">|</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#64">v</a>))
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">TypeVisitor</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BoundVarsCollector</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">BreakTy</span> <span class="op">=</span> ();
 
-    <span class="kw">fn</span> <span class="ident">visit_binder</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">TypeFoldable</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+    <span class="kw">fn</span> <span class="ident">visit_binder</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">TypeVisitable</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">Binder</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">T</span><span class="op">&gt;</span>,
     ) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BreakTy</span><span class="op">&gt;</span> {
-        <a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#68">self</a>.<span class="ident">binder_index</span>.<span class="ident">shift_in</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#69">t</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/fold/trait.TypeSuperFoldable.html">super_visit_with</a>(<a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#68">self</a>);
-        <a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#68">self</a>.<span class="ident">binder_index</span>.<span class="ident">shift_out</span>(<span class="number">1</span>);
-        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#72">result</a>
+        <a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#72">self</a>.<span class="ident">binder_index</span>.<span class="ident">shift_in</span>(<span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#73">t</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/visit/trait.TypeSuperVisitable.html">super_visit_with</a>(<a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#72">self</a>);
+        <a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#72">self</a>.<span class="ident">binder_index</span>.<span class="ident">shift_out</span>(<span class="number">1</span>);
+        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#76">result</a>
     }
 
     <span class="kw">fn</span> <span class="ident">visit_ty</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">t</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BreakTy</span><span class="op">&gt;</span> {
@@ -462,13 +484,13 @@
         {
             <span class="kw">return</span> <span class="ident">ControlFlow::CONTINUE</span>;
         }
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#77">t</a>.<span class="ident">kind</span>() {
-            <span class="ident">ty::Bound</span>(<span class="ident">debruijn</span>, <span class="ident">bound_ty</span>) <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#84">debruijn</a> <span class="op">==</span> <a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#77">self</a>.<span class="ident">binder_index</span> =&gt; {
-                <span class="kw">match</span> <a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#77">self</a>.<span class="ident">vars</span>.<span class="ident">entry</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#84">bound_ty</a>.<span class="ident">var</span>.<span class="ident">as_u32</span>()) {
+        <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#81">t</a>.<span class="ident">kind</span>() {
+            <span class="ident">ty::Bound</span>(<span class="ident">debruijn</span>, <span class="ident">bound_ty</span>) <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#88">debruijn</a> <span class="op">==</span> <a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#81">self</a>.<span class="ident">binder_index</span> =&gt; {
+                <span class="kw">match</span> <a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#81">self</a>.<span class="ident">vars</span>.<span class="ident">entry</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#88">bound_ty</a>.<span class="ident">var</span>.<span class="ident">as_u32</span>()) {
                     <span class="ident">Entry::Vacant</span>(<span class="ident">entry</span>) =&gt; {
-                        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#86">entry</a>.<span class="ident">insert</span>(<span class="ident">ty::BoundVariableKind::Ty</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#84">bound_ty</a>.<span class="ident">kind</span>));
+                        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#90">entry</a>.<span class="ident">insert</span>(<span class="ident">ty::BoundVariableKind::Ty</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#88">bound_ty</a>.<span class="ident">kind</span>));
                     }
-                    <span class="ident">Entry::Occupied</span>(<span class="ident">entry</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#89">entry</a>.<span class="ident">get</span>() {
+                    <span class="ident">Entry::Occupied</span>(<span class="ident">entry</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#93">entry</a>.<span class="ident">get</span>() {
                         <span class="ident">ty::BoundVariableKind::Ty</span>(<span class="kw">_</span>) =&gt; {}
                         <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Conflicting bound vars&quot;</span>),
                     },
@@ -478,17 +500,17 @@
             <span class="kw">_</span> =&gt; (),
         };
 
-        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#77">t</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/fold/trait.TypeSuperFoldable.html">super_visit_with</a>(<a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#77">self</a>)
+        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#81">t</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/visit/trait.TypeSuperVisitable.html">super_visit_with</a>(<a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#81">self</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">visit_region</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">r</span>: <span class="ident">ty::Region</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BreakTy</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#102">r</a> {
-            <span class="ident">ty::ReLateBound</span>(<span class="ident">index</span>, <span class="ident">br</span>) <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#104">index</a> <span class="op">==</span> <a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#102">self</a>.<span class="ident">binder_index</span> =&gt; {
-                <span class="kw">match</span> <a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#102">self</a>.<span class="ident">vars</span>.<span class="ident">entry</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#104">br</a>.<span class="ident">var</span>.<span class="ident">as_u32</span>()) {
+        <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#106">r</a> {
+            <span class="ident">ty::ReLateBound</span>(<span class="ident">index</span>, <span class="ident">br</span>) <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#108">index</a> <span class="op">==</span> <a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#106">self</a>.<span class="ident">binder_index</span> =&gt; {
+                <span class="kw">match</span> <a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#106">self</a>.<span class="ident">vars</span>.<span class="ident">entry</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#108">br</a>.<span class="ident">var</span>.<span class="ident">as_u32</span>()) {
                     <span class="ident">Entry::Vacant</span>(<span class="ident">entry</span>) =&gt; {
-                        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#106">entry</a>.<span class="ident">insert</span>(<span class="ident">ty::BoundVariableKind::Region</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#104">br</a>.<span class="ident">kind</span>));
+                        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#110">entry</a>.<span class="ident">insert</span>(<span class="ident">ty::BoundVariableKind::Region</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#108">br</a>.<span class="ident">kind</span>));
                     }
-                    <span class="ident">Entry::Occupied</span>(<span class="ident">entry</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#109">entry</a>.<span class="ident">get</span>() {
+                    <span class="ident">Entry::Occupied</span>(<span class="ident">entry</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#113">entry</a>.<span class="ident">get</span>() {
                         <span class="ident">ty::BoundVariableKind::Region</span>(<span class="kw">_</span>) =&gt; {}
                         <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Conflicting bound vars&quot;</span>),
                     },
@@ -498,7 +520,7 @@
             <span class="kw">_</span> =&gt; (),
         };
 
-        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#102">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/fold/trait.TypeSuperFoldable.html">super_visit_with</a>(<a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#102">self</a>)
+        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#106">r</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/visit/trait.TypeSuperVisitable.html">super_visit_with</a>(<a class="self" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#106">self</a>)
     }
 }
 
@@ -506,46 +528,41 @@
     <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">key</span>: <span class="ident">ty::ParamEnvAnd</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, (<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="ident">param_env</span>, (<span class="ident">did</span>, <span class="ident">substs</span>)) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#125">key</a>.<span class="ident">into_parts</span>();
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">did</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#127">did</a>.<span class="ident">as_local</span>() {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">param_did</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#124">tcx</a>.<span class="ident">opt_const_param_of</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#128">did</a>) {
-            <span class="kw">return</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#124">tcx</a>.<span class="ident">resolve_instance_of_const_arg</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#127">param_env</a>.<span class="ident">and</span>((<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#128">did</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#129">param_did</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#127">substs</a>)))
+    <span class="kw">let</span> (<span class="ident">param_env</span>, (<span class="ident">did</span>, <span class="ident">substs</span>)) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#129">key</a>.<span class="ident">into_parts</span>();
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">did</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#131">did</a>.<span class="ident">as_local</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">param_did</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#128">tcx</a>.<span class="ident">opt_const_param_of</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#132">did</a>) {
+            <span class="kw">return</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#128">tcx</a>.<span class="ident">resolve_instance_of_const_arg</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#131">param_env</a>.<span class="ident">and</span>((<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#132">did</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#133">param_did</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#131">substs</a>)))
                 .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ());
         }
     }
 
-    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#138-141">inner_resolve_instance</a>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#124">tcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#127">param_env</a>.<span class="ident">and</span>((<span class="ident">ty::WithOptConstParam::unknown</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#127">did</a>), <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#127">substs</a>)))
+    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#142-145">inner_resolve_instance</a>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#128">tcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#131">param_env</a>.<span class="ident">and</span>((<span class="ident">ty::WithOptConstParam::unknown</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#131">did</a>), <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#131">substs</a>)))
 }
 
 <span class="kw">fn</span> <span class="ident">inner_resolve_instance</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
     <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">key</span>: <span class="ident">ty::ParamEnvAnd</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, (<span class="ident">ty::WithOptConstParam</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a><span class="op">&gt;</span>, <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
-    <span class="kw">let</span> (<span class="ident">param_env</span>, (<span class="ident">def</span>, <span class="ident">substs</span>)) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#140">key</a>.<span class="ident">into_parts</span>();
+    <span class="kw">let</span> (<span class="ident">param_env</span>, (<span class="ident">def</span>, <span class="ident">substs</span>)) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#144">key</a>.<span class="ident">into_parts</span>();
 
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">trait_def_id</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#139">tcx</a>.<span class="ident">trait_of_item</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#142">def</a>.<span class="ident">did</span>) {
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">trait_def_id</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#143">tcx</a>.<span class="ident">trait_of_item</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#146">def</a>.<span class="ident">did</span>) {
         <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot; =&gt; associated item, attempting to find impl in param_env {:#?}&quot;</span>, <span class="ident">param_env</span>);
-        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195-201">resolve_associated_item</a>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#139">tcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#142">def</a>.<span class="ident">did</span>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#142">param_env</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#144">trait_def_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#142">substs</a>)
+        <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#194-200">resolve_associated_item</a>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#143">tcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#146">def</a>.<span class="ident">did</span>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#146">param_env</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#148">trait_def_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#146">substs</a>)
     } <span class="kw">else</span> {
-        <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#139">tcx</a>.<span class="ident">type_of</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#142">def</a>.<span class="ident">def_id_for_type_of</span>());
-        <span class="kw">let</span> <span class="ident">item_type</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#139">tcx</a>.<span class="ident">subst_and_normalize_erasing_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#142">substs</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#142">param_env</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#148">ty</a>);
+        <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#143">tcx</a>.<span class="ident">type_of</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#146">def</a>.<span class="ident">def_id_for_type_of</span>());
+        <span class="kw">let</span> <span class="ident">item_type</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#143">tcx</a>.<span class="ident">subst_and_normalize_erasing_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#146">substs</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#146">param_env</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#152">ty</a>);
 
-        <span class="kw">let</span> <span class="ident">def</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#149">item_type</a>.<span class="ident">kind</span>() {
-            <span class="ident">ty::FnDef</span>(..)
-            <span class="kw">if</span> {
-                <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#149">item_type</a>.<span class="ident">fn_sig</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#139">tcx</a>);
-                <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#154">f</a>.<span class="ident">abi</span>() <span class="op">==</span> <span class="ident">Abi::RustIntrinsic</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#154">f</a>.<span class="ident">abi</span>() <span class="op">==</span> <span class="ident">Abi::PlatformIntrinsic</span>
-            } =&gt;
-                {
-                    <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot; =&gt; intrinsic&quot;</span>);
-                    <span class="ident">ty::InstanceDef::Intrinsic</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#142">def</a>.<span class="ident">did</span>)
-                }
-            <span class="ident">ty::FnDef</span>(<span class="ident">def_id</span>, <span class="ident">substs</span>) <span class="kw">if</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#161">def_id</a>) <span class="op">==</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#139">tcx</a>.<span class="ident">lang_items</span>().<span class="ident">drop_in_place_fn</span>() =&gt; {
-                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#161">substs</a>.<span class="ident">type_at</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">def</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#153">item_type</a>.<span class="ident">kind</span>() {
+            <span class="ident">ty::FnDef</span>(<span class="ident">def_id</span>, ..) <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#143">tcx</a>.<span class="ident">is_intrinsic</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#156">def_id</a>) =&gt; {
+                <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot; =&gt; intrinsic&quot;</span>);
+                <span class="ident">ty::InstanceDef::Intrinsic</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#146">def</a>.<span class="ident">did</span>)
+            }
+            <span class="ident">ty::FnDef</span>(<span class="ident">def_id</span>, <span class="ident">substs</span>) <span class="kw">if</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#160">def_id</a>) <span class="op">==</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#143">tcx</a>.<span class="ident">lang_items</span>().<span class="ident">drop_in_place_fn</span>() =&gt; {
+                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#160">substs</a>.<span class="ident">type_at</span>(<span class="number">0</span>);
 
                 <span class="kw">if</span> <span class="ident">ty</span>.<span class="ident">needs_drop</span>(<span class="ident">tcx</span>, <span class="ident">param_env</span>) {
                     <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot; =&gt; nontrivial drop glue&quot;</span>);
-                    <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#162">ty</a>.<span class="ident">kind</span>() {
+                    <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#161">ty</a>.<span class="ident">kind</span>() {
                         <span class="ident">ty::Closure</span>(..)
                         <span class="op">|</span> <span class="ident">ty::Generator</span>(..)
                         <span class="op">|</span> <span class="ident">ty::Tuple</span>(..)
@@ -557,21 +574,21 @@
                         <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
                     }
 
-                    <span class="ident">ty::InstanceDef::DropGlue</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#161">def_id</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#162">ty</a>))
+                    <span class="ident">ty::InstanceDef::DropGlue</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#160">def_id</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#161">ty</a>))
                 } <span class="kw">else</span> {
                     <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot; =&gt; trivial drop glue&quot;</span>);
-                    <span class="ident">ty::InstanceDef::DropGlue</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#161">def_id</a>, <span class="prelude-val">None</span>)
+                    <span class="ident">ty::InstanceDef::DropGlue</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#160">def_id</a>, <span class="prelude-val">None</span>)
                 }
             }
             <span class="kw">_</span> =&gt; {
                 <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot; =&gt; free item&quot;</span>);
-                <span class="ident">ty::InstanceDef::Item</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#142">def</a>)
+                <span class="ident">ty::InstanceDef::Item</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#146">def</a>)
             }
         };
-        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/instance/struct.Instance.html">Instance</a> { <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#151">def</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#142">substs</a> }))
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/instance/struct.Instance.html">Instance</a> { <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#155">def</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#146">substs</a> }))
     };
     <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;inner_resolve_instance: result={:?}&quot;</span>, <span class="ident">result</span>);
-    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#144">result</a>
+    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#148">result</a>
 }
 
 <span class="kw">fn</span> <span class="ident">resolve_associated_item</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
@@ -581,17 +598,32 @@
     <span class="ident">trait_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
     <span class="ident">rcvr_substs</span>: <span class="ident">SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">trait_ref</span> <span class="op">=</span> <span class="ident">ty::TraitRef::from_method</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#199">trait_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#200">rcvr_substs</a>);
+    <span class="kw">let</span> <span class="ident">trait_ref</span> <span class="op">=</span> <span class="ident">ty::TraitRef::from_method</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#198">trait_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#199">rcvr_substs</a>);
 
     <span class="comment">// See FIXME on `BoundVarsCollector`.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bound_vars_collector</span> <span class="op">=</span> <span class="ident">BoundVarsCollector::new</span>();
-    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#202">trait_ref</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/fold/trait.TypeFoldable.html">visit_with</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#205">bound_vars_collector</a>);
-    <span class="kw">let</span> <span class="ident">trait_binder</span> <span class="op">=</span> <span class="ident">ty::Binder::bind_with_vars</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#202">trait_ref</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#205">bound_vars_collector</a>.<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#52">into_vars</a>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>));
-    <span class="kw">let</span> <span class="ident">vtbl</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::rustc_codegen::codegen_fulfill_obligation</span>(<span class="ident">tcx</span>, (<span class="ident">param_env</span>, <span class="ident">trait_binder</span>))<span class="question-mark">?</span>;
+    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#201">trait_ref</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/visit/trait.TypeVisitable.html">visit_with</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#204">bound_vars_collector</a>);
+    <span class="kw">let</span> <span class="ident">trait_binder</span> <span class="op">=</span> <span class="ident">ty::Binder::bind_with_vars</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#201">trait_ref</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#204">bound_vars_collector</a>.<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#56">into_vars</a>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>));
+    <span class="kw">let</span> <span class="ident">vtbl</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#36-39"><span class="kw">super</span>::rustc_codegen::codegen_fulfill_obligation</a>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>, (<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#197">param_env</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#206">trait_binder</a>)) {
+        <span class="prelude-val">Ok</span>(<span class="ident">vtbl</span>) =&gt; <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#208">vtbl</a>,
+        <span class="prelude-val">Err</span>(<span class="ident">CodegenObligationError::Ambiguity</span>) =&gt; {
+            <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>.<span class="ident">sess</span>.<span class="ident">delay_span_bug</span>(
+                <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>.<span class="ident">def_span</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">trait_item_id</a>),
+                <span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                    <span class="string">&quot;encountered ambiguity selecting `{:?}` during codegen, presuming due to \
+                     overflow or prior type error&quot;</span>,
+                    <span class="ident">trait_binder</span>
+                ),
+            );
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(());
+        }
+        <span class="prelude-val">Err</span>(<span class="ident">CodegenObligationError::Unimplemented</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+        <span class="prelude-val">Err</span>(<span class="ident">CodegenObligationError::FulfillmentError</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
+    };
 
     <span class="comment">// Now that we know which impl is being used, we can dispatch to</span>
     <span class="comment">// the actual function:</span>
-    <span class="prelude-val">Ok</span>(<span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#208">vtbl</a> {
+    <span class="prelude-val">Ok</span>(<span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#207">vtbl</a> {
         <span class="ident">traits::ImplSource::UserDefined</span>(<span class="ident">impl_data</span>) =&gt; {
             <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(
                 <span class="string">&quot;resolving ImplSource::UserDefined: {:?}, {:?}, {:?}, {:?}&quot;</span>,
@@ -600,26 +632,26 @@
             <span class="comment">// assert!(!rcvr_substs.needs_infer());</span>
             <span class="comment">// assert!(!trait_ref.needs_infer());</span>
 
-            <span class="kw">let</span> <span class="ident">trait_def_id</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>.<span class="ident">trait_id_of_impl</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#213">impl_data</a>.<span class="ident">impl_def_id</span>).<span class="ident">unwrap</span>();
-            <span class="kw">let</span> <span class="ident">trait_def</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>.<span class="ident">trait_def</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#221">trait_def_id</a>);
+            <span class="kw">let</span> <span class="ident">trait_def_id</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>.<span class="ident">trait_id_of_impl</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#227">impl_data</a>.<span class="ident">impl_def_id</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">trait_def</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>.<span class="ident">trait_def</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#235">trait_def_id</a>);
             <span class="kw">let</span> <span class="ident">leaf_def</span> <span class="op">=</span> <span class="ident">trait_def</span>
                 .<span class="ident">ancestors</span>(<span class="ident">tcx</span>, <span class="ident">impl_data</span>.<span class="ident">impl_def_id</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())<span class="question-mark">?</span>
-                .<span class="ident">leaf_def</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#197">trait_item_id</a>)
+                .<span class="ident">leaf_def</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">trait_item_id</a>)
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                     <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;{:?} not found in {:?}&quot;</span>, <span class="ident">trait_item_id</span>, <span class="ident">impl_data</span>.<span class="ident">impl_def_id</span>);
                 });
 
-            <span class="kw">let</span> <span class="ident">substs</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/infer/trait.TyCtxtInferExt.html">infer_ctxt</a>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">infcx</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">param_env</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#198">param_env</a>.<span class="ident">with_reveal_all_normalized</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>);
-                <span class="kw">let</span> <span class="ident">substs</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#200">rcvr_substs</a>.<span class="ident">rebase_onto</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#221">trait_def_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#213">impl_data</a>.<span class="ident">substs</span>);
+            <span class="kw">let</span> <span class="ident">substs</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/infer/trait.TyCtxtInferExt.html">infer_ctxt</a>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">infcx</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="ident">param_env</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#197">param_env</a>.<span class="ident">with_reveal_all_normalized</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>);
+                <span class="kw">let</span> <span class="ident">substs</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#199">rcvr_substs</a>.<span class="ident">rebase_onto</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#235">trait_def_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#227">impl_data</a>.<span class="ident">substs</span>);
                 <span class="kw">let</span> <span class="ident">substs</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_trait_selection/traits/specialize/fn.translate_substs.html">translate_substs</a>(
-                    <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#230">infcx</a>,
-                    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#231">param_env</a>,
-                    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#213">impl_data</a>.<span class="ident">impl_def_id</span>,
-                    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#232">substs</a>,
-                    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#223">leaf_def</a>.<span class="ident">defining_node</span>,
+                    <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#244">infcx</a>,
+                    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#245">param_env</a>,
+                    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#227">impl_data</a>.<span class="ident">impl_def_id</span>,
+                    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#246">substs</a>,
+                    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#237">leaf_def</a>.<span class="ident">defining_node</span>,
                 );
-                <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#230">infcx</a>.<span class="ident">tcx</span>.<span class="ident">erase_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#233">substs</a>)
+                <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#244">infcx</a>.<span class="ident">tcx</span>.<span class="ident">erase_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#247">substs</a>)
             });
 
             <span class="comment">// Since this is a trait item, we need to see if the item is either a trait default item</span>
@@ -635,7 +667,7 @@
                 <span class="comment">// transmute checking and polymorphic MIR optimizations could</span>
                 <span class="comment">// get a result which isn&#39;t correct for all monomorphizations.</span>
                 <span class="kw">if</span> <span class="ident">param_env</span>.<span class="ident">reveal</span>() <span class="op">==</span> <span class="ident">Reveal::All</span> {
-                    <span class="op">!</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#202">trait_ref</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/fold/trait.TypeFoldable.html">still_further_specializable</a>()
+                    <span class="op">!</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#201">trait_ref</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/visit/trait.TypeVisitable.html">still_further_specializable</a>()
                 } <span class="kw">else</span> {
                     <span class="bool-val">false</span>
                 }
@@ -645,7 +677,7 @@
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
             }
 
-            <span class="kw">let</span> <span class="ident">substs</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>.<span class="ident">erase_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#230">substs</a>);
+            <span class="kw">let</span> <span class="ident">substs</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>.<span class="ident">erase_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#244">substs</a>);
 
             <span class="comment">// Check if we just resolved an associated `const` declaration from</span>
             <span class="comment">// a `trait` to an associated `const` definition in an `impl`, where</span>
@@ -665,11 +697,11 @@
                 <span class="op">&amp;&amp;</span> <span class="ident">leaf_def</span>.<span class="ident">item</span>.<span class="ident">def_id</span>.<span class="ident">is_local</span>()
             {
                 <span class="kw">let</span> <span class="ident">normalized_type_of</span> <span class="op">=</span> <span class="op">|</span><span class="ident">def_id</span>, <span class="ident">substs</span><span class="op">|</span> {
-                    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>.<span class="ident">subst_and_normalize_erasing_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#285">substs</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#198">param_env</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>.<span class="ident">type_of</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#285">def_id</a>))
+                    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>.<span class="ident">subst_and_normalize_erasing_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#299">substs</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#197">param_env</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>.<span class="ident">type_of</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#299">def_id</a>))
                 };
 
-                <span class="kw">let</span> <span class="ident">original_ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#285">normalized_type_of</a>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#197">trait_item_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#200">rcvr_substs</a>);
-                <span class="kw">let</span> <span class="ident">resolved_ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#285">normalized_type_of</a>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#223">leaf_def</a>.<span class="ident">item</span>.<span class="ident">def_id</span>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#266">substs</a>);
+                <span class="kw">let</span> <span class="ident">original_ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#299">normalized_type_of</a>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">trait_item_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#199">rcvr_substs</a>);
+                <span class="kw">let</span> <span class="ident">resolved_ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#299">normalized_type_of</a>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#237">leaf_def</a>.<span class="ident">item</span>.<span class="ident">def_id</span>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#280">substs</a>);
 
                 <span class="kw">if</span> <span class="ident">original_ty</span> <span class="op">!</span><span class="op">=</span> <span class="ident">resolved_ty</span> {
                     <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
@@ -680,68 +712,67 @@
                         <span class="ident">tcx</span>.<span class="ident">def_path_str_with_substs</span>(<span class="ident">leaf_def</span>.<span class="ident">item</span>.<span class="ident">def_id</span>, <span class="ident">substs</span>),
                         <span class="ident">resolved_ty</span>,
                     );
-                    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>.<span class="ident">def_span</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#223">leaf_def</a>.<span class="ident">item</span>.<span class="ident">def_id</span>);
-                    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>.<span class="ident">sess</span>.<span class="ident">delay_span_bug</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#301">span</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#293">msg</a>);
+                    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>.<span class="ident">def_span</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#237">leaf_def</a>.<span class="ident">item</span>.<span class="ident">def_id</span>);
+                    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>.<span class="ident">sess</span>.<span class="ident">delay_span_bug</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#315">span</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#307">msg</a>);
 
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(());
                 }
             }
 
-            <span class="prelude-val">Some</span>(<span class="ident">ty::Instance::new</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#223">leaf_def</a>.<span class="ident">item</span>.<span class="ident">def_id</span>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#266">substs</a>))
+            <span class="prelude-val">Some</span>(<span class="ident">ty::Instance::new</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#237">leaf_def</a>.<span class="ident">item</span>.<span class="ident">def_id</span>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#280">substs</a>))
         }
         <span class="ident">traits::ImplSource::Generator</span>(<span class="ident">generator_data</span>) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/instance/struct.Instance.html">Instance</a> {
             <span class="ident">def</span>: <span class="ident">ty::InstanceDef::Item</span>(<span class="ident">ty::WithOptConstParam::unknown</span>(
-                <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#310">generator_data</a>.<span class="ident">generator_def_id</span>,
+                <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#324">generator_data</a>.<span class="ident">generator_def_id</span>,
             )),
-            <span class="ident">substs</span>: <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#310">generator_data</a>.<span class="ident">substs</span>,
+            <span class="ident">substs</span>: <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#324">generator_data</a>.<span class="ident">substs</span>,
         }),
         <span class="ident">traits::ImplSource::Closure</span>(<span class="ident">closure_data</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">trait_closure_kind</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>.<span class="ident">fn_trait_kind_from_lang_item</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#199">trait_id</a>).<span class="ident">unwrap</span>();
-            <span class="prelude-val">Some</span>(<span class="ident">Instance::resolve_closure</span>(
-                <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>,
-                <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#316">closure_data</a>.<span class="ident">closure_def_id</span>,
-                <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#316">closure_data</a>.<span class="ident">substs</span>,
-                <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#317">trait_closure_kind</a>,
-            ))
+            <span class="kw">let</span> <span class="ident">trait_closure_kind</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>.<span class="ident">fn_trait_kind_from_lang_item</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#198">trait_id</a>).<span class="ident">unwrap</span>();
+            <span class="ident">Instance::resolve_closure</span>(
+                <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>,
+                <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#330">closure_data</a>.<span class="ident">closure_def_id</span>,
+                <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#330">closure_data</a>.<span class="ident">substs</span>,
+                <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#331">trait_closure_kind</a>,
+            )
         }
-        <span class="ident">traits::ImplSource::FnPointer</span>(<span class="kw-2">ref</span> <span class="ident">data</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#325">data</a>.<span class="ident">fn_ty</span>.<span class="ident">kind</span>() {
+        <span class="ident">traits::ImplSource::FnPointer</span>(<span class="kw-2">ref</span> <span class="ident">data</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#339">data</a>.<span class="ident">fn_ty</span>.<span class="ident">kind</span>() {
             <span class="ident">ty::FnDef</span>(..) <span class="op">|</span> <span class="ident">ty::FnPtr</span>(..) =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/instance/struct.Instance.html">Instance</a> {
-                <span class="ident">def</span>: <span class="ident">ty::InstanceDef::FnPtrShim</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#197">trait_item_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#325">data</a>.<span class="ident">fn_ty</span>),
-                <span class="ident">substs</span>: <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#200">rcvr_substs</a>,
+                <span class="ident">def</span>: <span class="ident">ty::InstanceDef::FnPtrShim</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">trait_item_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#339">data</a>.<span class="ident">fn_ty</span>),
+                <span class="ident">substs</span>: <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#199">rcvr_substs</a>,
             }),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         },
         <span class="ident">traits::ImplSource::Object</span>(<span class="kw-2">ref</span> <span class="ident">data</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">traits::get_vtable_index_of_object_method</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#332">data</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#197">trait_item_id</a>);
-            <span class="prelude-val">Some</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/instance/struct.Instance.html">Instance</a> {
-                <span class="ident">def</span>: <span class="ident">ty::InstanceDef::Virtual</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#197">trait_item_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#333">index</a>.<span class="ident">unwrap</span>()),
-                <span class="ident">substs</span>: <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#200">rcvr_substs</a>,
-            })
+            <span class="ident">traits::get_vtable_index_of_object_method</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#346">data</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">trait_item_id</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">index</span><span class="op">|</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/instance/struct.Instance.html">Instance</a> {
+                    <span class="ident">def</span>: <span class="ident">ty::InstanceDef::Virtual</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">trait_item_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#347">index</a>),
+                    <span class="ident">substs</span>: <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#199">rcvr_substs</a>,
+                })
         }
         <span class="ident">traits::ImplSource::Builtin</span>(..) =&gt; {
             <span class="kw">if</span> <span class="prelude-val">Some</span>(<span class="ident">trait_ref</span>.<span class="ident">def_id</span>) <span class="op">==</span> <span class="ident">tcx</span>.<span class="ident">lang_items</span>().<span class="ident">clone_trait</span>() {
                 <span class="comment">// FIXME(eddyb) use lang items for methods instead of names.</span>
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>.<span class="ident">item_name</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#197">trait_item_id</a>);
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>.<span class="ident">item_name</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">trait_item_id</a>);
                 <span class="kw">if</span> <span class="ident">name</span> <span class="op">==</span> <span class="ident">sym::clone</span> {
-                    <span class="kw">let</span> <span class="ident">self_ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#202">trait_ref</a>.<span class="ident">self_ty</span>();
+                    <span class="kw">let</span> <span class="ident">self_ty</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#201">trait_ref</a>.<span class="ident">self_ty</span>();
 
-                    <span class="kw">let</span> <span class="ident">is_copy</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#344">self_ty</a>.<span class="ident">is_copy_modulo_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>.<span class="ident">at</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/constant.DUMMY_SP.html">DUMMY_SP</a>), <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#198">param_env</a>);
-                    <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#344">self_ty</a>.<span class="ident">kind</span>() {
-                        <span class="kw">_</span> <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#346">is_copy</a> =&gt; (),
+                    <span class="kw">let</span> <span class="ident">is_copy</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#357">self_ty</a>.<span class="ident">is_copy_modulo_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>.<span class="ident">at</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/constant.DUMMY_SP.html">DUMMY_SP</a>), <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#197">param_env</a>);
+                    <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#357">self_ty</a>.<span class="ident">kind</span>() {
+                        <span class="kw">_</span> <span class="kw">if</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#359">is_copy</a> =&gt; (),
                         <span class="ident">ty::Closure</span>(..) <span class="op">|</span> <span class="ident">ty::Tuple</span>(..) =&gt; {}
                         <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
                     };
 
                     <span class="prelude-val">Some</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/instance/struct.Instance.html">Instance</a> {
-                        <span class="ident">def</span>: <span class="ident">ty::InstanceDef::CloneShim</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#197">trait_item_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#344">self_ty</a>),
-                        <span class="ident">substs</span>: <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#200">rcvr_substs</a>,
+                        <span class="ident">def</span>: <span class="ident">ty::InstanceDef::CloneShim</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">trait_item_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#357">self_ty</a>),
+                        <span class="ident">substs</span>: <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#199">rcvr_substs</a>,
                     })
                 } <span class="kw">else</span> {
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">name</span>, <span class="ident">sym::clone_from</span>);
 
                     <span class="comment">// Use the default `fn clone_from` from `trait Clone`.</span>
-                    <span class="kw">let</span> <span class="ident">substs</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">tcx</a>.<span class="ident">erase_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#200">rcvr_substs</a>);
-                    <span class="prelude-val">Some</span>(<span class="ident">ty::Instance::new</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#197">trait_item_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#361">substs</a>))
+                    <span class="kw">let</span> <span class="ident">substs</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#195">tcx</a>.<span class="ident">erase_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#199">rcvr_substs</a>);
+                    <span class="prelude-val">Some</span>(<span class="ident">ty::Instance::new</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#196">trait_item_id</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_instance.rs.html#374">substs</a>))
                 }
             } <span class="kw">else</span> {
                 <span class="prelude-val">None</span>
@@ -755,6 +786,12 @@
         <span class="op">|</span> <span class="ident">traits::ImplSource::TraitUpcasting</span>(<span class="kw">_</span>)
         <span class="op">|</span> <span class="ident">traits::ImplSource::ConstDestruct</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
     })
-}</code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+}
+
+<span class="comment">// pub fn provide(providers: &amp;mut ty::query::Providers) {</span>
+<span class="comment">//     *providers =</span>
+<span class="comment">//         ty::query::Providers { resolve_instance, resolve_instance_of_const_arg, ..*providers };</span>
+<span class="comment">// }</span>
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

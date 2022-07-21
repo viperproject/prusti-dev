@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/os_str_bytes-6.1.0/src/raw_str.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>raw_str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../os_str_bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/os_str_bytes-6.2.0/src/raw_str.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>raw_str.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../os_str_bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../os_str_bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
@@ -1160,6 +1160,14 @@
 <span id="1154">1154</span>
 <span id="1155">1155</span>
 <span id="1156">1156</span>
+<span id="1157">1157</span>
+<span id="1158">1158</span>
+<span id="1159">1159</span>
+<span id="1160">1160</span>
+<span id="1161">1161</span>
+<span id="1162">1162</span>
+<span id="1163">1163</span>
+<span id="1164">1164</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">std::borrow::Borrow</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/enum.Cow.html">std::borrow::Cow</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">std::borrow::ToOwned</a>;
@@ -1185,12 +1193,11 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;memchr&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">memchr::memmem::rfind</span>;
 
+<span class="kw">use</span> <a class="ident" href="../../src/os_str_bytes/lib.rs.html#203"><span class="kw">super</span>::imp</a>;
 <span class="kw">use</span> <a class="ident" href="../../src/os_str_bytes/common/mod.rs.html#20"><span class="kw">super</span>::imp::raw</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/os_str_bytes/iter.rs.html#20-26"><span class="kw">super</span>::iter::Split</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#3-5"><span class="kw">super</span>::pattern::Encoded</a> <span class="kw">as</span> <span class="ident">EncodedPattern</span>;
-<span class="kw">use</span> <a class="ident" href="../../src/os_str_bytes/lib.rs.html#242-294"><span class="kw">super</span>::OsStrBytes</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/os_str_bytes/lib.rs.html#342-392"><span class="kw">super</span>::OsStringBytes</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36-42"><span class="kw">super</span>::Pattern</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/os_str_bytes/iter.rs.html#20"><span class="kw">super</span>::iter::Split</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#5"><span class="kw">super</span>::pattern::Encoded</a> <span class="kw">as</span> <span class="ident">EncodedPattern</span>;
+<span class="kw">use</span> <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36"><span class="kw">super</span>::Pattern</a>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;memchr&quot;</span>))]</span>
 <span class="kw">fn</span> <span class="ident">find</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="ident">pat</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span> {
@@ -1212,45 +1219,28 @@
     <span class="prelude-val">None</span>
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">impl_trim_matches</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span> , <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pat</span>:<span class="ident">expr</span> , <span class="macro-nonterminal">$</span><span class="macro-nonterminal">strip_method</span>:<span class="ident">ident</span> ) =&gt; {{
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pat</span>.<span class="ident">__encode</span>();
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="ident">pat</span>.<span class="ident">__get</span>();
-        <span class="kw">if</span> <span class="ident">pat</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>;
-        }
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="number">0</span>;
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">substring</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">strip_method</span>(<span class="ident">pat</span>) {
-            <span class="ident">string</span> <span class="op">=</span> <span class="ident">substring</span>;
-        }
-        <span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>(<span class="ident">string</span>)
-    }};
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::missing_safety_doc</span>)]</span>
+<span class="kw">unsafe</span> <span class="kw">trait</span> <span class="ident">TransmuteBox</span> {
+    <span class="kw">fn</span> <span class="ident">transmute_box</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">R</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#53">TransmuteBox</a>,
+    {
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<a class="self" href="../../src/os_str_bytes/raw_str.rs.html#54">self</a>);
+        <span class="comment">// SAFETY: This trait is only implemented for types that can be</span>
+        <span class="comment">// transmuted.</span>
+        <span class="kw">unsafe</span> { <span class="ident">Box::from_raw</span>(<span class="ident">mem::transmute_copy</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#58">value</a>)) }
+    }
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">impl_split_once_raw</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>:<span class="ident">ident</span> , <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pat</span>:<span class="ident">expr</span> , <span class="macro-nonterminal">$</span><span class="macro-nonterminal">find_fn</span>:<span class="ident">expr</span> ) =&gt; {{
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">pat</span>.<span class="ident">__get</span>();
+<span class="comment">// SAFETY: This struct has a layout that makes this operation safe.</span>
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#53">TransmuteBox</a> <span class="kw">for</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#53">TransmuteBox</a> <span class="kw">for</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {}
 
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">find_fn</span>(<span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="number">0</span>, <span class="ident">pat</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="number">0</span>[..<span class="ident">index</span>];
-        <span class="kw">let</span> <span class="ident">suffix</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">self</span>.<span class="number">0</span>[<span class="ident">index</span> <span class="op">+</span> <span class="ident">pat</span>.<span class="ident">len</span>()..];
-        <span class="prelude-val">Some</span>((
-            <span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>(<span class="ident">prefix</span>),
-            <span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>(<span class="ident">suffix</span>),
-        ))
-    }};
-}
-
-<span class="doccomment">/// A container for the byte strings converted by [`OsStrBytes`].</span>
+<span class="doccomment">/// A container for borrowed byte strings converted by this crate.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This wrapper is intended to prevent violating the invariants of the</span>
 <span class="doccomment">/// [unspecified encoding] used by this crate and minimize encoding</span>
 <span class="doccomment">/// conversions.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Although this type is annotated with `#[repr(transparent)]`, the inner</span>
-<span class="doccomment">/// representation is not stable. Transmuting between this type and any other</span>
-<span class="doccomment">/// causes immediate undefined behavior.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Indices</span>
 <span class="doccomment">///</span>
@@ -1272,6 +1262,12 @@
 <span class="doccomment">/// these methods to instead run in linear time in the worst case (documented</span>
 <span class="doccomment">/// for [`memchr::memmem::find`][memchr complexity]).</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// # Safety</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Although this type is annotated with `#[repr(transparent)]`, the inner</span>
+<span class="doccomment">/// representation is not stable. Transmuting between this type and any other</span>
+<span class="doccomment">/// causes immediate undefined behavior.</span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// [memchr complexity]: memchr::memmem::find#complexity</span>
 <span class="doccomment">/// [unspecified encoding]: super#encoding</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>)]</span>
@@ -1279,10 +1275,10 @@
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RawOsStr</span>([<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a> {
     <span class="kw">fn</span> <span class="ident">from_raw_bytes_unchecked</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span> {
         <span class="comment">// SAFETY: This struct has a layout that makes this operation safe.</span>
-        <span class="kw">unsafe</span> { <span class="ident">mem::transmute</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#121">string</a>) }
+        <span class="kw">unsafe</span> { <span class="ident">mem::transmute</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#109">string</a>) }
     }
 
     <span class="doccomment">/// Converts a platform-native string into a representation that can be</span>
@@ -1309,11 +1305,11 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#149">string</a>.<a class="ident" href="../../src/os_str_bytes/lib.rs.html#293">to_raw_bytes</a>() {
+        <span class="kw">match</span> <a class="ident" href="../../src/os_str_bytes/common/mod.rs.html#31">imp::os_str_to_bytes</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#137">string</a>) {
             <span class="ident">Cow::Borrowed</span>(<span class="ident">string</span>) =&gt; {
-                <span class="ident">Cow::Borrowed</span>(<span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#151">string</a>))
+                <span class="ident">Cow::Borrowed</span>(<span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#139">string</a>))
             }
-            <span class="ident">Cow::Owned</span>(<span class="ident">string</span>) =&gt; <span class="ident">Cow::Owned</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#154">string</a>)),
+            <span class="ident">Cow::Owned</span>(<span class="ident">string</span>) =&gt; <span class="ident">Cow::Owned</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#142">string</a>)),
         }
     }
 
@@ -1337,13 +1333,12 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#177">string</a>.<span class="ident">as_bytes</span>())
+        <span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#165">string</a>.<span class="ident">as_bytes</span>())
     }
 
     <span class="doccomment">/// Returns the byte string stored by this container.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The result will match what would be returned by</span>
-    <span class="doccomment">/// [`OsStrBytes::to_raw_bytes`] for the same string.</span>
+    <span class="doccomment">/// The returned string will use an [unspecified encoding].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1360,17 +1355,15 @@
     <span class="doccomment">/// #</span>
     <span class="doccomment">/// # Ok::&lt;_, io::Error&gt;(())</span>
     <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [unspecified encoding]: super#encoding</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_raw_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#203">self</a>.<span class="number">0</span>
+        <span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#192">self</a>.<span class="number">0</span>
     }
 
     <span class="doccomment">/// Equivalent to [`str::contains`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the pattern is a byte outside of the ASCII range.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1385,16 +1378,12 @@
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="ident">P</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36-42">Pattern</a>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36">Pattern</a>,
     {
-        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#224">self</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#296-298">find</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#224">pat</a>).<span class="ident">is_some</span>()
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#209">self</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#269-271">find</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#209">pat</a>).<span class="ident">is_some</span>()
     }
 
     <span class="doccomment">/// Equivalent to [`str::ends_with`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the pattern is a byte outside of the ASCII range.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1409,19 +1398,15 @@
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ends_with</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="ident">P</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36-42">Pattern</a>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36">Pattern</a>,
     {
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#248">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>();
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#252">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#4">__get</a>();
+        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#229">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>();
+        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#233">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#6">__get</a>();
 
-        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#248">self</a>.<span class="number">0</span>.<span class="ident">ends_with</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#253">pat</a>)
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#229">self</a>.<span class="number">0</span>.<span class="ident">ends_with</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#234">pat</a>)
     }
 
     <span class="doccomment">/// Equivalent to [`str::ends_with`] but accepts this type for the pattern.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the pattern is a byte outside of the ASCII range.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1435,14 +1420,10 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ends_with_os</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../src/os_str_bytes/common/raw.rs.html#14">raw::ends_with</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#275">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#275">pat</a>.<span class="number">0</span>)
+        <a class="ident" href="../../src/os_str_bytes/common/raw.rs.html#14">raw::ends_with</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#252">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#252">pat</a>.<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Equivalent to [`str::find`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the pattern is a byte outside of the ASCII range.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1457,12 +1438,12 @@
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">find</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36-42">Pattern</a>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36">Pattern</a>,
     {
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#296">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>();
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#300">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#4">__get</a>();
+        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#269">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>();
+        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#273">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#6">__get</a>();
 
-        <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#34">find</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#296">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#301">pat</a>)
+        <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#33">find</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#269">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#274">pat</a>)
     }
 
     <span class="doccomment">/// Equivalent to [`str::is_empty`].</span>
@@ -1478,7 +1459,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#318">self</a>.<span class="number">0</span>.<span class="ident">is_empty</span>()
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#291">self</a>.<span class="number">0</span>.<span class="ident">is_empty</span>()
     }
 
     <span class="doccomment">/// Returns the length of the byte string stored by this container.</span>
@@ -1504,14 +1485,10 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">raw_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#344">self</a>.<span class="number">0</span>.<span class="ident">len</span>()
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#317">self</a>.<span class="number">0</span>.<span class="ident">len</span>()
     }
 
     <span class="doccomment">/// Equivalent to [`str::rfind`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the pattern is a byte outside of the ASCII range.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1526,26 +1503,42 @@
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rfind</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36-42">Pattern</a>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36">Pattern</a>,
     {
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#365">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>();
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#369">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#4">__get</a>();
+        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#334">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>();
+        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#338">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#6">__get</a>();
 
-        <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#44">rfind</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#365">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#370">pat</a>)
+        <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#43">rfind</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#334">self</a>.<span class="number">0</span>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#339">pat</a>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">split_once_raw_with</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">F</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">pat</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>,
+        <span class="ident">find_fn</span>: <span class="ident">F</span>,
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span><span class="self">Self</span>)<span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#5">EncodedPattern</a>,
+    {
+        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#346">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#6">__get</a>();
+
+        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">find_fn</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>, <span class="ident">pat</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">prefix</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#345">self</a>.<span class="number">0</span>[..<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#355">index</a>];
+        <span class="kw">let</span> <span class="ident">suffix</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#345">self</a>.<span class="number">0</span>[<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#355">index</a> <span class="op">+</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#353">pat</a>.<span class="ident">len</span>()..];
+        <span class="prelude-val">Some</span>((
+            <span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#356">prefix</a>),
+            <span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#357">suffix</a>),
+        ))
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">rsplit_once_raw</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span><span class="self">Self</span>)<span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#3-5">EncodedPattern</a>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#5">EncodedPattern</a>,
     {
-        <a class="macro" href="../../src/os_str_bytes/raw_str.rs.html#69-81">impl_split_once_raw!</a>(<span class="self">self</span>, <span class="ident">pat</span>, <span class="ident">rfind</span>)
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#364">self</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#344-351">split_once_raw_with</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#364">pat</a>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#43">rfind</a>)
     }
 
     <span class="doccomment">/// Equivalent to [`str::rsplit_once`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the pattern is a byte outside of the ASCII range.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1563,9 +1556,9 @@
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rsplit_once</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span><span class="self">Self</span>)<span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36-42">Pattern</a>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36">Pattern</a>,
     {
-        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#402">self</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#375-377">rsplit_once_raw</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#402">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>())
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#387">self</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#364-366">rsplit_once_raw</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#387">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>())
     }
 
     <span class="comment">// https://github.com/rust-lang/rust/blob/49c68bd53f90e375bfb3cbba8c1c67a9e0adb9c0/src/libcore/str/mod.rs#L2184-L2221</span>
@@ -1575,28 +1568,27 @@
     <span class="kw">fn</span> <span class="ident">index_boundary_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="op">!</span> {
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">raw::is_continuation</span>(<span class="self">self</span>.<span class="number">0</span>[<span class="ident">index</span>]));
 
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#413">self</a>.<span class="number">0</span>[..<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#413">index</a>]
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <a class="macro" href="../../src/os_str_bytes/lib.rs.html#187-191">expect_encoded!</a>(<a class="self" href="../../src/os_str_bytes/raw_str.rs.html#398">self</a>.<span class="number">0</span>[..<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#398">index</a>]
             .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rposition</a>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">x</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../src/os_str_bytes/common/raw.rs.html#5">raw::is_continuation</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#418">x</a>))
-            .<span class="ident">expect</span>(<span class="string">&quot;invalid raw bytes&quot;</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">end</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#413">index</a> <span class="op">+</span> <span class="number">1</span>;
-        <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#420">end</a> <span class="op">+</span><span class="op">=</span> <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#413">self</a>.<span class="number">0</span>[<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#420">end</a>..]
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rposition</a>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">x</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../src/os_str_bytes/common/raw.rs.html#5">raw::is_continuation</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#403">x</a>)));
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">end</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#398">index</a> <span class="op">+</span> <span class="number">1</span>;
+        <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#404">end</a> <span class="op">+</span><span class="op">=</span> <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#398">self</a>.<span class="number">0</span>[<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#404">end</a>..]
             .<span class="ident">iter</span>()
-            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">x</span><span class="op">|</span> <span class="op">!</span><a class="ident" href="../../src/os_str_bytes/common/raw.rs.html#5">raw::is_continuation</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#423">x</a>))
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#413">self</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#344">raw_len</a>() <span class="op">-</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#420">end</a>);
-        <span class="kw">let</span> <span class="ident">code_point</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/common/raw.rs.html#10">raw::decode_code_point</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#413">self</a>.<span class="number">0</span>[<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#416">start</a>..<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#420">end</a>]);
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take_while</a>(<span class="op">|</span><span class="op">&amp;&amp;</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/os_str_bytes/common/raw.rs.html#5">raw::is_continuation</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#407">x</a>))
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>();
+        <span class="kw">let</span> <span class="ident">code_point</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/common/raw.rs.html#10">raw::decode_code_point</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#398">self</a>.<span class="number">0</span>[<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#401">start</a>..<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#404">end</a>]);
         <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
             <span class="string">&quot;byte index {} is not a valid boundary; it is inside U+{:04X} \
-            (bytes {}..{})&quot;</span>,
+             (bytes {}..{})&quot;</span>,
             <span class="ident">index</span>, <span class="ident">code_point</span>, <span class="ident">start</span>, <span class="ident">end</span>,
         );
     }
 
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
     <span class="kw">fn</span> <span class="ident">check_bound</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">byte</span>) <span class="op">=</span> <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#434">self</a>.<span class="number">0</span>.<span class="ident">get</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#434">index</a>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">byte</span>) <span class="op">=</span> <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#418">self</a>.<span class="number">0</span>.<span class="ident">get</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#418">index</a>) {
             <span class="kw">if</span> <span class="ident">raw::is_continuation</span>(<span class="ident">byte</span>) {
-                <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#434">self</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#413">index_boundary_error</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#434">index</a>);
+                <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#418">self</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#398">index_boundary_error</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#418">index</a>);
             }
         }
     }
@@ -1605,7 +1597,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the pattern is a byte outside of the ASCII range or empty.</span>
+    <span class="doccomment">/// Panics if the pattern is empty.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1619,9 +1611,9 @@
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="ident">P</span>) -&gt; <span class="ident">Split</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">P</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36-42">Pattern</a>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36">Pattern</a>,
     {
-        <span class="ident">Split::new</span>(<a class="self" href="../../src/os_str_bytes/raw_str.rs.html#458">self</a>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#458">pat</a>)
+        <span class="ident">Split::new</span>(<a class="self" href="../../src/os_str_bytes/raw_str.rs.html#442">self</a>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#442">pat</a>)
     }
 
     <span class="doccomment">/// Equivalent to [`str::split_at`].</span>
@@ -1646,27 +1638,23 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">mid</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span><span class="self">Self</span>) {
-        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#486">self</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#434">check_bound</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#486">mid</a>);
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#470">self</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#418">check_bound</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#470">mid</a>);
 
-        <span class="kw">let</span> (<span class="ident">prefix</span>, <span class="ident">suffix</span>) <span class="op">=</span> <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#486">self</a>.<span class="number">0</span>.<span class="ident">split_at</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#486">mid</a>);
+        <span class="kw">let</span> (<span class="ident">prefix</span>, <span class="ident">suffix</span>) <span class="op">=</span> <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#470">self</a>.<span class="number">0</span>.<span class="ident">split_at</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#470">mid</a>);
         (
-            <span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#489">prefix</a>),
-            <span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#489">suffix</a>),
+            <span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#473">prefix</a>),
+            <span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#473">suffix</a>),
         )
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">split_once_raw</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span><span class="self">Self</span>)<span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#3-5">EncodedPattern</a>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#5">EncodedPattern</a>,
     {
-        <a class="macro" href="../../src/os_str_bytes/raw_str.rs.html#69-81">impl_split_once_raw!</a>(<span class="self">self</span>, <span class="ident">pat</span>, <span class="ident">find</span>)
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#480">self</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#344-351">split_once_raw_with</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#480">pat</a>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#33">find</a>)
     }
 
     <span class="doccomment">/// Equivalent to [`str::split_once`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the pattern is a byte outside of the ASCII range.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1684,16 +1672,12 @@
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">split_once</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="kw-2">&amp;</span><span class="self">Self</span>)<span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36-42">Pattern</a>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36">Pattern</a>,
     {
-        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#523">self</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#496-498">split_once_raw</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#523">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>())
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#503">self</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#480-482">split_once_raw</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#503">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>())
     }
 
     <span class="doccomment">/// Equivalent to [`str::starts_with`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the pattern is a byte outside of the ASCII range.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1708,20 +1692,16 @@
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">starts_with</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="ident">P</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36-42">Pattern</a>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36">Pattern</a>,
     {
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#547">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>();
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#551">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#4">__get</a>();
+        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#523">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>();
+        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#527">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#6">__get</a>();
 
-        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#547">self</a>.<span class="number">0</span>.<span class="ident">starts_with</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#552">pat</a>)
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#523">self</a>.<span class="number">0</span>.<span class="ident">starts_with</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#528">pat</a>)
     }
 
     <span class="doccomment">/// Equivalent to [`str::starts_with`] but accepts this type for the</span>
     <span class="doccomment">/// pattern.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the pattern is a byte outside of the ASCII range.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1735,14 +1715,10 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">starts_with_os</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="ident" href="../../src/os_str_bytes/common/raw.rs.html#18">raw::starts_with</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#575">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#575">pat</a>.<span class="number">0</span>)
+        <a class="ident" href="../../src/os_str_bytes/common/raw.rs.html#18">raw::starts_with</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#547">self</a>.<span class="number">0</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#547">pat</a>.<span class="number">0</span>)
     }
 
     <span class="doccomment">/// Equivalent to [`str::strip_prefix`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the pattern is a byte outside of the ASCII range.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1760,19 +1736,15 @@
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strip_prefix</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36-42">Pattern</a>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36">Pattern</a>,
     {
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#599">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>();
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#603">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#4">__get</a>();
+        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#567">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>();
+        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#571">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#6">__get</a>();
 
-        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#599">self</a>.<span class="number">0</span>.<span class="ident">strip_prefix</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#604">pat</a>).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>)
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#567">self</a>.<span class="number">0</span>.<span class="ident">strip_prefix</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#572">pat</a>).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>)
     }
 
     <span class="doccomment">/// Equivalent to [`str::strip_suffix`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the pattern is a byte outside of the ASCII range.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1790,12 +1762,12 @@
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strip_suffix</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36-42">Pattern</a>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36">Pattern</a>,
     {
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#629">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>();
-        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#633">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#4">__get</a>();
+        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#593">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>();
+        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#597">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#6">__get</a>();
 
-        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#629">self</a>.<span class="number">0</span>.<span class="ident">strip_suffix</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#634">pat</a>).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>)
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#593">self</a>.<span class="number">0</span>.<span class="ident">strip_suffix</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#598">pat</a>).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>)
     }
 
     <span class="doccomment">/// Converts this representation back to a platform-native string.</span>
@@ -1817,7 +1789,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_os_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsStr.html">OsStr</a><span class="op">&gt;</span> {
-        <span class="ident">OsStr::from_raw_bytes</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#657">self</a>.<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid raw bytes&quot;</span>)
+        <a class="macro" href="../../src/os_str_bytes/lib.rs.html#187-191">expect_encoded!</a>(<a class="ident" href="../../src/os_str_bytes/common/mod.rs.html#27">imp::os_str_from_bytes</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#621">self</a>.<span class="number">0</span>))
     }
 
     <span class="doccomment">/// Equivalent to [`OsStr::to_str`].</span>
@@ -1834,7 +1806,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#674">self</a>.<span class="number">0</span>).<span class="ident">ok</span>()
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/converts/fn.from_utf8.html">str::from_utf8</a>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#638">self</a>.<span class="number">0</span>).<span class="ident">ok</span>()
     }
 
     <span class="doccomment">/// Converts this string to the best UTF-8 representation possible.</span>
@@ -1863,14 +1835,27 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_str_lossy</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-        <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#703">self</a>.<span class="number">0</span>)
+        <span class="ident">String::from_utf8_lossy</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#667">self</a>.<span class="number">0</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">trim_matches_raw_with</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>, <span class="ident">strip_fn</span>: <span class="ident">F</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>], <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#5">EncodedPattern</a>,
+    {
+        <span class="kw">let</span> <span class="ident">pat</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#671">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#6">__get</a>();
+        <span class="kw">if</span> <span class="ident">pat</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">return</span> <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#671">self</a>;
+        }
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#671">self</a>.<span class="number">0</span>;
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">substring</span>) <span class="op">=</span> <span class="ident">strip_fn</span>(<span class="ident">string</span>, <span class="ident">pat</span>) {
+            <span class="ident">string</span> <span class="op">=</span> <span class="ident">substring</span>;
+        }
+        <span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#681">string</a>)
     }
 
     <span class="doccomment">/// Equivalent to [`str::trim_end_matches`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the pattern is a byte outside of the ASCII range.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1881,19 +1866,16 @@
     <span class="doccomment">/// assert_eq!(&quot;111foo1bar&quot;, raw.trim_end_matches(&quot;1&quot;));</span>
     <span class="doccomment">/// assert_eq!(&quot;111foo1bar111&quot;, raw.trim_end_matches(&quot;o&quot;));</span>
     <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim_end_matches</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="ident">P</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36-42">Pattern</a>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36">Pattern</a>,
     {
-        <a class="macro" href="../../src/os_str_bytes/raw_str.rs.html#53-67">impl_trim_matches!</a>(<span class="self">self</span>, <span class="ident">pat</span>, <span class="ident">strip_suffix</span>)
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#701">self</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#671-674">trim_matches_raw_with</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#701">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>(), <span class="op">&lt;</span>[<span class="kw">_</span>]<span class="op">&gt;</span><span class="ident">::strip_suffix</span>)
     }
 
     <span class="doccomment">/// Equivalent to [`str::trim_start_matches`].</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if the pattern is a byte outside of the ASCII range.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -1904,55 +1886,60 @@
     <span class="doccomment">/// assert_eq!(&quot;foo1bar111&quot;, raw.trim_start_matches(&quot;1&quot;));</span>
     <span class="doccomment">/// assert_eq!(&quot;111foo1bar111&quot;, raw.trim_start_matches(&quot;o&quot;));</span>
     <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">trim_start_matches</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pat</span>: <span class="ident">P</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36-42">Pattern</a>,
+        <span class="ident">P</span>: <a class="ident" href="../../src/os_str_bytes/pattern.rs.html#36">Pattern</a>,
     {
-        <a class="macro" href="../../src/os_str_bytes/raw_str.rs.html#53-67">impl_trim_matches!</a>(<span class="self">self</span>, <span class="ident">pat</span>, <span class="ident">strip_prefix</span>)
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#721">self</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#671-674">trim_matches_raw_with</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#721">pat</a>.<a class="ident" href="../../src/os_str_bytes/pattern.rs.html#41">__encode</a>(), <span class="op">&lt;</span>[<span class="kw">_</span>]<span class="op">&gt;</span><span class="ident">::strip_prefix</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a> {
+<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span> {
-        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#756">self</a>
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#731">self</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
+<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a> {
-        <span class="ident">RawOsStr::from_str</span>(<a class="self" href="../../src/os_str_bytes/raw_str.rs.html#763">self</a>)
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a> {
+        <span class="ident">RawOsStr::from_str</span>(<a class="self" href="../../src/os_str_bytes/raw_str.rs.html#738">self</a>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a> {
-        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#770">self</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a> {
+        (<span class="kw-2">*</span><span class="kw-2">*</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#745">self</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.AsRef.html">as_ref</a>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">RawOsStr::from_str</span>(<span class="string">&quot;&quot;</span>)
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Cow::Borrowed</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#784">other</a>)
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident">Cow::Borrowed</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#759">value</a>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#766">value</a>.<span class="ident">into_boxed_bytes</span>().<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#54-56">transmute_box</a>()
     }
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">r#impl</span> {
-    (
-        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">index_type</span>:<span class="ident">ty</span>
-        $(, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">index_var</span>:<span class="ident">ident</span> , <span class="macro-nonterminal">$</span><span class="macro-nonterminal">first_bound</span>:<span class="ident">expr</span> $(, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">second_bound</span>:<span class="ident">expr</span>)<span class="question-mark">?</span>)<span class="question-mark">?</span>
-    ) =&gt; {
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">index_type</span>:<span class="ident">ty</span> $(, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">index_var</span>:<span class="ident">ident</span> , $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bound</span>:<span class="ident">expr</span>),<span class="op">+</span>)<span class="question-mark">?</span> ) =&gt; {
         <span class="kw">impl</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">index_type</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RawOsStr</span> {
             <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span>;
 
@@ -1960,8 +1947,7 @@
             <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">index_type</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
                 $(
                     <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">index_var</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">idx</span>;
-                    <span class="self">self</span>.<span class="ident">check_bound</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">first_bound</span>);
-                    $(<span class="self">self</span>.<span class="ident">check_bound</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">second_bound</span>);)<span class="question-mark">?</span>
+                    $(<span class="self">self</span>.<span class="ident">check_bound</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">bound</span>);)<span class="op">+</span>
                 )<span class="question-mark">?</span>
 
                 <span class="ident"><span class="self">Self</span>::from_raw_bytes_unchecked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>[<span class="ident">idx</span>])
@@ -1978,25 +1964,23 @@
 <span class="macro">r#impl!</span>(<span class="ident">RangeTo</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>, <span class="ident">x</span>, <span class="ident">x</span>.<span class="ident">end</span>);
 <span class="macro">r#impl!</span>(<span class="ident">RangeToInclusive</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>, <span class="ident">x</span>, <span class="ident">x</span>.<span class="ident">end</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>));
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a> <span class="kw">for</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a> {
-    <span class="kw">type</span> <span class="ident">Owned</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a>;
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">ToOwned</a> <span class="kw">for</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a> {
+    <span class="kw">type</span> <span class="ident">Owned</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">to_owned</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Owned</span> {
-        <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a>(<a class="self" href="../../src/os_str_bytes/raw_str.rs.html#823">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
+        <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a>(<a class="self" href="../../src/os_str_bytes/raw_str.rs.html#801">self</a>.<span class="number">0</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>())
     }
 }
 
-<span class="doccomment">/// A container for the byte strings converted by [`OsStringBytes`].</span>
+<span class="doccomment">/// A container for owned byte strings converted by this crate.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// For more information, see [`RawOsStr`].</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [unspecified encoding]: super#encoding</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">os_str_bytes_docs_rs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;raw_os_str&quot;</span>)))]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RawOsString</span>(<span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span>);
 
-<span class="kw">impl</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a> {
     <span class="doccomment">/// Converts a platform-native string into a representation that can be</span>
     <span class="doccomment">/// more easily manipulated.</span>
     <span class="doccomment">///</span>
@@ -2018,7 +2002,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">string</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#858">string</a>.<a class="ident" href="../../src/os_str_bytes/lib.rs.html#391">into_raw_vec</a>())
+        <span class="self">Self</span>(<a class="ident" href="../../src/os_str_bytes/common/mod.rs.html#39">imp::os_string_into_vec</a>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#834">string</a>))
     }
 
     <span class="doccomment">/// Wraps a string, without copying or encoding conversion.</span>
@@ -2040,7 +2024,24 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_string</span>(<span class="ident">string</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#880">string</a>.<span class="ident">into_bytes</span>())
+        <span class="self">Self</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#856">string</a>.<span class="ident">into_bytes</span>())
+    }
+
+    <span class="doccomment">/// Equivalent to [`String::into_boxed_str`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use os_str_bytes::RawOsString;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let string = &quot;foobar&quot;.to_owned();</span>
+    <span class="doccomment">/// let raw = RawOsString::from_string(string.clone());</span>
+    <span class="doccomment">/// assert_eq!(string, *raw.into_box());</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">must_use</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_box</span>(<span class="self">self</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a><span class="op">&gt;</span> {
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#873">self</a>.<span class="number">0</span>.<span class="ident">into_boxed_slice</span>().<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#54-56">transmute_box</a>()
     }
 
     <span class="doccomment">/// Converts this representation back to a platform-native string.</span>
@@ -2062,13 +2063,12 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_os_string</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a> {
-        <span class="ident">OsString::from_raw_vec</span>(<a class="self" href="../../src/os_str_bytes/raw_str.rs.html#902">self</a>.<span class="number">0</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid raw bytes&quot;</span>)
+        <a class="macro" href="../../src/os_str_bytes/lib.rs.html#187-191">expect_encoded!</a>(<a class="ident" href="../../src/os_str_bytes/common/mod.rs.html#35">imp::os_string_from_vec</a>(<a class="self" href="../../src/os_str_bytes/raw_str.rs.html#895">self</a>.<span class="number">0</span>))
     }
 
     <span class="doccomment">/// Returns the byte string stored by this container.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The result will match what would be returned by</span>
-    <span class="doccomment">/// [`OsStringBytes::into_raw_vec`] for the same string.</span>
+    <span class="doccomment">/// The returned string will use an [unspecified encoding].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -2085,10 +2085,12 @@
     <span class="doccomment">/// #</span>
     <span class="doccomment">/// # Ok::&lt;_, io::Error&gt;(())</span>
     <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [unspecified encoding]: super#encoding</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_raw_vec</span>(<span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#928">self</a>.<span class="number">0</span>
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#922">self</a>.<span class="number">0</span>
     }
 
     <span class="doccomment">/// Equivalent to [`OsString::into_string`].</span>
@@ -2104,44 +2106,58 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_string</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">String::from_utf8</span>(<a class="self" href="../../src/os_str_bytes/raw_str.rs.html#944">self</a>.<span class="number">0</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="self">Self</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#945">x</a>.<span class="ident">into_bytes</span>()))
+        <span class="ident">String::from_utf8</span>(<a class="self" href="../../src/os_str_bytes/raw_str.rs.html#938">self</a>.<span class="number">0</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="self">Self</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#939">x</a>.<span class="ident">into_bytes</span>()))
     }
 }
 
-<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a> {
+<span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a> {
-        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#951">self</a>
+    <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a> {
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#945">self</a>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Borrow</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a> {
+<span class="kw">impl</span> <span class="ident">Borrow</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a> {
-        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#958">self</a>
+    <span class="kw">fn</span> <span class="ident">borrow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a> {
+        <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#952">self</a>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a> {
-    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a>;
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/deref/trait.Deref.html">Deref</a> <span class="kw">for</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a> {
+    <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-        <span class="ident">RawOsStr::from_raw_bytes_unchecked</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#967">self</a>.<span class="number">0</span>)
+        <span class="ident">RawOsStr::from_raw_bytes_unchecked</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/os_str_bytes/raw_str.rs.html#961">self</a>.<span class="number">0</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::from_string</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#974">other</a>)
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#968">value</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#873">into_box</a>()
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a><span class="op">&gt;</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Cow::Owned</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#981">other</a>)
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#975">value</a>.<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#54-56">transmute_box</a>::<span class="op">&lt;</span>[<span class="kw">_</span>]<span class="op">&gt;</span>().<span class="ident">into_vec</span>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident">Cow::Owned</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#982">value</a>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::from_string</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#989">value</a>)
     }
 }
 
@@ -2164,13 +2180,13 @@
 <span class="macro">r#impl!</span>(<span class="ident">RangeTo</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>);
 <span class="macro">r#impl!</span>(<span class="ident">RangeToInclusive</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>);
 
-<span class="kw">struct</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]);
+<span class="kw">struct</span> <span class="ident">DebugBuffer</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]);
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for</span> <span class="ident">Buffer</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="kw">for</span> <span class="ident">DebugBuffer</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;\&quot;&quot;</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#1008">self</a>.<span class="number">0</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <a class="self" href="../../src/os_str_bytes/raw_str.rs.html#1016">self</a>.<span class="number">0</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">invalid_length</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="kw">while</span> <span class="op">!</span><span class="ident">string</span>.<span class="ident">is_empty</span>() {
             <span class="kw">let</span> (<span class="ident">invalid</span>, <span class="ident">substring</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">split_at</span>(<span class="ident">invalid_length</span>);
@@ -2202,7 +2218,7 @@
             <span class="ident">Display::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">valid</span>.<span class="ident">escape_debug</span>(), <span class="ident">f</span>)<span class="question-mark">?</span>;
         }
 
-        <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#1008">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;\&quot;&quot;</span>)
+        <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#1016">f</a>.<span class="ident">write_str</span>(<span class="string">&quot;\&quot;&quot;</span>)
     }
 }
 
@@ -2212,14 +2228,14 @@
             <span class="attribute">#[<span class="macro-nonterminal">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
                 <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="kw">type</span>))
-                    .<span class="macro-nonterminal">field</span>(<span class="kw-2">&amp;</span><span class="ident">Buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>))
+                    .<span class="macro-nonterminal">field</span>(<span class="kw-2">&amp;</span><span class="ident">DebugBuffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>))
                     .<span class="ident">finish</span>()
             }
         }
     };
 }
-<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a>);
-<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a>);
+<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a>);
+<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a>);
 
 <span class="macro">macro_rules!</span> <span class="ident">r#impl</span> {
     ( <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span> , <span class="macro-nonterminal">$</span><span class="macro-nonterminal">other_type</span>:<span class="ident">ty</span> ) =&gt; {
@@ -2240,14 +2256,14 @@
         }
     };
 }
-<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a>);
-<span class="macro">r#impl!</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a>);
-<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>);
-<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>);
-<span class="macro">r#impl!</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#118">RawOsStr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>);
-<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>);
-<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>);
-<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#835">RawOsString</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>);
+<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a>);
+<span class="macro">r#impl!</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a>, <a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a>);
+<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>);
+<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>);
+<span class="macro">r#impl!</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#106">RawOsStr</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>);
+<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>);
+<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>);
+<span class="macro">r#impl!</span>(<a class="ident" href="../../src/os_str_bytes/raw_str.rs.html#811">RawOsString</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>);
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;print_bytes&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">os_str_bytes_docs_rs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;print_bytes&quot;</span>)))]</span>
@@ -2317,5 +2333,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="os_str_bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="os_str_bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

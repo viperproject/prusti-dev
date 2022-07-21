@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/runtime/thread_pool/park.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>park.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.0/src/runtime/thread_pool/park.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>park.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
@@ -265,27 +265,27 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A combination of the various resource driver park handles.</span>
 
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6"><span class="kw">crate</span>::loom::sync::atomic::AtomicUsize</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::loom::sync</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>, <a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#6">Mutex</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/mod.rs.html#97-108"><span class="kw">crate</span>::loom::thread</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::park</span>::{<a class="ident" href="../../../../src/tokio/park/mod.rs.html#49-90">Park</a>, <a class="ident" href="../../../../src/tokio/park/mod.rs.html#93-105">Unpark</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/runtime/driver.rs.html#150-152"><span class="kw">crate</span>::runtime::driver::Driver</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/util/try_lock.rs.html#8-11"><span class="kw">crate</span>::util::TryLock</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/mod.rs.html#97"><span class="kw">crate</span>::loom::thread</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::park</span>::{<a class="ident" href="../../../../src/tokio/park/mod.rs.html#49">Park</a>, <a class="ident" href="../../../../src/tokio/park/mod.rs.html#93">Unpark</a>};
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/runtime/driver.rs.html#150"><span class="kw">crate</span>::runtime::driver::Driver</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/util/try_lock.rs.html#8"><span class="kw">crate</span>::util::TryLock</a>;
 
 <span class="kw">use</span> <span class="ident">std::sync::atomic::Ordering::SeqCst</span>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">std::time::Duration</a>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Parker</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#23-35">Inner</a><span class="op">&gt;</span>,
+    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#23">Inner</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Unparker</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#23-35">Inner</a><span class="op">&gt;</span>,
+    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#23">Inner</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">struct</span> <span class="ident">Inner</span> {
     <span class="doccomment">/// Avoids entering the park if possible</span>
-    <span class="ident">state</span>: <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>,
+    <span class="ident">state</span>: <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
 
     <span class="doccomment">/// Used to coordinate access to the driver / condvar</span>
     <span class="ident">mutex</span>: <span class="ident">Mutex</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
@@ -294,7 +294,7 @@
     <span class="ident">condvar</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>,
 
     <span class="doccomment">/// Resource (I/O, time, ...) driver</span>
-    <span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#43-49">Shared</a><span class="op">&gt;</span>,
+    <span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#43">Shared</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">const</span> <span class="ident">EMPTY</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">0</span>;
@@ -305,22 +305,22 @@
 <span class="doccomment">/// Shared across multiple Parker handles</span>
 <span class="kw">struct</span> <span class="ident">Shared</span> {
     <span class="doccomment">/// Shared driver. Only one thread at a time can use this</span>
-    <span class="ident">driver</span>: <span class="ident">TryLock</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/driver.rs.html#150-152">Driver</a><span class="op">&gt;</span>,
+    <span class="ident">driver</span>: <span class="ident">TryLock</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/driver.rs.html#150">Driver</a><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Unpark handle</span>
-    <span class="ident">handle</span>: <span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/driver.rs.html#150-152">Driver</a> <span class="kw">as</span> <span class="ident">Park</span><span class="op">&gt;</span><span class="ident">::Unpark</span>,
+    <span class="ident">handle</span>: <span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/runtime/driver.rs.html#150">Driver</a> <span class="kw">as</span> <span class="ident">Park</span><span class="op">&gt;</span><span class="ident">::Unpark</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#15-17">Parker</a> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">driver</span>: <a class="ident" href="../../../../src/tokio/runtime/driver.rs.html#150-152">Driver</a>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#15-17">Parker</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#15">Parker</a> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">driver</span>: <a class="ident" href="../../../../src/tokio/runtime/driver.rs.html#150">Driver</a>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#15">Parker</a> {
         <span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#52">driver</a>.<a class="ident" href="../../../../src/tokio/park/mod.rs.html#57">unpark</a>();
 
-        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#15-17">Parker</a> {
-            <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#23-35">Inner</a> {
+        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#15">Parker</a> {
+            <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#23">Inner</a> {
                 <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#37">EMPTY</a>),
                 <span class="ident">mutex</span>: <span class="ident">Mutex::new</span>(()),
                 <span class="ident">condvar</span>: <span class="ident">Condvar::new</span>(),
-                <span class="ident">shared</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#43-49">Shared</a> {
+                <span class="ident">shared</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#43">Shared</a> {
                     <span class="ident">driver</span>: <span class="ident">TryLock::new</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#52">driver</a>),
                     <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#53">handle</a>,
                 }),
@@ -329,10 +329,10 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#15-17">Parker</a> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#15-17">Parker</a> {
-        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#15-17">Parker</a> {
-            <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#23-35">Inner</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#15">Parker</a> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#15">Parker</a> {
+        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#15">Parker</a> {
+            <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#23">Inner</a> {
                 <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#37">EMPTY</a>),
                 <span class="ident">mutex</span>: <span class="ident">Mutex::new</span>(()),
                 <span class="ident">condvar</span>: <span class="ident">Condvar::new</span>(),
@@ -342,12 +342,12 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/park/mod.rs.html#49-90">Park</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#15-17">Parker</a> {
-    <span class="kw">type</span> <span class="ident">Unpark</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#19-21">Unparker</a>;
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/park/mod.rs.html#49">Park</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#15">Parker</a> {
+    <span class="kw">type</span> <span class="ident">Unpark</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#19">Unparker</a>;
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
 
-    <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#19-21">Unparker</a> {
-        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#19-21">Unparker</a> {
+    <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#19">Unparker</a> {
+        <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#19">Unparker</a> {
             <span class="ident">inner</span>: <a class="self" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#86">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
@@ -373,13 +373,13 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/park/mod.rs.html#93-105">Unpark</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#19-21">Unparker</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/park/mod.rs.html#93">Unpark</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#19">Unparker</a> {
     <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <a class="self" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#114">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#214">unpark</a>();
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#23-35">Inner</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#23">Inner</a> {
     <span class="doccomment">/// Parks the current thread for at most `dur`.</span>
     <span class="kw">fn</span> <span class="ident">park</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">3</span> {
@@ -443,7 +443,7 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">park_driver</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">driver</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/runtime/driver.rs.html#150-152">Driver</a>) {
+    <span class="kw">fn</span> <span class="ident">park_driver</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">driver</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/tokio/runtime/driver.rs.html#150">Driver</a>) {
         <span class="kw">match</span> <a class="self" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#183">self</a>
             .<span class="ident">state</span>
             .<span class="ident">compare_exchange</span>(<a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#37">EMPTY</a>, <a class="ident" href="../../../../src/tokio/runtime/thread_pool/park.rs.html#39">PARKED_DRIVER</a>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>)
@@ -519,5 +519,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

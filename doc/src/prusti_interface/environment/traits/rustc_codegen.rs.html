@@ -101,74 +101,18 @@
 <span id="95">95</span>
 <span id="96">96</span>
 <span id="97">97</span>
-<span id="98">98</span>
-<span id="99">99</span>
-<span id="100">100</span>
-<span id="101">101</span>
-<span id="102">102</span>
-<span id="103">103</span>
-<span id="104">104</span>
-<span id="105">105</span>
-<span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
-<span id="128">128</span>
-<span id="129">129</span>
-<span id="130">130</span>
-<span id="131">131</span>
-<span id="132">132</span>
-<span id="133">133</span>
-<span id="134">134</span>
-<span id="135">135</span>
-<span id="136">136</span>
-<span id="137">137</span>
-<span id="138">138</span>
-<span id="139">139</span>
-<span id="140">140</span>
-<span id="141">141</span>
-<span id="142">142</span>
-<span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
 </pre><pre class="rust"><code><span class="comment">// This file was taken from the compiler:</span>
-<span class="comment">// https://raw.githubusercontent.com/rust-lang/rust/949b98cab8a186b98bf87e64374b8d0848c55271/compiler/rustc_trait_selection/src/traits/codegen.rs</span>
+<span class="comment">// https://raw.githubusercontent.com/rust-lang/rust/03d488b48af9f66b91e9400387f781b82411fa82/compiler/rustc_trait_selection/src/traits/codegen.rs</span>
 <span class="comment">// This file is licensed under Apache 2.0</span>
-<span class="comment">// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-APACHE)</span>
+<span class="comment">// (https://github.com/rust-lang/rust/blob/03d488b48af9f66b91e9400387f781b82411fa82/LICENSE-APACHE)</span>
 <span class="comment">// and MIT</span>
-<span class="comment">// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-MIT).</span>
+<span class="comment">// (https://github.com/rust-lang/rust/blob/03d488b48af9f66b91e9400387f781b82411fa82/LICENSE-MIT).</span>
 
 <span class="comment">// Changes:</span>
 <span class="comment">// + Fix compilation errors.</span>
 <span class="comment">// + Remove all diagnostics (this is the main motivation for duplication).</span>
-<span class="comment">// + `ErrorGuaranteed` changed to `()` (private constructor).</span>
+<span class="comment">// + Remove all `instrument`ation.</span>
+<span class="comment">// + Replace `crate::*` imports with `prusti_rustc_interface::*` imports.</span>
 
 
 <span class="comment">// This file contains various trait resolution methods used by codegen.</span>
@@ -177,12 +121,12 @@
 <span class="comment">// general routines.</span>
 
 <span class="kw">use</span> <a class="ident" href="../../../../log/macro.debug.html">log::debug</a>;
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface::trait_selection::infer</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/infer/struct.InferCtxt.html">InferCtxt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/infer/trait.TyCtxtInferExt.html">TyCtxtInferExt</a>};
+<span class="kw">use</span> <span class="ident">prusti_rustc_interface::trait_selection::infer</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/infer/trait.TyCtxtInferExt.html">TyCtxtInferExt</a>};
 <span class="kw">use</span> <span class="ident">prusti_rustc_interface::trait_selection::traits</span>::{
     <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_trait_selection/traits/fulfill/struct.FulfillmentContext.html">FulfillmentContext</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/traits/enum.ImplSource.html">ImplSource</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/traits/struct.Obligation.html">Obligation</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/traits/struct.ObligationCause.html">ObligationCause</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_trait_selection/traits/select/struct.SelectionContext.html">SelectionContext</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/traits/engine/trait.TraitEngine.html">TraitEngine</a>,
     <span class="ident">Unimplemented</span>,
 };
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/fold/trait.TypeFoldable.html">prusti_rustc_interface::middle::ty::fold::TypeFoldable</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/traits/enum.CodegenObligationError.html">prusti_rustc_interface::middle::traits::CodegenObligationError</a>;
 <span class="kw">use</span> <span class="ident">prusti_rustc_interface::middle::ty</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">TyCtxt</a>};
 
 <span class="doccomment">/// Attempts to resolve an obligation to an `ImplSource`. The result is</span>
@@ -192,12 +136,12 @@
 <span class="doccomment">/// obligations *could be* resolved if we wanted to.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This also expects that `trait_ref` is fully normalized.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">codegen_fulfill_obligation</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">codegen_fulfill_obligation</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
     <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     (<span class="ident">param_env</span>, <span class="ident">trait_ref</span>): (<span class="ident">ty::ParamEnv</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">ty::PolyTraitRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>),
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">ImplSource</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, ()<span class="op">&gt;</span>, ()<span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">ImplSource</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, ()<span class="op">&gt;</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/traits/enum.CodegenObligationError.html">CodegenObligationError</a><span class="op">&gt;</span> {
     <span class="comment">// Remove any references to regions; this helps improve caching.</span>
-    <span class="kw">let</span> <span class="ident">trait_ref</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#36">tcx</a>.<span class="ident">erase_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#37">trait_ref</a>);
+    <span class="kw">let</span> <span class="ident">trait_ref</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#37">tcx</a>.<span class="ident">erase_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#38">trait_ref</a>);
     <span class="comment">// We expect the input to be fully normalized.</span>
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert_eq.html">debug_assert_eq!</a>(<span class="ident">trait_ref</span>, <span class="ident">tcx</span>.<span class="ident">normalize_erasing_regions</span>(<span class="ident">param_env</span>, <span class="ident">trait_ref</span>));
     <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(
@@ -208,46 +152,17 @@
 
     <span class="comment">// Do the initial selection for the obligation. This yields the</span>
     <span class="comment">// shallow result we are looking for -- that is, what specific impl.</span>
-    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#36">tcx</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/infer/trait.TyCtxtInferExt.html">infer_ctxt</a>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">infcx</span><span class="op">|</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">selcx</span> <span class="op">=</span> <span class="ident">SelectionContext::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#51">infcx</a>);
+    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#37">tcx</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/infer/trait.TyCtxtInferExt.html">infer_ctxt</a>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">infcx</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">selcx</span> <span class="op">=</span> <span class="ident">SelectionContext::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#52">infcx</a>);
 
         <span class="kw">let</span> <span class="ident">obligation_cause</span> <span class="op">=</span> <span class="ident">ObligationCause::dummy</span>();
         <span class="kw">let</span> <span class="ident">obligation</span> <span class="op">=</span>
-            <span class="ident">Obligation::new</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#54">obligation_cause</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#37">param_env</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#40">trait_ref</a>.<span class="ident">to_poly_trait_predicate</span>());
+            <span class="ident">Obligation::new</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#55">obligation_cause</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#38">param_env</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#41">trait_ref</a>.<span class="ident">to_poly_trait_predicate</span>());
 
-        <span class="kw">let</span> <span class="ident">selection</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#52">selcx</a>.<span class="ident">select</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#55">obligation</a>) {
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">selection</span>)) =&gt; <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#59">selection</a>,
-            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; {
-                <span class="comment">// // Ambiguity can happen when monomorphizing during trans</span>
-                <span class="comment">// // expands to some humongo type that never occurred</span>
-                <span class="comment">// // statically -- this humongo type can then overflow,</span>
-                <span class="comment">// // leading to an ambiguous result. So report this as an</span>
-                <span class="comment">// // overflow bug, since I believe this is the only case</span>
-                <span class="comment">// // where ambiguity can result.</span>
-                <span class="comment">// let reported = infcx.tcx.sess.delay_span_bug(</span>
-                <span class="comment">//     prusti_rustc_interface::span::DUMMY_SP,</span>
-                <span class="comment">//     &amp;format!(</span>
-                <span class="comment">//         &quot;encountered ambiguity selecting `{:?}` during codegen, presuming due to \</span>
-                <span class="comment">//          overflow or prior type error&quot;,</span>
-                <span class="comment">//         trait_ref</span>
-                <span class="comment">//     ),</span>
-                <span class="comment">// );</span>
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(());
-            }
-            <span class="prelude-val">Err</span>(<span class="ident">Unimplemented</span>) =&gt; {
-                <span class="comment">// // This can trigger when we probe for the source of a `&#39;static` lifetime requirement</span>
-                <span class="comment">// // on a trait object: `impl Foo for dyn Trait {}` has an implicit `&#39;static` bound.</span>
-                <span class="comment">// // This can also trigger when we have a global bound that is not actually satisfied,</span>
-                <span class="comment">// // but was included during typeck due to the trivial_bounds feature.</span>
-                <span class="comment">// let guar = infcx.tcx.sess.delay_span_bug(</span>
-                <span class="comment">//     prusti_rustc_interface::span::DUMMY_SP,</span>
-                <span class="comment">//     &amp;format!(</span>
-                <span class="comment">//         &quot;Encountered error `Unimplemented` selecting `{:?}` during codegen&quot;,</span>
-                <span class="comment">//         trait_ref</span>
-                <span class="comment">//     ),</span>
-                <span class="comment">// );</span>
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(());
-            }
+        <span class="kw">let</span> <span class="ident">selection</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#53">selcx</a>.<span class="ident">select</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#56">obligation</a>) {
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">selection</span>)) =&gt; <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#60">selection</a>,
+            <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CodegenObligationError::Ambiguity</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">Unimplemented</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CodegenObligationError::Unimplemented</span>),
             <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;Encountered error `{:?}` selecting `{:?}` during codegen&quot;</span>, <span class="ident">e</span>, <span class="ident">trait_ref</span>)
             }
@@ -259,58 +174,30 @@
         <span class="comment">// all nested obligations. This is because they can inform the</span>
         <span class="comment">// inference of the impl&#39;s type parameters.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fulfill_cx</span> <span class="op">=</span> <span class="ident">FulfillmentContext::new</span>();
-        <span class="kw">let</span> <span class="ident">impl_source</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#58">selection</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">predicate</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">impl_source</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#59">selection</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">predicate</span><span class="op">|</span> {
             <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;fulfill_obligation: register_predicate_obligation {:?}&quot;</span>, <span class="ident">predicate</span>);
-            <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#101">fulfill_cx</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/traits/engine/trait.TraitEngine.html">register_predicate_obligation</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#51">infcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#102">predicate</a>);
+            <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#73">fulfill_cx</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/traits/engine/trait.TraitEngine.html">register_predicate_obligation</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#52">infcx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#74">predicate</a>);
         });
-        <span class="kw">let</span> <span class="ident">impl_source</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#128-134">drain_fulfillment_cx_or_panic</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#51">infcx</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#101">fulfill_cx</a>, <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#102">impl_source</a>);
+
+        <span class="comment">// In principle, we only need to do this so long as `impl_source`</span>
+        <span class="comment">// contains unbound type parameters. It could be a slight</span>
+        <span class="comment">// optimization to stop iterating early.</span>
+        <span class="kw">let</span> <span class="ident">errors</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#73">fulfill_cx</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/traits/engine/trait.TraitEngine.html">select_all_or_error</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#52">infcx</a>);
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">errors</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">CodegenObligationError::FulfillmentError</span>);
+        }
+
+        <span class="kw">let</span> <span class="ident">impl_source</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#52">infcx</a>.<span class="ident">resolve_vars_if_possible</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#74">impl_source</a>);
+        <span class="kw">let</span> <span class="ident">impl_source</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#52">infcx</a>.<span class="ident">tcx</span>.<span class="ident">erase_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#87">impl_source</a>);
 
         <span class="comment">// Opaque types may have gotten their hidden types constrained, but we can ignore them safely</span>
         <span class="comment">// as they will get constrained elsewhere, too.</span>
-        <span class="kw">let</span> <span class="ident">_opaque_types</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#51">infcx</a>.<span class="ident">inner</span>.<span class="ident">borrow_mut</span>().<span class="ident">opaque_type_storage</span>.<span class="ident">take_opaque_types</span>();
+        <span class="kw">let</span> <span class="ident">_opaque_types</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#52">infcx</a>.<span class="ident">inner</span>.<span class="ident">borrow_mut</span>().<span class="ident">opaque_type_storage</span>.<span class="ident">take_opaque_types</span>();
 
-        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Cache miss: {:?} =&gt; {:?}&quot;</span>, <span class="ident">trait_ref</span>, <span class="ident">impl_source</span>);
-        <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#36">tcx</a>.<span class="ident">arena</span>.<span class="ident">alloc</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#106">impl_source</a>))
+        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Cache miss: {trait_ref:?} =&gt; {impl_source:?}&quot;</span>);
+        <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#37">tcx</a>.<span class="ident">arena</span>.<span class="ident">alloc</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#88">impl_source</a>))
     })
 }
-
-<span class="comment">// # Global Cache</span>
-
-<span class="doccomment">/// Finishes processes any obligations that remain in the</span>
-<span class="doccomment">/// fulfillment context, and then returns the result with all type</span>
-<span class="doccomment">/// variables removed and regions erased. Because this is intended</span>
-<span class="doccomment">/// for use outside of type inference, if any errors occur,</span>
-<span class="doccomment">/// it will panic. It is used during normalization and other cases</span>
-<span class="doccomment">/// where processing the obligations in `fulfill_cx` may cause</span>
-<span class="doccomment">/// type inference variables that appear in `result` to be</span>
-<span class="doccomment">/// unified, and hence we need to process those obligations to get</span>
-<span class="doccomment">/// the complete picture of the type.</span>
-<span class="kw">fn</span> <span class="ident">drain_fulfillment_cx_or_panic</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span>, <span class="ident">T</span><span class="op">&gt;</span>(
-    <span class="ident">infcx</span>: <span class="kw-2">&amp;</span><span class="ident">InferCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">fulfill_cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FulfillmentContext</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-    <span class="ident">result</span>: <span class="ident">T</span>,
-) -&gt; <span class="ident">T</span>
-    <span class="kw">where</span>
-        <span class="ident">T</span>: <span class="ident">TypeFoldable</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
-{
-    <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;drain_fulfillment_cx_or_panic()&quot;</span>);
-
-    <span class="comment">// In principle, we only need to do this so long as `result`</span>
-    <span class="comment">// contains unbound type parameters. It could be a slight</span>
-    <span class="comment">// optimization to stop iterating early.</span>
-    <span class="kw">let</span> <span class="ident">errors</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#130">fulfill_cx</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/traits/engine/trait.TraitEngine.html">select_all_or_error</a>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#129">infcx</a>);
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">errors</span>.<span class="ident">is_empty</span>() {
-        <span class="comment">// infcx.tcx.sess.delay_span_bug(</span>
-        <span class="comment">//     prusti_rustc_interface::span::DUMMY_SP,</span>
-        <span class="comment">//     &amp;format!(</span>
-        <span class="comment">//         &quot;Encountered errors `{:?}` resolving bounds outside of type inference&quot;,</span>
-        <span class="comment">//         errors</span>
-        <span class="comment">//     ),</span>
-        <span class="comment">// );</span>
-    }
-
-    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#129">infcx</a>.<span class="ident">resolve_vars_if_possible</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#131">result</a>);
-    <a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#129">infcx</a>.<span class="ident">tcx</span>.<span class="ident">erase_regions</span>(<a class="ident" href="../../../../src/prusti_interface/environment/traits/rustc_codegen.rs.html#152">result</a>)
-}</code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

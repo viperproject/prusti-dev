@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.1/src/read/reader.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/reader.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reader.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
@@ -513,10 +513,10 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/hash/macros/derive.Hash.html">core::hash::Hash</a>;
 <span class="kw">use</span> <span class="ident">core::ops</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Add.html">Add</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.AddAssign.html">AddAssign</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/arith/trait.Sub.html">Sub</a>};
 
-<span class="kw">use</span> <a class="ident" href="../../../src/gimli/common.rs.html#3-8"><span class="kw">crate</span>::common::Format</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/gimli/endianity.rs.html#7-172"><span class="kw">crate</span>::endianity::Endianity</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/gimli/common.rs.html#3"><span class="kw">crate</span>::common::Format</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/gimli/endianity.rs.html#7"><span class="kw">crate</span>::endianity::Endianity</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/gimli/lib.rs.html#64"><span class="kw">crate</span>::leb128</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../src/gimli/read/mod.rs.html#271-434">Error</a>, <span class="prelude-ty">Result</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{<a class="ident" href="../../../src/gimli/read/mod.rs.html#271">Error</a>, <span class="prelude-ty">Result</span>};
 
 <span class="doccomment">/// An identifier for an offset within a section reader.</span>
 <span class="doccomment">///</span>
@@ -559,7 +559,7 @@
     <span class="kw">fn</span> <span class="ident">checked_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-52">ReaderOffset</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_u8</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span> {
         <span class="ident">u64::from</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#56">offset</a>)
@@ -601,7 +601,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-52">ReaderOffset</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_u8</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span> {
         <span class="ident">u32::from</span>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#98">offset</a>)
@@ -648,7 +648,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-52">ReaderOffset</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_u8</span>(<span class="ident">offset</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u8.html">u8</a>) -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../../src/gimli/read/reader.rs.html#145">offset</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>
@@ -722,10 +722,10 @@
 <span class="doccomment">/// | [`EndianReader&lt;T&gt;`](./struct.EndianReader.html)   | Same as `T`       | Same as `T` | Escape hatch for easily defining your own type of `Reader`. |</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Reader</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> {
     <span class="doccomment">/// The endianity of bytes that are read.</span>
-    <span class="kw">type</span> <span class="ident">Endian</span>: <a class="ident" href="../../../src/gimli/endianity.rs.html#7-172">Endianity</a>;
+    <span class="kw">type</span> <span class="ident">Endian</span>: <a class="ident" href="../../../src/gimli/endianity.rs.html#7">Endianity</a>;
 
     <span class="doccomment">/// The type used for offsets and lengths.</span>
-    <span class="kw">type</span> <span class="ident">Offset</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-52">ReaderOffset</a>;
+    <span class="kw">type</span> <span class="ident">Offset</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>;
 
     <span class="doccomment">/// Return the endianity of bytes that are read.</span>
     <span class="kw">fn</span> <span class="ident">endian</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Endian</span>;
@@ -945,7 +945,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This field is encoded as either a 32-bit length or</span>
     <span class="doccomment">/// a 64-bit length, and the returned `Format` indicates which.</span>
-    <span class="kw">fn</span> <span class="ident">read_initial_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident"><span class="self">Self</span>::Offset</span>, <a class="ident" href="../../../src/gimli/common.rs.html#3-8">Format</a>)<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read_initial_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident"><span class="self">Self</span>::Offset</span>, <a class="ident" href="../../../src/gimli/common.rs.html#3">Format</a>)<span class="op">&gt;</span> {
         <span class="kw">const</span> <span class="ident">MAX_DWARF_32_UNIT_LENGTH</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">0xffff_fff0</span>;
         <span class="kw">const</span> <span class="ident">DWARF_64_INITIAL_UNIT_LENGTH</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.u32.html">u32</a> <span class="op">=</span> <span class="number">0xffff_ffff</span>;
 
@@ -975,7 +975,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// These are always used to encode section offsets or lengths,</span>
     <span class="doccomment">/// and so have a type of `Self::Offset`.</span>
-    <span class="kw">fn</span> <span class="ident">read_word</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">format</span>: <a class="ident" href="../../../src/gimli/common.rs.html#3-8">Format</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read_word</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">format</span>: <a class="ident" href="../../../src/gimli/common.rs.html#3">Format</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="ident" href="../../../src/gimli/read/reader.rs.html#470">format</a> {
             <a class="ident" href="../../../src/gimli/common.rs.html#7">Format::Dwarf32</a> =&gt; <a class="self" href="../../../src/gimli/read/reader.rs.html#470">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#349">read_u32</a>().<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::Offset::from_u32</span>),
             <a class="ident" href="../../../src/gimli/common.rs.html#5">Format::Dwarf64</a> =&gt; <a class="self" href="../../../src/gimli/read/reader.rs.html#470">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#363">read_u64</a>().<span class="ident">and_then</span>(<span class="ident"><span class="self">Self</span>::Offset::from_u64</span>),
@@ -984,13 +984,13 @@
 
     <span class="doccomment">/// Parse a word-sized section length according to the DWARF format.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">format</span>: <a class="ident" href="../../../src/gimli/common.rs.html#3-8">Format</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">format</span>: <a class="ident" href="../../../src/gimli/common.rs.html#3">Format</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span> {
         <a class="self" href="../../../src/gimli/read/reader.rs.html#479">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#470">read_word</a>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#479">format</a>)
     }
 
     <span class="doccomment">/// Parse a word-sized section offset according to the DWARF format.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">read_offset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">format</span>: <a class="ident" href="../../../src/gimli/common.rs.html#3-8">Format</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">read_offset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">format</span>: <a class="ident" href="../../../src/gimli/common.rs.html#3">Format</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Offset</span><span class="op">&gt;</span> {
         <a class="self" href="../../../src/gimli/read/reader.rs.html#485">self</a>.<a class="ident" href="../../../src/gimli/read/reader.rs.html#470">read_word</a>(<a class="ident" href="../../../src/gimli/read/reader.rs.html#485">format</a>)
     }
 
@@ -1009,5 +1009,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

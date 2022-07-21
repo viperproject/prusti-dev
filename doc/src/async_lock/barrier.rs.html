@@ -139,13 +139,13 @@
 <span id="133">133</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../event_listener/struct.Event.html">event_listener::Event</a>;
 
-<span class="kw">use</span> <a class="ident" href="../../src/async_lock/mutex.rs.html#38-50"><span class="kw">crate</span>::Mutex</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/async_lock/mutex.rs.html#38"><span class="kw">crate</span>::Mutex</a>;
 
 <span class="doccomment">/// A counter to synchronize multiple tasks at the same time.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Barrier</span> {
     <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-    <span class="ident">state</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../src/async_lock/barrier.rs.html#14-17">State</a><span class="op">&gt;</span>,
+    <span class="ident">state</span>: <span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../src/async_lock/barrier.rs.html#14">State</a><span class="op">&gt;</span>,
     <span class="ident">event</span>: <a class="ident" href="../../event_listener/struct.Event.html">Event</a>,
 }
 
@@ -155,7 +155,7 @@
     <span class="ident">generation_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/async_lock/barrier.rs.html#7-11">Barrier</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/async_lock/barrier.rs.html#7">Barrier</a> {
     <span class="doccomment">/// Creates a barrier that can block the given number of tasks.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A barrier will block `n`-1 tasks which call [`wait()`] and then wake up all tasks</span>
@@ -170,10 +170,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let barrier = Barrier::new(5);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../src/async_lock/barrier.rs.html#7-11">Barrier</a> {
-        <a class="ident" href="../../src/async_lock/barrier.rs.html#7-11">Barrier</a> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <a class="ident" href="../../src/async_lock/barrier.rs.html#7">Barrier</a> {
+        <a class="ident" href="../../src/async_lock/barrier.rs.html#7">Barrier</a> {
             <a class="ident" href="../../src/async_lock/barrier.rs.html#34">n</a>,
-            <span class="ident">state</span>: <span class="ident">Mutex::new</span>(<a class="ident" href="../../src/async_lock/barrier.rs.html#14-17">State</a> {
+            <span class="ident">state</span>: <span class="ident">Mutex::new</span>(<a class="ident" href="../../src/async_lock/barrier.rs.html#14">State</a> {
                 <span class="ident">count</span>: <span class="number">0</span>,
                 <span class="ident">generation_id</span>: <span class="number">0</span>,
             }),
@@ -211,7 +211,7 @@
     <span class="doccomment">///     });</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">wait</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/async_lock/barrier.rs.html#110-112">BarrierWaitResult</a> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">wait</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/async_lock/barrier.rs.html#110">BarrierWaitResult</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">state</span>.<span class="ident">lock</span>().<span class="kw">await</span>;
         <span class="kw">let</span> <span class="ident">local_gen</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">generation_id</span>;
         <span class="ident">state</span>.<span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -250,7 +250,7 @@
     <span class="ident">is_leader</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/async_lock/barrier.rs.html#110-112">BarrierWaitResult</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/async_lock/barrier.rs.html#110">BarrierWaitResult</a> {
     <span class="doccomment">/// Returns `true` if this task was the last to call to [`Barrier::wait()`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
@@ -271,5 +271,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_lock" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="async_lock" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.40/src/cipher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cipher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/openssl-0.10.41/src/cipher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cipher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
@@ -392,6 +392,31 @@
 <span id="386">386</span>
 <span id="387">387</span>
 <span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Symmetric ciphers.</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl300</span>)]</span>
@@ -496,7 +521,7 @@
 <span class="kw">impl</span> <a class="ident" href="../../src/openssl/cipher.rs.html#97">Cipher</a> {
     <span class="doccomment">/// Looks up the cipher for a certain nid.</span>
     <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_get_cipherbynid</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_nid</span>(<span class="ident">nid</span>: <a class="ident" href="../../src/openssl/nid.rs.html#49">Nid</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_nid</span>(<span class="ident">nid</span>: <a class="ident" href="../../src/openssl/nid.rs.html#49">Nid</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">ffi::EVP_get_cipherbyname</span>(<span class="ident">ffi::OBJ_nid2sn</span>(<a class="ident" href="../../src/openssl/cipher.rs.html#105">nid</a>.<a class="ident" href="../../src/openssl/nid.rs.html#60">as_raw</a>()));
             <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
@@ -531,233 +556,258 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_ecb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_ecb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_128_ecb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_cbc</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_cbc</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_128_cbc</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_xts</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_xts</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_128_xts</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_ctr</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_ctr</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_128_ctr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_cfb1</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_cfb1</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_128_cfb1</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_cfb128</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_cfb128</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_128_cfb128</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_cfb8</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_cfb8</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_128_cfb8</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_gcm</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_gcm</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_128_gcm</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_ccm</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_ccm</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_128_ccm</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_ofb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_ofb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_128_ofb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
     <span class="doccomment">/// Requires OpenSSL 1.1.0 or newer.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_ocb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_128_ocb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_128_ocb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_ecb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_ecb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_192_ecb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_cbc</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_cbc</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_192_cbc</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_ctr</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_ctr</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_192_ctr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_cfb1</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_cfb1</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_192_cfb1</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_cfb128</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_cfb128</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_192_cfb128</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_cfb8</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_cfb8</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_192_cfb8</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_gcm</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_gcm</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_192_gcm</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_ccm</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_ccm</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_192_ccm</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_ofb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_ofb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_192_ofb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
     <span class="doccomment">/// Requires OpenSSL 1.1.0 or newer.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_ocb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_192_ocb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_192_ocb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_ecb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_ecb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_256_ecb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_cbc</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_cbc</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_256_cbc</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_ctr</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_ctr</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_256_ctr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_cfb1</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_cfb1</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_256_cfb1</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_cfb128</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_cfb128</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_256_cfb128</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_cfb8</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_cfb8</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_256_cfb8</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_gcm</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_gcm</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_256_gcm</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_ccm</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_ccm</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_256_ccm</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_ofb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_ofb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_256_ofb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
     <span class="doccomment">/// Requires OpenSSL 1.1.0 or newer.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">ossl110</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_ocb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aes_256_ocb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_aes_256_ocb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_BF&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bf_cbc</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bf_cbc</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_bf_cbc</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_BF&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bf_ecb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bf_ecb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_bf_ecb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_BF&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bf_cfb64</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bf_cfb64</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_bf_cfb64</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_BF&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bf_ofb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bf_ofb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_bf_ofb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">des_cbc</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">des_cbc</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_des_cbc</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">des_ecb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">des_ecb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_des_ecb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">des_ede3</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">des_ede3</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_des_ede3</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">des_ede3_cbc</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">des_ede3_cbc</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_des_ede3_cbc</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">des_ede3_cfb64</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">des_ede3_cfb64</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_des_ede3_cfb64</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rc4</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rc4</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_rc4</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">ossl110</span>, <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_CHACHA&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chacha20</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chacha20</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_chacha20</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">ossl110</span>, <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_CHACHA&quot;</span>)))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chacha20_poly1305</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chacha20_poly1305</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_chacha20_poly1305</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seed_cbc</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seed_cbc</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_seed_cbc</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seed_cfb128</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seed_cfb128</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_seed_cfb128</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seed_ecb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seed_ecb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_seed_ecb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SEED&quot;</span>))]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seed_ofb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">seed_ofb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
         <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_seed_ofb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">ossl111</span>, <span class="ident">libressl291</span>), <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SM4&quot;</span>)))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sm4_ecb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
+        <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_sm4_ecb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">ossl111</span>, <span class="ident">libressl291</span>), <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SM4&quot;</span>)))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sm4_cbc</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
+        <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_sm4_cbc</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">ossl111</span>, <span class="ident">libressl291</span>), <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SM4&quot;</span>)))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sm4_ctr</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
+        <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_sm4_ctr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">ossl111</span>, <span class="ident">libressl291</span>), <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SM4&quot;</span>)))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sm4_cfb128</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
+        <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_sm4_cfb128</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">any</span>(<span class="ident">ossl111</span>, <span class="ident">libressl291</span>), <span class="ident">not</span>(<span class="ident">osslconf</span> <span class="op">=</span> <span class="string">&quot;OPENSSL_NO_SM4&quot;</span>)))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sm4_ofb</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
+        <span class="kw">unsafe</span> { <span class="ident">CipherRef::from_ptr</span>(<span class="ident">ffi::EVP_sm4_ofb</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>) }
     }
 }
 
 <span class="doccomment">/// A reference to a [`Cipher`].</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CipherRef</span>(<a class="ident" href="../../foreign_types_shared/struct.Opaque.html">Opaque</a>);
 
-<span class="kw">impl</span> <a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+<span class="kw">impl</span> <a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">ForeignTypeRef</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
     <span class="kw">type</span> <span class="ident">CType</span> <span class="op">=</span> <a class="ident" href="../../openssl_sys/handwritten/types/enum.EVP_CIPHER.html">ffi::EVP_CIPHER</a>;
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {}
 
-<span class="kw">impl</span> <a class="ident" href="../../src/openssl/cipher.rs.html#346">CipherRef</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/openssl/cipher.rs.html#371">CipherRef</a> {
     <span class="doccomment">/// Returns the cipher&#39;s Nid.</span>
     <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_CIPHER_nid</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/openssl/nid.rs.html#49">Nid</a> {
-        <span class="kw">let</span> <span class="ident">nid</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ffi::EVP_CIPHER_nid</span>(<a class="self" href="../../src/openssl/cipher.rs.html#358">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) };
-        <span class="ident">Nid::from_raw</span>(<a class="ident" href="../../src/openssl/cipher.rs.html#359">nid</a>)
+        <span class="kw">let</span> <span class="ident">nid</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">ffi::EVP_CIPHER_nid</span>(<a class="self" href="../../src/openssl/cipher.rs.html#383">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) };
+        <span class="ident">Nid::from_raw</span>(<a class="ident" href="../../src/openssl/cipher.rs.html#384">nid</a>)
     }
 
     <span class="doccomment">/// Returns the length of keys used with this cipher.</span>
     <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_CIPHER_key_length</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">key_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_CIPHER_key_length.html">EVP_CIPHER_key_length</a>(<a class="self" href="../../src/openssl/cipher.rs.html#365">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe</span> { <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_CIPHER_key_length.html">EVP_CIPHER_key_length</a>(<a class="self" href="../../src/openssl/cipher.rs.html#390">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
     <span class="doccomment">/// Returns the length of the IV used with this cipher.</span>
@@ -767,7 +817,7 @@
     <span class="doccomment">/// Ciphers that do not use an IV have an IV length of 0.</span>
     <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_CIPHER_iv_length</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iv_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_CIPHER_iv_length.html">EVP_CIPHER_iv_length</a>(<a class="self" href="../../src/openssl/cipher.rs.html#375">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe</span> { <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_CIPHER_iv_length.html">EVP_CIPHER_iv_length</a>(<a class="self" href="../../src/openssl/cipher.rs.html#400">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 
     <span class="doccomment">/// Returns the block size of the cipher.</span>
@@ -777,9 +827,9 @@
     <span class="doccomment">/// Stream ciphers have a block size of 1.</span>
     <span class="attribute">#[<span class="ident">corresponds</span>(<span class="ident">EVP_CIPHER_block_size</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">block_size</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <span class="kw">unsafe</span> { <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_CIPHER_block_size.html">EVP_CIPHER_block_size</a>(<a class="self" href="../../src/openssl/cipher.rs.html#385">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
+        <span class="kw">unsafe</span> { <a class="ident" href="../../openssl_sys/handwritten/evp/fn.EVP_CIPHER_block_size.html">EVP_CIPHER_block_size</a>(<a class="self" href="../../src/openssl/cipher.rs.html#410">self</a>.<a class="ident" href="../../foreign_types_shared/trait.ForeignTypeRef.html">as_ptr</a>()) <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

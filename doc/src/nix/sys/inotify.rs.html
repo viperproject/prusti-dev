@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.24.1/src/sys/inotify.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>inotify.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/nix-0.24.2/src/sys/inotify.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>inotify.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../nix/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
@@ -297,8 +297,8 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/nix/unistd.rs.html#1035"><span class="kw">crate</span>::unistd::read</a>;
 <span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#169"><span class="kw">crate</span>::Result</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#184-196"><span class="kw">crate</span>::NixPath</a>;
-<span class="kw">use</span> <a class="ident" href="../../../src/nix/errno.rs.html#776-911"><span class="kw">crate</span>::errno::Errno</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/nix/lib.rs.html#184"><span class="kw">crate</span>::NixPath</a>;
+<span class="kw">use</span> <a class="ident" href="../../../src/nix/errno.rs.html#776"><span class="kw">crate</span>::errno::Errno</a>;
 <span class="kw">use</span> <a class="ident" href="../../../cfg_if/macro.cfg_if.html">cfg_if::cfg_if</a>;
 
 <a class="macro" href="../../../src/nix/macros.rs.html#55-75">libc_bitflags!</a> {
@@ -388,7 +388,7 @@
     <span class="doccomment">/// Watch descriptor. This field corresponds to the watch descriptor you</span>
     <span class="doccomment">/// were issued when calling add_watch. It allows you to know which watch</span>
     <span class="doccomment">/// this event comes from.</span>
-    <span class="kw">pub</span> <span class="ident">wd</span>: <a class="ident" href="../../../src/nix/sys/inotify.rs.html#116-118">WatchDescriptor</a>,
+    <span class="kw">pub</span> <span class="ident">wd</span>: <a class="ident" href="../../../src/nix/sys/inotify.rs.html#116">WatchDescriptor</a>,
     <span class="doccomment">/// Event mask. This field is a bitfield describing the exact event that</span>
     <span class="doccomment">/// occured.</span>
     <span class="kw">pub</span> <span class="ident">mask</span>: <a class="ident" href="../../../src/nix/sys/inotify.rs.html#41-93">AddWatchFlags</a>,
@@ -400,18 +400,18 @@
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/ffi/os_str/struct.OsString.html">OsString</a><span class="op">&gt;</span>
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/nix/sys/inotify.rs.html#108-110">Inotify</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/nix/sys/inotify.rs.html#108">Inotify</a> {
     <span class="doccomment">/// Initialize a new inotify instance.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns a Result containing an inotify instance.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// For more information see, [inotify_init(2)](https://man7.org/linux/man-pages/man2/inotify_init.2.html).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/inotify.rs.html#95-103">InitFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/inotify.rs.html#108-110">Inotify</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">flags</span>: <a class="ident" href="../../../src/nix/sys/inotify.rs.html#95-103">InitFlags</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/inotify.rs.html#108">Inotify</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">Errno::result</span>(<span class="kw">unsafe</span> {
             <span class="ident">libc::inotify_init1</span>(<a class="ident" href="../../../src/nix/sys/inotify.rs.html#146">flags</a>.<a class="ident" href="../../../src/nix/sys/inotify.rs.html#95-103">bits</a>())
         });
 
-        <a class="ident" href="../../../src/nix/sys/inotify.rs.html#147">res</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">fd</span><span class="op">|</span> <a class="ident" href="../../../src/nix/sys/inotify.rs.html#108-110">Inotify</a> { <a class="ident" href="../../../src/nix/sys/inotify.rs.html#151">fd</a> })
+        <a class="ident" href="../../../src/nix/sys/inotify.rs.html#147">res</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">fd</span><span class="op">|</span> <a class="ident" href="../../../src/nix/sys/inotify.rs.html#108">Inotify</a> { <a class="ident" href="../../../src/nix/sys/inotify.rs.html#151">fd</a> })
     }
 
     <span class="doccomment">/// Adds a new watch on the target file or directory.</span>
@@ -419,10 +419,10 @@
     <span class="doccomment">/// Returns a watch descriptor. This is not a File Descriptor!</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// For more information see, [inotify_add_watch(2)](https://man7.org/linux/man-pages/man2/inotify_add_watch.2.html).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_watch</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../../src/nix/lib.rs.html#184-196">NixPath</a><span class="op">&gt;</span>(<span class="self">self</span>,
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_watch</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="question-mark">?</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../../src/nix/lib.rs.html#184">NixPath</a><span class="op">&gt;</span>(<span class="self">self</span>,
                                           <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>,
                                           <span class="ident">mask</span>: <a class="ident" href="../../../src/nix/sys/inotify.rs.html#41-93">AddWatchFlags</a>)
-                                            -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/inotify.rs.html#116-118">WatchDescriptor</a><span class="op">&gt;</span>
+                                            -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/inotify.rs.html#116">WatchDescriptor</a><span class="op">&gt;</span>
     {
         <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">with_nix_path</span>(<span class="op">|</span><span class="ident">cstr</span><span class="op">|</span> {
             <span class="kw">unsafe</span> {
@@ -430,7 +430,7 @@
             }
         })<span class="question-mark">?</span>;
 
-        <span class="ident">Errno::result</span>(<a class="ident" href="../../../src/nix/sys/inotify.rs.html#164">res</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">wd</span><span class="op">|</span> <a class="ident" href="../../../src/nix/sys/inotify.rs.html#116-118">WatchDescriptor</a> { <a class="ident" href="../../../src/nix/sys/inotify.rs.html#170">wd</a> })
+        <span class="ident">Errno::result</span>(<a class="ident" href="../../../src/nix/sys/inotify.rs.html#164">res</a>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">wd</span><span class="op">|</span> <a class="ident" href="../../../src/nix/sys/inotify.rs.html#116">WatchDescriptor</a> { <a class="ident" href="../../../src/nix/sys/inotify.rs.html#170">wd</a> })
     }
 
     <span class="doccomment">/// Removes an existing watch using the watch descriptor returned by</span>
@@ -439,7 +439,7 @@
     <span class="doccomment">/// Returns an EINVAL error if the watch descriptor is invalid.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// For more information see, [inotify_rm_watch(2)](https://man7.org/linux/man-pages/man2/inotify_rm_watch.2.html).</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rm_watch</span>(<span class="self">self</span>, <span class="ident">wd</span>: <a class="ident" href="../../../src/nix/sys/inotify.rs.html#116-118">WatchDescriptor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">rm_watch</span>(<span class="self">self</span>, <span class="ident">wd</span>: <a class="ident" href="../../../src/nix/sys/inotify.rs.html#116">WatchDescriptor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="macro">cfg_if!</span> {
             <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)]</span> {
                 <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <a class="ident" href="../../../src/nix/sys/inotify.rs.html#179">wd</a>.<span class="ident">wd</span>;
@@ -458,7 +458,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns as many events as available. If the call was non blocking and no</span>
     <span class="doccomment">/// events could be read then the EAGAIN error is returned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_events</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/inotify.rs.html#124-138">InotifyEvent</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_events</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/nix/sys/inotify.rs.html#124">InotifyEvent</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">header_size</span> <span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><a class="ident" href="../../../libc/unix/linux_like/linux/struct.inotify_event.html">libc::inotify_event</a><span class="op">&gt;</span>();
         <span class="kw">const</span> <span class="ident">BUFSIZ</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">4096</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <a class="ident" href="../../../src/nix/sys/inotify.rs.html#200">BUFSIZ</a>];
@@ -507,17 +507,17 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/inotify.rs.html#108-110">Inotify</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.AsRawFd.html">AsRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/inotify.rs.html#108">Inotify</a> {
     <span class="kw">fn</span> <span class="ident">as_raw_fd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a> {
         <a class="self" href="../../../src/nix/sys/inotify.rs.html#248">self</a>.<span class="ident">fd</span>
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/inotify.rs.html#108-110">Inotify</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/trait.FromRawFd.html">FromRawFd</a> <span class="kw">for</span> <a class="ident" href="../../../src/nix/sys/inotify.rs.html#108">Inotify</a> {
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_fd</span>(<span class="ident">fd</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/os/fd/raw/type.RawFd.html">RawFd</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../src/nix/sys/inotify.rs.html#108-110">Inotify</a> { <a class="ident" href="../../../src/nix/sys/inotify.rs.html#254">fd</a> }
+        <a class="ident" href="../../../src/nix/sys/inotify.rs.html#108">Inotify</a> { <a class="ident" href="../../../src/nix/sys/inotify.rs.html#254">fd</a> }
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="nix" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

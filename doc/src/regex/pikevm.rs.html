@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.5.6/src/pikevm.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pikevm.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.6.0/src/pikevm.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>pikevm.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../regex/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
@@ -384,10 +384,10 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 
 <span class="kw">use</span> <a class="ident" href="../../src/regex/exec.rs.html#1521"><span class="kw">crate</span>::exec::ProgramCache</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::input</span>::{<a class="ident" href="../../src/regex/input.rs.html#67-102">Input</a>, <a class="ident" href="../../src/regex/input.rs.html#13-18">InputAt</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::prog</span>::{<a class="ident" href="../../src/regex/prog.rs.html#13">InstPtr</a>, <a class="ident" href="../../src/regex/prog.rs.html#18-75">Program</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::input</span>::{<a class="ident" href="../../src/regex/input.rs.html#67">Input</a>, <a class="ident" href="../../src/regex/input.rs.html#13">InputAt</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::prog</span>::{<a class="ident" href="../../src/regex/prog.rs.html#13">InstPtr</a>, <a class="ident" href="../../src/regex/prog.rs.html#18">Program</a>};
 <span class="kw">use</span> <a class="ident" href="../../src/regex/re_trait.rs.html#7"><span class="kw">crate</span>::re_trait::Slot</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/regex/sparse.rs.html#16-25"><span class="kw">crate</span>::sparse::SparseSet</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/regex/sparse.rs.html#16"><span class="kw">crate</span>::sparse::SparseSet</a>;
 
 <span class="doccomment">/// An NFA simulation matching engine.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -395,10 +395,10 @@
     <span class="doccomment">/// The sequence of opcodes (among other things) that is actually executed.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The program may be byte oriented or Unicode codepoint oriented.</span>
-    <span class="ident">prog</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <a class="ident" href="../../src/regex/prog.rs.html#18-75">Program</a>,
+    <span class="ident">prog</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <a class="ident" href="../../src/regex/prog.rs.html#18">Program</a>,
     <span class="doccomment">/// An explicit stack used for following epsilon transitions. (This is</span>
     <span class="doccomment">/// borrowed from the cache.)</span>
-    <span class="ident">stack</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/pikevm.rs.html#68-73">FollowEpsilon</a><span class="op">&gt;</span>,
+    <span class="ident">stack</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="kw-2">mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/pikevm.rs.html#68">FollowEpsilon</a><span class="op">&gt;</span>,
     <span class="doccomment">/// The input to search.</span>
     <span class="ident">input</span>: <span class="ident">I</span>,
 }
@@ -407,17 +407,17 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cache</span> {
     <span class="doccomment">/// A pair of ordered sets for tracking NFA states.</span>
-    <span class="ident">clist</span>: <a class="ident" href="../../src/regex/pikevm.rs.html#52-63">Threads</a>,
-    <span class="ident">nlist</span>: <a class="ident" href="../../src/regex/pikevm.rs.html#52-63">Threads</a>,
+    <span class="ident">clist</span>: <a class="ident" href="../../src/regex/pikevm.rs.html#52">Threads</a>,
+    <span class="ident">nlist</span>: <a class="ident" href="../../src/regex/pikevm.rs.html#52">Threads</a>,
     <span class="doccomment">/// An explicit stack used for following epsilon transitions.</span>
-    <span class="ident">stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/pikevm.rs.html#68-73">FollowEpsilon</a><span class="op">&gt;</span>,
+    <span class="ident">stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/regex/pikevm.rs.html#68">FollowEpsilon</a><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// An ordered set of NFA states and their captures.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Threads</span> {
     <span class="doccomment">/// An ordered set of opcodes (each opcode is an NFA state).</span>
-    <span class="ident">set</span>: <a class="ident" href="../../src/regex/sparse.rs.html#16-25">SparseSet</a>,
+    <span class="ident">set</span>: <a class="ident" href="../../src/regex/sparse.rs.html#16">SparseSet</a>,
     <span class="doccomment">/// Captures for every NFA state.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// It is stored in row-major order, where the columns are the capture</span>
@@ -438,21 +438,21 @@
     <span class="ident">Capture</span> { <span class="ident">slot</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">pos</span>: <a class="ident" href="../../src/regex/re_trait.rs.html#7">Slot</a> },
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/regex/pikevm.rs.html#42-48">Cache</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/regex/pikevm.rs.html#42">Cache</a> {
     <span class="doccomment">/// Create a new allocation used by the NFA machine to record execution</span>
     <span class="doccomment">/// and captures.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">_prog</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/prog.rs.html#18-75">Program</a>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/regex/pikevm.rs.html#42-48">Cache</a> { <span class="ident">clist</span>: <span class="ident">Threads::new</span>(), <span class="ident">nlist</span>: <span class="ident">Threads::new</span>(), <span class="ident">stack</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[] }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">_prog</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/prog.rs.html#18">Program</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../src/regex/pikevm.rs.html#42">Cache</a> { <span class="ident">clist</span>: <span class="ident">Threads::new</span>(), <span class="ident">nlist</span>: <span class="ident">Threads::new</span>(), <span class="ident">stack</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[] }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">I</span>: <a class="ident" href="../../src/regex/input.rs.html#67-102">Input</a><span class="op">&gt;</span> <span class="ident">Fsm</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">I</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">I</span>: <a class="ident" href="../../src/regex/input.rs.html#67">Input</a><span class="op">&gt;</span> <span class="ident">Fsm</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span>, <span class="ident">I</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Execute the NFA matching engine.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If there&#39;s a match, `exec` returns `true` and populates the given</span>
     <span class="doccomment">/// captures accordingly.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exec</span>(
-        <span class="ident">prog</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <a class="ident" href="../../src/regex/prog.rs.html#18-75">Program</a>,
+        <span class="ident">prog</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <a class="ident" href="../../src/regex/prog.rs.html#18">Program</a>,
         <span class="ident">cache</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/regex/exec.rs.html#1521">ProgramCache</a>,
         <span class="ident">matches</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
         <span class="ident">slots</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="../../src/regex/re_trait.rs.html#7">Slot</a>],
@@ -466,7 +466,7 @@
         <a class="ident" href="../../src/regex/pikevm.rs.html#99">cache</a>.<span class="ident">clist</span>.<a class="ident" href="../../src/regex/pikevm.rs.html#347">resize</a>(<a class="ident" href="../../src/regex/pikevm.rs.html#89">prog</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/regex/pikevm.rs.html#89">prog</a>.<span class="ident">captures</span>.<span class="ident">len</span>());
         <a class="ident" href="../../src/regex/pikevm.rs.html#99">cache</a>.<span class="ident">nlist</span>.<a class="ident" href="../../src/regex/pikevm.rs.html#347">resize</a>(<a class="ident" href="../../src/regex/pikevm.rs.html#89">prog</a>.<span class="ident">len</span>(), <a class="ident" href="../../src/regex/pikevm.rs.html#89">prog</a>.<span class="ident">captures</span>.<span class="ident">len</span>());
         <span class="kw">let</span> <span class="ident">at</span> <span class="op">=</span> <a class="ident" href="../../src/regex/pikevm.rs.html#94">input</a>.<a class="ident" href="../../src/regex/input.rs.html#69">at</a>(<a class="ident" href="../../src/regex/pikevm.rs.html#95">start</a>);
-        <a class="ident" href="../../src/regex/pikevm.rs.html#28-38">Fsm</a> { <span class="ident">prog</span>: <a class="ident" href="../../src/regex/pikevm.rs.html#89">prog</a>, <span class="ident">stack</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/regex/pikevm.rs.html#99">cache</a>.<span class="ident">stack</span>, <span class="ident">input</span>: <a class="ident" href="../../src/regex/pikevm.rs.html#94">input</a> }.<a class="ident" href="../../src/regex/pikevm.rs.html#114-123">exec_</a>(
+        <a class="ident" href="../../src/regex/pikevm.rs.html#28">Fsm</a> { <a class="ident" href="../../src/regex/pikevm.rs.html#89">prog</a>, <span class="ident">stack</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/regex/pikevm.rs.html#99">cache</a>.<span class="ident">stack</span>, <a class="ident" href="../../src/regex/pikevm.rs.html#94">input</a> }.<a class="ident" href="../../src/regex/pikevm.rs.html#114-123">exec_</a>(
             <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/regex/pikevm.rs.html#99">cache</a>.<span class="ident">clist</span>,
             <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/regex/pikevm.rs.html#99">cache</a>.<span class="ident">nlist</span>,
             <a class="ident" href="../../src/regex/pikevm.rs.html#91">matches</a>,
@@ -479,12 +479,12 @@
 
     <span class="kw">fn</span> <span class="ident">exec_</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="kw-2">mut</span> <span class="ident">clist</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/regex/pikevm.rs.html#52-63">Threads</a>,
-        <span class="kw-2">mut</span> <span class="ident">nlist</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/regex/pikevm.rs.html#52-63">Threads</a>,
+        <span class="kw-2">mut</span> <span class="ident">clist</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/regex/pikevm.rs.html#52">Threads</a>,
+        <span class="kw-2">mut</span> <span class="ident">nlist</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/regex/pikevm.rs.html#52">Threads</a>,
         <span class="ident">matches</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
         <span class="ident">slots</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="../../src/regex/re_trait.rs.html#7">Slot</a>],
         <span class="ident">quit_after_match</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        <span class="kw-2">mut</span> <span class="ident">at</span>: <a class="ident" href="../../src/regex/input.rs.html#13-18">InputAt</a>,
+        <span class="kw-2">mut</span> <span class="ident">at</span>: <a class="ident" href="../../src/regex/input.rs.html#13">InputAt</a>,
         <span class="ident">end</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matched</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -589,15 +589,15 @@
     <span class="doccomment">/// at_next may be EOF.</span>
     <span class="kw">fn</span> <span class="ident">step</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">nlist</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/regex/pikevm.rs.html#52-63">Threads</a>,
+        <span class="ident">nlist</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/regex/pikevm.rs.html#52">Threads</a>,
         <span class="ident">matches</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>],
         <span class="ident">slots</span>: <span class="kw-2">&amp;mut</span> [<a class="ident" href="../../src/regex/re_trait.rs.html#7">Slot</a>],
         <span class="ident">thread_caps</span>: <span class="kw-2">&amp;mut</span> [<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>],
         <span class="ident">ip</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">at</span>: <a class="ident" href="../../src/regex/input.rs.html#13-18">InputAt</a>,
-        <span class="ident">at_next</span>: <a class="ident" href="../../src/regex/input.rs.html#13-18">InputAt</a>,
+        <span class="ident">at</span>: <a class="ident" href="../../src/regex/input.rs.html#13">InputAt</a>,
+        <span class="ident">at_next</span>: <a class="ident" href="../../src/regex/input.rs.html#13">InputAt</a>,
     ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">use</span> <a class="ident" href="../../src/regex/prog.rs.html#268-296"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <a class="ident" href="../../src/regex/prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
         <span class="kw">match</span> <a class="self" href="../../src/regex/pikevm.rs.html#225">self</a>.<span class="ident">prog</span>[<a class="ident" href="../../src/regex/pikevm.rs.html#230">ip</a>] {
             <a class="ident" href="../../src/regex/prog.rs.html#276">Match</a>(<span class="ident">match_slot</span>) =&gt; {
                 <span class="kw">if</span> <span class="ident">match_slot</span> <span class="op">&lt;</span> <span class="ident">matches</span>.<span class="ident">len</span>() {
@@ -636,10 +636,10 @@
     <span class="doccomment">/// starting at and including ip.</span>
     <span class="kw">fn</span> <span class="ident">add</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">nlist</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/regex/pikevm.rs.html#52-63">Threads</a>,
+        <span class="ident">nlist</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/regex/pikevm.rs.html#52">Threads</a>,
         <span class="ident">thread_caps</span>: <span class="kw-2">&amp;mut</span> [<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>],
         <span class="ident">ip</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">at</span>: <a class="ident" href="../../src/regex/input.rs.html#13-18">InputAt</a>,
+        <span class="ident">at</span>: <a class="ident" href="../../src/regex/input.rs.html#13">InputAt</a>,
     ) {
         <a class="self" href="../../src/regex/pikevm.rs.html#272">self</a>.<span class="ident">stack</span>.<span class="ident">push</span>(<a class="ident" href="../../src/regex/pikevm.rs.html#70">FollowEpsilon::IP</a>(<a class="ident" href="../../src/regex/pikevm.rs.html#275">ip</a>));
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">stack</span>.<span class="ident">pop</span>() {
@@ -657,16 +657,16 @@
     <span class="doccomment">/// A helper function for add that avoids excessive pushing to the stack.</span>
     <span class="kw">fn</span> <span class="ident">add_step</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">nlist</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/regex/pikevm.rs.html#52-63">Threads</a>,
+        <span class="ident">nlist</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/regex/pikevm.rs.html#52">Threads</a>,
         <span class="ident">thread_caps</span>: <span class="kw-2">&amp;mut</span> [<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span>],
         <span class="kw-2">mut</span> <span class="ident">ip</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
-        <span class="ident">at</span>: <a class="ident" href="../../src/regex/input.rs.html#13-18">InputAt</a>,
+        <span class="ident">at</span>: <a class="ident" href="../../src/regex/input.rs.html#13">InputAt</a>,
     ) {
         <span class="comment">// Instead of pushing and popping to the stack, we mutate ip as we</span>
         <span class="comment">// traverse the set of states. We only push to the stack when we</span>
         <span class="comment">// absolutely need recursion (restoring captures or following a</span>
         <span class="comment">// branch).</span>
-        <span class="kw">use</span> <a class="ident" href="../../src/regex/prog.rs.html#268-296"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <a class="ident" href="../../src/regex/prog.rs.html#268"><span class="kw">crate</span>::prog::Inst</a>::<span class="kw-2">*</span>;
         <span class="kw">loop</span> {
             <span class="comment">// Don&#39;t visit states we&#39;ve already added.</span>
             <span class="kw">if</span> <span class="ident">nlist</span>.<span class="ident">set</span>.<span class="ident">contains</span>(<span class="ident">ip</span>) {
@@ -705,9 +705,9 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/regex/pikevm.rs.html#52-63">Threads</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/regex/pikevm.rs.html#52">Threads</a> {
     <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/regex/pikevm.rs.html#52-63">Threads</a> { <span class="ident">set</span>: <span class="ident">SparseSet::new</span>(<span class="number">0</span>), <span class="ident">caps</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], <span class="ident">slots_per_thread</span>: <span class="number">0</span> }
+        <a class="ident" href="../../src/regex/pikevm.rs.html#52">Threads</a> { <span class="ident">set</span>: <span class="ident">SparseSet::new</span>(<span class="number">0</span>), <span class="ident">caps</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[], <span class="ident">slots_per_thread</span>: <span class="number">0</span> }
     }
 
     <span class="kw">fn</span> <span class="ident">resize</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">num_insts</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">ncaps</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) {
@@ -725,5 +725,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="regex" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

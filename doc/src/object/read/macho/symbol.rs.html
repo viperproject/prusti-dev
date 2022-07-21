@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.28.4/src/read/macho/symbol.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>symbol.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/object-0.29.0/src/read/macho/symbol.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>symbol.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../object/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
@@ -496,23 +496,23 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/macros/derive.Debug.html">core::fmt::Debug</a>;
 <span class="kw">use</span> <span class="ident">core</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/index.html">fmt</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/slice/index.html">slice</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/index.html">str</a>};
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::endian</span>::{<a class="self" href="../../../../src/object/lib.rs.html#90">self</a>, <a class="ident" href="../../../../src/object/endian.rs.html#278-283">Endianness</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::endian</span>::{<a class="self" href="../../../../src/object/lib.rs.html#90">self</a>, <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>};
 <span class="kw">use</span> <a class="ident" href="../../../../src/object/lib.rs.html#110"><span class="kw">crate</span>::macho</a>;
 <span class="kw">use</span> <a class="ident" href="../../../../src/object/pod.rs.html#21"><span class="kw">crate</span>::pod::Pod</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/object/read/util.rs.html#232-240"><span class="kw">crate</span>::read::util::StringTable</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/object/read/util.rs.html#232"><span class="kw">crate</span>::read::util::StringTable</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{
-    <a class="self" href="../../../../src/object/lib.rs.html#98">self</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#378-381">ObjectMap</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#406-411">ObjectMapEntry</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#397-456">ObjectSymbol</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#376-394">ObjectSymbolTable</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#79-81">ReadError</a>, <a class="ident" href="../../../../src/object/read/read_ref.rs.html#37-112">ReadRef</a>, <span class="prelude-ty">Result</span>,
-    <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>, <a class="ident" href="../../../../src/object/common.rs.html#96-178">SectionKind</a>, <a class="ident" href="../../../../src/object/common.rs.html#424-446">SymbolFlags</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>, <a class="ident" href="../../../../src/object/common.rs.html#227-244">SymbolKind</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#309-311">SymbolMap</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#302-305">SymbolMapEntry</a>,
-    <a class="ident" href="../../../../src/object/common.rs.html#248-257">SymbolScope</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#272-285">SymbolSection</a>,
+    <a class="self" href="../../../../src/object/lib.rs.html#98">self</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#378">ObjectMap</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#406">ObjectMapEntry</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#397">ObjectSymbol</a>, <a class="ident" href="../../../../src/object/read/traits.rs.html#376">ObjectSymbolTable</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#79">ReadError</a>, <a class="ident" href="../../../../src/object/read/read_ref.rs.html#37">ReadRef</a>, <span class="prelude-ty">Result</span>,
+    <a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a>, <a class="ident" href="../../../../src/object/common.rs.html#96">SectionKind</a>, <a class="ident" href="../../../../src/object/common.rs.html#428">SymbolFlags</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#267">SymbolIndex</a>, <a class="ident" href="../../../../src/object/common.rs.html#227">SymbolKind</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#309">SymbolMap</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#302">SymbolMapEntry</a>,
+    <a class="ident" href="../../../../src/object/common.rs.html#248">SymbolScope</a>, <a class="ident" href="../../../../src/object/read/mod.rs.html#272">SymbolSection</a>,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/object/read/macho/file.rs.html#554-633">MachHeader</a>, <a class="ident" href="../../../../src/object/read/macho/file.rs.html#29-41">MachOFile</a>};
+<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>, <a class="ident" href="../../../../src/object/read/macho/file.rs.html#29">MachOFile</a>};
 
 <span class="doccomment">/// A table of symbol entries in a Mach-O file.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Also includes the string table used for the symbol names.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554-633">MachHeader</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
@@ -520,19 +520,19 @@
     <span class="ident">strings</span>: <span class="ident">StringTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554-633">MachHeader</a>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">SymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">SymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#21-27">SymbolTable</a> {
+        <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#21">SymbolTable</a> {
             <span class="ident">symbols</span>: <span class="kw-2">&amp;</span>[],
             <span class="ident">strings</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default::default</a>(),
         }
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554-633">MachHeader</a>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>, <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">SymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">symbols</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<span class="ident">Mach::Nlist</span>], <span class="ident">strings</span>: <span class="ident">StringTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#21-27">SymbolTable</a> { <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#40">symbols</a>, <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#40">strings</a> }
+        <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#21">SymbolTable</a> { <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#40">symbols</a>, <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#40">strings</a> }
     }
 
     <span class="doccomment">/// Return the string table used for the symbol names.</span>
@@ -567,7 +567,7 @@
     }
 
     <span class="doccomment">/// Construct a map from addresses to a user-defined map entry.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">Entry</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#302-305">SymbolMapEntry</a>, <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">Mach::Nlist</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Entry</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">map</span><span class="op">&lt;</span><span class="ident">Entry</span>: <a class="ident" href="../../../../src/object/read/mod.rs.html#302">SymbolMapEntry</a>, <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> <span class="ident">Mach::Nlist</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Entry</span><span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">f</span>: <span class="ident">F</span>,
     ) -&gt; <span class="ident">SymbolMap</span><span class="op">&lt;</span><span class="ident">Entry</span><span class="op">&gt;</span> {
@@ -630,7 +630,7 @@
                 <span class="kw">_</span> =&gt; {}
             }
         }
-        <a class="ident" href="../../../../src/object/read/mod.rs.html#378-381">ObjectMap</a> {
+        <a class="ident" href="../../../../src/object/read/mod.rs.html#378">ObjectMap</a> {
             <span class="ident">symbols</span>: <span class="ident">SymbolMap::new</span>(<a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#94">symbols</a>),
             <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#95">objects</a>,
         }
@@ -638,17 +638,17 @@
 }
 
 <span class="doccomment">/// An iterator over the symbols of a `MachOFile32`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSymbolTable32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278-283">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSymbolTable32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
     <span class="ident">MachOSymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
 <span class="doccomment">/// An iterator over the symbols of a `MachOFile64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSymbolTable64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278-283">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSymbolTable64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
     <span class="ident">MachOSymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// A symbol table of a `MachOFile`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MachOSymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554-633">MachHeader</a>,
+    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">MachOFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>,
@@ -656,21 +656,21 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/mod.rs.html#59">read::private::Sealed</a> <span class="kw">for</span> <span class="ident">MachOSymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554-633">MachHeader</a>,
+    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">ObjectSymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MachOSymbolTable</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554-633">MachHeader</a>,
+    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">Symbol</span> <span class="op">=</span> <span class="ident">MachOSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>;
     <span class="kw">type</span> <span class="ident">SymbolIterator</span> <span class="op">=</span> <span class="ident">MachOSymbolIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">symbols</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::SymbolIterator</span> {
-        <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#199-206">MachOSymbolIterator</a> {
+        <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#199">MachOSymbolIterator</a> {
             <span class="ident">file</span>: <a class="self" href="../../../../src/object/read/macho/symbol.rs.html#178">self</a>.<span class="ident">file</span>,
             <span class="ident">index</span>: <span class="number">0</span>,
         }
@@ -683,16 +683,16 @@
 }
 
 <span class="doccomment">/// An iterator over the symbols of a `MachOFile32`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSymbolIterator32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278-283">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSymbolIterator32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
     <span class="ident">MachOSymbolIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
 <span class="doccomment">/// An iterator over the symbols of a `MachOFile64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSymbolIterator64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278-283">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSymbolIterator64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
     <span class="ident">MachOSymbolIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// An iterator over the symbols of a `MachOFile`.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MachOSymbolIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554-633">MachHeader</a>,
+    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">MachOFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>,
@@ -701,7 +701,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <span class="ident">MachOSymbolIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554-633">MachHeader</a>,
+    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
@@ -711,7 +711,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">Iterator</a> <span class="kw">for</span> <span class="ident">MachOSymbolIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554-633">MachHeader</a>,
+    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">MachOSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>;
@@ -729,17 +729,17 @@
 }
 
 <span class="doccomment">/// A symbol of a `MachOFile32`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSymbol32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278-283">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSymbol32</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
     <span class="ident">MachOSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
 <span class="doccomment">/// A symbol of a `MachOFile64`.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSymbol64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278-283">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MachOSymbol64</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Endian</span> <span class="op">=</span> <a class="ident" href="../../../../src/object/endian.rs.html#278">Endianness</a>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span> <span class="op">=</span>
     <span class="ident">MachOSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">macho::MachHeader64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span>, <span class="ident">R</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// A symbol of a `MachOFile`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MachOSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;data</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>]<span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554-633">MachHeader</a>,
+    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="ident">file</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;file</span> <span class="ident">MachOFile</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>,
@@ -749,7 +749,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">MachOSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554-633">MachHeader</a>,
+    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(
@@ -760,20 +760,20 @@
         <span class="kw">if</span> <span class="ident">nlist</span>.<span class="ident">n_type</span>() <span class="op">&amp;</span> <span class="ident">macho::N_STAB</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">None</span>;
         }
-        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#246-254">MachOSymbol</a> { <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#262">file</a>, <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#263">index</a>, <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#264">nlist</a> })
+        <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#246">MachOSymbol</a> { <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#262">file</a>, <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#263">index</a>, <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#264">nlist</a> })
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/mod.rs.html#59">read::private::Sealed</a> <span class="kw">for</span> <span class="ident">MachOSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554-633">MachHeader</a>,
+    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">ObjectSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MachOSymbol</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="lifetime">&#39;file</span>, <span class="ident">Mach</span>, <span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554-633">MachHeader</a>,
+    <span class="ident">Mach</span>: <a class="ident" href="../../../../src/object/read/macho/file.rs.html#554">MachHeader</a>,
     <span class="ident">R</span>: <span class="ident">ReadRef</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -802,7 +802,7 @@
         <span class="number">0</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#227-244">SymbolKind</a> {
+    <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#227">SymbolKind</a> {
         <a class="self" href="../../../../src/object/read/macho/symbol.rs.html#311">self</a>.<a class="ident" href="../../../../src/object/read/traits.rs.html#419">section</a>()
             .<a class="ident" href="../../../../src/object/read/mod.rs.html#292">index</a>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">index</span><span class="op">|</span> <a class="self" href="../../../../src/object/read/macho/symbol.rs.html#311">self</a>.<span class="ident">file</span>.<a class="ident" href="../../../../src/object/read/macho/file.rs.html#146-149">section_internal</a>(<a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#314">index</a>).<span class="ident">ok</span>())
@@ -821,7 +821,7 @@
             .<span class="ident">unwrap_or</span>(<a class="ident" href="../../../../src/object/common.rs.html#229">SymbolKind::Unknown</a>)
     }
 
-    <span class="kw">fn</span> <span class="ident">section</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/read/mod.rs.html#272-285">SymbolSection</a> {
+    <span class="kw">fn</span> <span class="ident">section</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/read/mod.rs.html#272">SymbolSection</a> {
         <span class="kw">match</span> <a class="self" href="../../../../src/object/read/macho/symbol.rs.html#330">self</a>.<span class="ident">nlist</span>.<a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#404">n_type</a>() <span class="op">&amp;</span> <a class="ident" href="../../../../src/object/macho.rs.html#2393">macho::N_TYPE</a> {
             <a class="ident" href="../../../../src/object/macho.rs.html#2408">macho::N_UNDF</a> =&gt; <a class="ident" href="../../../../src/object/read/mod.rs.html#278">SymbolSection::Undefined</a>,
             <a class="ident" href="../../../../src/object/macho.rs.html#2410">macho::N_ABS</a> =&gt; <a class="ident" href="../../../../src/object/read/mod.rs.html#280">SymbolSection::Absolute</a>,
@@ -858,7 +858,7 @@
         <a class="self" href="../../../../src/object/read/macho/symbol.rs.html#363">self</a>.<span class="ident">nlist</span>.<a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#406">n_desc</a>(<a class="self" href="../../../../src/object/read/macho/symbol.rs.html#363">self</a>.<span class="ident">file</span>.<span class="ident">endian</span>) <span class="op">&amp;</span> (<a class="ident" href="../../../../src/object/macho.rs.html#2558">macho::N_WEAK_REF</a> <span class="op">|</span> <a class="ident" href="../../../../src/object/macho.rs.html#2567">macho::N_WEAK_DEF</a>) <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">scope</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#248-257">SymbolScope</a> {
+    <span class="kw">fn</span> <span class="ident">scope</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/object/common.rs.html#248">SymbolScope</a> {
         <span class="kw">let</span> <span class="ident">n_type</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/symbol.rs.html#367">self</a>.<span class="ident">nlist</span>.<a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#404">n_type</a>();
         <span class="kw">if</span> <span class="ident">n_type</span> <span class="op">&amp;</span> <span class="ident">macho::N_TYPE</span> <span class="op">==</span> <span class="ident">macho::N_UNDF</span> {
             <a class="ident" href="../../../../src/object/common.rs.html#250">SymbolScope::Unknown</a>
@@ -884,7 +884,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">SymbolFlags</span><span class="op">&lt;</span><a class="ident" href="../../../../src/object/read/mod.rs.html#263">SectionIndex</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">n_desc</span> <span class="op">=</span> <a class="self" href="../../../../src/object/read/macho/symbol.rs.html#391">self</a>.<span class="ident">nlist</span>.<a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#406">n_desc</a>(<a class="self" href="../../../../src/object/read/macho/symbol.rs.html#391">self</a>.<span class="ident">file</span>.<span class="ident">endian</span>);
-        <a class="ident" href="../../../../src/object/common.rs.html#435-438">SymbolFlags::MachO</a> { <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#392">n_desc</a> }
+        <a class="ident" href="../../../../src/object/common.rs.html#439">SymbolFlags::MachO</a> { <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#392">n_desc</a> }
     }
 }
 
@@ -892,7 +892,7 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Nlist</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">Debug</a> <span class="op">+</span> <a class="ident" href="../../../../src/object/pod.rs.html#21">Pod</a> {
     <span class="kw">type</span> <span class="ident">Word</span>: <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a><span class="op">&gt;</span>;
-    <span class="kw">type</span> <span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13-274">endian::Endian</a>;
+    <span class="kw">type</span> <span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a>;
 
     <span class="kw">fn</span> <span class="ident">n_strx</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">endian</span>: <span class="ident"><span class="self">Self</span>::Endian</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
     <span class="kw">fn</span> <span class="ident">n_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>;
@@ -939,7 +939,7 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13-274">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#399-446">Nlist</a> <span class="kw">for</span> <span class="ident">macho::Nlist32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#399">Nlist</a> <span class="kw">for</span> <span class="ident">macho::Nlist32</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Word</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>;
     <span class="kw">type</span> <span class="ident">Endian</span> <span class="op">=</span> <span class="ident">Endian</span>;
 
@@ -960,7 +960,7 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13-274">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#399-446">Nlist</a> <span class="kw">for</span> <span class="ident">macho::Nlist64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Endian</span>: <a class="ident" href="../../../../src/object/endian.rs.html#13">endian::Endian</a><span class="op">&gt;</span> <a class="ident" href="../../../../src/object/read/macho/symbol.rs.html#399">Nlist</a> <span class="kw">for</span> <span class="ident">macho::Nlist64</span><span class="op">&lt;</span><span class="ident">Endian</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Word</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>;
     <span class="kw">type</span> <span class="ident">Endian</span> <span class="op">=</span> <span class="ident">Endian</span>;
 
@@ -981,5 +981,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="object" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

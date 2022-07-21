@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/sync/mpsc/list.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>list.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.0/src/sync/mpsc/list.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>list.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
@@ -377,9 +377,9 @@
 <span id="371">371</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A concurrent, lock-free, FIFO list.</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::loom::sync::atomic</span>::{<a class="ident" href="../../../../src/tokio/loom/std/atomic_ptr.rs.html#5-7">AtomicPtr</a>, <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>};
-<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/mod.rs.html#97-108"><span class="kw">crate</span>::loom::thread</a>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::sync::mpsc::block</span>::{<a class="self" href="../../../../src/tokio/sync/mpsc/mod.rs.html#90">self</a>, <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#12-32">Block</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::loom::sync::atomic</span>::{<a class="ident" href="../../../../src/tokio/loom/std/atomic_ptr.rs.html#5">AtomicPtr</a>, <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>};
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/mod.rs.html#97"><span class="kw">crate</span>::loom::thread</a>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::sync::mpsc::block</span>::{<a class="self" href="../../../../src/tokio/sync/mpsc/mod.rs.html#90">self</a>, <a class="ident" href="../../../../src/tokio/sync/mpsc/block.rs.html#12">Block</a>};
 
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">std::fmt</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/non_null/struct.NonNull.html">std::ptr::NonNull</a>;
@@ -392,7 +392,7 @@
 
     <span class="doccomment">/// Position to push the next message. This references a block and offset</span>
     <span class="doccomment">/// into the block.</span>
-    <span class="ident">tail_position</span>: <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6-8">AtomicUsize</a>,
+    <span class="ident">tail_position</span>: <a class="ident" href="../../../../src/tokio/loom/std/atomic_usize.rs.html#6">AtomicUsize</a>,
 }
 
 <span class="doccomment">/// List queue receive handle</span>
@@ -424,14 +424,14 @@
     <span class="kw">let</span> <span class="ident">initial_block</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">Block::new</span>(<span class="number">0</span>));
     <span class="kw">let</span> <span class="ident">initial_block_ptr</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#47">initial_block</a>);
 
-    <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#12-19">Tx</a> {
+    <span class="kw">let</span> <span class="ident">tx</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#12">Tx</a> {
         <span class="ident">block_tail</span>: <span class="ident">AtomicPtr::new</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#48">initial_block_ptr</a>),
         <span class="ident">tail_position</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>),
     };
 
     <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="ident">NonNull::new</span>(<a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#48">initial_block_ptr</a>).<span class="ident">unwrap</span>();
 
-    <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#22-31">Rx</a> {
+    <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#22">Rx</a> {
         <a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#55">head</a>,
         <span class="ident">index</span>: <span class="number">0</span>,
         <span class="ident">free_head</span>: <a class="ident" href="../../../../src/tokio/sync/mpsc/list.rs.html#55">head</a>,
@@ -747,5 +747,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

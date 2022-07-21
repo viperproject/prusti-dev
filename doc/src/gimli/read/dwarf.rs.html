@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.1/src/read/dwarf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dwarf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/gimli-0.26.2/src/read/dwarf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dwarf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../gimli/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
@@ -1153,18 +1153,18 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::common</span>::{
     <a class="ident" href="../../../src/gimli/common.rs.html#96">DebugAddrBase</a>, <a class="ident" href="../../../src/gimli/common.rs.html#100">DebugAddrIndex</a>, <a class="ident" href="../../../src/gimli/common.rs.html#108">DebugInfoOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#116">DebugLineStrOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#125">DebugLocListsBase</a>,
     <a class="ident" href="../../../src/gimli/common.rs.html#129">DebugLocListsIndex</a>, <a class="ident" href="../../../src/gimli/common.rs.html#154">DebugRngListsBase</a>, <a class="ident" href="../../../src/gimli/common.rs.html#158">DebugRngListsIndex</a>, <a class="ident" href="../../../src/gimli/common.rs.html#162">DebugStrOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#166">DebugStrOffsetsBase</a>,
-    <a class="ident" href="../../../src/gimli/common.rs.html#170">DebugStrOffsetsIndex</a>, <a class="ident" href="../../../src/gimli/common.rs.html#178">DebugTypeSignature</a>, <a class="ident" href="../../../src/gimli/common.rs.html#174">DebugTypesOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#351-357">DwarfFileType</a>, <a class="ident" href="../../../src/gimli/common.rs.html#346">DwoId</a>, <a class="ident" href="../../../src/gimli/common.rs.html#37-48">Encoding</a>,
-    <a class="ident" href="../../../src/gimli/common.rs.html#121">LocationListsOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#150">RangeListsOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#145">RawRangeListsOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#245-290">SectionId</a>, <a class="ident" href="../../../src/gimli/common.rs.html#204-209">UnitSectionOffset</a>,
+    <a class="ident" href="../../../src/gimli/common.rs.html#170">DebugStrOffsetsIndex</a>, <a class="ident" href="../../../src/gimli/common.rs.html#178">DebugTypeSignature</a>, <a class="ident" href="../../../src/gimli/common.rs.html#174">DebugTypesOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#351">DwarfFileType</a>, <a class="ident" href="../../../src/gimli/common.rs.html#346">DwoId</a>, <a class="ident" href="../../../src/gimli/common.rs.html#37">Encoding</a>,
+    <a class="ident" href="../../../src/gimli/common.rs.html#121">LocationListsOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#150">RangeListsOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#145">RawRangeListsOffset</a>, <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a>, <a class="ident" href="../../../src/gimli/common.rs.html#204">UnitSectionOffset</a>,
 };
 <span class="kw">use</span> <a class="ident" href="../../../src/gimli/lib.rs.html#57"><span class="kw">crate</span>::constants</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::read</span>::{
-    <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#109-112">Abbreviations</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#944-1117">AttributeValue</a>, <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#19-21">DebugAbbrev</a>, <a class="ident" href="../../../src/gimli/read/addr.rs.html#6-8">DebugAddr</a>, <a class="ident" href="../../../src/gimli/read/aranges.rs.html#8-10">DebugAranges</a>, <a class="ident" href="../../../src/gimli/read/index.rs.html#12-14">DebugCuIndex</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#83-85">DebugInfo</a>,
-    <a class="ident" href="../../../src/gimli/read/unit.rs.html#190-193">DebugInfoUnitHeadersIter</a>, <a class="ident" href="../../../src/gimli/read/line.rs.html#17-19">DebugLine</a>, <a class="ident" href="../../../src/gimli/read/str.rs.html#204-206">DebugLineStr</a>, <a class="ident" href="../../../src/gimli/read/loclists.rs.html#14-16">DebugLoc</a>, <a class="ident" href="../../../src/gimli/read/loclists.rs.html#60-62">DebugLocLists</a>, <a class="ident" href="../../../src/gimli/read/rnglists.rs.html#60-62">DebugRngLists</a>,
-    <a class="ident" href="../../../src/gimli/read/str.rs.html#12-14">DebugStr</a>, <a class="ident" href="../../../src/gimli/read/str.rs.html#101-103">DebugStrOffsets</a>, <a class="ident" href="../../../src/gimli/read/index.rs.html#54-56">DebugTuIndex</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#3076-3078">DebugTypes</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#3177-3180">DebugTypesUnitHeadersIter</a>,
-    <a class="ident" href="../../../src/gimli/read/unit.rs.html#658-668">DebuggingInformationEntry</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#2477-2486">EntriesCursor</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#2396-2404">EntriesRaw</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#2862-2872">EntriesTree</a>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#271-434">Error</a>,
-    <a class="ident" href="../../../src/gimli/read/line.rs.html#1431-1437">IncompleteLineProgram</a>, <a class="ident" href="../../../src/gimli/read/loclists.rs.html#518-523">LocListIter</a>, <a class="ident" href="../../../src/gimli/read/loclists.rs.html#128-131">LocationLists</a>, <a class="ident" href="../../../src/gimli/read/rnglists.rs.html#585-591">Range</a>, <a class="ident" href="../../../src/gimli/read/rnglists.rs.html#130-133">RangeLists</a>, <a class="ident" href="../../../src/gimli/read/loclists.rs.html#311-315">RawLocListIter</a>,
-    <a class="ident" href="../../../src/gimli/read/rnglists.rs.html#288-292">RawRngListIter</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-52">ReaderOffset</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#19">ReaderOffsetId</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../src/gimli/read/rnglists.rs.html#455-460">RngListIter</a>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#612-661">Section</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#314-325">UnitHeader</a>,
-    <a class="ident" href="../../../src/gimli/read/index.rs.html#96-107">UnitIndex</a>, <a class="ident" href="../../../src/gimli/read/index.rs.html#277-281">UnitIndexSectionIterator</a>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#250">UnitOffset</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#252-290">UnitType</a>,
+    <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#944">AttributeValue</a>, <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#19">DebugAbbrev</a>, <a class="ident" href="../../../src/gimli/read/addr.rs.html#6">DebugAddr</a>, <a class="ident" href="../../../src/gimli/read/aranges.rs.html#8">DebugAranges</a>, <a class="ident" href="../../../src/gimli/read/index.rs.html#12">DebugCuIndex</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#83">DebugInfo</a>,
+    <a class="ident" href="../../../src/gimli/read/unit.rs.html#190">DebugInfoUnitHeadersIter</a>, <a class="ident" href="../../../src/gimli/read/line.rs.html#17">DebugLine</a>, <a class="ident" href="../../../src/gimli/read/str.rs.html#204">DebugLineStr</a>, <a class="ident" href="../../../src/gimli/read/loclists.rs.html#14">DebugLoc</a>, <a class="ident" href="../../../src/gimli/read/loclists.rs.html#60">DebugLocLists</a>, <a class="ident" href="../../../src/gimli/read/rnglists.rs.html#60">DebugRngLists</a>,
+    <a class="ident" href="../../../src/gimli/read/str.rs.html#12">DebugStr</a>, <a class="ident" href="../../../src/gimli/read/str.rs.html#101">DebugStrOffsets</a>, <a class="ident" href="../../../src/gimli/read/index.rs.html#54">DebugTuIndex</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#3076">DebugTypes</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#3177">DebugTypesUnitHeadersIter</a>,
+    <a class="ident" href="../../../src/gimli/read/unit.rs.html#658">DebuggingInformationEntry</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#2477">EntriesCursor</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#2396">EntriesRaw</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#2862">EntriesTree</a>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#271">Error</a>,
+    <a class="ident" href="../../../src/gimli/read/line.rs.html#1431">IncompleteLineProgram</a>, <a class="ident" href="../../../src/gimli/read/loclists.rs.html#518">LocListIter</a>, <a class="ident" href="../../../src/gimli/read/loclists.rs.html#128">LocationLists</a>, <a class="ident" href="../../../src/gimli/read/rnglists.rs.html#585">Range</a>, <a class="ident" href="../../../src/gimli/read/rnglists.rs.html#130">RangeLists</a>, <a class="ident" href="../../../src/gimli/read/loclists.rs.html#311">RawLocListIter</a>,
+    <a class="ident" href="../../../src/gimli/read/rnglists.rs.html#288">RawRngListIter</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>, <a class="ident" href="../../../src/gimli/read/reader.rs.html#19">ReaderOffsetId</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../src/gimli/read/rnglists.rs.html#455">RngListIter</a>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#612">Section</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#314">UnitHeader</a>,
+    <a class="ident" href="../../../src/gimli/read/index.rs.html#96">UnitIndex</a>, <a class="ident" href="../../../src/gimli/read/index.rs.html#277">UnitIndexSectionIterator</a>, <a class="ident" href="../../../src/gimli/read/mod.rs.html#250">UnitOffset</a>, <a class="ident" href="../../../src/gimli/read/unit.rs.html#252">UnitType</a>,
 };
 
 <span class="doccomment">/// All of the commonly used DWARF sections, and other common information.</span>
@@ -1204,7 +1204,7 @@
     <span class="kw">pub</span> <span class="ident">ranges</span>: <span class="ident">RangeLists</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// The type of this file.</span>
-    <span class="kw">pub</span> <span class="ident">file_type</span>: <a class="ident" href="../../../src/gimli/common.rs.html#351-357">DwarfFileType</a>,
+    <span class="kw">pub</span> <span class="ident">file_type</span>: <a class="ident" href="../../../src/gimli/common.rs.html#351">DwarfFileType</a>,
 
     <span class="doccomment">/// The DWARF sections for a supplementary object file.</span>
     <span class="kw">pub</span> <span class="ident">sup</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Dwarf</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
@@ -1224,14 +1224,14 @@
     <span class="doccomment">/// call `load_sup` if required.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">section</span>: <span class="ident">F</span>) -&gt; <span class="ident">core::result::Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">E</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<a class="ident" href="../../../src/gimli/common.rs.html#245-290">SectionId</a>) -&gt; <span class="ident">core::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a>) -&gt; <span class="ident">core::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>,
     {
         <span class="comment">// Section types are inferred.</span>
         <span class="kw">let</span> <span class="ident">debug_loc</span> <span class="op">=</span> <span class="ident">Section::load</span>(<span class="kw-2">&amp;mut</span> <span class="ident">section</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">debug_loclists</span> <span class="op">=</span> <span class="ident">Section::load</span>(<span class="kw-2">&amp;mut</span> <span class="ident">section</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">debug_ranges</span> <span class="op">=</span> <span class="ident">Section::load</span>(<span class="kw-2">&amp;mut</span> <span class="ident">section</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">debug_rnglists</span> <span class="op">=</span> <span class="ident">Section::load</span>(<span class="kw-2">&amp;mut</span> <span class="ident">section</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#23-62">Dwarf</a> {
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#23">Dwarf</a> {
             <span class="ident">debug_abbrev</span>: <span class="ident">Section::load</span>(<span class="kw-2">&amp;mut</span> <span class="ident">section</span>)<span class="question-mark">?</span>,
             <span class="ident">debug_addr</span>: <span class="ident">Section::load</span>(<span class="kw-2">&amp;mut</span> <span class="ident">section</span>)<span class="question-mark">?</span>,
             <span class="ident">debug_aranges</span>: <span class="ident">Section::load</span>(<span class="kw-2">&amp;mut</span> <span class="ident">section</span>)<span class="question-mark">?</span>,
@@ -1255,7 +1255,7 @@
     <span class="doccomment">/// Sets `self.sup`, replacing any previous value.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_sup</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">section</span>: <span class="ident">F</span>) -&gt; <span class="ident">core::result::Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<a class="ident" href="../../../src/gimli/common.rs.html#245-290">SectionId</a>) -&gt; <span class="ident">core::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a>) -&gt; <span class="ident">core::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>,
     {
         <a class="self" href="../../../src/gimli/read/dwarf.rs.html#107">self</a>.<span class="ident">sup</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Arc::new</span>(<span class="ident"><span class="self">Self</span>::load</span>(<span class="ident">section</span>)<span class="question-mark">?</span>));
         <span class="prelude-val">Ok</span>(())
@@ -1292,7 +1292,7 @@
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>) -&gt; <span class="ident">R</span>,
     {
-        <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#23-62">Dwarf</a> {
+        <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#23">Dwarf</a> {
             <span class="ident">debug_abbrev</span>: <a class="self" href="../../../src/gimli/read/dwarf.rs.html#142">self</a>.<span class="ident">debug_abbrev</span>.<a class="ident" href="../../../src/gimli/read/abbrev.rs.html#77-79">borrow</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#142">borrow</a>),
             <span class="ident">debug_addr</span>: <a class="self" href="../../../src/gimli/read/dwarf.rs.html#142">self</a>.<span class="ident">debug_addr</span>.<a class="ident" href="../../../src/gimli/read/addr.rs.html#59-61">borrow</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#142">borrow</a>),
             <span class="ident">debug_aranges</span>: <a class="self" href="../../../src/gimli/read/dwarf.rs.html#142">self</a>.<span class="ident">debug_aranges</span>.<a class="ident" href="../../../src/gimli/read/aranges.rs.html#73-75">borrow</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#142">borrow</a>),
@@ -1315,7 +1315,7 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> <span class="ident">Dwarf</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">Dwarf</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Iterate the unit headers in the `.debug_info` section.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Can be [used with</span>
@@ -1343,7 +1343,7 @@
     <span class="doccomment">/// Parse the abbreviations for a compilation unit.</span>
     <span class="comment">// TODO: provide caching of abbreviations</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">abbreviations</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">unit</span>: <span class="kw-2">&amp;</span><span class="ident">UnitHeader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#109-112">Abbreviations</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">abbreviations</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">unit</span>: <span class="kw-2">&amp;</span><span class="ident">UnitHeader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a><span class="op">&gt;</span> {
         <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#197">unit</a>.<a class="ident" href="../../../src/gimli/read/unit.rs.html#563">abbreviations</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../src/gimli/read/dwarf.rs.html#197">self</a>.<span class="ident">debug_abbrev</span>)
     }
 
@@ -1563,7 +1563,7 @@
         <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#385">low_pc</a>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">begin</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#387">size</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">size</span><span class="op">|</span> <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#414">begin</a> <span class="op">+</span> <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#415">size</a>).<span class="ident">or</span>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#386">high_pc</a>);
             <span class="comment">// TODO: perhaps return an error if `end` is `None`</span>
-            <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#415">end</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">end</span><span class="op">|</span> <a class="ident" href="../../../src/gimli/read/rnglists.rs.html#585-591">Range</a> { <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#414">begin</a>, <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#417">end</a> })
+            <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#415">end</a>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">end</span><span class="op">|</span> <a class="ident" href="../../../src/gimli/read/rnglists.rs.html#585">Range</a> { <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#414">begin</a>, <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#417">end</a> })
         });
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#1049">RangeIter</a>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#1053">RangeIterInner::Single</a>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#414">range</a>)))
     }
@@ -1671,7 +1671,7 @@
     <span class="doccomment">/// Call `Reader::lookup_offset_id` for each section, and return the first match.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The first element of the tuple is `true` for supplementary sections.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup_offset_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#19">ReaderOffsetId</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>, <a class="ident" href="../../../src/gimli/common.rs.html#245-290">SectionId</a>, <span class="ident">R::Offset</span>)<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lookup_offset_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#19">ReaderOffsetId</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/core/primitive.bool.html">bool</a>, <a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a>, <span class="ident">R::Offset</span>)<span class="op">&gt;</span> {
         <span class="prelude-val">None</span>.<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/gimli/read/dwarf.rs.html#525">self</a>.<span class="ident">debug_abbrev</span>.<a class="ident" href="../../../src/gimli/read/mod.rs.html#653-655">lookup_offset_id</a>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#525">id</a>))
             .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/gimli/read/dwarf.rs.html#525">self</a>.<span class="ident">debug_addr</span>.<a class="ident" href="../../../src/gimli/read/mod.rs.html#653-655">lookup_offset_id</a>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#525">id</a>))
             .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/gimli/read/dwarf.rs.html#525">self</a>.<span class="ident">debug_aranges</span>.<a class="ident" href="../../../src/gimli/read/mod.rs.html#653-655">lookup_offset_id</a>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#525">id</a>))
@@ -1694,7 +1694,7 @@
     <span class="doccomment">/// Returns a string representation of the given error.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This uses information from the DWARF sections to provide more information in some cases.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">err</span>: <a class="ident" href="../../../src/gimli/read/mod.rs.html#271-434">Error</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">err</span>: <a class="ident" href="../../../src/gimli/read/mod.rs.html#271">Error</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::single_match</span>)]</span>
         <span class="kw">match</span> <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#548">err</a> {
             <a class="ident" href="../../../src/gimli/read/mod.rs.html#315">Error::UnexpectedEof</a>(<span class="ident">id</span>) =&gt; <span class="kw">match</span> <a class="self" href="../../../src/gimli/read/dwarf.rs.html#548">self</a>.<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#525">lookup_offset_id</a>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#551">id</a>) {
@@ -1717,7 +1717,7 @@
 
 <span class="doccomment">/// The sections from a `.dwp` file.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DwarfPackage</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DwarfPackage</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> {
     <span class="doccomment">/// The compilation unit index in the `.debug_cu_index` section.</span>
     <span class="kw">pub</span> <span class="ident">cu_index</span>: <span class="ident">UnitIndex</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
 
@@ -1761,17 +1761,17 @@
     <span class="kw">pub</span> <span class="ident">empty</span>: <span class="ident">R</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> <span class="ident">DwarfPackage</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">DwarfPackage</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Try to load the `.dwp` sections using the given loader function.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// `section` loads a DWARF section from the object file.</span>
     <span class="doccomment">/// It should return an empty section if the section does not exist.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">section</span>: <span class="ident">F</span>, <span class="ident">empty</span>: <span class="ident">R</span>) -&gt; <span class="ident">core::result::Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">E</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">FnMut</span>(<a class="ident" href="../../../src/gimli/common.rs.html#245-290">SectionId</a>) -&gt; <span class="ident">core::result::Result</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">E</span><span class="op">&gt;</span>,
-        <span class="ident">E</span>: <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/mod.rs.html#271-434">Error</a><span class="op">&gt;</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<a class="ident" href="../../../src/gimli/common.rs.html#245">SectionId</a>) -&gt; <span class="ident">core::result::Result</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">E</span><span class="op">&gt;</span>,
+        <span class="ident">E</span>: <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/mod.rs.html#271">Error</a><span class="op">&gt;</span>,
     {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#571-613">DwarfPackage</a> {
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#571">DwarfPackage</a> {
             <span class="ident">cu_index</span>: <span class="ident">DebugCuIndex::load</span>(<span class="kw-2">&amp;mut</span> <span class="ident">section</span>)<span class="question-mark">?</span>.<span class="ident">index</span>()<span class="question-mark">?</span>,
             <span class="ident">tu_index</span>: <span class="ident">DebugTuIndex::load</span>(<span class="kw-2">&amp;mut</span> <span class="ident">section</span>)<span class="question-mark">?</span>.<span class="ident">index</span>()<span class="question-mark">?</span>,
             <span class="comment">// Section types are inferred.</span>
@@ -1918,7 +1918,7 @@
         <span class="kw">let</span> <span class="ident">debug_aranges</span> <span class="op">=</span> <a class="self" href="../../../src/gimli/read/dwarf.rs.html#688">self</a>.<span class="ident">empty</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
         <span class="kw">let</span> <span class="ident">debug_line_str</span> <span class="op">=</span> <a class="self" href="../../../src/gimli/read/dwarf.rs.html#688">self</a>.<span class="ident">empty</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
 
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#23-62">Dwarf</a> {
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#23">Dwarf</a> {
             <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#749">debug_abbrev</a>,
             <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#766">debug_addr</a>,
             <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#769">debug_aranges</a>,
@@ -1942,13 +1942,13 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Unit</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">Offset</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">R</span> <span class="kw">as</span> <span class="ident">Reader</span><span class="op">&gt;</span><span class="ident">::Offset</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Reader</span><span class="op">&lt;</span><span class="ident">Offset</span> <span class="op">=</span> <span class="ident">Offset</span><span class="op">&gt;</span>,
-    <span class="ident">Offset</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-52">ReaderOffset</a>,
+    <span class="ident">Offset</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a>,
 {
     <span class="doccomment">/// The header of the unit.</span>
     <span class="kw">pub</span> <span class="ident">header</span>: <span class="ident">UnitHeader</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">Offset</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// The parsed abbreviations for the unit.</span>
-    <span class="kw">pub</span> <span class="ident">abbreviations</span>: <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#109-112">Abbreviations</a>,
+    <span class="kw">pub</span> <span class="ident">abbreviations</span>: <a class="ident" href="../../../src/gimli/read/abbrev.rs.html#109">Abbreviations</a>,
 
     <span class="doccomment">/// The `DW_AT_name` attribute of the unit.</span>
     <span class="kw">pub</span> <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
@@ -1978,12 +1978,12 @@
     <span class="kw">pub</span> <span class="ident">dwo_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/common.rs.html#346">DwoId</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> <span class="ident">Unit</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">Unit</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Construct a new `Unit` from the given unit header.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">dwarf</span>: <span class="kw-2">&amp;</span><span class="ident">Dwarf</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">header</span>: <span class="ident">UnitHeader</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">abbreviations</span> <span class="op">=</span> <span class="ident">header</span>.<span class="ident">abbreviations</span>(<span class="kw-2">&amp;</span><span class="ident">dwarf</span>.<span class="ident">debug_abbrev</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unit</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#793-830">Unit</a> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unit</span> <span class="op">=</span> <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#793">Unit</a> {
             <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#836">abbreviations</a>,
             <span class="ident">name</span>: <span class="prelude-val">None</span>,
             <span class="ident">comp_dir</span>: <span class="prelude-val">None</span>,
@@ -2094,7 +2094,7 @@
 
     <span class="doccomment">/// Return the encoding parameters for this unit.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encoding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#37-48">Encoding</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encoding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/gimli/common.rs.html#37">Encoding</a> {
         <a class="self" href="../../../src/gimli/read/dwarf.rs.html#948">self</a>.<span class="ident">header</span>.<a class="ident" href="../../../src/gimli/read/unit.rs.html#403">encoding</a>()
     }
 
@@ -2141,7 +2141,7 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-52">ReaderOffset</a><span class="op">&gt;</span> <span class="ident">UnitSectionOffset</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a><span class="op">&gt;</span> <span class="ident">UnitSectionOffset</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Convert an offset to be relative to the start of the given unit,</span>
     <span class="doccomment">/// instead of relative to the start of the section.</span>
     <span class="doccomment">/// Returns `None` if the offset is not within the unit entries.</span>
@@ -2171,7 +2171,7 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-52">ReaderOffset</a><span class="op">&gt;</span> <span class="ident">UnitOffset</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#24-25">ReaderOffset</a><span class="op">&gt;</span> <span class="ident">UnitOffset</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Convert an offset to be relative to the start of the .debug_info section,</span>
     <span class="doccomment">/// instead of relative to the start of the given compilation unit.</span>
     <span class="doccomment">///</span>
@@ -2195,23 +2195,23 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Returned by `Dwarf::die_ranges` and `Dwarf::unit_ranges`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RangeIter</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span>(<span class="ident">RangeIterInner</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RangeIter</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span>(<span class="ident">RangeIterInner</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>);
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">enum</span> <span class="ident">RangeIterInner</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> {
-    <span class="ident">Single</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/rnglists.rs.html#585-591">Range</a><span class="op">&gt;</span>),
+<span class="kw">enum</span> <span class="ident">RangeIterInner</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> {
+    <span class="ident">Single</span>(<span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/rnglists.rs.html#585">Range</a><span class="op">&gt;</span>),
     <span class="ident">List</span>(<span class="ident">RngListIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>),
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">RangeIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <span class="ident">RangeIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#1049">RangeIter</a>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#1053">RangeIterInner::Single</a>(<span class="prelude-val">None</span>))
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215-502">Reader</a><span class="op">&gt;</span> <span class="ident">RangeIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <a class="ident" href="../../../src/gimli/read/reader.rs.html#215">Reader</a><span class="op">&gt;</span> <span class="ident">RangeIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Advance the iterator to the next range.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/rnglists.rs.html#585-591">Range</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/gimli/read/rnglists.rs.html#585">Range</a><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../../src/gimli/read/dwarf.rs.html#1065">self</a>.<span class="number">0</span> {
             <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#1053">RangeIterInner::Single</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">range</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/gimli/read/dwarf.rs.html#1067">range</a>.<span class="ident">take</span>()),
             <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#1054">RangeIterInner::List</a>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">list</span>) =&gt; <a class="ident" href="../../../src/gimli/read/dwarf.rs.html#1068">list</a>.<a class="ident" href="../../../src/gimli/read/rnglists.rs.html#485">next</a>(),
@@ -2291,5 +2291,5 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="gimli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

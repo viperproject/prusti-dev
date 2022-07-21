@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.26/src/hir/translate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>translate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.27/src/hir/translate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>translate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
@@ -3211,10 +3211,6 @@
 <span id="3205">3205</span>
 <span id="3206">3206</span>
 <span id="3207">3207</span>
-<span id="3208">3208</span>
-<span id="3209">3209</span>
-<span id="3210">3210</span>
-<span id="3211">3211</span>
 </pre><pre class="rust"><code><span class="doccomment">/*!
 Defines a translator that converts an `Ast` to an `Hir`.
 */</span>
@@ -3222,37 +3218,37 @@ Defines a translator that converts an `Ast` to an `Hir`.
 <span class="kw">use</span> <span class="ident">std::cell</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.Cell.html">Cell</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">RefCell</a>};
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/result/index.html">std::result</a>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<a class="self" href="../../../src/regex_syntax/lib.rs.html#165">self</a>, <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469-491">Ast</a>, <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323-328">Span</a>, <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#23-102">Visitor</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::hir</span>::{<a class="self" href="../../../src/regex_syntax/lib.rs.html#168">self</a>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#26-34">Error</a>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#57-91">ErrorKind</a>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175-180">Hir</a>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::unicode</span>::{<a class="self" href="../../../src/regex_syntax/lib.rs.html#170">self</a>, <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#166-185">ClassQuery</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<a class="self" href="../../../src/regex_syntax/lib.rs.html#165">self</a>, <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>, <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>, <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#23">Visitor</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::hir</span>::{<a class="self" href="../../../src/regex_syntax/lib.rs.html#168">self</a>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#26">Error</a>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#57">ErrorKind</a>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175">Hir</a>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::unicode</span>::{<a class="self" href="../../../src/regex_syntax/lib.rs.html#170">self</a>, <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#166">ClassQuery</a>};
 
-<span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#26-34">Error</a><span class="op">&gt;</span>;
+<span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#26">Error</a><span class="op">&gt;</span>;
 
 <span class="doccomment">/// A builder for constructing an AST-&gt;HIR translator.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TranslatorBuilder</span> {
     <span class="ident">allow_invalid_utf8</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    <span class="ident">flags</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1011-1019">Flags</a>,
+    <span class="ident">flags</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1007">Flags</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16-19">TranslatorBuilder</a> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16-19">TranslatorBuilder</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16">TranslatorBuilder</a> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16">TranslatorBuilder</a> {
         <span class="ident">TranslatorBuilder::new</span>()
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16-19">TranslatorBuilder</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16">TranslatorBuilder</a> {
     <span class="doccomment">/// Create a new translator builder with a default c onfiguration.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16-19">TranslatorBuilder</a> {
-        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16-19">TranslatorBuilder</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16">TranslatorBuilder</a> {
+        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16">TranslatorBuilder</a> {
             <span class="ident">allow_invalid_utf8</span>: <span class="bool-val">false</span>,
             <span class="ident">flags</span>: <span class="ident">Flags::default</span>(),
         }
     }
 
     <span class="doccomment">/// Build a translator using the current configuration.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#105-112">Translator</a> {
-        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#105-112">Translator</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#105">Translator</a> {
+        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#105">Translator</a> {
             <span class="ident">stack</span>: <span class="ident">RefCell::new</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]),
             <span class="ident">flags</span>: <span class="ident">Cell::new</span>(<a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#37">self</a>.<span class="ident">flags</span>),
             <span class="ident">allow_invalid_utf8</span>: <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#37">self</a>.<span class="ident">allow_invalid_utf8</span>,
@@ -3270,19 +3266,19 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// word boundary (uttered as `(?-u:\B)` in the concrete syntax) will cause</span>
     <span class="doccomment">/// the parser to return an error. Namely, a negated ASCII word boundary</span>
     <span class="doccomment">/// can result in matching positions that aren&#39;t valid UTF-8 boundaries.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_invalid_utf8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16-19">TranslatorBuilder</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_invalid_utf8</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16">TranslatorBuilder</a> {
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#56">self</a>.<span class="ident">allow_invalid_utf8</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#56">yes</a>;
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#56">self</a>
     }
 
     <span class="doccomment">/// Enable or disable the case insensitive flag (`i`) by default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_insensitive</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16-19">TranslatorBuilder</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">case_insensitive</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16">TranslatorBuilder</a> {
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#62">self</a>.<span class="ident">flags</span>.<span class="ident">case_insensitive</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">yes</span> { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#62">self</a>
     }
 
     <span class="doccomment">/// Enable or disable the multi-line matching flag (`m`) by default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multi_line</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16-19">TranslatorBuilder</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multi_line</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16">TranslatorBuilder</a> {
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#68">self</a>.<span class="ident">flags</span>.<span class="ident">multi_line</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">yes</span> { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#68">self</a>
     }
@@ -3292,19 +3288,19 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dot_matches_new_line</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-    ) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16-19">TranslatorBuilder</a> {
+    ) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16">TranslatorBuilder</a> {
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#76">self</a>.<span class="ident">flags</span>.<span class="ident">dot_matches_new_line</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">yes</span> { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#76">self</a>
     }
 
     <span class="doccomment">/// Enable or disable the &quot;swap greed&quot; flag (`U`) by default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_greed</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16-19">TranslatorBuilder</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap_greed</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16">TranslatorBuilder</a> {
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#84">self</a>.<span class="ident">flags</span>.<span class="ident">swap_greed</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">yes</span> { <span class="prelude-val">Some</span>(<span class="bool-val">true</span>) } <span class="kw">else</span> { <span class="prelude-val">None</span> };
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#84">self</a>
     }
 
     <span class="doccomment">/// Enable or disable the Unicode flag (`u`) by default.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16-19">TranslatorBuilder</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#16">TranslatorBuilder</a> {
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#90">self</a>.<span class="ident">flags</span>.<span class="ident">unicode</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">yes</span> { <span class="prelude-val">None</span> } <span class="kw">else</span> { <span class="prelude-val">Some</span>(<span class="bool-val">false</span>) };
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#90">self</a>
     }
@@ -3321,16 +3317,16 @@ Defines a translator that converts an `Ast` to an `Hir`.
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Translator</span> {
     <span class="doccomment">/// Our call stack, but on the heap.</span>
-    <span class="ident">stack</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#141-184">HirFrame</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">stack</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#141">HirFrame</a><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The current flag settings.</span>
-    <span class="ident">flags</span>: <span class="ident">Cell</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1011-1019">Flags</a><span class="op">&gt;</span>,
+    <span class="ident">flags</span>: <span class="ident">Cell</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1007">Flags</a><span class="op">&gt;</span>,
     <span class="doccomment">/// Whether we&#39;re allowed to produce HIR that can match arbitrary bytes.</span>
     <span class="ident">allow_invalid_utf8</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#105-112">Translator</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#105">Translator</a> {
     <span class="doccomment">/// Create a new translator using the default configuration.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#105-112">Translator</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#105">Translator</a> {
         <span class="ident">TranslatorBuilder::new</span>().<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#37">build</a>()
     }
 
@@ -3343,7 +3339,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// The original pattern string used to produce the `Ast` *must* also be</span>
     <span class="doccomment">/// provided. The translator does not use the pattern string during any</span>
     <span class="doccomment">/// correct translation, but is used for error reporting.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">translate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469-491">Ast</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175-180">Hir</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">translate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175">Hir</a><span class="op">&gt;</span> {
         <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#119">ast::visit</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#129">ast</a>, <span class="ident">TranslatorI::new</span>(<a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#129">self</a>, <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#129">pattern</a>))
     }
 }
@@ -3359,11 +3355,11 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// An arbitrary HIR expression. These get pushed whenever we hit a base</span>
     <span class="doccomment">/// case in the Ast. They get popped after an inductive (i.e., recursive)</span>
     <span class="doccomment">/// step is complete.</span>
-    <span class="ident">Expr</span>(<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175-180">Hir</a>),
+    <span class="ident">Expr</span>(<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175">Hir</a>),
     <span class="doccomment">/// A Unicode character class. This frame is mutated as we descend into</span>
     <span class="doccomment">/// the Ast of a character class (which is itself its own mini recursive</span>
     <span class="doccomment">/// structure).</span>
-    <span class="ident">ClassUnicode</span>(<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837-839">hir::ClassUnicode</a>),
+    <span class="ident">ClassUnicode</span>(<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837">hir::ClassUnicode</a>),
     <span class="doccomment">/// A byte-oriented character class. This frame is mutated as we descend</span>
     <span class="doccomment">/// into the Ast of a character class (which is itself its own mini</span>
     <span class="doccomment">/// recursive structure).</span>
@@ -3371,7 +3367,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// Byte character classes are created when Unicode mode (`u`) is disabled.</span>
     <span class="doccomment">/// If `allow_invalid_utf8` is disabled (the default), then a byte</span>
     <span class="doccomment">/// character is only permitted to match ASCII text.</span>
-    <span class="ident">ClassBytes</span>(<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1080-1082">hir::ClassBytes</a>),
+    <span class="ident">ClassBytes</span>(<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1080">hir::ClassBytes</a>),
     <span class="doccomment">/// This is pushed on to the stack upon first seeing any kind of group,</span>
     <span class="doccomment">/// indicated by parentheses (including non-capturing groups). It is popped</span>
     <span class="doccomment">/// upon leaving a group.</span>
@@ -3388,7 +3384,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="doccomment">///</span>
         <span class="doccomment">/// The &quot;active&quot; flags correspond to whatever flags are set in the</span>
         <span class="doccomment">/// Translator.</span>
-        <span class="ident">old_flags</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1011-1019">Flags</a>,
+        <span class="ident">old_flags</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1007">Flags</a>,
     },
     <span class="doccomment">/// This is pushed whenever a concatenation is observed. After visiting</span>
     <span class="doccomment">/// every sub-expression in the concatenation, the translator&#39;s stack is</span>
@@ -3400,9 +3396,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="ident">Alternation</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#141-184">HirFrame</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#141">HirFrame</a> {
     <span class="doccomment">/// Assert that the current stack frame is an Hir expression and return it.</span>
-    <span class="kw">fn</span> <span class="ident">unwrap_expr</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175-180">Hir</a> {
+    <span class="kw">fn</span> <span class="ident">unwrap_expr</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175">Hir</a> {
         <span class="kw">match</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#188">self</a> {
             <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#145">HirFrame::Expr</a>(<span class="ident">expr</span>) =&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#190">expr</a>,
             <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;tried to unwrap expr from HirFrame, got: {:?}&quot;</span>, <span class="self">self</span>),
@@ -3411,7 +3407,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
     <span class="doccomment">/// Assert that the current stack frame is a Unicode class expression and</span>
     <span class="doccomment">/// return it.</span>
-    <span class="kw">fn</span> <span class="ident">unwrap_class_unicode</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837-839">hir::ClassUnicode</a> {
+    <span class="kw">fn</span> <span class="ident">unwrap_class_unicode</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837">hir::ClassUnicode</a> {
         <span class="kw">match</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#197">self</a> {
             <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#149">HirFrame::ClassUnicode</a>(<span class="ident">cls</span>) =&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#199">cls</a>,
             <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
@@ -3424,7 +3420,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
     <span class="doccomment">/// Assert that the current stack frame is a byte class expression and</span>
     <span class="doccomment">/// return it.</span>
-    <span class="kw">fn</span> <span class="ident">unwrap_class_bytes</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1080-1082">hir::ClassBytes</a> {
+    <span class="kw">fn</span> <span class="ident">unwrap_class_bytes</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1080">hir::ClassBytes</a> {
         <span class="kw">match</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#210">self</a> {
             <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#157">HirFrame::ClassBytes</a>(<span class="ident">cls</span>) =&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#212">cls</a>,
             <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
@@ -3438,9 +3434,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// Assert that the current stack frame is a group indicator and return</span>
     <span class="doccomment">/// its corresponding flags (the flags that were active at the time the</span>
     <span class="doccomment">/// group was entered).</span>
-    <span class="kw">fn</span> <span class="ident">unwrap_group</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1011-1019">Flags</a> {
+    <span class="kw">fn</span> <span class="ident">unwrap_group</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1007">Flags</a> {
         <span class="kw">match</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#224">self</a> {
-            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#161-175">HirFrame::Group</a> { <span class="ident">old_flags</span> } =&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#226">old_flags</a>,
+            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#161">HirFrame::Group</a> { <span class="ident">old_flags</span> } =&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#226">old_flags</a>,
             <span class="kw">_</span> =&gt; {
                 <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;tried to unwrap group from HirFrame, got: {:?}&quot;</span>, <span class="self">self</span>)
             }
@@ -3448,17 +3444,17 @@ Defines a translator that converts an `Ast` to an `Hir`.
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span><span class="op">&gt;</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#23-102">Visitor</a> <span class="kw">for</span> <span class="ident">TranslatorI</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175-180">Hir</a>;
-    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#26-34">Error</a>;
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span><span class="op">&gt;</span> <a class="ident" href="../../../src/regex_syntax/ast/visitor.rs.html#23">Visitor</a> <span class="kw">for</span> <span class="ident">TranslatorI</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175">Hir</a>;
+    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#26">Error</a>;
 
-    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175-180">Hir</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">finish</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175">Hir</a><span class="op">&gt;</span> {
         <span class="comment">// ... otherwise, we should have exactly one HIR on the stack.</span>
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="self">self</span>.<span class="ident">trans</span>().<span class="ident">stack</span>.<span class="ident">borrow</span>().<span class="ident">len</span>(), <span class="number">1</span>);
         <span class="prelude-val">Ok</span>(<a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#238">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#606">pop</a>().<span class="ident">unwrap</span>().<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#188">unwrap_expr</a>())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_pre</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469-491">Ast</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_pre</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#244">ast</a> {
             <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#482">Ast::Class</a>(<a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#714">ast::Class::Bracketed</a>(<span class="kw">_</span>)) =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
@@ -3474,7 +3470,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     .<a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1196">flags</a>()
                     .<span class="ident">map</span>(<span class="op">|</span><span class="ident">ast</span><span class="op">|</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#244">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#622">set_flags</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#258">ast</a>))
                     .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#244">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#616">flags</a>());
-                <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#244">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#601">push</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#161-175">HirFrame::Group</a> { <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#256">old_flags</a> });
+                <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#244">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#601">push</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#161">HirFrame::Group</a> { <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#256">old_flags</a> });
             }
             <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#490">Ast::Concat</a>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#262">x</a>.<span class="ident">asts</span>.<span class="ident">is_empty</span>() =&gt; {}
             <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#490">Ast::Concat</a>(<span class="kw">_</span>) =&gt; {
@@ -3489,7 +3485,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">fn</span> <span class="ident">visit_post</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469-491">Ast</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">visit_post</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#469">Ast</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#275">ast</a> {
             <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#471">Ast::Empty</a>(<span class="kw">_</span>) =&gt; {
                 <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#275">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#601">push</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#145">HirFrame::Expr</a>(<span class="ident">Hir::empty</span>()));
@@ -3522,7 +3518,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <span class="kw">let</span> <span class="ident">hcls</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#785">hir::Class::Unicode</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#304">cls</a>);
                     <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#275">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#601">push</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#145">HirFrame::Expr</a>(<span class="ident">Hir::class</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#305">hcls</a>)));
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">cls</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#275">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#898-901">hir_perl_byte_class</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#302">x</a>);
+                    <span class="kw">let</span> <span class="ident">cls</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#275">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#894-897">hir_perl_byte_class</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#302">x</a>);
                     <span class="kw">let</span> <span class="ident">hcls</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#788">hir::Class::Bytes</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#308">cls</a>);
                     <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#275">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#601">push</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#145">HirFrame::Expr</a>(<span class="ident">Hir::class</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#309">hcls</a>)));
                 }
@@ -3599,7 +3595,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
     <span class="kw">fn</span> <span class="ident">visit_class_set_item_pre</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#955-978">ast::ClassSetItem</a>,
+        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#955">ast::ClassSetItem</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#385">ast</a> {
             <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#975">ast::ClassSetItem::Bracketed</a>(<span class="kw">_</span>) =&gt; {
@@ -3620,7 +3616,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
     <span class="kw">fn</span> <span class="ident">visit_class_set_item_post</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#955-978">ast::ClassSetItem</a>,
+        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#955">ast::ClassSetItem</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#406">ast</a> {
             <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#961">ast::ClassSetItem::Empty</a>(<span class="kw">_</span>) =&gt; {}
@@ -3675,7 +3671,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#457">cls</a>.<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#919">union</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#456">xcls</a>);
                     <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#405">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#601">push</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#149">HirFrame::ClassUnicode</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#457">cls</a>));
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">xcls</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#405">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#898-901">hir_perl_byte_class</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#454">x</a>);
+                    <span class="kw">let</span> <span class="ident">xcls</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#405">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#894-897">hir_perl_byte_class</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#454">x</a>);
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#405">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#606">pop</a>().<span class="ident">unwrap</span>().<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#210">unwrap_class_bytes</a>();
                     <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#462">cls</a>.<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1138">union</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#461">xcls</a>);
                     <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#405">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#601">push</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#157">HirFrame::ClassBytes</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#462">cls</a>));
@@ -3714,7 +3710,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
     <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_pre</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">_op</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1063-1072">ast::ClassSetBinaryOp</a>,
+        <span class="ident">_op</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
             <span class="kw">let</span> <span class="ident">cls</span> <span class="op">=</span> <span class="ident">hir::ClassUnicode::empty</span>();
@@ -3728,7 +3724,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
     <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_in</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">_op</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1063-1072">ast::ClassSetBinaryOp</a>,
+        <span class="ident">_op</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
             <span class="kw">let</span> <span class="ident">cls</span> <span class="op">=</span> <span class="ident">hir::ClassUnicode::empty</span>();
@@ -3742,9 +3738,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
     <span class="kw">fn</span> <span class="ident">visit_class_set_binary_op_post</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">op</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1063-1072">ast::ClassSetBinaryOp</a>,
+        <span class="ident">op</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1063">ast::ClassSetBinaryOp</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1080-1089"><span class="kw">crate</span>::ast::ClassSetBinaryOpKind</a>::<span class="kw-2">*</span>;
+        <span class="kw">use</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1080"><span class="kw">crate</span>::ast::ClassSetBinaryOpKind</a>::<span class="kw-2">*</span>;
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rhs</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#527">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#606">pop</a>().<span class="ident">unwrap</span>().<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#197">unwrap_class_unicode</a>();
@@ -3799,52 +3795,52 @@ Defines a translator that converts an `Ast` to an `Hir`.
 <span class="doccomment">/// A TranslatorI exists for the time it takes to translate a single Ast.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">TranslatorI</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
-    <span class="ident">trans</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#105-112">Translator</a>,
+    <span class="ident">trans</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#105">Translator</a>,
     <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span><span class="op">&gt;</span> <span class="ident">TranslatorI</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Build a new internal translator.</span>
-    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">trans</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#105-112">Translator</a>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="ident">TranslatorI</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#584-587">TranslatorI</a> { <span class="ident">trans</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#591">trans</a>, <span class="ident">pattern</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#591">pattern</a> }
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">trans</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;t</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#105">Translator</a>, <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="ident">TranslatorI</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span>, <span class="lifetime">&#39;p</span><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#584">TranslatorI</a> { <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#591">trans</a>, <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#591">pattern</a> }
     }
 
     <span class="doccomment">/// Return a reference to the underlying translator.</span>
-    <span class="kw">fn</span> <span class="ident">trans</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#105-112">Translator</a> {
+    <span class="kw">fn</span> <span class="ident">trans</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#105">Translator</a> {
         <span class="kw-2">&amp;</span><a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#596">self</a>.<span class="ident">trans</span>
     }
 
     <span class="doccomment">/// Push the given frame on to the call stack.</span>
-    <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">frame</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#141-184">HirFrame</a>) {
+    <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">frame</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#141">HirFrame</a>) {
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#601">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#596">trans</a>().<span class="ident">stack</span>.<span class="ident">borrow_mut</span>().<span class="ident">push</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#601">frame</a>);
     }
 
     <span class="doccomment">/// Pop the top of the call stack. If the call stack is empty, return None.</span>
-    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#141-184">HirFrame</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#141">HirFrame</a><span class="op">&gt;</span> {
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#606">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#596">trans</a>().<span class="ident">stack</span>.<span class="ident">borrow_mut</span>().<span class="ident">pop</span>()
     }
 
     <span class="doccomment">/// Create a new error with the given span and error type.</span>
-    <span class="kw">fn</span> <span class="ident">error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323-328">Span</a>, <span class="ident">kind</span>: <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#57-91">ErrorKind</a>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#26-34">Error</a> {
-        <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#26-34">Error</a> { <span class="ident">kind</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">kind</a>, <span class="ident">pattern</span>: <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#611">self</a>.<span class="ident">pattern</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <span class="ident">span</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">span</a> }
+    <span class="kw">fn</span> <span class="ident">error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>, <span class="ident">kind</span>: <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#57">ErrorKind</a>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#26">Error</a> {
+        <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#26">Error</a> { <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">kind</a>, <span class="ident">pattern</span>: <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#611">self</a>.<span class="ident">pattern</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(), <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">span</a> }
     }
 
     <span class="doccomment">/// Return a copy of the active flags.</span>
-    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1011-1019">Flags</a> {
+    <span class="kw">fn</span> <span class="ident">flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1007">Flags</a> {
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#616">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#596">trans</a>().<span class="ident">flags</span>.<span class="ident">get</span>()
     }
 
     <span class="doccomment">/// Set the flags of this translator from the flags set in the given AST.</span>
     <span class="doccomment">/// Then, return the old flags.</span>
-    <span class="kw">fn</span> <span class="ident">set_flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ast_flags</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1261-1267">ast::Flags</a>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1011-1019">Flags</a> {
+    <span class="kw">fn</span> <span class="ident">set_flags</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ast_flags</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1261">ast::Flags</a>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1007">Flags</a> {
         <span class="kw">let</span> <span class="ident">old_flags</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#622">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#616">flags</a>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_flags</span> <span class="op">=</span> <span class="ident">Flags::from_ast</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#622">ast_flags</a>);
-        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#624">new_flags</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1051">merge</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#623">old_flags</a>);
+        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#624">new_flags</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1047">merge</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#623">old_flags</a>);
         <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#622">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#596">trans</a>().<span class="ident">flags</span>.<span class="ident">set</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#624">new_flags</a>);
         <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#623">old_flags</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_literal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lit</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#605-612">ast::Literal</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175-180">Hir</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">hir_literal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lit</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#605">ast::Literal</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175">Hir</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">literal_to_char</span>(<span class="ident">lit</span>)<span class="question-mark">?</span> {
             <span class="ident">byte</span> @ <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#751">hir::Literal::Byte</a>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Hir::literal</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#632">byte</a>)),
             <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#749">hir::Literal::Unicode</a>(<span class="ident">ch</span>) =&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#633">ch</a>,
@@ -3864,7 +3860,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// When Unicode mode is disabled, then a raw byte is returned. If that</span>
     <span class="doccomment">/// byte is not ASCII and invalid UTF-8 is not allowed, then this returns</span>
     <span class="doccomment">/// an error.</span>
-    <span class="kw">fn</span> <span class="ident">literal_to_char</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lit</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#605-612">ast::Literal</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#747-752">hir::Literal</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">literal_to_char</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">lit</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#605">ast::Literal</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#747">hir::Literal</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#749">hir::Literal::Unicode</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#650">lit</a>.<span class="ident">c</span>));
         }
@@ -3881,7 +3877,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#751">hir::Literal::Byte</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#654">byte</a>))
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_from_char</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323-328">Span</a>, <span class="ident">c</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175-180">Hir</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">hir_from_char</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>, <span class="ident">c</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175">Hir</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() <span class="op">&amp;&amp;</span> <span class="ident">c</span>.<span class="ident">len_utf8</span>() <span class="op">&gt;</span> <span class="number">1</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#667">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#667">span</a>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#60">ErrorKind::UnicodeNotAllowed</a>));
         }
@@ -3890,9 +3886,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
     <span class="kw">fn</span> <span class="ident">hir_from_char_case_insensitive</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">span</span>: <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323-328">Span</a>,
+        <span class="ident">span</span>: <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
         <span class="ident">c</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175-180">Hir</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175">Hir</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
             <span class="comment">// If case folding won&#39;t do anything, then don&#39;t bother trying.</span>
             <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span>
@@ -3928,8 +3924,8 @@ Defines a translator that converts an `Ast` to an `Hir`.
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_dot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323-328">Span</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175-180">Hir</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">unicode</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#714">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#616">flags</a>().<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1085">unicode</a>();
+    <span class="kw">fn</span> <span class="ident">hir_dot</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175">Hir</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">unicode</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#714">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#616">flags</a>().<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1081">unicode</a>();
         <span class="kw">if</span> <span class="op">!</span><span class="ident">unicode</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">trans</span>().<span class="ident">allow_invalid_utf8</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#714">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#714">span</a>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#63">ErrorKind::InvalidUtf8</a>));
         }
@@ -3940,9 +3936,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_assertion</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">asst</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1093-1098">ast::Assertion</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175-180">Hir</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">unicode</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#726">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#616">flags</a>().<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1085">unicode</a>();
-        <span class="kw">let</span> <span class="ident">multi_line</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#726">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#616">flags</a>().<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1073">multi_line</a>();
+    <span class="kw">fn</span> <span class="ident">hir_assertion</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">asst</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1093">ast::Assertion</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175">Hir</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">unicode</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#726">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#616">flags</a>().<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1081">unicode</a>();
+        <span class="kw">let</span> <span class="ident">multi_line</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#726">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#616">flags</a>().<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1069">multi_line</a>();
         <span class="prelude-val">Ok</span>(<span class="kw">match</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#726">asst</a>.<span class="ident">kind</span> {
             <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1104">ast::AssertionKind::StartLine</a> =&gt; <span class="ident">Hir::anchor</span>(<span class="kw">if</span> <span class="ident">multi_line</span> {
                 <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1289">hir::Anchor::StartLine</a>
@@ -3983,23 +3979,23 @@ Defines a translator that converts an `Ast` to an `Hir`.
         })
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_group</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1184-1191">ast::Group</a>, <span class="ident">expr</span>: <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175-180">Hir</a>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175-180">Hir</a> {
+    <span class="kw">fn</span> <span class="ident">hir_group</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">group</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1184">ast::Group</a>, <span class="ident">expr</span>: <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175">Hir</a>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175">Hir</a> {
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#769">group</a>.<span class="ident">kind</span> {
             <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1227">ast::GroupKind::CaptureIndex</a>(<span class="ident">idx</span>) =&gt; {
                 <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1354">hir::GroupKind::CaptureIndex</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#771">idx</a>)
             }
             <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1229">ast::GroupKind::CaptureName</a>(<span class="kw-2">ref</span> <span class="ident">capname</span>) =&gt; {
-                <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1356-1361">hir::GroupKind::CaptureName</a> {
+                <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1356">hir::GroupKind::CaptureName</a> {
                     <span class="ident">name</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#774">capname</a>.<span class="ident">name</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
                     <span class="ident">index</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#774">capname</a>.<span class="ident">index</span>,
                 }
             }
             <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1231">ast::GroupKind::NonCapturing</a>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1363">hir::GroupKind::NonCapturing</a>,
         };
-        <span class="ident">Hir::group</span>(<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1339-1346">hir::Group</a> { <span class="ident">kind</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#770">kind</a>, <span class="ident">hir</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#769">expr</a>) })
+        <span class="ident">Hir::group</span>(<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1339">hir::Group</a> { <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#770">kind</a>, <span class="ident">hir</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#769">expr</a>) })
     }
 
-    <span class="kw">fn</span> <span class="ident">hir_repetition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rep</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1119-1128">ast::Repetition</a>, <span class="ident">expr</span>: <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175-180">Hir</a>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175-180">Hir</a> {
+    <span class="kw">fn</span> <span class="ident">hir_repetition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">rep</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1119">ast::Repetition</a>, <span class="ident">expr</span>: <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175">Hir</a>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#175">Hir</a> {
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#785">rep</a>.<span class="ident">op</span>.<span class="ident">kind</span> {
             <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1144">ast::RepetitionKind::ZeroOrOne</a> =&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1412">hir::RepetitionKind::ZeroOrOne</a>,
             <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1146">ast::RepetitionKind::ZeroOrMore</a> =&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1414">hir::RepetitionKind::ZeroOrMore</a>,
@@ -4019,85 +4015,81 @@ Defines a translator that converts an `Ast` to an `Hir`.
         };
         <span class="kw">let</span> <span class="ident">greedy</span> <span class="op">=</span>
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">swap_greed</span>() { <span class="op">!</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#785">rep</a>.<span class="ident">greedy</span> } <span class="kw">else</span> { <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#785">rep</a>.<span class="ident">greedy</span> };
-        <span class="ident">Hir::repetition</span>(<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1371-1384">hir::Repetition</a> {
-            <span class="ident">kind</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#786">kind</a>,
-            <span class="ident">greedy</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#803">greedy</a>,
-            <span class="ident">hir</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#785">expr</a>),
-        })
+        <span class="ident">Hir::repetition</span>(<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1371">hir::Repetition</a> { <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#786">kind</a>, <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#803">greedy</a>, <span class="ident">hir</span>: <span class="ident">Box::new</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#785">expr</a>) })
     }
 
     <span class="kw">fn</span> <span class="ident">hir_unicode_class</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">ast_class</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#828-843">ast::ClassUnicode</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837-839">hir::ClassUnicode</a><span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#863-878"><span class="kw">crate</span>::ast::ClassUnicodeKind</a>::<span class="kw-2">*</span>;
+        <span class="ident">ast_class</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#828">ast::ClassUnicode</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837">hir::ClassUnicode</a><span class="op">&gt;</span> {
+        <span class="kw">use</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#863"><span class="kw">crate</span>::ast::ClassUnicodeKind</a>::<span class="kw-2">*</span>;
 
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(
-                <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#813">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#814">ast_class</a>.<span class="ident">span</span>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#60">ErrorKind::UnicodeNotAllowed</a>)
+                <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#809">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#810">ast_class</a>.<span class="ident">span</span>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#60">ErrorKind::UnicodeNotAllowed</a>)
             );
         }
-        <span class="kw">let</span> <span class="ident">query</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#814">ast_class</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#865">OneLetter</a>(<span class="ident">name</span>) =&gt; <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#169">ClassQuery::OneLetter</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#824">name</a>),
-            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#868">Named</a>(<span class="kw-2">ref</span> <span class="ident">name</span>) =&gt; <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#175">ClassQuery::Binary</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#825">name</a>),
-            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#870-877">NamedValue</a> { <span class="kw-2">ref</span> <span class="ident">name</span>, <span class="kw-2">ref</span> <span class="ident">value</span>, .. } =&gt; <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#179-184">ClassQuery::ByValue</a> {
-                <span class="ident">property_name</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#826">name</a>,
-                <span class="ident">property_value</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#826">value</a>,
+        <span class="kw">let</span> <span class="ident">query</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#810">ast_class</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#865">OneLetter</a>(<span class="ident">name</span>) =&gt; <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#169">ClassQuery::OneLetter</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#820">name</a>),
+            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#868">Named</a>(<span class="kw-2">ref</span> <span class="ident">name</span>) =&gt; <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#175">ClassQuery::Binary</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#821">name</a>),
+            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#870">NamedValue</a> { <span class="kw-2">ref</span> <span class="ident">name</span>, <span class="kw-2">ref</span> <span class="ident">value</span>, .. } =&gt; <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#179">ClassQuery::ByValue</a> {
+                <span class="ident">property_name</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#822">name</a>,
+                <span class="ident">property_value</span>: <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#822">value</a>,
             },
         };
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#813">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#922-926">convert_unicode_class_error</a>(
-            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#814">ast_class</a>.<span class="ident">span</span>,
-            <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#288">unicode::class</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#823">query</a>),
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#809">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#918-922">convert_unicode_class_error</a>(
+            <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#810">ast_class</a>.<span class="ident">span</span>,
+            <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#288">unicode::class</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#819">query</a>),
         );
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">class</span>) <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#831">result</a> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">class</span>) <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#827">result</a> {
             <span class="self">self</span>.<span class="ident">unicode_fold_and_negate</span>(
                 <span class="kw-2">&amp;</span><span class="ident">ast_class</span>.<span class="ident">span</span>,
                 <span class="ident">ast_class</span>.<span class="ident">negated</span>,
                 <span class="ident">class</span>,
             )<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="ident">class</span>.<span class="ident">ranges</span>().<span class="ident">is_empty</span>() {
-                <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#813">self</a>
-                    .<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#814">ast_class</a>.<span class="ident">span</span>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#83">ErrorKind::EmptyClassNotAllowed</a>);
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#842">err</a>);
+                <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#809">self</a>
+                    .<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#810">ast_class</a>.<span class="ident">span</span>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#83">ErrorKind::EmptyClassNotAllowed</a>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#838">err</a>);
             }
         }
-        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#831">result</a>
+        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#827">result</a>
     }
 
     <span class="kw">fn</span> <span class="ident">hir_ascii_unicode_class</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#753-761">ast::ClassAscii</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837-839">hir::ClassUnicode</a><span class="op">&gt;</span> {
+        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#753">ast::ClassAscii</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837">hir::ClassUnicode</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span> <span class="ident">hir::ClassUnicode::new</span>(
-            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1099">ascii_class</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#852">ast</a>.<span class="ident">kind</span>)
+            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1095">ascii_class</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#848">ast</a>.<span class="ident">kind</span>)
                 .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> <span class="ident">hir::ClassUnicodeRange::new</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#857">s</a>, <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#857">e</a>)),
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> <span class="ident">hir::ClassUnicodeRange::new</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#853">s</a>, <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#853">e</a>)),
         );
         <span class="self">self</span>.<span class="ident">unicode_fold_and_negate</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">span</span>, <span class="ident">ast</span>.<span class="ident">negated</span>, <span class="kw-2">&amp;mut</span> <span class="ident">cls</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#854">cls</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#850">cls</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">hir_ascii_byte_class</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#753-761">ast::ClassAscii</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1080-1082">hir::ClassBytes</a><span class="op">&gt;</span> {
+        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#753">ast::ClassAscii</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1080">hir::ClassBytes</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span> <span class="ident">hir::ClassBytes::new</span>(
-            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1099">ascii_class</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#865">ast</a>.<span class="ident">kind</span>)
+            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1095">ascii_class</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#861">ast</a>.<span class="ident">kind</span>)
                 .<span class="ident">iter</span>()
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> <span class="ident">hir::ClassBytesRange::new</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#870">s</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#870">e</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)),
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> <span class="ident">hir::ClassBytesRange::new</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#866">s</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#866">e</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)),
         );
         <span class="self">self</span>.<span class="ident">bytes_fold_and_negate</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">span</span>, <span class="ident">ast</span>.<span class="ident">negated</span>, <span class="kw-2">&amp;mut</span> <span class="ident">cls</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#867">cls</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#863">cls</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">hir_perl_unicode_class</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">ast_class</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#730-738">ast::ClassPerl</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837-839">hir::ClassUnicode</a><span class="op">&gt;</span> {
-        <span class="kw">use</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#742-749"><span class="kw">crate</span>::ast::ClassPerlKind</a>::<span class="kw-2">*</span>;
+        <span class="ident">ast_class</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#730">ast::ClassPerl</a>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837">hir::ClassUnicode</a><span class="op">&gt;</span> {
+        <span class="kw">use</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#742"><span class="kw">crate</span>::ast::ClassPerlKind</a>::<span class="kw-2">*</span>;
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>());
-        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#878">ast_class</a>.<span class="ident">kind</span> {
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#874">ast_class</a>.<span class="ident">kind</span> {
             <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#744">Digit</a> =&gt; <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#367">unicode::perl_digit</a>(),
             <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#746">Space</a> =&gt; <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#343">unicode::perl_space</a>(),
             <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#748">Word</a> =&gt; <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#325">unicode::perl_word</a>(),
@@ -4107,29 +4099,29 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="comment">// We needn&#39;t apply case folding here because the Perl Unicode classes</span>
         <span class="comment">// are already closed under Unicode simple case folding.</span>
         <span class="kw">if</span> <span class="ident">ast_class</span>.<span class="ident">negated</span> {
-            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#888">class</a>.<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#914">negate</a>();
+            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#884">class</a>.<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#914">negate</a>();
         }
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#888">class</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#884">class</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">hir_perl_byte_class</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">ast_class</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#730-738">ast::ClassPerl</a>,
-    ) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1080-1082">hir::ClassBytes</a> {
-        <span class="kw">use</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#742-749"><span class="kw">crate</span>::ast::ClassPerlKind</a>::<span class="kw-2">*</span>;
+        <span class="ident">ast_class</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#730">ast::ClassPerl</a>,
+    ) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1080">hir::ClassBytes</a> {
+        <span class="kw">use</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#742"><span class="kw">crate</span>::ast::ClassPerlKind</a>::<span class="kw-2">*</span>;
 
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>());
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">class</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#900">ast_class</a>.<span class="ident">kind</span> {
-            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#744">Digit</a> =&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1090">hir_ascii_class_bytes</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#777">ast::ClassAsciiKind::Digit</a>),
-            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#746">Space</a> =&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1090">hir_ascii_class_bytes</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#787">ast::ClassAsciiKind::Space</a>),
-            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#748">Word</a> =&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1090">hir_ascii_class_bytes</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#791">ast::ClassAsciiKind::Word</a>),
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">class</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#896">ast_class</a>.<span class="ident">kind</span> {
+            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#744">Digit</a> =&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1086">hir_ascii_class_bytes</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#777">ast::ClassAsciiKind::Digit</a>),
+            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#746">Space</a> =&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1086">hir_ascii_class_bytes</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#787">ast::ClassAsciiKind::Space</a>),
+            <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#748">Word</a> =&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1086">hir_ascii_class_bytes</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#791">ast::ClassAsciiKind::Word</a>),
         };
         <span class="comment">// We needn&#39;t apply case folding here because the Perl ASCII classes</span>
         <span class="comment">// are already closed (under ASCII case folding).</span>
         <span class="kw">if</span> <span class="ident">ast_class</span>.<span class="ident">negated</span> {
-            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#905">class</a>.<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1133">negate</a>();
+            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#901">class</a>.<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1133">negate</a>();
         }
-        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#905">class</a>
+        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#901">class</a>
     }
 
     <span class="doccomment">/// Converts the given Unicode specific error to an HIR translation error.</span>
@@ -4138,20 +4130,20 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="doccomment">/// occur.</span>
     <span class="kw">fn</span> <span class="ident">convert_unicode_class_error</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323-328">Span</a>,
-        <span class="ident">result</span>: <span class="ident">unicode::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837-839">hir::ClassUnicode</a><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837-839">hir::ClassUnicode</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#925">result</a>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="ident">sp</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#924">span</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <span class="kw">match</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#927">err</a> {
+        <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
+        <span class="ident">result</span>: <span class="ident">unicode::Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837">hir::ClassUnicode</a><span class="op">&gt;</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837">hir::ClassUnicode</a><span class="op">&gt;</span> {
+        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#921">result</a>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">sp</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#920">span</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
+            <span class="kw">match</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#923">err</a> {
                 <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#20">unicode::Error::PropertyNotFound</a> =&gt; {
-                    <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#923">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#928">sp</a>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#66">ErrorKind::UnicodePropertyNotFound</a>)
+                    <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#919">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#924">sp</a>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#66">ErrorKind::UnicodePropertyNotFound</a>)
                 }
                 <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#21">unicode::Error::PropertyValueNotFound</a> =&gt; {
-                    <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#923">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#928">sp</a>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#69">ErrorKind::UnicodePropertyValueNotFound</a>)
+                    <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#919">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#924">sp</a>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#69">ErrorKind::UnicodePropertyValueNotFound</a>)
                 }
                 <a class="ident" href="../../../src/regex_syntax/unicode.rs.html#24">unicode::Error::PerlClassNotFound</a> =&gt; {
-                    <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#923">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#928">sp</a>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#73">ErrorKind::UnicodePerlClassNotFound</a>)
+                    <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#919">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#924">sp</a>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#73">ErrorKind::UnicodePerlClassNotFound</a>)
                 }
             }
         })
@@ -4159,9 +4151,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
 
     <span class="kw">fn</span> <span class="ident">unicode_fold_and_negate</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323-328">Span</a>,
+        <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
         <span class="ident">negated</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        <span class="ident">class</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837-839">hir::ClassUnicode</a>,
+        <span class="ident">class</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#837">hir::ClassUnicode</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Note that we must apply case folding before negation!</span>
         <span class="comment">// Consider `(?i)[^x]`. If we applied negation field, then</span>
@@ -4173,46 +4165,46 @@ Defines a translator that converts an `Ast` to an `Hir`.
             })<span class="question-mark">?</span>;
         }
         <span class="kw">if</span> <span class="ident">negated</span> {
-            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#947">class</a>.<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#914">negate</a>();
+            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#943">class</a>.<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#914">negate</a>();
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn</span> <span class="ident">bytes_fold_and_negate</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323-328">Span</a>,
+        <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#323">Span</a>,
         <span class="ident">negated</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
-        <span class="ident">class</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1080-1082">hir::ClassBytes</a>,
+        <span class="ident">class</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1080">hir::ClassBytes</a>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Note that we must apply case folding before negation!</span>
         <span class="comment">// Consider `(?i)[^x]`. If we applied negation first, then</span>
         <span class="comment">// the result would be the character class that matched any</span>
         <span class="comment">// Unicode scalar value.</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">case_insensitive</span>() {
-            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#968">class</a>.<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1125">case_fold_simple</a>();
+            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#964">class</a>.<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1125">case_fold_simple</a>();
         }
         <span class="kw">if</span> <span class="ident">negated</span> {
-            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#968">class</a>.<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1133">negate</a>();
+            <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#964">class</a>.<a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1133">negate</a>();
         }
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">trans</span>().<span class="ident">allow_invalid_utf8</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">class</span>.<span class="ident">is_all_ascii</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#965">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#966">span</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#63">ErrorKind::InvalidUtf8</a>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#961">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#962">span</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#63">ErrorKind::InvalidUtf8</a>));
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Return a scalar byte value suitable for use as a literal in a byte</span>
     <span class="doccomment">/// character class.</span>
-    <span class="kw">fn</span> <span class="ident">class_literal_byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#605-612">ast::Literal</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">class_literal_byte</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#605">ast::Literal</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">literal_to_char</span>(<span class="ident">ast</span>)<span class="question-mark">?</span> {
-            <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#751">hir::Literal::Byte</a>(<span class="ident">byte</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#990">byte</a>),
+            <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#751">hir::Literal::Byte</a>(<span class="ident">byte</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#986">byte</a>),
             <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#749">hir::Literal::Unicode</a>(<span class="ident">ch</span>) =&gt; {
                 <span class="kw">if</span> <span class="ident">ch</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0x7F</span> <span class="kw">as</span> <span class="ident">char</span> {
-                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#991">ch</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
+                    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#987">ch</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>)
                 } <span class="kw">else</span> {
                     <span class="comment">// We can&#39;t feasibly support Unicode in</span>
                     <span class="comment">// byte oriented classes. Byte classes don&#39;t</span>
                     <span class="comment">// do Unicode case folding.</span>
-                    <span class="prelude-val">Err</span>(<a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#988">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#988">ast</a>.<span class="ident">span</span>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#60">ErrorKind::UnicodeNotAllowed</a>))
+                    <span class="prelude-val">Err</span>(<a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#984">self</a>.<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#611">error</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#984">ast</a>.<span class="ident">span</span>, <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#60">ErrorKind::UnicodeNotAllowed</a>))
                 }
             }
         }
@@ -4235,8 +4227,8 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="comment">// entirely in the parser.</span>
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1011-1019">Flags</a> {
-    <span class="kw">fn</span> <span class="ident">from_ast</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1261-1267">ast::Flags</a>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1011-1019">Flags</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1007">Flags</a> {
+    <span class="kw">fn</span> <span class="ident">from_ast</span>(<span class="ident">ast</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#1261">ast::Flags</a>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1007">Flags</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">Flags::default</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">enable</span> <span class="op">=</span> <span class="bool-val">true</span>;
         <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">items</span> {
@@ -4262,60 +4254,60 @@ Defines a translator that converts an `Ast` to an `Hir`.
                 <span class="ident">ast::FlagsItemKind::Flag</span>(<span class="ident">ast::Flag::IgnoreWhitespace</span>) =&gt; {}
             }
         }
-        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1023">flags</a>
+        <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1019">flags</a>
     }
 
-    <span class="kw">fn</span> <span class="ident">merge</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">previous</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1011-1019">Flags</a>) {
+    <span class="kw">fn</span> <span class="ident">merge</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">previous</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1007">Flags</a>) {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">case_insensitive</span>.<span class="ident">is_none</span>() {
-            <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1051">self</a>.<span class="ident">case_insensitive</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1051">previous</a>.<span class="ident">case_insensitive</span>;
+            <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1047">self</a>.<span class="ident">case_insensitive</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1047">previous</a>.<span class="ident">case_insensitive</span>;
         }
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">multi_line</span>.<span class="ident">is_none</span>() {
-            <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1051">self</a>.<span class="ident">multi_line</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1051">previous</a>.<span class="ident">multi_line</span>;
+            <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1047">self</a>.<span class="ident">multi_line</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1047">previous</a>.<span class="ident">multi_line</span>;
         }
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">dot_matches_new_line</span>.<span class="ident">is_none</span>() {
-            <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1051">self</a>.<span class="ident">dot_matches_new_line</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1051">previous</a>.<span class="ident">dot_matches_new_line</span>;
+            <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1047">self</a>.<span class="ident">dot_matches_new_line</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1047">previous</a>.<span class="ident">dot_matches_new_line</span>;
         }
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">swap_greed</span>.<span class="ident">is_none</span>() {
-            <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1051">self</a>.<span class="ident">swap_greed</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1051">previous</a>.<span class="ident">swap_greed</span>;
+            <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1047">self</a>.<span class="ident">swap_greed</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1047">previous</a>.<span class="ident">swap_greed</span>;
         }
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">unicode</span>.<span class="ident">is_none</span>() {
-            <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1051">self</a>.<span class="ident">unicode</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1051">previous</a>.<span class="ident">unicode</span>;
+            <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1047">self</a>.<span class="ident">unicode</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1047">previous</a>.<span class="ident">unicode</span>;
         }
     }
 
     <span class="kw">fn</span> <span class="ident">case_insensitive</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1069">self</a>.<span class="ident">case_insensitive</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+        <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1065">self</a>.<span class="ident">case_insensitive</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">multi_line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1073">self</a>.<span class="ident">multi_line</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+        <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1069">self</a>.<span class="ident">multi_line</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">dot_matches_new_line</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1077">self</a>.<span class="ident">dot_matches_new_line</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+        <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1073">self</a>.<span class="ident">dot_matches_new_line</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">swap_greed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1081">self</a>.<span class="ident">swap_greed</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
+        <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1077">self</a>.<span class="ident">swap_greed</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">unicode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1085">self</a>.<span class="ident">unicode</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>)
+        <a class="self" href="../../../src/regex_syntax/hir/translate.rs.html#1081">self</a>.<span class="ident">unicode</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">hir_ascii_class_bytes</span>(<span class="ident">kind</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#765-794">ast::ClassAsciiKind</a>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1080-1082">hir::ClassBytes</a> {
-    <span class="kw">let</span> <span class="ident">ranges</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1099">ascii_class</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1090">kind</a>)
+<span class="kw">fn</span> <span class="ident">hir_ascii_class_bytes</span>(<span class="ident">kind</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#765">ast::ClassAsciiKind</a>) -&gt; <a class="ident" href="../../../src/regex_syntax/hir/mod.rs.html#1080">hir::ClassBytes</a> {
+    <span class="kw">let</span> <span class="ident">ranges</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1095">ascii_class</a>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1086">kind</a>)
         .<span class="ident">iter</span>()
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> <span class="ident">hir::ClassBytesRange::new</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1094">s</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1094">e</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>))
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> <span class="ident">hir::ClassBytesRange::new</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1090">s</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>, <a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1090">e</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>))
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-    <span class="ident">hir::ClassBytes::new</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1091">ranges</a>)
+    <span class="ident">hir::ClassBytes::new</span>(<a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1087">ranges</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">ascii_class</span>(<span class="ident">kind</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#765-794">ast::ClassAsciiKind</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] {
-    <span class="kw">use</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#765-794"><span class="kw">crate</span>::ast::ClassAsciiKind</a>::<span class="kw-2">*</span>;
-    <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1099">kind</a> {
+<span class="kw">fn</span> <span class="ident">ascii_class</span>(<span class="ident">kind</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#765">ast::ClassAsciiKind</a>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>)] {
+    <span class="kw">use</span> <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#765"><span class="kw">crate</span>::ast::ClassAsciiKind</a>::<span class="kw-2">*</span>;
+    <span class="kw">match</span> <span class="kw-2">*</span><a class="ident" href="../../../src/regex_syntax/hir/translate.rs.html#1095">kind</a> {
         <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#767">Alnum</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;0&#39;</span>, <span class="string">&#39;9&#39;</span>), (<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
         <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#769">Alpha</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;A&#39;</span>, <span class="string">&#39;Z&#39;</span>), (<span class="string">&#39;a&#39;</span>, <span class="string">&#39;z&#39;</span>)],
         <a class="ident" href="../../../src/regex_syntax/ast/mod.rs.html#771">Ascii</a> =&gt; <span class="kw-2">&amp;</span>[(<span class="string">&#39;\x00&#39;</span>, <span class="string">&#39;\x7F&#39;</span>)],
@@ -4455,7 +4447,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="kw">fn</span> <span class="ident">hir_quest</span>(<span class="ident">greedy</span>: <span class="ident">bool</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) -&gt; <span class="ident">Hir</span> {
         <span class="ident">Hir::repetition</span>(<span class="ident">hir::Repetition</span> {
             <span class="ident">kind</span>: <span class="ident">hir::RepetitionKind::ZeroOrOne</span>,
-            <span class="ident">greedy</span>: <span class="ident">greedy</span>,
+            <span class="ident">greedy</span>,
             <span class="ident">hir</span>: <span class="ident">Box::new</span>(<span class="ident">expr</span>),
         })
     }
@@ -4463,7 +4455,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="kw">fn</span> <span class="ident">hir_star</span>(<span class="ident">greedy</span>: <span class="ident">bool</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) -&gt; <span class="ident">Hir</span> {
         <span class="ident">Hir::repetition</span>(<span class="ident">hir::Repetition</span> {
             <span class="ident">kind</span>: <span class="ident">hir::RepetitionKind::ZeroOrMore</span>,
-            <span class="ident">greedy</span>: <span class="ident">greedy</span>,
+            <span class="ident">greedy</span>,
             <span class="ident">hir</span>: <span class="ident">Box::new</span>(<span class="ident">expr</span>),
         })
     }
@@ -4471,7 +4463,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="kw">fn</span> <span class="ident">hir_plus</span>(<span class="ident">greedy</span>: <span class="ident">bool</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) -&gt; <span class="ident">Hir</span> {
         <span class="ident">Hir::repetition</span>(<span class="ident">hir::Repetition</span> {
             <span class="ident">kind</span>: <span class="ident">hir::RepetitionKind::OneOrMore</span>,
-            <span class="ident">greedy</span>: <span class="ident">greedy</span>,
+            <span class="ident">greedy</span>,
             <span class="ident">hir</span>: <span class="ident">Box::new</span>(<span class="ident">expr</span>),
         })
     }
@@ -4479,7 +4471,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
     <span class="kw">fn</span> <span class="ident">hir_range</span>(<span class="ident">greedy</span>: <span class="ident">bool</span>, <span class="ident">range</span>: <span class="ident">hir::RepetitionRange</span>, <span class="ident">expr</span>: <span class="ident">Hir</span>) -&gt; <span class="ident">Hir</span> {
         <span class="ident">Hir::repetition</span>(<span class="ident">hir::Repetition</span> {
             <span class="ident">kind</span>: <span class="ident">hir::RepetitionKind::Range</span>(<span class="ident">range</span>),
-            <span class="ident">greedy</span>: <span class="ident">greedy</span>,
+            <span class="ident">greedy</span>,
             <span class="ident">hir</span>: <span class="ident">Box::new</span>(<span class="ident">expr</span>),
         })
     }
@@ -6427,5 +6419,5 @@ Defines a translator that converts an `Ast` to an `Hir`.
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="regex_syntax" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.19.2/src/sync/semaphore.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>semaphore.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.0/src/sync/semaphore.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>semaphore.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
@@ -649,7 +649,7 @@
 <span id="643">643</span>
 <span id="644">644</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="../../../src/tokio/sync/mod.rs.html#451"><span class="kw">super</span>::batch_semaphore</a> <span class="kw">as</span> <span class="ident">ll</span>; <span class="comment">// low level implementation</span>
-<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#53-61">TryAcquireError</a>};
+<span class="kw">use</span> <span class="kw">super</span>::{<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::trace</span>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">std::sync::Arc</a>;
@@ -728,7 +728,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Semaphore</span> {
     <span class="doccomment">/// The low level semaphore</span>
-    <span class="ident">ll_sem</span>: <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#36-42">ll::Semaphore</a>,
+    <span class="ident">ll_sem</span>: <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#36">ll::Semaphore</a>,
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
     <span class="ident">resource_span</span>: <span class="ident">tracing::Span</span>,
 }
@@ -741,7 +741,7 @@
 <span class="attribute">#[<span class="ident">must_use</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SemaphorePermit</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">sem</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#79-84">Semaphore</a>,
+    <span class="ident">sem</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#79">Semaphore</a>,
     <span class="ident">permits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
 }
 
@@ -753,7 +753,7 @@
 <span class="attribute">#[<span class="ident">must_use</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OwnedSemaphorePermit</span> {
-    <span class="ident">sem</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#79-84">Semaphore</a><span class="op">&gt;</span>,
+    <span class="ident">sem</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#79">Semaphore</a><span class="op">&gt;</span>,
     <span class="ident">permits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
 }
 
@@ -772,7 +772,7 @@
     <span class="ident">check_send_sync_val</span>(<span class="ident">semaphore</span>.<span class="ident">acquire</span>());
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#79-84">Semaphore</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#79">Semaphore</a> {
     <span class="doccomment">/// Creates a new semaphore with the initial number of permits.</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">permits</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
@@ -970,9 +970,9 @@
     <span class="doccomment">/// [`TryAcquireError::Closed`]: crate::sync::TryAcquireError::Closed</span>
     <span class="doccomment">/// [`TryAcquireError::NoPermits`]: crate::sync::TryAcquireError::NoPermits</span>
     <span class="doccomment">/// [`SemaphorePermit`]: crate::sync::SemaphorePermit</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SemaphorePermit</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#53-61">TryAcquireError</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_acquire</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SemaphorePermit</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/semaphore.rs.html#323">self</a>.<span class="ident">ll_sem</span>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#93-96">SemaphorePermit</a> {
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#93">SemaphorePermit</a> {
                 <span class="ident">sem</span>: <a class="self" href="../../../src/tokio/sync/semaphore.rs.html#323">self</a>,
                 <span class="ident">permits</span>: <span class="number">1</span>,
             }),
@@ -1005,9 +1005,9 @@
     <span class="doccomment">/// [`TryAcquireError::Closed`]: crate::sync::TryAcquireError::Closed</span>
     <span class="doccomment">/// [`TryAcquireError::NoPermits`]: crate::sync::TryAcquireError::NoPermits</span>
     <span class="doccomment">/// [`SemaphorePermit`]: crate::sync::SemaphorePermit</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_acquire_many</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SemaphorePermit</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#53-61">TryAcquireError</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_acquire_many</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">SemaphorePermit</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/semaphore.rs.html#358">self</a>.<span class="ident">ll_sem</span>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#358">n</a>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#93-96">SemaphorePermit</a> {
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#93">SemaphorePermit</a> {
                 <span class="ident">sem</span>: <a class="self" href="../../../src/tokio/sync/semaphore.rs.html#358">self</a>,
                 <span class="ident">permits</span>: <a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#358">n</a>,
             }),
@@ -1057,7 +1057,7 @@
     <span class="doccomment">/// [`Arc`]: std::sync::Arc</span>
     <span class="doccomment">/// [`AcquireError`]: crate::sync::AcquireError</span>
     <span class="doccomment">/// [`OwnedSemaphorePermit`]: crate::sync::OwnedSemaphorePermit</span>
-    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">acquire_owned</span>(<span class="self">self</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105-108">OwnedSemaphorePermit</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">acquire_owned</span>(<span class="self">self</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105">OwnedSemaphorePermit</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">trace::async_op</span>(
             <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">ll_sem</span>.<span class="ident">acquire</span>(<span class="number">1</span>),
@@ -1121,7 +1121,7 @@
     <span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">acquire_many_owned</span>(
         <span class="self">self</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105-108">OwnedSemaphorePermit</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105">OwnedSemaphorePermit</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#70">AcquireError</a><span class="op">&gt;</span> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">tokio_unstable</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;tracing&quot;</span>))]</span>
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">trace::async_op</span>(
             <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">ll_sem</span>.<span class="ident">acquire</span>(<span class="ident">n</span>),
@@ -1172,9 +1172,9 @@
     <span class="doccomment">/// [`TryAcquireError::Closed`]: crate::sync::TryAcquireError::Closed</span>
     <span class="doccomment">/// [`TryAcquireError::NoPermits`]: crate::sync::TryAcquireError::NoPermits</span>
     <span class="doccomment">/// [`OwnedSemaphorePermit`]: crate::sync::OwnedSemaphorePermit</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_acquire_owned</span>(<span class="self">self</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105-108">OwnedSemaphorePermit</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#53-61">TryAcquireError</a><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_acquire_owned</span>(<span class="self">self</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105">OwnedSemaphorePermit</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/semaphore.rs.html#525">self</a>.<span class="ident">ll_sem</span>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<span class="number">1</span>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105-108">OwnedSemaphorePermit</a> {
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105">OwnedSemaphorePermit</a> {
                 <span class="ident">sem</span>: <a class="self" href="../../../src/tokio/sync/semaphore.rs.html#525">self</a>,
                 <span class="ident">permits</span>: <span class="number">1</span>,
             }),
@@ -1214,9 +1214,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_acquire_many_owned</span>(
         <span class="self">self</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
         <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105-108">OwnedSemaphorePermit</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#53-61">TryAcquireError</a><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105">OwnedSemaphorePermit</a>, <a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#53">TryAcquireError</a><span class="op">&gt;</span> {
         <span class="kw">match</span> <a class="self" href="../../../src/tokio/sync/semaphore.rs.html#565">self</a>.<span class="ident">ll_sem</span>.<a class="ident" href="../../../src/tokio/sync/batch_semaphore.rs.html#236">try_acquire</a>(<a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#566">n</a>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105-108">OwnedSemaphorePermit</a> {
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105">OwnedSemaphorePermit</a> {
                 <span class="ident">sem</span>: <a class="self" href="../../../src/tokio/sync/semaphore.rs.html#565">self</a>,
                 <span class="ident">permits</span>: <a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#566">n</a>,
             }),
@@ -1272,7 +1272,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105-108">OwnedSemaphorePermit</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105">OwnedSemaphorePermit</a> {
     <span class="doccomment">/// Forgets the permit **without** releasing it back to the semaphore.</span>
     <span class="doccomment">/// This can be used to reduce the amount of permits available from a</span>
     <span class="doccomment">/// semaphore.</span>
@@ -1287,11 +1287,11 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105-108">OwnedSemaphorePermit</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#105">OwnedSemaphorePermit</a> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <a class="self" href="../../../src/tokio/sync/semaphore.rs.html#641">self</a>.<span class="ident">sem</span>.<a class="ident" href="../../../src/tokio/sync/semaphore.rs.html#190">add_permits</a>(<a class="self" href="../../../src/tokio/sync/semaphore.rs.html#641">self</a>.<span class="ident">permits</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>);
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (7425fb293 2022-06-30)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
 </body></html>
