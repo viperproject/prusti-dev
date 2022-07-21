@@ -218,10 +218,17 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
             | ty::TyKind::Opaque(_, substs)
             | ty::TyKind::FnDef(_, substs) => self.get_lifetimes_substs(substs)?,
             ty::TyKind::Array(ty, _) | ty::TyKind::Slice(ty) => self.get_lifetimes_high(ty)?,
-            ty::TyKind::Dynamic(_, region) | ty::TyKind::Ref(region, _, _) => {
+            ty::TyKind::Dynamic(_, region) => {
                 vec![vir_high::ty::LifetimeConst {
                     name: region.to_text(),
                 }]
+            }
+            ty::TyKind::Ref(region, ty, _) => {
+                let mut lifetimes = vec![vir_high::ty::LifetimeConst {
+                    name: region.to_text(),
+                }];
+                lifetimes.extend(self.get_lifetimes_high(ty)?);
+                lifetimes
             }
             ty::TyKind::Tuple(ty_list) => {
                 let mut lifetimes = vec![];

@@ -461,12 +461,14 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.lifetimes.get_loan_live_at_start(location);
         let mut derived_lifetimes: BTreeMap<String, BTreeSet<String>> =
             self.lifetimes.get_origin_contains_loan_at_start(location);
+        let mut subset_base_created: BTreeSet<(String, String)> = BTreeSet::new();
         while location.statement_index < terminator_index {
             self.encode_lft_for_statement_mid(
                 &mut block_builder,
                 location,
                 &mut original_lifetimes,
                 &mut derived_lifetimes,
+                &mut subset_base_created,
                 Some(&statements[location.statement_index]),
             )?;
             self.encode_lifetimes_dead_on_edge(
@@ -494,6 +496,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     location,
                     &mut original_lifetimes,
                     &mut derived_lifetimes,
+                    &mut subset_base_created,
                     Some(&statements[location.statement_index]),
                 )?;
             }
@@ -504,6 +507,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 location,
                 &mut original_lifetimes,
                 &mut derived_lifetimes,
+                &mut subset_base_created,
                 None,
             )?;
             let terminator = &terminator.kind;
@@ -1485,12 +1489,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // FIXME: Ideally, before a function call, assert *exactly* what is assumed in the function.
         //   In this case, that is the opaque lifetimes conditions. Finding the right lifetimes
         //   which correspond to the the lifetimes in the function seems to be hard.
-        let subset_base: Vec<(String, String)> = self
-            .lifetimes
-            .get_subset_base_at_mid(location)
-            .iter()
-            .map(|(x, y)| (x.to_text(), y.to_text()))
-            .collect();
+        let subset_base: BTreeSet<(String, String)> =
+            self.lifetimes.get_subset_base_at_mid(location);
         for (lifetime_lhs, lifetime_rhs) in subset_base {
             if lifetimes_to_exhale_inhale.contains(&lifetime_lhs)
                 || lifetimes_to_exhale_inhale.contains(&lifetime_rhs)

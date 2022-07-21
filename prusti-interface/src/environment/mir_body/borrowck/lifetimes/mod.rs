@@ -47,6 +47,18 @@ impl Lifetimes {
         }
     }
 
+    pub fn get_static_lifetime(&self) -> String {
+        "bw6".to_string()
+        // let opaque_lifetimes: BTreeMap<String, BTreeSet<String>> =
+        //     self.get_opaque_lifetimes_with_inclusions_names();
+        // for (lifetime, derived_from) in opaque_lifetimes {
+        //     if derived_from.is_empty() {
+        //         return lifetime.to_text();
+        //     }
+        // }
+        // unreachable!("There must be a static lifetime everywhere");
+    }
+
     pub fn get_loan_live_at_start(&self, location: mir::Location) -> BTreeSet<String> {
         let info = self.get_loan_live_at(RichLocation::Start(location));
         info.into_iter()
@@ -91,6 +103,13 @@ impl Lifetimes {
             })
             .collect()
     }
+
+    // pub fn get_subset_base_at_mid(
+    //     &self,
+    //     location: mir::Location,
+    // ) -> BTreeSet<(String, String)> {
+    //     self.get_subset_base(RichLocation::Mid(location)).map(|(x,y)| (x.to_text(), y.to_text())).collect()
+    // }
 
     pub fn lifetime_count(&self) -> usize {
         let original_lifetimes_count = self.get_original_lifetimes().len();
@@ -178,14 +197,20 @@ impl Lifetimes {
             .collect()
     }
 
-    pub fn get_subset_base_at_start(&self, location: mir::Location) -> Vec<(Region, Region)> {
+    pub fn get_subset_base_at_start(&self, location: mir::Location) -> BTreeSet<(String, String)> {
         let rich_location = RichLocation::Start(location);
         self.get_subset_base(rich_location)
+            .iter()
+            .map(|(x, y)| (x.to_text(), y.to_text()))
+            .collect()
     }
 
-    pub fn get_subset_base_at_mid(&self, location: mir::Location) -> Vec<(Region, Region)> {
+    pub fn get_subset_base_at_mid(&self, location: mir::Location) -> BTreeSet<(String, String)> {
         let rich_location = RichLocation::Mid(location);
         self.get_subset_base(rich_location)
+            .iter()
+            .map(|(x, y)| (x.to_text(), y.to_text()))
+            .collect()
     }
 
     pub fn get_lifetimes_dead_on_edge(&self, from: RichLocation, to: RichLocation) -> Vec<Region> {

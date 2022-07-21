@@ -130,7 +130,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 )?),
             ];
             for statement in basic_block.statements {
-                statements.extend(statement.into_low(&mut self)?);
+                let statement_low = statement.into_low(&mut self)?;
+                // dbg!(&statement_low);
+                statements.extend(statement_low);
             }
             let successor = basic_block.successor.into_low(&mut self)?;
             basic_blocks_map.insert(label.clone(), (statements, successor));

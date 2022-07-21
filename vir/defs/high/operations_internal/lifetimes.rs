@@ -4,6 +4,7 @@ use super::{
             default_fold_expression, default_fold_quantifier, default_walk_expression,
             ExpressionFolder, ExpressionWalker,
         },
+        statement::*,
         position::Position,
         rvalue::*,
         ty::{self, LifetimeConst},
@@ -15,20 +16,84 @@ pub trait WithLifetimes {
     fn get_lifetimes(&self) -> Vec<ty::LifetimeConst>;
 }
 
+fn get_lifetimes_with_arguments(
+    lifetimes: &[ty::LifetimeConst],
+    arguments: &Vec<ty::Type>,
+) -> Vec<ty::LifetimeConst> {
+    let mut all_lifetimes = lifetimes.to_owned();
+    for ty in arguments {
+        for lifetime in ty.get_lifetimes() {
+            if !all_lifetimes.contains(&lifetime) {
+                all_lifetimes.push(lifetime);
+            }
+        }
+    }
+    all_lifetimes
+}
+
+// impl WithLifetimes for mir::Statement {
+//     fn get_lifetimes(&self) -> Vec<LifetimeConst> {
+//         match self.kind() {
+//             _ => vec![]
+//         }
+//     }
+// }
+
+// impl WithLifetimes for Statement {
+//     fn get_lifetimes(&self) -> Vec<LifetimeConst> {
+//         match self {
+//             Self::LifetimeTake(lifetime_take) => lifetime_take.get_lifetimes(),
+//             _ => vec![]
+//         }
+//     }
+// }
+//
+// impl WithLifetimes for LifetimeTake {
+//     fn get_lifetimes(&self) -> Vec<LifetimeConst> {
+//         let mut lifetimes = vec![ LifetimeConst{ name: self.target.name.clone() }];
+//         for value in &self.value {
+//             lifetimes.push(
+//                 LifetimeConst{ name: value.name.clone() }
+//             );
+//         }
+//         lifetimes
+//     }
+// }
+
 impl WithLifetimes for ty::Type {
     fn get_lifetimes(&self) -> Vec<LifetimeConst> {
         match self {
             ty::Type::Reference(reference) => reference.get_lifetimes(),
-            ty::Type::Tuple(ty::Tuple { lifetimes, .. })
-            | ty::Type::Struct(ty::Struct { lifetimes, .. })
-            | ty::Type::Sequence(ty::Sequence { lifetimes, .. })
+            ty::Type::Tuple(ty::Tuple {
+                arguments,
+                lifetimes,
+                ..
+            })
+            | ty::Type::Union(ty::Union {
+                arguments,
+                lifetimes,
+                ..
+            })
+            | ty::Type::Projection(ty::Projection {
+                arguments,
+                lifetimes,
+                ..
+            })
+            | ty::Type::Enum(ty::Enum {
+                arguments,
+                lifetimes,
+                ..
+            })
+            | ty::Type::Struct(ty::Struct {
+                arguments,
+                lifetimes,
+                ..
+            }) => get_lifetimes_with_arguments(lifetimes, arguments),
+            ty::Type::Sequence(ty::Sequence { lifetimes, .. })
             | ty::Type::Map(ty::Map { lifetimes, .. })
-            | ty::Type::Enum(ty::Enum { lifetimes, .. })
             | ty::Type::Array(ty::Array { lifetimes, .. })
             | ty::Type::Slice(ty::Slice { lifetimes, .. })
-            | ty::Type::Projection(ty::Projection { lifetimes, .. })
-            | ty::Type::Trusted(ty::Trusted { lifetimes, .. })
-            | ty::Type::Union(ty::Union { lifetimes, .. }) => lifetimes.clone(),
+            | ty::Type::Trusted(ty::Trusted { lifetimes, .. }) => lifetimes.clone(),
             _ => vec![],
         }
     }

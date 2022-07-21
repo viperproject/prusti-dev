@@ -91,6 +91,7 @@ fn struct_mut_references_assert_false(){
     let mut s2 = &mut s1;
     let mut s3 = &mut s2;
     let mut _s4 = &mut s3;
+    assert!(false);      //~ ERROR: the asserted expression might not hold
 }
 
 struct S4I<'a> {
