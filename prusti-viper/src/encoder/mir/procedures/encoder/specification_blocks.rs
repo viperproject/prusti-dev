@@ -48,7 +48,7 @@ impl SpecificationBlocks {
         let mut specification_blocks = marked_specification_blocks;
         // All blocks dominated by specification blocks are also specification
         // blocks.
-        let dominators = body.dominators();
+        let dominators = body.basic_blocks.dominators();
         for specification_block in specification_blocks.clone() {
             for bb in body.basic_blocks().indices() {
                 if dominators.is_dominated_by(bb, specification_block) {
@@ -59,15 +59,19 @@ impl SpecificationBlocks {
         // All blocks unavoidably leading to specification blocks are also
         // specification blocks.
         let mut work_queue: Vec<_> = specification_blocks.iter().cloned().collect();
-        let predecessors = body.predecessors();
+        let predecessors = body.basic_blocks.predecessors();
         while let Some(specification_block) = work_queue.pop() {
             for &predecessor in &predecessors[specification_block] {
                 if specification_blocks.contains(&predecessor) {
                     continue;
                 }
-                if body.successors(predecessor).all(|predecessor_successor| {
-                    specification_blocks.contains(&predecessor_successor)
-                }) {
+                if body
+                    .basic_blocks
+                    .successors(predecessor)
+                    .all(|predecessor_successor| {
+                        specification_blocks.contains(&predecessor_successor)
+                    })
+                {
                     work_queue.push(predecessor);
                     specification_blocks.insert(predecessor);
                 }
@@ -76,7 +80,7 @@ impl SpecificationBlocks {
 
         // Collect loop invariant blocks.
         let loop_info = procedure.loop_info();
-        let predecessors = body.predecessors();
+        let predecessors = body.basic_blocks.predecessors();
         let mut loop_invariant_blocks = BTreeMap::<_, LoopInvariantBlocks>::new();
         let mut loop_invariant_blocks_flat = BTreeSet::new();
         // We use reverse_postorder here because we need to make sure that we
@@ -105,7 +109,7 @@ impl SpecificationBlocks {
         let mut specification_entry_blocks = BTreeSet::new();
         for bb in body.basic_blocks().indices() {
             if !specification_blocks.contains(&bb) {
-                for successor in body.successors(bb) {
+                for successor in body.basic_blocks.successors(bb) {
                     if specification_blocks.contains(&successor)
                         && !loop_invariant_blocks_flat.contains(&successor)
                     {

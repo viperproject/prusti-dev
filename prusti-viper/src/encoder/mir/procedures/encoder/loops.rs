@@ -52,8 +52,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
             }
         }
         let encoded_back_edges = {
-            let predecessors = self.mir.predecessors();
-            let dominators = self.mir.dominators();
+            let predecessors = self.mir.basic_blocks.predecessors();
+            let dominators = self.mir.basic_blocks.dominators();
             predecessors[loop_head]
                 .iter()
                 .filter(|predecessor| dominators.is_dominated_by(**predecessor, loop_head))
