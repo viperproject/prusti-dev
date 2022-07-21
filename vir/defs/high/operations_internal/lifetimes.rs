@@ -15,20 +15,55 @@ pub trait WithLifetimes {
     fn get_lifetimes(&self) -> Vec<ty::LifetimeConst>;
 }
 
+fn get_lifetimes_with_arguments(
+    lifetimes: &[ty::LifetimeConst],
+    arguments: &Vec<ty::Type>,
+) -> Vec<ty::LifetimeConst> {
+    let mut all_lifetimes = lifetimes.to_owned();
+    for ty in arguments {
+        for lifetime in ty.get_lifetimes() {
+            if !all_lifetimes.contains(&lifetime) {
+                all_lifetimes.push(lifetime);
+            }
+        }
+    }
+    all_lifetimes
+}
+
 impl WithLifetimes for ty::Type {
     fn get_lifetimes(&self) -> Vec<LifetimeConst> {
         match self {
             ty::Type::Reference(reference) => reference.get_lifetimes(),
-            ty::Type::Tuple(ty::Tuple { lifetimes, .. })
-            | ty::Type::Struct(ty::Struct { lifetimes, .. })
-            | ty::Type::Sequence(ty::Sequence { lifetimes, .. })
+            ty::Type::Tuple(ty::Tuple {
+                arguments,
+                lifetimes,
+                ..
+            })
+            | ty::Type::Union(ty::Union {
+                arguments,
+                lifetimes,
+                ..
+            })
+            | ty::Type::Projection(ty::Projection {
+                arguments,
+                lifetimes,
+                ..
+            })
+            | ty::Type::Enum(ty::Enum {
+                arguments,
+                lifetimes,
+                ..
+            })
+            | ty::Type::Struct(ty::Struct {
+                arguments,
+                lifetimes,
+                ..
+            }) => get_lifetimes_with_arguments(lifetimes, arguments),
+            ty::Type::Sequence(ty::Sequence { lifetimes, .. })
             | ty::Type::Map(ty::Map { lifetimes, .. })
-            | ty::Type::Enum(ty::Enum { lifetimes, .. })
             | ty::Type::Array(ty::Array { lifetimes, .. })
             | ty::Type::Slice(ty::Slice { lifetimes, .. })
-            | ty::Type::Projection(ty::Projection { lifetimes, .. })
-            | ty::Type::Trusted(ty::Trusted { lifetimes, .. })
-            | ty::Type::Union(ty::Union { lifetimes, .. }) => lifetimes.clone(),
+            | ty::Type::Trusted(ty::Trusted { lifetimes, .. }) => lifetimes.clone(),
             _ => vec![],
         }
     }
