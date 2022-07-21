@@ -178,3 +178,11 @@ fn test11(){
     let mut f = &mut e;
     let mut g = &mut f;
 }
+fn test11_assert_false(){
+    let mut n = 4;
+    let mut c = C{ x: &mut n};
+    let mut e = Enum5::A(&mut c);
+    let mut f = &mut e;
+    let mut g = &mut f;
+    assert!(false);      //~ ERROR: the asserted expression might not hold
+}
