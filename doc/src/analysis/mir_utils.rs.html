@@ -367,19 +367,6 @@
 <span id="361">361</span>
 <span id="362">362</span>
 <span id="363">363</span>
-<span id="364">364</span>
-<span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
-<span id="368">368</span>
-<span id="369">369</span>
-<span id="370">370</span>
-<span id="371">371</span>
-<span id="372">372</span>
-<span id="373">373</span>
-<span id="374">374</span>
-<span id="375">375</span>
-<span id="376">376</span>
 </pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -577,47 +564,34 @@
 <span class="doccomment">/// Expand `current_place` one level down by following the `guide_place`.</span>
 <span class="doccomment">/// Returns the new `current_place` and a vector containing other places that</span>
 <span class="doccomment">/// could have resulted from the expansion.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">expand_one_level</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand_one_level</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
     <span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">current_place</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">guide_place</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) -&gt; (<span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>) {
     <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#201">current_place</a>.<span class="ident">projection</span>.<span class="ident">len</span>();
-    <span class="kw">match</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#202">guide_place</a>.<span class="ident">projection</span>[<a class="ident" href="../../src/analysis/mir_utils.rs.html#204">index</a>] {
-        <span class="ident">mir::ProjectionElem::Field</span>(<span class="ident">projected_field</span>, <span class="ident">field_ty</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">places</span> <span class="op">=</span>
-                <a class="ident" href="../../src/analysis/mir_utils.rs.html#121-126">expand_struct_place</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#201">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#199">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#200">tcx</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#206">projected_field</a>.<span class="ident">index</span>()));
-            <span class="kw">let</span> <span class="ident">new_current_place</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#200">tcx</a>
-                .<span class="ident">mk_place_field</span>(<span class="kw-2">*</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#201">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#206">projected_field</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#206">field_ty</a>)
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(
-                <span class="op">!</span><span class="ident">places</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">new_current_place</span>),
-                <span class="string">&quot;{:?} unexpectedly contains {:?}&quot;</span>,
-                <span class="ident">places</span>,
-                <span class="ident">new_current_place</span>
-            );
-            (<a class="ident" href="../../src/analysis/mir_utils.rs.html#209">new_current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#207">places</a>)
+    <span class="kw">let</span> <span class="ident">new_projection</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#200">tcx</a>.<span class="ident">mk_place_elems</span>(
+        <a class="ident" href="../../src/analysis/mir_utils.rs.html#201">current_place</a>
+            .<span class="ident">projection</span>
+            .<span class="ident">iter</span>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">chain</a>([<a class="ident" href="../../src/analysis/mir_utils.rs.html#202">guide_place</a>.<span class="ident">projection</span>[<a class="ident" href="../../src/analysis/mir_utils.rs.html#204">index</a>]]),
+    );
+    <span class="kw">let</span> <span class="ident">new_current_place</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#25">Place</a>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/struct.Place.html">mir::Place</a> {
+        <span class="ident">local</span>: <a class="ident" href="../../src/analysis/mir_utils.rs.html#201">current_place</a>.<span class="ident">local</span>,
+        <span class="ident">projection</span>: <a class="ident" href="../../src/analysis/mir_utils.rs.html#205">new_projection</a>,
+    });
+    <span class="kw">let</span> <span class="ident">other_places</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#202">guide_place</a>.<span class="ident">projection</span>[<a class="ident" href="../../src/analysis/mir_utils.rs.html#204">index</a>] {
+        <span class="ident">mir::ProjectionElem::Field</span>(<span class="ident">projected_field</span>, <span class="ident">_field_ty</span>) =&gt; {
+            <a class="ident" href="../../src/analysis/mir_utils.rs.html#121-126">expand_struct_place</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#201">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#199">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#200">tcx</a>, <span class="prelude-val">Some</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#216">projected_field</a>.<span class="ident">index</span>()))
         }
-        <span class="ident">mir::ProjectionElem::Downcast</span>(<span class="ident">_symbol</span>, <span class="ident">variant</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#201">current_place</a>.<span class="ident">ty</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#199">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#200">tcx</a>).<span class="ident">ty</span>.<span class="ident">kind</span>();
-            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ty::TyKind::Adt</span>(<span class="ident">adt</span>, <span class="kw">_</span>) <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#221">kind</a> {
-                (
-                    <a class="ident" href="../../src/analysis/mir_utils.rs.html#200">tcx</a>.<span class="ident">mk_place_downcast</span>(<span class="kw-2">*</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#201">current_place</a>, <span class="kw-2">*</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#222">adt</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#220">variant</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-                    <span class="ident">Vec::new</span>(),
-                )
-            } <span class="kw">else</span> {
-                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>();
-            }
-        }
-        <span class="ident">mir::ProjectionElem::Deref</span> =&gt; (<a class="ident" href="../../src/analysis/mir_utils.rs.html#200">tcx</a>.<span class="ident">mk_place_deref</span>(<span class="kw-2">*</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#201">current_place</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="ident">Vec::new</span>()),
-        <span class="ident">mir::ProjectionElem::Index</span>(<span class="ident">idx</span>) =&gt; {
-            (<a class="ident" href="../../src/analysis/mir_utils.rs.html#200">tcx</a>.<span class="ident">mk_place_index</span>(<span class="kw-2">*</span><a class="ident" href="../../src/analysis/mir_utils.rs.html#201">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#232">idx</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <span class="ident">Vec::new</span>())
-        }
-        <span class="ident">elem</span> =&gt; {
-            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;elem = {:?}&quot;</span>, <span class="ident">elem</span>);
-        }
-    }
+        <span class="ident">mir::ProjectionElem::Deref</span>
+        <span class="op">|</span> <span class="ident">mir::ProjectionElem::Index</span>(..)
+        <span class="op">|</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.ProjectionElem.html">mir::ProjectionElem::ConstantIndex</a> { .. }
+        <span class="op">|</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/syntax/enum.ProjectionElem.html">mir::ProjectionElem::Subslice</a> { .. }
+        <span class="op">|</span> <span class="ident">mir::ProjectionElem::Downcast</span>(..) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[],
+    };
+    (<a class="ident" href="../../src/analysis/mir_utils.rs.html#211">new_current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#215">other_places</a>)
 }
 
 <span class="doccomment">/// Subtract the `subtrahend` place from the `minuend` place. The</span>
@@ -655,7 +629,7 @@
         <span class="ident">subtrahend</span>,
         <span class="ident">place_set</span>
     );
-    <a class="ident" href="../../src/analysis/mir_utils.rs.html#264">place_set</a>
+    <a class="ident" href="../../src/analysis/mir_utils.rs.html#251">place_set</a>
 }
 
 <span class="doccomment">/// Try to collapse all places in `places` by following the</span>
@@ -676,18 +650,18 @@
     ) {
         <span class="kw">if</span> <span class="ident">current_place</span> <span class="op">!</span><span class="op">=</span> <span class="ident">guide_place</span> {
             <span class="kw">let</span> (<span class="ident">new_current_place</span>, <span class="kw-2">mut</span> <span class="ident">expansion</span>) <span class="op">=</span>
-                <a class="ident" href="../../src/analysis/mir_utils.rs.html#198-203">expand_one_level</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#289">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#290">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#292">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#293">guide_place</a>);
-            <a class="ident" href="../../src/analysis/mir_utils.rs.html#288-294">recurse</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#289">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#290">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#291">places</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#296">new_current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#293">guide_place</a>);
-            <a class="ident" href="../../src/analysis/mir_utils.rs.html#296">expansion</a>.<span class="ident">push</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#296">new_current_place</a>);
+                <a class="ident" href="../../src/analysis/mir_utils.rs.html#198-203">expand_one_level</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#276">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#277">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#279">current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#280">guide_place</a>);
+            <a class="ident" href="../../src/analysis/mir_utils.rs.html#275-281">recurse</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#276">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#277">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#278">places</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#283">new_current_place</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#280">guide_place</a>);
+            <a class="ident" href="../../src/analysis/mir_utils.rs.html#283">expansion</a>.<span class="ident">push</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#283">new_current_place</a>);
             <span class="kw">if</span> <span class="ident">expansion</span>.<span class="ident">iter</span>().<span class="ident">all</span>(<span class="op">|</span><span class="ident">place</span><span class="op">|</span> <span class="ident">places</span>.<span class="ident">contains</span>(<span class="ident">place</span>)) {
                 <span class="kw">for</span> <span class="ident">place</span> <span class="kw">in</span> <span class="ident">expansion</span> {
                     <span class="ident">places</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">place</span>);
                 }
-                <a class="ident" href="../../src/analysis/mir_utils.rs.html#291">places</a>.<span class="ident">insert</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#292">current_place</a>);
+                <a class="ident" href="../../src/analysis/mir_utils.rs.html#278">places</a>.<span class="ident">insert</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#279">current_place</a>);
             }
         }
     }
-    <a class="ident" href="../../src/analysis/mir_utils.rs.html#288-294">recurse</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#283">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#284">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#285">places</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#286">guide_place</a>.<span class="ident">local</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../src/analysis/mir_utils.rs.html#286">guide_place</a>);
+    <a class="ident" href="../../src/analysis/mir_utils.rs.html#275-281">recurse</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#270">mir</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#271">tcx</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#272">places</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#273">guide_place</a>.<span class="ident">local</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(), <a class="ident" href="../../src/analysis/mir_utils.rs.html#273">guide_place</a>);
 }
 
 <span class="doccomment">/// Remove all extensions of a place from a set, unpacking prefixes as much as needed.</span>
@@ -697,7 +671,7 @@
     <span class="ident">to_remove</span>: <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">set</span>: <span class="kw-2">&amp;mut</span> <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 ) {
-    <span class="kw">let</span> <span class="ident">old_set</span> <span class="op">=</span> <span class="ident">mem::take</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#316">set</a>);
+    <span class="kw">let</span> <span class="ident">old_set</span> <span class="op">=</span> <span class="ident">mem::take</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#303">set</a>);
     <span class="kw">for</span> <span class="ident">old_place</span> <span class="kw">in</span> <span class="ident">old_set</span> {
         <span class="kw">if</span> <span class="ident">is_prefix</span>(<span class="ident">to_remove</span>, <span class="ident">old_place</span>) {
             <span class="comment">// Unpack `old_place` and remove `to_remove`.</span>
@@ -716,19 +690,19 @@
     <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
     <span class="ident">param_env</span>: <span class="ident">ty::ParamEnv</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ty::TyKind::Ref</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">mutability</span>) <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#334">ty</a>.<span class="ident">kind</span>() {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ty::TyKind::Ref</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">mutability</span>) <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#321">ty</a>.<span class="ident">kind</span>() {
         <span class="comment">// Shared references are copy, mutable references are not.</span>
         <span class="comment">// `type_implements_trait` doesn&#39;t consider that.</span>
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.matches.html">matches!</a>(<span class="ident">mutability</span>, <span class="ident">mir::Mutability::Not</span>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">copy_trait</span>) <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#333">tcx</a>.<span class="ident">lang_items</span>().<span class="ident">copy_trait</span>() {
-        <a class="ident" href="../../src/analysis/mir_utils.rs.html#333">tcx</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/infer/trait.TyCtxtInferExt.html">infer_ctxt</a>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">infcx</span><span class="op">|</span> {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">copy_trait</span>) <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#320">tcx</a>.<span class="ident">lang_items</span>().<span class="ident">copy_trait</span>() {
+        <a class="ident" href="../../src/analysis/mir_utils.rs.html#320">tcx</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_infer/infer/trait.TyCtxtInferExt.html">infer_ctxt</a>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">infcx</span><span class="op">|</span> {
             <span class="comment">// If `ty` has any inference variables (e.g. a region variable), then using it with</span>
             <span class="comment">// the freshly-created `InferCtxt` (i.e. `tcx.infer_ctxt().enter(..)`) will cause</span>
             <span class="comment">// a panic, since those inference variables don&#39;t exist in the new `InferCtxt`.</span>
             <span class="comment">// See: https://rust-lang.zulipchat.com/#narrow/stream/182449-t-compiler.2Fhelp/topic/.E2.9C.94.20Panic.20in.20is_copy_modulo_regions</span>
-            <span class="kw">let</span> <span class="ident">fresh_ty</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#342">infcx</a>.<span class="ident">freshen</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#334">ty</a>);
-            <a class="ident" href="../../src/analysis/mir_utils.rs.html#342">infcx</a>
-                .<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_trait_selection/infer/trait.InferCtxtExt.html">type_implements_trait</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#341">copy_trait</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#347">fresh_ty</a>, <span class="ident">ty::List::empty</span>(), <a class="ident" href="../../src/analysis/mir_utils.rs.html#335">param_env</a>)
+            <span class="kw">let</span> <span class="ident">fresh_ty</span> <span class="op">=</span> <a class="ident" href="../../src/analysis/mir_utils.rs.html#329">infcx</a>.<span class="ident">freshen</span>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#321">ty</a>);
+            <a class="ident" href="../../src/analysis/mir_utils.rs.html#329">infcx</a>
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_trait_selection/infer/trait.InferCtxtExt.html">type_implements_trait</a>(<a class="ident" href="../../src/analysis/mir_utils.rs.html#328">copy_trait</a>, <a class="ident" href="../../src/analysis/mir_utils.rs.html#334">fresh_ty</a>, <span class="ident">ty::List::empty</span>(), <a class="ident" href="../../src/analysis/mir_utils.rs.html#322">param_env</a>)
                 .<span class="ident">must_apply_considering_regions</span>()
         })
     } <span class="kw">else</span> {
@@ -754,7 +728,7 @@
             }
         }
     }
-    <a class="ident" href="../../src/analysis/mir_utils.rs.html#357">borrowed</a>
+    <a class="ident" href="../../src/analysis/mir_utils.rs.html#344">borrowed</a>
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
