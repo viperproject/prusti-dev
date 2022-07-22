@@ -327,6 +327,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
                     span,
                 ));
             }
+            mir::Rvalue::CopyForDeref(ref place) => {
+                let encoded_rhs = self.encode_operand(&mir::Operand::Copy(*place), span)?;
+                state.substitute_value(&encoded_lhs, encoded_rhs);
+            }
         }
 
         Ok(())
