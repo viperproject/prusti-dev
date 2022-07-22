@@ -510,10 +510,15 @@ impl<'tcx> Environment<'tcx> {
         let param_env = self.tcx.param_env(caller_def_id);
 
         // `resolve_instance` below requires normalized substs.
-        let call_substs = self.tcx.normalize_erasing_regions(param_env, call_substs);
+        let normalized_call_substs = self.tcx.normalize_erasing_regions(param_env, call_substs);
 
-        traits::resolve_instance(self.tcx, param_env.and((called_def_id, call_substs)))
+        traits::resolve_instance(self.tcx, param_env.and((called_def_id, normalized_call_substs)))
             .map(|opt_instance| opt_instance
+                // if the resolved instance is the same as what we queried for
+                // anyway, ignore it: this way we keep the regions in substs
+                // at least for non-trait-impl method calls
+                // TODO: different behaviour used for unsafe core proof
+                .filter(|instance| !config::unsafe_core_proof() || instance.def_id() != called_def_id)
                 .map(|instance| (instance.def_id(), instance.substs))
                 .unwrap_or((called_def_id, call_substs)))
             .unwrap_or((called_def_id, call_substs))
