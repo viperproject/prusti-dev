@@ -525,7 +525,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_spec_funcs(&self, def_id: ProcedureDefId)
         -> SpannedEncodingResult<Vec<vir::FunctionIdentifier>>
     {
-        if !self.env().tcx().is_mir_available(def_id) || self.env().tcx().is_constructor(def_id) {
+        if !self.env().tcx().is_mir_available(def_id) || self.env().tcx().is_constructor(def_id)
+            || !def_id.is_local() {
             return Ok(vec![]);
         }
 
