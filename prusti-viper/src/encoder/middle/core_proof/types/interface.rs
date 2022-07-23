@@ -217,6 +217,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     )?;
                 }
             }
+            vir_mid::TypeDecl::Never => {
+                self.register_struct_constructor(&domain_name, Vec::new())?;
+                self.encode_validity_axioms_struct(&domain_name, Vec::new(), false.into())?;
+            }
             _ => unimplemented!("type: {:?}", type_decl),
         };
         Ok(())
@@ -253,11 +257,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             constructor_calls,
             snapshot_type,
         );
-        let validity_op_constructor_call =
-            self.encode_snapshot_valid_call_for_type(op_constructor_call.clone(), ty)?;
         let body = vir_low::Expression::forall(
             parameters,
-            vec![vir_low::Trigger::new(vec![validity_op_constructor_call])],
+            vec![vir_low::Trigger::new(vec![op_constructor_call.clone()])],
             expr! { [parameters_validity.into_iter().conjoin()] ==> ([op_constructor_call] == [constructor_call_op]) },
         );
         let axiom = vir_low::DomainAxiomDecl {

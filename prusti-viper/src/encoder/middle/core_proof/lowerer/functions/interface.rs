@@ -78,6 +78,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 .collect();
             let function = vir_low::FunctionDecl::new(
                 caller_function_name,
+                vir_low::FunctionKind::CallerFor,
                 parameters.clone(),
                 return_type.clone(),
                 caller_for_pres,

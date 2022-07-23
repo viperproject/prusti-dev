@@ -378,6 +378,11 @@ impl<'tcx> Environment<'tcx> {
             .is_some()
     }
 
+    /// Returns true iff `def_id` is an unsafe function.
+    pub fn is_unsafe_function(&self, def_id: ProcedureDefId) -> bool {
+        self.tcx.fn_sig(def_id).unsafety() == prusti_rustc_interface::hir::Unsafety::Unsafe
+    }
+
     /// Returns the `DefId` of the corresponding trait method, if any.
     /// This should not be used to resolve calls (where substs are known): use
     /// `find_trait_method_substs` instead!
