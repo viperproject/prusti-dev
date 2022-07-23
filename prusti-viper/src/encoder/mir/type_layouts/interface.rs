@@ -1,19 +1,9 @@
 use crate::encoder::{
     errors::SpannedEncodingResult,
-    mir::{
-        constants::ConstantsEncoderInterface, pure::PureFunctionEncoderInterface,
-        types::MirTypeEncoderInterface,
-    },
+    mir::{constants::ConstantsEncoderInterface, types::MirTypeEncoderInterface},
 };
 use prusti_rustc_interface::middle::ty;
-use rustc_hash::FxHashSet;
-use std::cell::RefCell;
-use vir_crate::{common::identifier::WithIdentifier, high as vir_high};
-
-#[derive(Default)]
-pub(crate) struct MirTypeLayoutsEncoderState {
-    registered_size_functions: RefCell<FxHashSet<vir_high::Type>>,
-}
+use vir_crate::high as vir_high;
 
 pub(crate) trait MirTypeLayoutsEncoderInterface<'tcx> {
     /// Returns the size of memory block containing `count` consequative
@@ -37,42 +27,14 @@ impl<'v, 'tcx: 'v> MirTypeLayoutsEncoderInterface<'tcx> for super::super::super:
         ty: ty::Ty<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression> {
         let encoded_ty = self.encode_type_high(ty)?;
-        let encoded_ty_without_lifetime = encoded_ty.erase_lifetimes();
         let usize = vir_high::Type::Int(vir_high::ty::Int::Usize);
-        let function_call = vir_high::expression::FuncApp::new(
-            "size",
-            vec![encoded_ty.clone()],
+        let function_call = vir_high::Expression::builtin_func_app_no_pos(
+            vir_high::BuiltinFunc::Size,
+            vec![encoded_ty],
             vec![count],
-            vec![vir_high::VariableDecl::new("count", usize.clone())],
             usize,
         );
-        if !self
-            .mir_type_layouts_encoder_state
-            .registered_size_functions
-            .borrow()
-            .contains(&encoded_ty_without_lifetime)
-        {
-            let usize = vir_high::Type::Int(vir_high::ty::Int::Usize);
-            self.register_function_constructor_mir(
-                function_call.get_identifier(),
-                Box::new(move |_encoder| {
-                    Ok(vir_high::FunctionDecl::new(
-                        "size",
-                        vec![encoded_ty],
-                        vec![vir_high::VariableDecl::new("count", usize.clone())],
-                        usize,
-                        Vec::new(),
-                        Vec::new(),
-                        None,
-                    ))
-                }),
-            )?;
-            self.mir_type_layouts_encoder_state
-                .registered_size_functions
-                .borrow_mut()
-                .insert(encoded_ty_without_lifetime);
-        }
-        Ok(vir_high::Expression::FuncApp(function_call))
+        Ok(function_call)
     }
 
     fn encode_type_size_expression(
