@@ -51,25 +51,28 @@
 <span id="45">45</span>
 <span id="46">46</span>
 <span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">errors::SpannedEncodingResult</a>,
     <span class="ident">mir</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/procedures/mod.rs.html#5">procedures::passes</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/spans/interface.rs.html#9">spans::SpanInterface</a>},
 };
 <span class="kw">use</span> <span class="ident">prusti_rustc_interface</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">hir::def_id::DefId</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">middle::mir</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">span::Span</a>};
 <span class="kw">use</span> <a class="ident" href="../../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../../vir/gen/high/cfg/index.html">vir_crate::high::cfg</a>;
+<span class="kw">use</span> <span class="ident">vir_crate</span>::{<a class="ident" href="../../../../../vir/common/check_mode/enum.CheckMode.html">common::check_mode::CheckMode</a>, <a class="ident" href="../../../../../vir/high/index.html">high</a> <span class="kw">as</span> <span class="ident">vir_high</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">MirProcedureEncoderState</span> {
     <span class="doccomment">/// Mapping from the encoding procedure name to its definition ID.</span>
-    <span class="ident">encoded_procedure_def_ids</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a><span class="op">&gt;</span>,
+    <span class="ident">encoded_procedure_def_ids</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, (<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a class="ident" href="../../../../../vir/common/check_mode/enum.CheckMode.html">CheckMode</a>)<span class="op">&gt;</span>,
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">MirProcedureEncoderInterface</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">encode_procedure_core_proof_high</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">proc_def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/cfg/procedure/struct.ProcedureDecl.html">cfg::ProcedureDecl</a><span class="op">&gt;</span>;
+        <span class="ident">check_mode</span>: <a class="ident" href="../../../../../vir/common/check_mode/enum.CheckMode.html">CheckMode</a>,
+    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/cfg/procedure/struct.ProcedureDecl.html">vir_high::ProcedureDecl</a><span class="op">&gt;</span>;
     <span class="kw">fn</span> <span class="ident">get_span_of_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a>;
     <span class="kw">fn</span> <span class="ident">decode_procedure_def_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">procedure_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>;
 }
@@ -78,24 +81,25 @@
     <span class="kw">fn</span> <span class="ident">encode_procedure_core_proof_high</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">proc_def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
-    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/cfg/procedure/struct.ProcedureDecl.html">cfg::ProcedureDecl</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">procedure</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::encoder::encode_procedure</span>(<span class="self">self</span>, <span class="ident">proc_def_id</span>)<span class="question-mark">?</span>;
+        <span class="ident">check_mode</span>: <a class="ident" href="../../../../../vir/common/check_mode/enum.CheckMode.html">CheckMode</a>,
+    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/cfg/procedure/struct.ProcedureDecl.html">vir_high::ProcedureDecl</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">procedure</span> <span class="op">=</span> <span class="ident"><span class="kw">super</span>::encoder::encode_procedure</span>(<span class="self">self</span>, <span class="ident">proc_def_id</span>, <span class="ident">check_mode</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">procedure</span> <span class="op">=</span> <span class="ident">passes::run_passes</span>(<span class="self">self</span>, <span class="ident">procedure</span>)<span class="question-mark">?</span>;
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
             <span class="self">self</span>.<span class="ident">mir_procedure_encoder_state</span>
                 .<span class="ident">encoded_procedure_def_ids</span>
-                .<span class="ident">insert</span>(<span class="ident">procedure</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">proc_def_id</span>)
+                .<span class="ident">insert</span>(<span class="ident">procedure</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), (<span class="ident">proc_def_id</span>, <span class="ident">check_mode</span>))
                 .<span class="ident">is_none</span>(),
             <span class="string">&quot;The procedure was encoed twice: {:?}&quot;</span>,
             <span class="ident">proc_def_id</span>
         );
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/procedures/interface.rs.html#30">procedure</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/procedures/interface.rs.html#32">procedure</a>)
     }
     <span class="kw">fn</span> <span class="ident">get_span_of_location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">mir</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">location</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Location.html">mir::Location</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/struct.Span.html">Span</a> {
-        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/procedures/interface.rs.html#41">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/spans/interface.rs.html#18">get_mir_location_span</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/procedures/interface.rs.html#41">mir</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/procedures/interface.rs.html#41">location</a>)
+        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/procedures/interface.rs.html#43">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/spans/interface.rs.html#18">get_mir_location_span</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/procedures/interface.rs.html#43">mir</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/procedures/interface.rs.html#43">location</a>)
     }
     <span class="kw">fn</span> <span class="ident">decode_procedure_def_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">procedure_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a> {
-        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/procedures/interface.rs.html#44">self</a>.<span class="ident">mir_procedure_encoder_state</span>.<span class="ident">encoded_procedure_def_ids</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/procedures/interface.rs.html#44">procedure_name</a>]
+        <a class="self" href="../../../../../src/prusti_viper/encoder/mir/procedures/interface.rs.html#46">self</a>.<span class="ident">mir_procedure_encoder_state</span>.<span class="ident">encoded_procedure_def_ids</span>[<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/procedures/interface.rs.html#46">procedure_name</a>].<span class="number">0</span>
     }
 }
 </code></pre></div>

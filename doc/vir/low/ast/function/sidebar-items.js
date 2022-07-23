@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["FunctionDecl",""]]};
+window.SIDEBAR_ITEMS = {"enum":[["FunctionKind",""]],"struct":[["FunctionDecl",""]]};
