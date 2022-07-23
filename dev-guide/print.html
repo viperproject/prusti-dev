@@ -165,7 +165,7 @@
 </li>
 </ol>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="list-of-configuration-flags"><a class="header" href="#list-of-configuration-flags">List of Configuration Flags</a></h1>
-<table><thead><tr><th>Name</th><th>Rust type</th><th>Default value</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Rust type</th><th>Default value</th></tr></thead><tbody>
 <tr><td><a href="config/flags.html#allow_unreachable_unsupported_code"><code>ALLOW_UNREACHABLE_UNSUPPORTED_CODE</code></a></td><td><code>bool</code></td><td><code>false</code></td></tr>
 <tr><td><a href="config/flags.html#assert_timeout"><code>ASSERT_TIMEOUT</code></a></td><td><code>u64</code></td><td><code>10_000</code></td></tr>
 <tr><td><a href="config/flags.html#be_rustc"><code>BE_RUSTC</code></a></td><td><code>bool</code></td><td><code>false</code></td></tr>
@@ -209,7 +209,6 @@
 <tr><td><a href="config/flags.html#max_log_file_name_length"><code>MAX_LOG_FILE_NAME_LENGTH</code></a></td><td><code>usize</code></td><td><code>60</code></td></tr>
 <tr><td><a href="config/flags.html#no_verify"><code>NO_VERIFY</code></a></td><td><code>bool</code></td><td><code>false</code></td></tr>
 <tr><td><a href="config/flags.html#no_verify_deps"><code>NO_VERIFY_DEPS</code></a></td><td><code>bool</code></td><td><code>false</code></td></tr>
-<tr><td><a href="config/flags.html#only_memory_safety"><code>ONLY_MEMORY_SAFETY</code></a></td><td><code>bool</code></td><td><code>false</code></td></tr>
 <tr><td><a href="config/flags.html#optimizations"><code>OPTIMIZATIONS</code></a></td><td><code>Vec&lt;String&gt;</code></td><td>&quot;all&quot;</td></tr>
 <tr><td><a href="config/flags.html#preserve_smt_trace_files"><code>PRESERVE_SMT_TRACE_FILES</code></a></td><td><code>bool</code></td><td><code>false</code></td></tr>
 <tr><td><a href="config/flags.html#print_collected_verification_items"><code>PRINT_COLLECTED_VERIFICATION_ITEMS</code></a></td><td><code>bool</code></td><td><code>false</code></td></tr>
@@ -242,6 +241,7 @@
 <tr><td><a href="config/flags.html#viper_home"><code>VIPER_HOME</code></a></td><td><code>Option&lt;String&gt;</code></td><td><code>None</code></td></tr>
 <tr><td><a href="config/flags.html#write_smt_statistics"><code>WRITE_SMT_STATISTICS</code></a></td><td><code>bool</code></td><td><code>false</code></td></tr>
 </tbody></table>
+</div>
 <h2 id="allow_unreachable_unsupported_code"><a class="header" href="#allow_unreachable_unsupported_code"><code>ALLOW_UNREACHABLE_UNSUPPORTED_CODE</code></a></h2>
 <p>When enabled, unsupported code is encoded as <code>assert false</code>. This way error messages are reported only for unsupported code that is actually reachable.</p>
 <h2 id="assert_timeout"><a class="header" href="#assert_timeout"><code>ASSERT_TIMEOUT</code></a></h2>
@@ -686,8 +686,7 @@ predicate Tuple_X_Y(self: Ref) {
 </code></pre>
 <h3 id="structures"><a class="header" href="#structures">Structures</a></h3>
 <p>Structures are encoded similarly to tuples, except that fields names correspond to the names defined in the Rust type.</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>// for a Rust type, assuming types X and Y are defined
 struct SomeStruct {
@@ -705,8 +704,7 @@ predicate SomeStruct(self:Ref) {
 </code></pre>
 <h3 id="enumerations"><a class="header" href="#enumerations">Enumerations</a></h3>
 <p>Enumerations (ADTs) have values corresponding to one of their variants. Each variant can hold different types of data, so the Viper encoding contains implications of the form &quot;if the variant of the value is X, the value contains the following fields&quot;. The variant index is encoded as the <code>discriminant</code> field.</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>// for a Rust type, assuming type X is defined
 enum SomeEnum {
@@ -755,8 +753,7 @@ Instances of <code>Snap$T</code> can be thought of as deep values representing a
 </ol>
 <h2 id="example"><a class="header" href="#example">Example</a></h2>
 <p>Consider the Rust struct declared below.</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct SomeStruct {
   a: i32,
@@ -820,8 +817,7 @@ function snap$SomeStruct(self: Ref): Snap$SomeStruct
 <h2 id="nested-structures"><a class="header" href="#nested-structures">Nested structures</a></h2>
 <p>Nested Rust structures are encoded as in the previous example - the main difference is that every reference to another structure needs to be replaced with the corresponding snapshot type in every constructor.</p>
 <p>For instance, assume we extend the previous example with another structure that re-uses <code>SomeStruct</code>:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>// assuming SomeStruct as before
 struct BiggerStruct {
@@ -856,8 +852,7 @@ function snap$BiggerStruct(self: Ref): Snap$BiggerStruct
 <li>Its heap-dependent <code>snap$</code> function needs to branch over the enumeration's <code>discriminant</code> field to select the correct constructor when converting a reference to a snapshot value.</li>
 </ul>
 <p>For example, consider the enumeration below, which defines a custom Option type.</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>// assuming SomeStruct as before
 enum MyOption {
@@ -933,8 +928,7 @@ to implement several features, which are collected below.</p>
 </code></pre>
 <p>For non-recursive types, the snapshot function <code>snap$type(ref)</code> recursively unfolds the predicate encoding the type of <code>ref</code>. Hence, the above property holds whenever equality of the type of <code>x</code> and <code>y</code> corresponds to structural equality, i.e., whenever the <code>Eq</code> trait is automatically derived. </p>
 <p>For example, the following piece of Rust code verifies while internally using snapshots to discharge equality checks:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>// as before, but derives Eq
 #[derive(PartialEq, Eq)]
@@ -978,8 +972,7 @@ This is necessary because Viper does not allow resource assertions within the po
 At the moment, only types implementing the <a href="https://doc.rust-lang.org/core/marker/trait.Copy.html"><code>Copy</code></a> trait are supported.</p>
 <p>As an example, assume both the struct <code>BiggerStruct</code> and the struct <code>SomeStruct</code> from previous examples derive the traits <code>Copy</code> and <code>Eq</code>.
 Moreover, consider the following pure function <code>get</code> mapping every instance of <code>BiggerStruct</code> to its wrapped instance of <code>SomeStruct</code>:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[pure]
 fn get(x: BiggerStruct) -&gt; SomeStruct {
@@ -1013,8 +1006,7 @@ instances of Copy types within pure functions is currently not fully supported.<
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pure-function-encoding"><a class="header" href="#pure-function-encoding">Pure function encoding</a></h1>
 <p>To encode specifications and side-effect-free functions (marked with <code>#[pure]</code>), Prusti generates Viper <a href="http://viper.ethz.ch/tutorial/?page=1&amp;section=#functions">functions</a>. A Viper function consists of a single expression, so Rust function bodies must be folded accordingly. This is only possible for loop-less functions.</p>
 <p>For example, the Rust function:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[pure]
 fn hello(a: i32) -&gt; i32 {
@@ -1056,7 +1048,7 @@ fn hello(a: i32) -&gt; i32 {
 <p>This is the encoded form of <code>m_core::ops[0]::range[0]::Range[0]$_beg_$i32$_end_</code>.</p>
 <h2 id="mangling-rules"><a class="header" href="#mangling-rules">Mangling rules</a></h2>
 <p>The following replacements are performed during name mangling:</p>
-<table><thead><tr><th>Original characters</th><th>Replacement</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Original characters</th><th>Replacement</th></tr></thead><tbody>
 <tr><td><code>::</code></td><td><code>$$</code></td></tr>
 <tr><td><code>&lt;</code></td><td><code>$openang$</code></td></tr>
 <tr><td><code>&gt;</code></td><td><code>$closeang$</code></td></tr>
@@ -1070,7 +1062,7 @@ fn hello(a: i32) -&gt; i32 {
 <tr><td><code>;</code></td><td><code>$semic$</code></td></tr>
 <tr><td><code> </code></td><td><code>$space$</code></td></tr>
 </tbody></table>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="repository-layout"><a class="header" href="#repository-layout">Repository Layout</a></h1>
+</div><div style="break-before: page; page-break-before: always;"></div><h1 id="repository-layout"><a class="header" href="#repository-layout">Repository Layout</a></h1>
 <p>This section describes the crates located in the Prusti repository, their function, and key modules. Some important files are linked and described individually, although this list is far from complete.</p>
 <h2 id="binaries"><a class="header" href="#binaries">Binaries</a></h2>
 <p>These crates relate to the runnable executables produced during compilation.</p>
@@ -1204,13 +1196,14 @@ ln -s $(pwd)/rust-toolchain $(pwd)/target/release/
 <pre><code>$ ./x.py build
 </code></pre>
 <p>The script will set the following environment variables if they are not already set, before running <code>cargo build</code>:</p>
-<table><thead><tr><th>Variable</th><th>Default value</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Variable</th><th>Default value</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>JAVA_HOME</code></td><td>Detected based on OS.</td><td>Java JDK location.</td></tr>
 <tr><td><code>RUST_TEST_THREADS</code></td><td><code>1</code></td><td>Limits the number of threads used for running tests.</td></tr>
 <tr><td><code>LD_LIBRARY_PATH</code> (and <code>DYLD_LIBRARY_PATH</code> on macOS)</td><td>Detected inside <code>JAVA_HOME</code></td><td>Path containing <code>libjvm.so</code> (<code>libjvm.dylib</code> on macOS).</td></tr>
 <tr><td><code>VIPER_HOME</code></td><td><code>viper_tools/backends</code></td><td>Path containing <code>silicon.jar</code>, <code>carbon.jar</code>, and various supporting Java libraries.</td></tr>
 <tr><td><code>Z3_EXE</code></td><td><code>(VIPER_HOME)/../z3/bin/z3</code></td><td>Path to the <code>z3</code> solver executable.</td></tr>
 </tbody></table>
+</div>
 <p>Any additional arguments are added to the <code>cargo build</code> command line. For example:</p>
 <pre><code class="language-bash">$ ./x.py build --all --verbose
 </code></pre>
@@ -1232,8 +1225,7 @@ ln -s $(pwd)/rust-toolchain $(pwd)/target/release/
 </code></pre>
 <h2 id="additional-flags"><a class="header" href="#additional-flags">Additional flags</a></h2>
 <p>Some tests require setting additional flags, for example, to ensure that the number of quantifier instantiations is below a certain bound. This can be achieved by adding at the top of the test file <code>// compile-flags:</code> followed by the <a href="development/../config/flags.html">list of arguments</a> to Prusti. For example, the following comment would bound the number of unique triggers used to instantiate a quantifier to 20:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>// compile-flags: -Psmt_unique_triggers_bound=20
 <span class="boring">}
@@ -1284,8 +1276,7 @@ RUST_BACKTRACE=1 PRUSTI_DUMP_VIPER_PROGRAM=true PRUSTI_DUMP_DEBUG_INFO=true \
 <li>Dumps the information that is most commonly needed for debugging Prusti into the <code>log</code> directory.</li>
 </ol>
 <p>Tip: to see the expanded Prusti specification macros, add the following comment at the beginning of the test file:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>// compile-flags: -Zunpretty=expanded
 <span class="boring">}

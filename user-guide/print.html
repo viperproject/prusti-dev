@@ -166,8 +166,7 @@ The settings for switching to this version in Prusti Assistant are found in
 </code></pre>
 <h2 id="introductory-example"><a class="header" href="#introductory-example">Introductory example</a></h2>
 <p>Let us verify that the function <code>max</code> below, which takes two integers and returns the greater one, is implemented correctly.</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>fn max(a: i32, b: i32) -&gt; i32 {
     if a &gt; b {
@@ -186,8 +185,7 @@ This tells us that</p>
 </ol>
 <p>To also verify that <code>max</code> indeed always returns the maximum of its two inputs, we have to add a corresponding specification, which states
 that the return value of <code>max</code> is at least as large as both <code>a</code> and <code>b</code> and, additionally, coincides with <code>a</code> or <code>b</code>:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>extern crate prusti_contracts;
 use prusti_contracts::*;
@@ -216,8 +214,7 @@ The syntax of specifications is a superset of Rust expressions, where <code>resu
 <p>Again, verifying the above code with Prusti should succeed. 
 Notice that Prusti assumes by default that integer types are bounded; it thus performs <a href="verify/overflow.html">overflow and underflow checks</a> unless corresponding options are provided.</p>
 <p>Next, we add a second function <code>max3</code> which returns the maximum of three instead of two integers; we reuse the already verified function <code>max</code> in the new function's specification to show that this function is implemented correctly.</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>extern crate prusti_contracts;
 use prusti_contracts::*;
@@ -252,8 +249,7 @@ Notice that we additionally declared the function <code>max</code> as <a href="v
 If we omit this annotation, Prusti will complain that the postcondition of function <code>max3</code> is invalid because it uses an <code>impure</code> function, which may potentially have side-effects.</p>
 <p>So far, we only considered programs that meet their specification and that, consequently, Prusti successfully verified.
 To conclude this example, assume we accidentally return <code>c</code> instead of <code>b</code> if <code>b &gt; c</code> holds:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[ensures(result == max(a, max(b, c)))]
 fn max3(a: i32, b: i32, c: i32) -&gt; i32 {
@@ -271,8 +267,7 @@ fn max3(a: i32, b: i32, c: i32) -&gt; i32 {
 </span></code></pre></pre>
 <p>In this case, Prusti will highlight the line with the error and report that the <code>postcondition might not hold</code>.</p>
 <p>For debugging purposes, it is often useful to add <code>assert!(...)</code> macros to our code to locate the issue. For example, in the code below, we added an assertion that fails because <code>b &gt; c</code> and thus the maximum of <code>b</code> and <code>c</code> is <code>b</code> instead of <code>c</code>. </p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>extern crate prusti_contracts;
 use prusti_contracts::*;
@@ -2291,8 +2286,7 @@ Furthermore, Prusti may verify a program although some (or even all) of its exec
 <p>Overflow checks can be disabled by setting the <a href="https://viperproject.github.io/prusti-dev/dev-guide/config/flags.html#check_overflows"><code>check_overflows</code></a> flag to <code>false</code>. See <a href="https://viperproject.github.io/prusti-dev/dev-guide/config/providing.html">Providing Flags</a> in the developer guide for details.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pre--and-postconditions"><a class="header" href="#pre--and-postconditions">Pre- and postconditions</a></h1>
 <p>In Prusti, the externally observable behaviour of a function can be specified with preconditions and postconditions. They can be provided using <a href="https://doc.rust-lang.org/reference/attributes.html">Rust attributes</a>:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>extern crate prusti_contracts;
 use prusti_contracts::*;
@@ -2306,8 +2300,7 @@ fn example() { ... }
 <p>Preconditions are checked whenever the given function is called. Postconditions are checked at any exit point of the function, i.e. explicit <code>return</code> statements, as well as the end of the function body.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="trusted-functions"><a class="header" href="#trusted-functions">Trusted functions</a></h1>
 <p>Sometimes specifications express a fact which is true about a function, but the verifier cannot prove it automatically, or it uses features not yet supported by Prusti. In such cases, it is possible to mark a function as <code>#[trusted]</code>:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>extern crate prusti_contracts;
 use prusti_contracts::*;
@@ -2327,8 +2320,7 @@ fn xor_swap(a: &amp;mut i32, b: &amp;mut i32) {
 <p>When declaring a function as <code>#[trusted]</code>, Prusti ignores the function's body and assumes the provided pre- and postconditions have already been successfully verified.
 As the example below demonstrates, a single wrong, yet trusted, specification may lead to wrong and unexpected verification results.
 Hence, some care is needed to ensure that the specifications of trusted functions are indeed correct.</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>extern crate prusti_contracts;
 use prusti_contracts::*;
@@ -2345,8 +2337,7 @@ fn test() {
 </span></code></pre></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pure-functions"><a class="header" href="#pure-functions">Pure functions</a></h1>
 <p>Pure functions are functions which are deterministic and side-effect free. In Prusti, such functions can be marked with the <code>#[pure]</code> attribute. They can take shared references as arguments, but they cannot take mutable references, because modifying the heap is considered a side effect.</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>extern crate prusti_contracts;
 use prusti_contracts::*;
@@ -2367,8 +2358,7 @@ fn impure_example(a: &amp;i32, b: &amp;i32, c: &amp;mut i32) {
 <p>Predicates are similar to <a href="verify/pure.html">pure functions</a> in that they are deterministic and side-effect free and used in specifications.</p>
 <p>They are more powerful than pure functions: inside predicate bodies the full <a href="verify/../syntax.html">Prusti specification syntax</a> is allowed. However, they are not usable in regular Rust code, as there are no direct Rust equivalents for specification constructs like <a href="verify/../syntax.html#quantifiers">quantifiers</a> or <a href="verify/../syntax.html#implications">implications</a>. Instead, predicates can only be called from within specifications.</p>
 <p>Predicates are declared using the <code>predicate!</code> macro on a function:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>predicate! {
     fn all_zeroes(a: &amp;MyArray) -&gt; bool {
@@ -2379,8 +2369,7 @@ fn impure_example(a: &amp;i32, b: &amp;i32, c: &amp;mut i32) {
 <span class="boring">}
 </span></code></pre></pre>
 <p>Within specifications, predicates can be called just like pure functions:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[ensures(all_zeros(a))]
 fn zero(a: &amp;mut MyArray) { ... }
@@ -2390,8 +2379,7 @@ fn zero(a: &amp;mut MyArray) { ... }
 <div style="break-before: page; page-break-before: always;"></div><h1 id="external-specifications"><a class="header" href="#external-specifications">External specifications</a></h1>
 <p>Since the Rust standard library and external libraries do not specify contracts for their functions, Prusti allows specifying the contract for functions separately from where they are implemented. Such a specification looks like a regular <code>impl</code>, with the exception that there are no bodies in the implementation functions, and that the <code>impl</code> has an <code>#[extern_spec]</code> attribute.</p>
 <p>The standard library type <code>std::option::Option</code> could be specified as follows:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>extern crate prusti_contracts;
 use prusti_contracts::*;
@@ -2415,8 +2403,7 @@ impl&lt;T&gt; std::option::Option&lt;T&gt; {
 </span></code></pre></pre>
 <p>Any function in an external specification is implicitly <a href="verify/trusted.html">trusted</a> (as if marked with <code>#[trusted]</code>). It is possible to specify multiple <code>#[extern_spec]</code> implementations for the same type, but it is an error to externally specify the same function multiple times.</p>
 <p>Module functions can be specified using a nested <code>mod</code> syntax:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>extern crate prusti_contracts;
 use prusti_contracts::*;
@@ -2436,15 +2423,15 @@ mod std {
 <p>There are currently issues with external specifications combined with generics, so the function <code>swap</code> above is specified for <code>i32</code> arguments only.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="loop-body-invariants"><a class="header" href="#loop-body-invariants">Loop body invariants</a></h1>
 <p>To verify loops, including loops in which the loop condition has side effects, Prusti allows specifying the <em>invariant of the loop body</em> using the <code>body_invariant!(...);</code> statement. The expression inside the parentheses should be a <a href="verify/../syntax.html">Prusti specification</a>. There may be any number of body invariants in any given loop, but they must all be written at the beginning of the loop body.</p>
-<table><thead><tr><th>Feature</th><th>Status</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Feature</th><th>Status</th></tr></thead><tbody>
 <tr><td>Loop conditions without side-effects</td><td>Supported</td></tr>
 <tr><td>Loop conditions with side-effects</td><td>Supported</td></tr>
 <tr><td>Loops with <code>break</code>, <code>continue</code>, or <code>return</code> statements</td><td>Supported</td></tr>
 <tr><td>Loans that cross a loop boundary (e.g. loans defined outside the loop, expiring in the loop)</td><td>Not supported yet</td></tr>
 </tbody></table>
+</div>
 <p>In general, given the loop:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>while {
   G; // possibly side-effectful
@@ -2499,8 +2486,7 @@ fn main() {
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pledges-1"><a class="header" href="#pledges-1">Pledges</a></h1>
 <p>Pledges are a construct that can be used to specify the behaviour of functions that reborrow. For example, pledges should be used for modelling an assignment to a vector element because, in Rust, <code>v[i] = 4</code> is not a method call <code>v.store(i, 4)</code> but rather <code>let tmp = v.get_mut(i); *tmp = 4</code>, where <code>get_mut</code> is a method that reborrows the <code>v</code> receiver to return a reference to a particular element.</p>
 <p>As a full example, a wrapper around Rust <code>Vec&lt;i32&gt;</code> could be implemented as follows:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>extern crate prusti_contracts;
 use prusti_contracts::*;
@@ -2554,8 +2540,7 @@ use <code>before_expiry(*reference)</code>.</p>
 <p><strong>NOT YET SUPPORTED:</strong> This feature is not yet supported in the new version of Prusti.</p>
 </blockquote>
 <p>In some cases, marker traits simply modify the behavior of methods in their super-traits. For instance consider the <code>PartialEq&lt;T&gt;</code> and <code>Eq</code> traits. In order to consider this additional behavior for verification, traits support contract refinement on trait level:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>pub trait PartialEq&lt;Rhs: ?Sized = Self&gt; {
     #[ensures(/* partial equivalence formulas */)]
@@ -2592,8 +2577,7 @@ fn main() {
 <p><strong>NOT YET SUPPORTED:</strong> This feature is not yet supported in Prusti. See <a href="https://github.com/viperproject/prusti-dev/pull/138">PR #138</a> for the status of this feature as well as a prototype. The syntax described here is subject to change.</p>
 </blockquote>
 <p>The contract for a closure or function pointer variable can be given using the specification entailment syntax:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>extern crate prusti_contracts;
 use prusti_contracts::*;
@@ -2623,8 +2607,7 @@ fn example&lt;F: Fn (i32, i32) -&gt; i32&gt; (f: F) { ... }
 To provide a specification for such structs, you can add model fields to be used in specifications. To introduce a type
 model for a struct, simply annotate it with the <code>#[model]</code> macro and declare the to-be-modelled fields inside the
 struct:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[model]
 struct SomeStruct {
@@ -2634,8 +2617,7 @@ struct SomeStruct {
 <span class="boring">}
 </span></code></pre></pre>
 <p>You then can use the model of <code>SomeStruct</code> inside specifications via the <code>.model()</code> function:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[requires(some_struct.model().some_i32 == 42)]
 fn some_method(some_struct: &amp;SomeStruct) {
@@ -2645,8 +2627,7 @@ fn some_method(some_struct: &amp;SomeStruct) {
 </span></code></pre></pre>
 <p>A model cannot be used outside of specification code, that is the following code will emit an error in Prusti and panic
 when executed:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>fn some_client(some_struct: &amp;mut SomeStruct) {
     some_struct.model().some_i32 = 42;
@@ -2666,8 +2647,7 @@ model is always a <a href="verify/trusted.html">trusted function</a> or an <a hr
 <p>Different (generic) models for the same type can have different fields. In order to correctly parse the model, Prusti
 needs attributes attached to the generics. A type argument needs to be attributed with <code>#[concrete]</code>, a type parameter
 with <code>#[generic]</code>. In the last example above, we would create a model with:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[model]
 struct SomeGenericStruct&lt;#[generic] A: Copy, #[concrete] i32&gt; {
@@ -2717,8 +2697,7 @@ This example is a draft and is meant as a possible real-world usage of <code>#[m
 </blockquote>
 <p>An example where a type model comes in handy is the <code>std::slice::Iter</code> struct from the standard library. We would like
 to provide a specification for the <code>Iterator</code>:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>impl&lt;T&gt; Iterator&lt;'a, T&gt; for std::slice::Iter&lt;'a, T&gt; {
     // ??? spec involving Iter ??? 
@@ -2729,8 +2708,7 @@ to provide a specification for the <code>Iterator</code>:</p>
 <p>There is not really a way to provide a specification for this implementation, because <code>Iter</code>'s fields do not allow
 a <a href="https://doc.rust-lang.org/src/core/slice/iter.rs.html#65-71">straightforward specification</a>.</p>
 <p>We can instead provide a model for <code>Iter</code> in the following way, using the <code>#[model]</code> macro:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>use std::slice::Iter;
 
@@ -2744,8 +2722,7 @@ struct Iter&lt;'a, #[generic] T: Copy&gt; {
 </span></code></pre></pre>
 <p>This allows an instance of <code>Iter&lt;'_, T&gt;</code> to be modelled by the fields <code>position</code>, <code>len</code> and <code>data</code>.</p>
 <p>The model can then be used in specifications:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[ensures(result.model().position == 0)]
 #[ensures(result.model().len == slice.len())]
@@ -2770,17 +2747,17 @@ impl&lt;T&gt; Iterator for std::slice::Iter&lt;'a, T&gt; {
 </span></code></pre></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="specification-syntax"><a class="header" href="#specification-syntax">Specification syntax</a></h1>
 <p>Prusti specifications are a superset of Rust boolean expressions. They must be deterministic and side-effect free. Therefore, they can only call only <a href="verify/pure.html">pure functions</a>. The extensions to Rust expressions are summarized below:</p>
-<table><thead><tr><th>Syntax</th><th>Meaning</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>Syntax</th><th>Meaning</th></tr></thead><tbody>
 <tr><td><a href="syntax.html#old-expressions"><code>old(...)</code></a></td><td>Value of expression in a previous state</td></tr>
 <tr><td><a href="syntax.html#implications"><code>... ==&gt; ...</code></a></td><td>Implication</td></tr>
 <tr><td><a href="syntax.html#quantifiers"><code>forall(...)</code></a></td><td>Universal quantifier</td></tr>
 <tr><td><a href="syntax.html#quantifiers"><code>exists(...)</code></a></td><td>Existential quantifier</td></tr>
 <tr><td><a href="syntax.html#specification-entailments"><code>... |= ...</code></a></td><td>Specification entailment</td></tr>
 </tbody></table>
+</div>
 <h2 id="old-expressions"><a class="header" href="#old-expressions">Old expressions</a></h2>
 <p>Old expressions are used to refer to the value that a memory location pointed at by a mutable reference had at the beginning of the function:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>extern crate prusti_contracts;
 use prusti_contracts::*;
@@ -2793,8 +2770,7 @@ pub fn inc(x: &amp;mut u32) {
 </span></code></pre></pre>
 <h2 id="implications"><a class="header" href="#implications">Implications</a></h2>
 <p>Implications express a <a href="https://en.wikipedia.org/wiki/Material_conditional">relationship</a> between two boolean expressions:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[pure]
 #[ensures(result ==&gt; self.len() == 0)]
@@ -2803,8 +2779,7 @@ pub fn is_empty(&amp;self) -&gt; bool;
 <span class="boring">}
 </span></code></pre></pre>
 <p>There is no syntax for logical equivalences (&quot;if and only if&quot;), because this coincides with <code>==</code>:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[pure]
 #[ensures(result == (self.len() == 0))]
@@ -2813,8 +2788,7 @@ pub fn is_empty(&amp;self) -&gt; bool;
 </span></code></pre></pre>
 <h2 id="quantifiers"><a class="header" href="#quantifiers">Quantifiers</a></h2>
 <p>Quantifiers are typically used for describing how a method call changes a container such as a vector:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[requires(0 &lt;= index &amp;&amp; index &lt; self.len())]
 #[ensures(self.len() == old(self.len()))]

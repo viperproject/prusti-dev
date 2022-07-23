@@ -139,8 +139,7 @@
 To provide a specification for such structs, you can add model fields to be used in specifications. To introduce a type
 model for a struct, simply annotate it with the <code>#[model]</code> macro and declare the to-be-modelled fields inside the
 struct:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[model]
 struct SomeStruct {
@@ -150,8 +149,7 @@ struct SomeStruct {
 <span class="boring">}
 </span></code></pre></pre>
 <p>You then can use the model of <code>SomeStruct</code> inside specifications via the <code>.model()</code> function:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[requires(some_struct.model().some_i32 == 42)]
 fn some_method(some_struct: &amp;SomeStruct) {
@@ -161,8 +159,7 @@ fn some_method(some_struct: &amp;SomeStruct) {
 </span></code></pre></pre>
 <p>A model cannot be used outside of specification code, that is the following code will emit an error in Prusti and panic
 when executed:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>fn some_client(some_struct: &amp;mut SomeStruct) {
     some_struct.model().some_i32 = 42;
@@ -182,8 +179,7 @@ model is always a <a href="trusted.html">trusted function</a> or an <a href="ext
 <p>Different (generic) models for the same type can have different fields. In order to correctly parse the model, Prusti
 needs attributes attached to the generics. A type argument needs to be attributed with <code>#[concrete]</code>, a type parameter
 with <code>#[generic]</code>. In the last example above, we would create a model with:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[model]
 struct SomeGenericStruct&lt;#[generic] A: Copy, #[concrete] i32&gt; {
@@ -233,8 +229,7 @@ This example is a draft and is meant as a possible real-world usage of <code>#[m
 </blockquote>
 <p>An example where a type model comes in handy is the <code>std::slice::Iter</code> struct from the standard library. We would like
 to provide a specification for the <code>Iterator</code>:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>impl&lt;T&gt; Iterator&lt;'a, T&gt; for std::slice::Iter&lt;'a, T&gt; {
     // ??? spec involving Iter ??? 
@@ -245,8 +240,7 @@ to provide a specification for the <code>Iterator</code>:</p>
 <p>There is not really a way to provide a specification for this implementation, because <code>Iter</code>'s fields do not allow
 a <a href="https://doc.rust-lang.org/src/core/slice/iter.rs.html#65-71">straightforward specification</a>.</p>
 <p>We can instead provide a model for <code>Iter</code> in the following way, using the <code>#[model]</code> macro:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>use std::slice::Iter;
 
@@ -260,8 +254,7 @@ struct Iter&lt;'a, #[generic] T: Copy&gt; {
 </span></code></pre></pre>
 <p>This allows an instance of <code>Iter&lt;'_, T&gt;</code> to be modelled by the fields <code>position</code>, <code>len</code> and <code>data</code>.</p>
 <p>The model can then be used in specifications:</p>
-<pre><pre class="playground"><code class="language-rust">
-<span class="boring">#![allow(unused)]
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>#[ensures(result.model().position == 0)]
 #[ensures(result.model().len == slice.len())]
