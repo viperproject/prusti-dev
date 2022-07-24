@@ -69,7 +69,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     builtin_methods: RefCell<FxHashMap<BuiltinMethodKind, vir::BodylessMethod>>,
     pub(super) high_builtin_function_encoder_state: HighBuiltinFunctionEncoderState,
     procedures: RefCell<FxHashMap<ProcedureDefId, vir::CfgMethod>>,
-    programs: Vec<vir::Program>,
+    programs: Vec<(ProcedureDefId, vir::Program)>,
     pub(super) mir_sequences_encoder_state: MirSequencesEncoderState<'tcx>,
     pub(super) contracts_encoder_state: ContractsEncoderState<'tcx>,
     pub(super) mir_procedure_encoder_state: MirProcedureEncoderState,
@@ -215,12 +215,12 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         super::definition_collector::collect_definitions(error_span, self, name, self.get_used_viper_methods())
     }
 
-    pub fn get_viper_programs(&mut self) -> Vec<vir::Program> {
+    pub fn get_viper_programs(&mut self) -> Vec<(ProcedureDefId, vir::Program)> {
         std::mem::take(&mut self.programs)
     }
 
-    pub fn get_core_proof_programs(&mut self) -> Vec<prusti_common::vir::program::Program> {
-        self.take_core_proof_programs().into_iter().map(prusti_common::vir::program::Program::Low).collect()
+    pub fn get_core_proof_programs(&mut self) -> Vec<(DefId, prusti_common::vir::program::Program)> {
+        self.take_core_proof_programs().into_iter().map(|(id, prog)| (id, prusti_common::vir::program::Program::Low(prog))).collect()
     }
 
     pub(in crate::encoder) fn register_encoding_error(&self, encoding_error: SpannedEncodingError) {
@@ -671,13 +671,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             info!("Encoding: {} ({})", proc_name, proc_def_path);
             assert!(substs.is_empty());
 
-            // Make pos_id stable for caching
-            use std::hash::{Hash, Hasher};
-            let mut s = std::collections::hash_map::DefaultHasher::new();
-            proc_name.hash(&mut s);
-            // Avoid overflows, slightly increase probability of clashes
-            self.error_manager().reset_pos_id(s.finish() / 2);
-
             if config::unsafe_core_proof() {
                 if self.env.is_unsafe_function(proc_def_id) {
                     if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::Both) {
@@ -744,7 +737,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                         debug!("Error encoding function: {:?}", proc_def_id);
                     } else {
                         match self.finalize_viper_program(proc_name, proc_def_id) {
-                            Ok(program) => self.programs.push(program),
+                            Ok(program) => self.programs.push((proc_def_id, program)),
                             Err(error) => {
                                 self.register_encoding_error(error);
                                 debug!("Error finalizing program: {:?}", proc_def_id);

@@ -3,6 +3,7 @@ use crate::encoder::{
     mir::errors::ErrorInterface,
     Encoder,
 };
+use prusti_interface::data::ProcedureDefId;
 use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
     common::cfg::Cfg,
@@ -14,6 +15,7 @@ use vir_crate::{
 
 pub(in super::super) fn desugar_loops<'v, 'tcx: 'v>(
     encoder: &mut Encoder<'v, 'tcx>,
+    def_id: ProcedureDefId,
     mut procedure: vir_high::ProcedureDecl,
 ) -> SpannedEncodingResult<vir_high::ProcedureDecl> {
     let mut is_first = true;
@@ -33,8 +35,13 @@ pub(in super::super) fn desugar_loops<'v, 'tcx: 'v>(
                 .is_none());
         }
 
-        let duplicated_loop_head =
-            duplicate_blocks(encoder, &mut procedure, &invariant_block_id, &loop_head)?;
+        let duplicated_loop_head = duplicate_blocks(
+            encoder,
+            &mut procedure,
+            &invariant_block_id,
+            &loop_head,
+            def_id,
+        )?;
 
         for back_edge in &back_edges {
             let block = procedure.basic_blocks.get_mut(back_edge).unwrap();
@@ -60,6 +67,7 @@ pub(in super::super) fn desugar_loops<'v, 'tcx: 'v>(
         for assertion in &loop_invariant.functional_specifications {
             let statement = encoder.set_surrounding_error_context_for_statement(
                 vir_high::Statement::assert_no_pos(assertion.clone()),
+                def_id,
                 loop_invariant.position,
                 ErrorCtxt::AssertLoopInvariantOnEntry,
             )?;
@@ -78,6 +86,7 @@ pub(in super::super) fn desugar_loops<'v, 'tcx: 'v>(
         for predicate in loop_invariant.maybe_modified_places {
             let statement = encoder.set_surrounding_error_context_for_statement(
                 vir_high::Statement::havoc_no_pos(predicate),
+                def_id,
                 loop_invariant.position,
                 ErrorCtxt::UnexpectedAssumeLoopInvariantOnEntry,
             )?;
@@ -87,6 +96,7 @@ pub(in super::super) fn desugar_loops<'v, 'tcx: 'v>(
         for assertion in loop_invariant.functional_specifications {
             let statement = encoder.set_surrounding_error_context_for_statement(
                 vir_high::Statement::assume_no_pos(assertion),
+                def_id,
                 loop_invariant.position,
                 ErrorCtxt::UnexpectedAssumeLoopInvariantOnEntry,
             )?;
@@ -112,6 +122,7 @@ fn duplicate_blocks<'v, 'tcx: 'v>(
     procedure: &mut vir_high::ProcedureDecl,
     invariant_block: &vir_high::BasicBlockId,
     loop_head: &vir_high::BasicBlockId,
+    def_id: ProcedureDefId,
 ) -> SpannedEncodingResult<vir_high::BasicBlockId> {
     let (blocks_to_duplicate, old_labels_remap) = {
         let predecessors = procedure.predecessors();
@@ -151,6 +162,7 @@ fn duplicate_blocks<'v, 'tcx: 'v>(
             for assertion in loop_invariant.functional_specifications {
                 let statement = encoder.set_surrounding_error_context_for_statement(
                     vir_high::Statement::assert_no_pos(assertion),
+                    def_id,
                     loop_invariant.position,
                     ErrorCtxt::AssertLoopInvariantAfterIteration,
                 )?;
@@ -158,6 +170,7 @@ fn duplicate_blocks<'v, 'tcx: 'v>(
             }
             let statement = encoder.set_surrounding_error_context_for_statement(
                 vir_high::Statement::assume_no_pos(false.into()),
+                def_id,
                 loop_invariant.position,
                 ErrorCtxt::AssertLoopInvariantAfterIteration,
             )?;

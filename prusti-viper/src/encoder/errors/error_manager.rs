@@ -180,20 +180,14 @@ impl ErrorManager {
         &self.position_manager
     }
 
-    /// Used prior to encoding each function, to get stable `next_pos_id`
-    /// regardless of the order in which functions are encoded
-    pub fn reset_pos_id(&mut self, start_id: u64) {
-        self.position_manager.reset_pos_id(start_id)
-    }
-
     /// Register a new VIR position.
     pub fn register_span<T: Into<MultiSpan>>(&mut self, def_id: ProcedureDefId, span: T) -> Position {
         self.position_manager.register_span(def_id, span)
     }
 
     /// Duplicate an existing VIR position.
-    pub fn duplicate_position(&mut self, pos: Position) -> Position {
-        self.position_manager.duplicate(pos)
+    pub fn duplicate_position(&mut self, def_id: ProcedureDefId, pos: Position) -> Position {
+        self.position_manager.duplicate(def_id, pos)
     }
 
     /// Register the ErrorCtxt on an existing VIR position.
@@ -218,8 +212,8 @@ impl ErrorManager {
     /// Creates a new position with `error_ctxt` that is linked to `pos`. This
     /// method is used for setting the surrounding context position of an
     /// expression's position.
-    pub fn set_surrounding_error_context(&mut self, pos: Position, error_ctxt: ErrorCtxt) -> Position {
-        let surrounding_position = self.duplicate_position(pos);
+    pub fn set_surrounding_error_context(&mut self, def_id: ProcedureDefId, pos: Position, error_ctxt: ErrorCtxt) -> Position {
+        let surrounding_position = self.duplicate_position(def_id, pos);
         self.set_error(surrounding_position, error_ctxt);
         self.inner_positions.insert(surrounding_position.id(), pos);
         surrounding_position
@@ -233,13 +227,7 @@ impl ErrorManager {
         pos
     }
 
-    pub fn get_def_id(&self, ver_error: &VerificationError) -> Option<ProcedureDefId> {
-        ver_error.offending_pos_id.as_ref()
-            .and_then(|id| id.parse().ok())
-            .and_then(|id| self.position_manager.def_id.get(&id).copied())
-    }
-
-    pub fn translate_verification_error(&self, ver_error: &VerificationError) -> PrustiError {
+    pub fn translate_verification_error(&self, def_id: ProcedureDefId, ver_error: &VerificationError) -> PrustiError {
         debug!("Verification error: {:?}", ver_error);
         let opt_pos_id: Option<u64> = match ver_error.offending_pos_id {
             Some(ref viper_pos_id) => {
@@ -278,9 +266,9 @@ impl ErrorManager {
 
         let opt_error_ctxts = opt_pos_id
             .and_then(|pos_id| self.error_contexts.get(&pos_id));
-        let opt_error_span = opt_pos_id.and_then(|pos_id| self.position_manager.source_span.get(&pos_id));
+        let opt_error_span = opt_pos_id.and_then(|pos_id| self.position_manager.get_span(def_id, pos_id));
         let opt_cause_span = opt_reason_pos_id.and_then(|reason_pos_id| {
-            let res = self.position_manager.source_span.get(&reason_pos_id);
+            let res = self.position_manager.get_span(def_id, reason_pos_id);
             if res.is_none() {
                 debug!("Unregistered reason position: {:?}", reason_pos_id);
             }

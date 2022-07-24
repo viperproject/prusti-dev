@@ -30,7 +30,7 @@ mod debugging;
 
 pub(super) struct Visitor<'p, 'v, 'tcx> {
     encoder: &'p mut Encoder<'v, 'tcx>,
-    _proc_def_id: DefId,
+    proc_def_id: DefId,
     state_at_entry: BTreeMap<vir_mid::BasicBlockId, FoldUnfoldState>,
     /// Used only for debugging purposes.
     state_at_exit: BTreeMap<vir_mid::BasicBlockId, FoldUnfoldState>,
@@ -51,7 +51,7 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
     pub(super) fn new(encoder: &'p mut Encoder<'v, 'tcx>, proc_def_id: DefId) -> Self {
         Self {
             encoder,
-            _proc_def_id: proc_def_id,
+            proc_def_id,
             state_at_entry: Default::default(),
             state_at_exit: Default::default(),
             procedure_name: None,

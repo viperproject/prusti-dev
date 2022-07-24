@@ -110,7 +110,7 @@ impl Expression {
         }
         impl<'a> ExpressionFolder for PlaceReplacer<'a> {
             fn fold_expression(&mut self, expression: Expression) -> Expression {
-                if expression.is_place() && expression.eq_place(&self.target) {
+                if expression.is_place() && expression.eq_place(self.target) {
                     self.replacement.clone()
                 } else {
                     default_fold_expression(self, expression)

@@ -234,6 +234,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
             allocation.push(self.encoder.set_surrounding_error_context_for_statement(
                 alloc_statement,
+                self.def_id,
                 parameter.position,
                 ErrorCtxt::UnexpectedStorageLive,
             )?);
@@ -244,6 +245,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             );
             deallocation.push(self.encoder.set_surrounding_error_context_for_statement(
                 dealloc_statement,
+                self.def_id,
                 parameter.position,
                 ErrorCtxt::UnexpectedStorageDead,
             )?);
@@ -262,6 +264,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 return_local.clone().into(),
                 size,
             )),
+            self.def_id,
             return_local.position,
             ErrorCtxt::UnexpectedStorageLive,
         )?;
@@ -269,6 +272,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             vir_high::Statement::exhale_no_pos(vir_high::Predicate::owned_non_aliased_no_pos(
                 return_local.clone().into(),
             )),
+            self.def_id,
             return_local.position,
             ErrorCtxt::UnexpectedStorageDead,
         )?;
@@ -419,6 +423,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 procedure_builder.add_alloc_statement(
                     self.encoder.set_surrounding_error_context_for_statement(
                         vir_high::Statement::inhale_no_pos(predicate.clone()),
+                        self.def_id,
                         encoded_local.position,
                         ErrorCtxt::UnexpectedStorageLive,
                     )?,
@@ -426,6 +431,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 procedure_builder.add_dealloc_statement(
                     self.encoder.set_surrounding_error_context_for_statement(
                         vir_high::Statement::exhale_no_pos(predicate.clone()),
+                        self.def_id,
                         encoded_local.position,
                         ErrorCtxt::UnexpectedStorageLive,
                     )?,
@@ -1816,8 +1822,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         statement: vir_high::Statement,
     ) -> SpannedEncodingResult<vir_high::Statement> {
         let position = self.register_error(location, error_ctxt.clone());
-        self.encoder
-            .set_surrounding_error_context_for_statement(statement, position, error_ctxt)
+        self.encoder.set_surrounding_error_context_for_statement(
+            statement,
+            self.def_id,
+            position,
+            error_ctxt,
+        )
     }
 
     fn encode_specification_blocks(&mut self) -> SpannedEncodingResult<()> {

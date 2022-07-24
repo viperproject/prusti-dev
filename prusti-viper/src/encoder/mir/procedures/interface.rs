@@ -29,7 +29,7 @@ impl<'v, 'tcx: 'v> MirProcedureEncoderInterface<'tcx> for super::super::super::E
         check_mode: CheckMode,
     ) -> SpannedEncodingResult<vir_high::ProcedureDecl> {
         let procedure = super::encoder::encode_procedure(self, proc_def_id, check_mode)?;
-        let procedure = passes::run_passes(self, procedure)?;
+        let procedure = passes::run_passes(self, proc_def_id, procedure)?;
         assert!(
             self.mir_procedure_encoder_state
                 .encoded_procedure_def_ids

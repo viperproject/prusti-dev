@@ -96,7 +96,7 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
         self.encoder
             .error_manager()
             .position_manager()
-            .get_span(position.into())
+            .get_span(self.proc_def_id, position.id())
             .cloned()
     }
     fn change_error_context(
@@ -104,6 +104,7 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
         position: vir_high::Position,
         error_ctxt: ErrorCtxt,
     ) -> vir_high::Position {
-        self.encoder.change_error_context(position, error_ctxt)
+        self.encoder
+            .change_error_context(self.proc_def_id, position, error_ctxt)
     }
 }

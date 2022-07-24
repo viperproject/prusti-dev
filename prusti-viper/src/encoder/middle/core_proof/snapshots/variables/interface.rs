@@ -413,6 +413,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
                     let old_variable =
                         self.create_snapshot_variable(&variable, &ty, old_version)?;
                     let position = self.encoder.change_error_context(
+                        self.def_id,
                         // FIXME: Get a more precise span.
                         self.snapshots_state.all_variables.get_position(&variable),
                         ErrorCtxt::Unexpected,

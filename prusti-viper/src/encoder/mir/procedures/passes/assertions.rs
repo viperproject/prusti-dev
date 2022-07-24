@@ -1,4 +1,5 @@
 use crate::encoder::{errors::SpannedEncodingResult, Encoder};
+use prusti_interface::data::ProcedureDefId;
 use rustc_hash::FxHashMap;
 use vir_crate::{
     common::{cfg::Cfg, expression::SyntacticEvaluation},
@@ -9,6 +10,7 @@ use vir_crate::{
 /// assertion.
 pub(in super::super) fn propagate_assertions_back<'v, 'tcx: 'v>(
     _encoder: &mut Encoder<'v, 'tcx>,
+    _def_id: ProcedureDefId,
     mut procedure: vir_high::ProcedureDecl,
 ) -> SpannedEncodingResult<vir_high::ProcedureDecl> {
     // Find all basic blocks containing `assert false` and if `assert false` can

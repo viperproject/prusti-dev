@@ -15,52 +15,34 @@ use prusti_interface::data::ProcedureDefId;
 /// span, that should be done by adding the span to `ErrorCtxt`, not by registering a new span.
 #[derive(Clone)]
 pub struct PositionManager {
-    next_pos_id: u64,
-    /// The def_id of the procedure that generated the given VIR position.
-    pub(crate) def_id: FxHashMap<u64, ProcedureDefId>,
-    /// The span of the source code that generated the given VIR position.
-    pub(crate) source_span: FxHashMap<u64, MultiSpan>,
+    pos_id_map: FxHashMap<ProcedureDefId, Vec<MultiSpan>>,
 }
 
-impl PositionManager
-{
+impl PositionManager {
     pub fn default() -> Self {
         PositionManager {
-            next_pos_id: 1,
-            def_id: FxHashMap::default(),
-            source_span: FxHashMap::default(),
+            pos_id_map: FxHashMap::default(),
         }
     }
 
     pub fn register_span<T: Into<MultiSpan>>(&mut self, def_id: ProcedureDefId, span: T) -> Position {
+        let proc_spans = self.pos_id_map.entry(def_id).or_insert(Vec::new());
+        let pos_id = proc_spans.len();
         let span = span.into();
-        let pos_id = self.next_pos_id;
-        self.next_pos_id += 1;
         trace!("Register position id {} for span {:?} in {:?}, ", pos_id, span, def_id);
-        self.def_id.insert(pos_id, def_id);
-        self.source_span.insert(pos_id, span);
-        Position::new(pos_id)
+        proc_spans.push(span);
+        Position::new(pos_id as u64)
     }
 
-    pub fn duplicate(&mut self, pos: Position) -> Position {
+    pub fn duplicate(&mut self, def_id: ProcedureDefId, pos: Position) -> Position {
         assert!(!pos.is_default());
-        self.register_span(
-            self.get_def_id(pos).unwrap(),
-            self.get_span(pos).cloned().unwrap(),
-        )
+        self.register_span(def_id, self.get_span(def_id, pos.id()).unwrap().clone())
     }
 
-    pub fn get_def_id(&self, pos: Position) -> Option<ProcedureDefId> {
-        self.def_id.get(&pos.id()).copied()
-    }
-
-    pub fn get_span(&self, pos: Position) -> Option<&MultiSpan> {
-        self.source_span.get(&pos.id())
-    }
-
-    /// Used prior to encoding each function, to get stable `next_pos_id`
-    /// regardless of the order in which functions are encoded
-    pub fn reset_pos_id(&mut self, start_id: u64) {
-        self.next_pos_id = start_id;
+    // pub fn get_span(&self, def_id: ProcedureDefId, pos: Position) -> Option<&MultiSpan> {
+    //     self.pos_id_map.get(&def_id).and_then(|proc_spans| proc_spans.get(pos.id() as usize))
+    // }
+    pub fn get_span(&self, def_id: ProcedureDefId, pos: u64) -> Option<&MultiSpan> {
+        self.pos_id_map.get(&def_id).and_then(|proc_spans| proc_spans.get(pos as usize))
     }
 }

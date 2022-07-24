@@ -16,6 +16,7 @@ use super::{
     types::TypesState,
 };
 use crate::encoder::{errors::SpannedEncodingResult, Encoder};
+use prusti_interface::data::ProcedureDefId;
 use rustc_hash::FxHashSet;
 use vir_crate::{
     common::{cfg::Cfg, check_mode::CheckMode, graphviz::ToGraphviz},
@@ -46,8 +47,9 @@ pub(super) struct LoweringResult {
 pub(super) fn lower_procedure<'p, 'v: 'p, 'tcx: 'v>(
     encoder: &'p mut Encoder<'v, 'tcx>,
     procedure: vir_mid::ProcedureDecl,
+    def_id: ProcedureDefId,
 ) -> SpannedEncodingResult<LoweringResult> {
-    let lowerer = self::Lowerer::new(encoder);
+    let lowerer = self::Lowerer::new(encoder, def_id);
     let result = lowerer.lower_procedure(procedure)?;
     if prusti_common::config::dump_debug_info() {
         let source_filename = encoder.env().source_file_name();
@@ -63,6 +65,7 @@ pub(super) fn lower_procedure<'p, 'v: 'p, 'tcx: 'v>(
 pub(super) struct Lowerer<'p, 'v: 'p, 'tcx: 'v> {
     pub(super) encoder: &'p mut Encoder<'v, 'tcx>,
     pub(super) procedure_name: Option<String>,
+    pub(super) def_id: ProcedureDefId,
     pub(super) check_mode: Option<CheckMode>,
     variables_state: VariablesLowererState,
     functions_state: FunctionsLowererState,
@@ -80,10 +83,11 @@ pub(super) struct Lowerer<'p, 'v: 'p, 'tcx: 'v> {
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
-    pub(super) fn new(encoder: &'p mut Encoder<'v, 'tcx>) -> Self {
+    pub(super) fn new(encoder: &'p mut Encoder<'v, 'tcx>, def_id: ProcedureDefId) -> Self {
         Self {
             encoder,
             procedure_name: None,
+            def_id,
             check_mode: None,
             variables_state: Default::default(),
             functions_state: Default::default(),

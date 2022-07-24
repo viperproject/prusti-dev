@@ -12,7 +12,7 @@ use vir_crate::{
 
 #[derive(Default)]
 pub(crate) struct MidCoreProofEncoderState {
-    encoded_programs: Vec<vir_low::Program>,
+    encoded_programs: Vec<(DefId, vir_low::Program)>,
 }
 
 pub(crate) trait MidCoreProofEncoderInterface<'tcx> {
@@ -21,7 +21,7 @@ pub(crate) trait MidCoreProofEncoderInterface<'tcx> {
         proc_def_id: DefId,
         check_mode: CheckMode,
     ) -> SpannedEncodingResult<()>;
-    fn take_core_proof_programs(&mut self) -> Vec<vir_low::Program>;
+    fn take_core_proof_programs(&mut self) -> Vec<(DefId, vir_low::Program)>;
 }
 
 impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
@@ -44,7 +44,7 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
             functions,
             predicates,
             methods,
-        } = super::lowerer::lower_procedure(self, procedure)?;
+        } = super::lowerer::lower_procedure(self, procedure, proc_def_id)?;
         let mut program = vir_low::Program {
             name: self.env().get_absolute_item_name(proc_def_id),
             check_mode,
@@ -59,10 +59,10 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
         }
         self.mid_core_proof_encoder_state
             .encoded_programs
-            .push(program);
+            .push((proc_def_id, program));
         Ok(())
     }
-    fn take_core_proof_programs(&mut self) -> Vec<vir_low::Program> {
+    fn take_core_proof_programs(&mut self) -> Vec<(DefId, vir_low::Program)> {
         std::mem::take(&mut self.mid_core_proof_encoder_state.encoded_programs)
     }
 }
