@@ -95,6 +95,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                 assertion_substs,
             )?;
             self.encoder.error_manager().set_error(
+                self.proc_def_id,
                 encoded_assertion.pos(),
                 ErrorCtxt::PureFunctionDefinition,
             );
@@ -143,6 +144,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SpecFunctionEncoder<'p, 'v, 'tcx> {
                 assertion_substs,
             )?;
             self.encoder.error_manager().set_error(
+                self.proc_def_id,
                 encoded_assertion.pos(),
                 ErrorCtxt::PureFunctionDefinition,
             );

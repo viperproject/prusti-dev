@@ -163,8 +163,8 @@ pub enum ErrorCtxt {
 #[derive(Clone)]
 pub struct ErrorManager {
     position_manager: PositionManager,
-    error_contexts: FxHashMap<u64, ErrorCtxt>,
-    inner_positions: FxHashMap<u64, Position>,
+    error_contexts: FxHashMap<(ProcedureDefId, Position), ErrorCtxt>,
+    inner_positions: FxHashMap<(ProcedureDefId, Position), Position>,
 }
 
 impl ErrorManager {
@@ -191,10 +191,10 @@ impl ErrorManager {
     }
 
     /// Register the ErrorCtxt on an existing VIR position.
-    pub fn set_error(&mut self, pos: Position, error_ctxt: ErrorCtxt) {
+    pub fn set_error(&mut self, def_id: ProcedureDefId, pos: Position, error_ctxt: ErrorCtxt) {
         trace!("Register error {:?} at position id {:?}", error_ctxt, pos.id());
         assert_ne!(pos, Position::default(), "Trying to register an error on a default position");
-        if let Some(existing_error_ctxt) = self.error_contexts.get(&pos.id()) {
+        if let Some(existing_error_ctxt) = self.error_contexts.get(&(def_id, pos)) {
             debug_assert_eq!(
                 existing_error_ctxt, &error_ctxt,
                 "An existing error context would be overwritten.\n\
@@ -206,7 +206,7 @@ impl ErrorManager {
                 error_ctxt
             );
         }
-        self.error_contexts.insert(pos.id(), error_ctxt);
+        self.error_contexts.insert((def_id, pos), error_ctxt);
     }
 
     /// Creates a new position with `error_ctxt` that is linked to `pos`. This
@@ -214,8 +214,8 @@ impl ErrorManager {
     /// expression's position.
     pub fn set_surrounding_error_context(&mut self, def_id: ProcedureDefId, pos: Position, error_ctxt: ErrorCtxt) -> Position {
         let surrounding_position = self.duplicate_position(def_id, pos);
-        self.set_error(surrounding_position, error_ctxt);
-        self.inner_positions.insert(surrounding_position.id(), pos);
+        self.set_error(def_id, surrounding_position, error_ctxt);
+        self.inner_positions.insert((def_id, surrounding_position), pos);
         surrounding_position
     }
 
@@ -223,7 +223,7 @@ impl ErrorManager {
     /// Equivalent to calling `set_error` on the output of `register_span`.
     pub fn register_error<T: Into<MultiSpan>>(&mut self, span: T, error_ctxt: ErrorCtxt, def_id: ProcedureDefId) -> Position {
         let pos = self.register_span(def_id, span);
-        self.set_error(pos, error_ctxt);
+        self.set_error(def_id, pos, error_ctxt);
         pos
     }
 
@@ -265,7 +265,7 @@ impl ErrorManager {
         };
 
         let opt_error_ctxts = opt_pos_id
-            .and_then(|pos_id| self.error_contexts.get(&pos_id.id()));
+            .and_then(|pos_id| self.error_contexts.get(&(def_id, pos_id)));
         let opt_error_span = opt_pos_id.and_then(|pos_id| self.position_manager.get_span(def_id, pos_id));
         let opt_cause_span = opt_reason_pos_id.and_then(|reason_pos_id| {
             let res = self.position_manager.get_span(def_id, reason_pos_id);

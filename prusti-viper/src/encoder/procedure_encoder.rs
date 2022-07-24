@@ -1661,7 +1661,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         if self.check_foldunfold_state {
             let new_pos = self.encoder.error_manager().duplicate_position(self.proc_def_id, pos);
-            self.encoder.error_manager().set_error(new_pos, ErrorCtxt::Unexpected);
+            self.encoder.error_manager().set_error(self.proc_def_id, new_pos, ErrorCtxt::Unexpected);
             stmts.push(vir::Stmt::Assert( vir::Assert {
                 expr,
                 position: new_pos,

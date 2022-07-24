@@ -339,6 +339,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
                 assertion_substs,
             )?;
             self.encoder.error_manager().set_error(
+                self.proc_def_id,
                 encoded_assertion.position().into(),
                 ErrorCtxt::PureFunctionDefinition,
             );
@@ -367,6 +368,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
                 assertion_substs,
             )?;
             self.encoder.error_manager().set_error(
+                self.proc_def_id,
                 encoded_assertion.position().into(),
                 ErrorCtxt::PureFunctionDefinition,
             );
