@@ -6,7 +6,7 @@
 
 use vir_crate::polymorphic::Position;
 use rustc_hash::FxHashMap;
-use rustc_errors::MultiSpan;
+use prusti_rustc_interface::errors::MultiSpan;
 use viper::VerificationError;
 use prusti_interface::PrustiError;
 use log::{debug, trace};
@@ -72,6 +72,9 @@ pub enum ErrorCtxt {
     AssertTerminator(String),
     /// A Viper `assert false` in the context of a bounds check
     BoundsCheckAssert,
+    /// A Viper `assert false` in the context of a hardcoded bounds check (e.g. when we hardcode a `index`)
+    /// TODO: remove this in favor of extern_spec for e.g. the stdlib `fn index(...)`
+    SliceRangeBoundsCheckAssert(String),
     /// A Viper `assert false` that encodes an `abort` Rust terminator
     AbortTerminator,
     /// A Viper `assert false` that encodes an `unreachable` Rust terminator
@@ -596,9 +599,38 @@ impl ErrorManager {
                 ).set_failing_assertion(opt_cause_span)
             }
 
+            ("assert.failed:assertion.false", ErrorCtxt::SliceRangeBoundsCheckAssert(s)) |
+            ("application.precondition:assertion.false", ErrorCtxt::SliceRangeBoundsCheckAssert(s)) => {
+                PrustiError::verification(
+                    s,
+                    error_span,
+                ).set_failing_assertion(opt_cause_span)
+            }
+
             ("assert.failed:assertion.false", ErrorCtxt::Unsupported(ref reason)) => {
                 PrustiError::unsupported(
                     format!("an unsupported Rust feature might be reachable: {}.", reason),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:seq.index.length", ErrorCtxt::Panic(PanicCause::Assert)) => {
+                PrustiError::verification(
+                    "the sequence index may be out of bounds".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("assert.failed:seq.index.negative", ErrorCtxt::Panic(PanicCause::Assert)) => {
+                PrustiError::verification(
+                    "the sequence index may be negative".to_string(),
+                    error_span
+                ).set_failing_assertion(opt_cause_span)
+            }
+
+            ("inhale.failed:map.key.contains", _) => {
+                PrustiError::verification(
+                    "the key might not be in the map".to_string(),
                     error_span
                 ).set_failing_assertion(opt_cause_span)
             }

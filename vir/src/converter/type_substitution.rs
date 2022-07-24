@@ -910,7 +910,7 @@ impl Generic for Program {
 mod tests {
     use super::*;
 
-    lazy_static! {
+    lazy_static::lazy_static! {
         static ref SUBSTITUTION_MAP : FxHashMap<TypeVar, Type> = {
             let mut m = FxHashMap::default();
             m.insert(TypeVar { label: String::from("T") }, Type::Int);

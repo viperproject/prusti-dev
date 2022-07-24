@@ -41,6 +41,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotBytesInterface for Lowerer<'p, 'v, 'tcx> {
             self.declare_domain_function(
                 &domain_name,
                 std::borrow::Cow::Owned(format!("to_bytes${}", ty.get_identifier())),
+                false,
                 std::borrow::Cow::Owned(vec![vir_low::VariableDecl::new("snapshot", domain_type)]),
                 std::borrow::Cow::Owned(return_type),
             )?;

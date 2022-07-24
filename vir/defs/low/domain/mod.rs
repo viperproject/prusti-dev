@@ -2,8 +2,8 @@
     Debug,
     derive_more::Display,
     Clone,
-    Serialize,
-    Deserialize,
+    serde::Serialize,
+    serde::Deserialize,
     PartialEq,
     Eq,
     Hash
@@ -35,6 +35,7 @@ pub struct DomainDecl {
 )]
 pub struct DomainFunctionDecl {
     pub name: String,
+    pub is_unique: bool,
     pub parameters: Vec<VariableDecl>,
     pub return_type: Type,
 }

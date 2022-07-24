@@ -7,7 +7,7 @@
 
 use std::fmt::Display;
 
-use rustc_middle::ty;
+use prusti_rustc_interface::middle::ty;
 use vir_crate::polymorphic as vir;
 
 use crate::encoder::{

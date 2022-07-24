@@ -2,8 +2,8 @@
     Debug,
     derive_more::Display,
     Clone,
-    Serialize,
-    Deserialize,
+    serde::Serialize,
+    serde::Deserialize,
     PartialEq,
     Eq,
     Hash
@@ -14,6 +14,6 @@ pub mod method;
 pub mod procedure;
 
 pub use self::{
-    method::MethodDecl,
+    method::{MethodDecl, MethodKind},
     procedure::{BasicBlock, Label, ProcedureDecl, Successor},
 };

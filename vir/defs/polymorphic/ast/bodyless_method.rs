@@ -8,7 +8,7 @@ use crate::{common::identifier::WithIdentifier, polymorphic::ast::*};
 use rustc_hash::FxHashMap;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct BodylessMethod {
     pub name: String,
     pub formal_args: Vec<LocalVar>,

@@ -164,6 +164,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
 
     info!("Crate a new workspace...");
+    // `Error: Compat { error: SandboxImagePullFailed(ExecutionFailed(ExitStatus(unix_wait_status(256)))) }` if
+    // docker daemon isn't running
     let workspace = WorkspaceBuilder::new(workspace_path, "prusti-test-crates").init()?;
 
     info!("Install the toolchain...");

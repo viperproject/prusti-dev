@@ -7,7 +7,7 @@
 //! This module defines data structures exchanged between a verifier and
 //! its environment.
 
-use rustc_hir::def_id::DefId;
+use prusti_rustc_interface::hir::def_id::DefId;
 
 /// A unique identifier of the Rust procedure.
 pub type ProcedureDefId = DefId;

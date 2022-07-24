@@ -3,7 +3,10 @@ use crate::encoder::errors::SpannedEncodingResult;
 use log::debug;
 use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
-    high::{self as vir_high},
+    high::{
+        self as vir_high,
+        operations::{lifetimes::WithLifetimes, ty::Typed},
+    },
     middle as vir_mid,
 };
 
@@ -12,6 +15,13 @@ pub(super) struct PredicateState {
     owned_non_aliased: BTreeSet<vir_high::Expression>,
     memory_block_stack: BTreeSet<vir_high::Expression>,
     mut_borrowed: BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+    dead_lifetimes: BTreeSet<vir_high::ty::LifetimeConst>,
+}
+
+pub(super) struct PlaceWithDeadLifetimes {
+    pub(super) place: vir_high::Expression,
+    pub(super) lifetimes_dead_before: Vec<bool>,
+    pub(super) lifetimes_dead_after: Vec<bool>,
 }
 
 #[derive(Clone)]
@@ -55,7 +65,17 @@ impl std::fmt::Display for PredicateState {
 
 impl PredicateState {
     fn is_empty(&self) -> bool {
-        self.owned_non_aliased.is_empty() && self.memory_block_stack.is_empty()
+        self.owned_non_aliased.is_empty()
+            && self.memory_block_stack.is_empty()
+            && self.mut_borrowed.is_empty()
+    }
+
+    fn contains_only_leakable(&self) -> bool {
+        self.memory_block_stack.is_empty()
+            && self.owned_non_aliased.iter().all(|place| {
+                // `UniqueRef` and `FracRef` predicates can be leaked.
+                place.get_dereference_base().is_some()
+            })
     }
 
     fn places_mut(&mut self, kind: PermissionKind) -> &mut BTreeSet<vir_high::Expression> {
@@ -193,13 +213,25 @@ impl PredicateState {
     pub(super) fn contains_blocked(
         &self,
         place: &vir_high::Expression,
-    ) -> SpannedEncodingResult<Option<vir_high::ty::LifetimeConst>> {
-        Ok(self.mut_borrowed.get(place).cloned())
+    ) -> SpannedEncodingResult<Option<(&vir_high::Expression, &vir_high::ty::LifetimeConst)>> {
+        Ok(self.mut_borrowed.iter().find(|(p, _)| {
+            let prefix_expr = match p {
+                vir_high::Expression::BuiltinFuncApp(vir_high::BuiltinFuncApp {
+                    function: vir_high::BuiltinFunc::Index,
+                    type_arguments: _,
+                    arguments,
+                    ..
+                }) => &arguments[0],
+                _ => *p,
+            };
+            place.has_prefix(prefix_expr)
+        }))
     }
 
     pub(super) fn clear(&mut self) -> SpannedEncodingResult<()> {
         self.owned_non_aliased.clear();
         self.memory_block_stack.clear();
+        self.mut_borrowed.clear();
         self.check_no_default_position();
         Ok(())
     }
@@ -215,6 +247,40 @@ impl PredicateState {
         for place in self.mut_borrowed.keys() {
             place.check_no_default_position();
         }
+    }
+
+    pub(super) fn mark_lifetime_dead(
+        &mut self,
+        lifetime: &vir_high::ty::LifetimeConst,
+    ) -> (Vec<vir_high::Expression>, Vec<PlaceWithDeadLifetimes>) {
+        assert!(
+            !self.dead_lifetimes.contains(lifetime),
+            "The lifetime {} is already dead.",
+            lifetime
+        );
+        let dead_references = self
+            .owned_non_aliased
+            .drain_filter(|place| place.is_deref_of_lifetime(lifetime))
+            .collect();
+        let mut places_with_dead_lifetimes = Vec::new();
+        for place in &self.owned_non_aliased {
+            let lifetimes = place.get_type().get_lifetimes();
+            if lifetimes.contains(lifetime) {
+                places_with_dead_lifetimes.push(PlaceWithDeadLifetimes {
+                    place: place.clone(),
+                    lifetimes_dead_before: lifetimes
+                        .iter()
+                        .map(|l| self.dead_lifetimes.contains(l))
+                        .collect(),
+                    lifetimes_dead_after: lifetimes
+                        .iter()
+                        .map(|l| self.dead_lifetimes.contains(l) || l == lifetime)
+                        .collect(),
+                });
+            }
+        }
+        self.dead_lifetimes.insert(lifetime.clone());
+        (dead_references, places_with_dead_lifetimes)
     }
 }
 
@@ -247,8 +313,13 @@ impl FoldUnfoldState {
         debug!("state:\n{}", self);
     }
 
-    pub(in super::super) fn is_empty(&self) -> bool {
-        self.unconditional.is_empty() && self.conditional.is_empty()
+    pub(in super::super) fn contains_only_leakable(&self) -> bool {
+        for state in self.conditional.values() {
+            if !state.contains_only_leakable() {
+                return false;
+            }
+        }
+        self.unconditional.contains_only_leakable()
     }
 
     pub(in super::super) fn reset_incoming_labels_with(
@@ -304,6 +375,12 @@ impl FoldUnfoldState {
             incoming_state.unconditional.memory_block_stack,
             &mut new_conditional.memory_block_stack,
             &mut incoming_conditional.memory_block_stack,
+        )?;
+        Self::merge_unconditional_mut_borrowed(
+            &mut self.unconditional.mut_borrowed,
+            incoming_state.unconditional.mut_borrowed,
+            &mut new_conditional.mut_borrowed,
+            &mut incoming_conditional.mut_borrowed,
         )?;
 
         // Copy over conditional.
@@ -371,6 +448,30 @@ impl FoldUnfoldState {
         }
         self.incoming_labels.push(incoming_label);
         self.check_no_default_position();
+        Ok(())
+    }
+
+    fn merge_unconditional_mut_borrowed(
+        unconditional: &mut BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+        incoming_unconditional: BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+        new_conditional: &mut BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+        incoming_conditional: &mut BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+    ) -> SpannedEncodingResult<()> {
+        let mut unconditional_predicates = BTreeMap::default();
+        // Unconditional: merge incoming into self.
+        for (predicate, lifetime) in &incoming_unconditional {
+            if unconditional.contains_key(predicate) {
+                unconditional_predicates.insert(predicate, lifetime);
+            } else {
+                incoming_conditional.insert(predicate.clone(), lifetime.clone());
+            }
+        }
+        // Unconditional: check what needs to be made conditional.
+        for (predicate, lifetime) in unconditional
+            .drain_filter(|predicate, _| !unconditional_predicates.contains_key(predicate))
+        {
+            new_conditional.insert(predicate, lifetime);
+        }
         Ok(())
     }
 

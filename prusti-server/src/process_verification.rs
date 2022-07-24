@@ -6,9 +6,16 @@
 
 use crate::{VerificationRequest, ViperBackendConfig};
 use log::info;
-use prusti_common::{config, report::log::report, vir::ToViper, Stopwatch};
+use prusti_common::{
+    config,
+    report::log::{report, to_legal_file_name},
+    vir::ToViper,
+    Stopwatch,
+};
 use std::{fs::create_dir_all, path::PathBuf};
-use viper::{Cache, VerificationBackend, VerificationContext, VerificationResult};
+use viper::{
+    smt_manager::SmtManager, Cache, VerificationBackend, VerificationContext, VerificationResult,
+};
 
 pub fn process_verification_request<'v, 't: 'v>(
     verification_context: &'v VerificationContext<'t>,
@@ -27,11 +34,17 @@ pub fn process_verification_request<'v, 't: 'v>(
     let build_or_dump_viper_program = || {
         let mut stopwatch = Stopwatch::start("prusti-server", "construction of JVM objects");
         let ast_factory = verification_context.new_ast_factory();
-        let viper_program = request.program.to_viper(&ast_factory);
+        let viper_program = request
+            .program
+            .to_viper(prusti_common::vir::LoweringContext::default(), &ast_factory);
 
         if config::dump_viper_program() {
             stopwatch.start_next("dumping viper program");
-            dump_viper_program(&ast_utils, viper_program, request.program.get_name());
+            dump_viper_program(
+                &ast_utils,
+                viper_program,
+                &request.program.get_name_with_check_mode(),
+            );
         }
 
         viper_program
@@ -74,11 +87,13 @@ pub fn process_verification_request<'v, 't: 'v>(
 
     ast_utils.with_local_frame(16, || {
         let viper_program = build_or_dump_viper_program();
+        let program_name = request.program.get_name();
 
         // Create a new verifier each time.
         // Workaround for https://github.com/viperproject/prusti-dev/issues/744
         let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
-        let verifier = new_viper_verifier(verification_context, request.backend_config);
+        let mut verifier =
+            new_viper_verifier(program_name, verification_context, request.backend_config);
 
         stopwatch.start_next("verification");
         let result = verifier.verify(viper_program);
@@ -106,23 +121,28 @@ fn dump_viper_program(ast_utils: &viper::AstUtils, program: viper::Program, prog
 }
 
 fn new_viper_verifier<'v, 't: 'v>(
+    program_name: &str,
     verification_context: &'v viper::VerificationContext<'t>,
     backend_config: ViperBackendConfig,
 ) -> viper::Verifier<'v> {
     let mut verifier_args: Vec<String> = backend_config.verifier_args;
     let report_path: Option<PathBuf>;
     if config::dump_debug_info() {
-        let log_path = config::log_dir().join("viper_tmp");
+        let log_path = config::log_dir()
+            .join("viper_tmp")
+            .join(to_legal_file_name(program_name));
         create_dir_all(&log_path).unwrap();
         report_path = Some(log_path.join("report.csv"));
         let log_dir_str = log_path.to_str().unwrap();
         match backend_config.backend {
-            VerificationBackend::Silicon => verifier_args.extend(vec![
-                "--tempDirectory".to_string(),
-                log_dir_str.to_string(),
-                "--printMethodCFGs".to_string(),
-                //"--printTranslatedProgram".to_string(),
-            ]),
+            VerificationBackend::Silicon => {
+                verifier_args.extend(vec![
+                    "--tempDirectory".to_string(),
+                    log_dir_str.to_string(),
+                    "--printMethodCFGs".to_string(),
+                    //"--printTranslatedProgram".to_string(),
+                ])
+            }
             VerificationBackend::Carbon => verifier_args.extend(vec![
                 "--boogieOpt".to_string(),
                 format!("/logPrefix {}", log_dir_str),
@@ -135,6 +155,49 @@ fn new_viper_verifier<'v, 't: 'v>(
             verifier_args.extend(vec!["--disableTempDirectory".to_string()]);
         }
     }
+    let (smt_solver, smt_manager) = if config::use_smt_wrapper() {
+        std::env::set_var("PRUSTI_ORIGINAL_SMT_SOLVER_PATH", config::smt_solver_path());
+        let log_path = config::log_dir()
+            .join("smt")
+            .join(to_legal_file_name(program_name));
+        create_dir_all(&log_path).unwrap();
+        let smt_manager = SmtManager::new(
+            log_path,
+            config::preserve_smt_trace_files(),
+            config::write_smt_statistics(),
+            config::smt_quantifier_instantiations_ignore_builtin(),
+            config::smt_quantifier_instantiations_bound_global_kind(),
+            config::smt_quantifier_instantiations_bound_trace(),
+            config::smt_quantifier_instantiations_bound_trace_kind(),
+            config::smt_unique_triggers_bound(),
+            config::smt_unique_triggers_bound_total(),
+        );
+        std::env::set_var(
+            "PRUSTI_SMT_SOLVER_MANAGER_PORT",
+            smt_manager.port().to_string(),
+        );
+        if config::log_smt_wrapper_interaction() {
+            std::env::set_var("PRUSTI_LOG_SMT_INTERACTION", "true");
+        }
+        (config::smt_solver_wrapper_path(), smt_manager)
+    } else {
+        (config::smt_solver_path(), SmtManager::default())
+    };
+    let boogie_path = config::boogie_path();
+    if let Some(bound) = config::smt_quantifier_instantiations_bound_global() {
+        // We need to set the environment variable to reach our Z3 wrapper.
+        std::env::set_var(
+            "PRUSTI_SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL",
+            bound.to_string(),
+        );
+    }
 
-    verification_context.new_verifier_with_args(backend_config.backend, verifier_args, report_path)
+    verification_context.new_verifier(
+        backend_config.backend,
+        verifier_args,
+        report_path,
+        smt_solver,
+        boogie_path,
+        smt_manager,
+    )
 }

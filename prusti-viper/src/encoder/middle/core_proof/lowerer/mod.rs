@@ -10,14 +10,15 @@ use super::{
     compute_address::ComputeAddressState,
     into_low::IntoLow,
     lifetimes::LifetimesState,
-    predicates::{PredicatesOwnedInterface, PredicatesState},
+    places::PlacesState,
+    predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface, PredicatesState},
     snapshots::{SnapshotVariablesInterface, SnapshotsState},
     types::TypesState,
 };
 use crate::encoder::{errors::SpannedEncodingResult, Encoder};
-
+use rustc_hash::FxHashSet;
 use vir_crate::{
-    common::graphviz::ToGraphviz,
+    common::{cfg::Cfg, check_mode::CheckMode, graphviz::ToGraphviz},
     low::{self as vir_low, operations::ty::Typed},
     middle as vir_mid,
 };
@@ -62,6 +63,7 @@ pub(super) fn lower_procedure<'p, 'v: 'p, 'tcx: 'v>(
 pub(super) struct Lowerer<'p, 'v: 'p, 'tcx: 'v> {
     pub(super) encoder: &'p mut Encoder<'v, 'tcx>,
     pub(super) procedure_name: Option<String>,
+    pub(super) check_mode: Option<CheckMode>,
     variables_state: VariablesLowererState,
     functions_state: FunctionsLowererState,
     domains_state: DomainsLowererState,
@@ -74,6 +76,7 @@ pub(super) struct Lowerer<'p, 'v: 'p, 'tcx: 'v> {
     pub(super) types_state: TypesState,
     pub(super) adts_state: AdtsState,
     pub(super) lifetimes_state: LifetimesState,
+    pub(super) places_state: PlacesState,
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
@@ -81,6 +84,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         Self {
             encoder,
             procedure_name: None,
+            check_mode: None,
             variables_state: Default::default(),
             functions_state: Default::default(),
             domains_state: Default::default(),
@@ -93,17 +97,20 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
             types_state: Default::default(),
             adts_state: Default::default(),
             lifetimes_state: Default::default(),
+            places_state: Default::default(),
         }
     }
+
     pub(super) fn lower_procedure(
         mut self,
         mut procedure: vir_mid::ProcedureDecl,
     ) -> SpannedEncodingResult<LoweringResult> {
         let mut basic_blocks_map = BTreeMap::new();
         let mut basic_block_edges = BTreeMap::new();
-        let predecessors = procedure.get_predecessors();
+        let predecessors = procedure.predecessors_owned();
         let traversal_order = procedure.get_topological_sort();
         self.procedure_name = Some(procedure.name.clone());
+        self.check_mode = Some(procedure.check_mode);
         let mut marker_initialisation = Vec::new();
         for label in &traversal_order {
             self.set_current_block_for_snapshots(label, &predecessors, &mut basic_block_edges)?;
@@ -113,7 +120,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 marker.clone(),
                 false.into(),
             ));
-            let mut statements = vec![vir_low::Statement::assign_no_pos(marker, true.into())];
+            let mut statements = vec![
+                vir_low::Statement::assign_no_pos(marker.clone(), true.into()),
+                // We need to use a function call here because Silicon optimizes
+                // out assignments to pure variables and our Z3 wrapper does not
+                // see them.
+                vir_low::Statement::log_event(self.create_domain_func_app(
+                    "MarkerCalls",
+                    format!("basic_block_marker${}", marker.name),
+                    vec![],
+                    vir_low::Type::Bool,
+                    Default::default(),
+                )?),
+            ];
             for statement in basic_block.statements {
                 statements.extend(statement.into_low(&mut self)?);
             }
@@ -151,23 +170,36 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
                 successor,
             });
         }
+        let mut removed_functions = FxHashSet::default();
+        if procedure.check_mode == CheckMode::Specifications {
+            removed_functions.insert(self.encode_memory_block_bytes_function_name()?);
+        }
         let mut predicates = self.collect_owned_predicate_decls()?;
         let mut domains = self.domains_state.destruct();
         domains.extend(self.compute_address_state.destruct());
         predicates.extend(self.predicates_state.destruct());
-        let lowered_procedure = vir_low::ProcedureDecl {
+        let mut lowered_procedure = vir_low::ProcedureDecl {
             name: procedure.name,
             locals: self.variables_state.destruct(),
             basic_blocks,
+        };
+        let mut methods = self.methods_state.destruct();
+        if procedure.check_mode == CheckMode::Specifications {
+            super::transformations::remove_predicates::remove_predicates(
+                &mut lowered_procedure,
+                &mut methods,
+                &removed_functions,
+            );
         };
         Ok(LoweringResult {
             procedure: lowered_procedure,
             domains,
             functions: self.functions_state.destruct(),
             predicates,
-            methods: self.methods_state.destruct(),
+            methods,
         })
     }
+
     fn create_parameters(&self, arguments: &[vir_low::Expression]) -> Vec<vir_low::VariableDecl> {
         arguments
             .iter()
@@ -183,5 +215,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Lowerer<'p, 'v, 'tcx> {
         label: &vir_mid::BasicBlockId,
     ) -> SpannedEncodingResult<vir_low::VariableDecl> {
         self.create_variable(format!("{}$marker", label), vir_low::Type::Bool)
+    }
+
+    pub(super) fn only_check_specs(&self) -> bool {
+        self.check_mode.unwrap() == CheckMode::Specifications
     }
 }

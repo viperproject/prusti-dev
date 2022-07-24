@@ -1,14 +1,8 @@
-extern crate env_logger;
-extern crate error_chain;
-#[macro_use]
-extern crate lazy_static;
-extern crate viper;
-
 use std::{thread, thread::JoinHandle};
 use viper::*;
 
-lazy_static! {
-    static ref VIPER: Viper = Viper::new();
+lazy_static::lazy_static! {
+    static ref VIPER: Viper = Viper::new_for_tests();
 }
 
 /// Regression test for https://github.com/viperproject/silicon/issues/315
@@ -67,11 +61,11 @@ fn concurrent_verifier_initialization() {
 
                     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-                    let verifier = verification_context.new_verifier_with_args(
-                        viper::VerificationBackend::Silicon,
-                        vec!["--numberOfParallelVerifiers=1".to_string()],
-                        None,
-                    );
+                    let mut verifier = verification_context
+                        .new_verifier_with_default_smt_and_extra_args(
+                            viper::VerificationBackend::Silicon,
+                            vec!["--numberOfParallelVerifiers=1".to_string()],
+                        );
 
                     let verification_result = verifier.verify(program);
 
