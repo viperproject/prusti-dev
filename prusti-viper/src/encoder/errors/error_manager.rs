@@ -229,10 +229,10 @@ impl ErrorManager {
 
     pub fn translate_verification_error(&self, def_id: ProcedureDefId, ver_error: &VerificationError) -> PrustiError {
         debug!("Verification error: {:?}", ver_error);
-        let opt_pos_id: Option<u64> = match ver_error.offending_pos_id {
+        let opt_pos_id: Option<Position> = match ver_error.offending_pos_id {
             Some(ref viper_pos_id) => {
                 match viper_pos_id.parse() {
-                    Ok(pos_id) => Some(pos_id),
+                    Ok(pos_id) => Some(Position::new(pos_id)),
                     Err(err) => {
                         return PrustiError::internal(
                             format!(
@@ -246,10 +246,10 @@ impl ErrorManager {
             }
             None => None
         };
-        let opt_reason_pos_id: Option<u64> = match ver_error.reason_pos_id {
+        let opt_reason_pos_id: Option<Position> = match ver_error.reason_pos_id {
             Some(ref viper_reason_pos_id) => {
                 match viper_reason_pos_id.parse() {
-                    Ok(reason_pos_id) => Some(reason_pos_id),
+                    Ok(reason_pos_id) => Some(Position::new(reason_pos_id)),
                     Err(err) => {
                         return PrustiError::internal(
                             format!(
@@ -265,7 +265,7 @@ impl ErrorManager {
         };
 
         let opt_error_ctxts = opt_pos_id
-            .and_then(|pos_id| self.error_contexts.get(&pos_id));
+            .and_then(|pos_id| self.error_contexts.get(&pos_id.id()));
         let opt_error_span = opt_pos_id.and_then(|pos_id| self.position_manager.get_span(def_id, pos_id));
         let opt_cause_span = opt_reason_pos_id.and_then(|reason_pos_id| {
             let res = self.position_manager.get_span(def_id, reason_pos_id);
@@ -297,7 +297,7 @@ impl ErrorManager {
                     PrustiError::internal(
                         format!(
                             "unregistered verification error: [{}; {}] {}",
-                            ver_error.full_id, pos_id, ver_error.message
+                            ver_error.full_id, pos_id.id(), ver_error.message
                         ),
                         error_span
                     ).set_help(

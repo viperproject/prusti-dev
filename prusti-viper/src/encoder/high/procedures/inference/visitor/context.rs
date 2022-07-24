@@ -96,7 +96,7 @@ impl<'p, 'v, 'tcx> super::super::ensurer::Context for Visitor<'p, 'v, 'tcx> {
         self.encoder
             .error_manager()
             .position_manager()
-            .get_span(self.proc_def_id, position.id())
+            .get_span(self.proc_def_id, position.into())
             .cloned()
     }
     fn change_error_context(

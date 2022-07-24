@@ -334,7 +334,7 @@ impl<'v, 'tcx: 'v> ErrorInterface for super::super::super::Encoder<'v, 'tcx> {
         let span = self
             .error_manager()
             .position_manager()
-            .get_span(def_id, span_position.id())
+            .get_span(def_id, span_position.into())
             .unwrap()
             .clone();
         self.set_statement_error_ctxt(statement, span, error_ctxt, def_id)

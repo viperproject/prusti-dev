@@ -26,23 +26,28 @@ impl PositionManager {
     }
 
     pub fn register_span<T: Into<MultiSpan>>(&mut self, def_id: ProcedureDefId, span: T) -> Position {
-        let proc_spans = self.pos_id_map.entry(def_id).or_insert(Vec::new());
-        let pos_id = proc_spans.len();
         let span = span.into();
-        trace!("Register position id {} for span {:?} in {:?}, ", pos_id, span, def_id);
+        let proc_spans = self.pos_id_map.entry(def_id).or_insert(Vec::new());
+        let pos = Self::idx_to_pos(proc_spans.len());
+        trace!("Register position id {} for span {:?} in {:?}, ", pos.id(), span, def_id);
         proc_spans.push(span);
-        Position::new(pos_id as u64)
+        pos
     }
 
     pub fn duplicate(&mut self, def_id: ProcedureDefId, pos: Position) -> Position {
         assert!(!pos.is_default());
-        self.register_span(def_id, self.get_span(def_id, pos.id()).unwrap().clone())
+        self.register_span(def_id, self.get_span(def_id, pos).unwrap().clone())
     }
 
-    // pub fn get_span(&self, def_id: ProcedureDefId, pos: Position) -> Option<&MultiSpan> {
-    //     self.pos_id_map.get(&def_id).and_then(|proc_spans| proc_spans.get(pos.id() as usize))
-    // }
-    pub fn get_span(&self, def_id: ProcedureDefId, pos: u64) -> Option<&MultiSpan> {
-        self.pos_id_map.get(&def_id).and_then(|proc_spans| proc_spans.get(pos as usize))
+    pub fn get_span(&self, def_id: ProcedureDefId, pos: Position) -> Option<&MultiSpan> {
+        self.pos_id_map.get(&def_id).and_then(|proc_spans| proc_spans.get(Self::pos_to_idx(pos)))
+    }
+
+    fn idx_to_pos(idx: usize) -> Position {
+        Position::new(idx as u64 + 1)
+    }
+    fn pos_to_idx(pos: Position) -> usize {
+        assert!(pos.id() != 0);
+        pos.id() as usize - 1
     }
 }
