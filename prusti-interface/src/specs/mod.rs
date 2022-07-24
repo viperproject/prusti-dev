@@ -6,22 +6,22 @@ use prusti_rustc_interface::span::Span;
 
 use crate::{
     environment::Environment,
-    PrustiError,
     utils::{
         has_abstract_predicate_attr, has_extern_spec_attr, has_prusti_attr, read_prusti_attr,
         read_prusti_attrs,
     },
+    PrustiError,
 };
 use log::debug;
 use prusti_rustc_interface::hir::def_id::{CrateNum, DefId, LocalDefId, LOCAL_CRATE};
 use std::{collections::HashMap, convert::TryInto, fmt::Debug, path::PathBuf};
 
 pub mod checker;
-pub mod external;
-pub mod typed;
-pub mod for_export;
-pub mod encoder;
 pub mod decoder;
+pub mod encoder;
+pub mod external;
+pub mod for_export;
+pub mod typed;
 
 use typed::SpecIdRef;
 
@@ -31,8 +31,8 @@ use crate::specs::{
 };
 use prusti_specs::specifications::common::SpecificationId;
 
-use std::path::Path;
 use for_export::{DefSpecificationMapForExport, DefSpecificationMapForExportOwned};
+use std::path::Path;
 
 #[derive(Debug)]
 struct ProcedureSpecRefs {
@@ -88,7 +88,10 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         }
     }
 
-    pub fn build_def_specs(&self, build_output_dir: &Option<PathBuf>) -> typed::DefSpecificationMap<'tcx> {
+    pub fn build_def_specs(
+        &self,
+        build_output_dir: &Option<PathBuf>,
+    ) -> typed::DefSpecificationMap<'tcx> {
         let mut def_spec = typed::DefSpecificationMap::new();
         self.determine_procedure_specs(&mut def_spec);
         self.determine_extern_specs(&mut def_spec);
@@ -112,23 +115,31 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     fn get_crate_specs_path(&self, build_output_dir: &Path, crate_num: CrateNum) -> Box<PathBuf> {
         let mut path = Box::new(build_output_dir.to_path_buf());
         path.push("serialized_specs");
-        path.push(format!("{}-{:x}.bin",
-                          self.tcx.crate_name(crate_num),
-                          self.tcx.stable_crate_id(crate_num).to_u64(),
+        path.push(format!(
+            "{}-{:x}.bin",
+            self.tcx.crate_name(crate_num),
+            self.tcx.stable_crate_id(crate_num).to_u64(),
         ));
         path
     }
 
-    fn write_specs_to_file(&self, def_spec: &typed::DefSpecificationMap<'tcx>, build_output_dir: &Path) {
+    fn write_specs_to_file(
+        &self,
+        def_spec: &typed::DefSpecificationMap<'tcx>,
+        build_output_dir: &Path,
+    ) {
         let def_spec_for_export = DefSpecificationMapForExport::from_def_spec(def_spec);
         let target_filename = self.get_crate_specs_path(build_output_dir, LOCAL_CRATE);
-        def_spec_for_export.write_into_file(
-            self.tcx,
-            &target_filename,
-        ).unwrap()
+        def_spec_for_export
+            .write_into_file(self.tcx, &target_filename)
+            .unwrap()
     }
 
-    fn merge_specs_from_dependencies(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>, build_output_dir: &Path) {
+    fn merge_specs_from_dependencies(
+        &self,
+        def_spec: &mut typed::DefSpecificationMap<'tcx>,
+        build_output_dir: &Path,
+    ) {
         for crate_num in self.tcx.crates(()) {
             if *crate_num == LOCAL_CRATE {
                 continue;
@@ -142,10 +153,8 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn merge_specs_from_file(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>, path: &Path) {
-        let def_spec_for_export = DefSpecificationMapForExportOwned::read_from_file(
-            self.tcx,
-            path,
-        ).unwrap();
+        let def_spec_for_export =
+            DefSpecificationMapForExportOwned::read_from_file(self.tcx, path).unwrap();
 
         def_spec_for_export.extend(def_spec);
     }
@@ -269,7 +278,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 type_id.to_def_id(),
                 typed::TypeSpecification {
                     invariant: SpecificationItem::Inherent(
-                        refs.invariants.clone().into_iter().map(LocalDefId::to_def_id).collect()
+                        refs.invariants
+                            .clone()
+                            .into_iter()
+                            .map(LocalDefId::to_def_id)
+                            .collect(),
                     ),
                     trusted: SpecificationItem::Inherent(refs.trusted),
                 },
@@ -311,7 +324,8 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn fetch_local_mirs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {
-        for def_id in def_spec.proc_specs
+        for def_id in def_spec
+            .proc_specs
             // collect [DefId]s in specs of all procedures
             .values()
             // TODO: extend also to specs_with_constraints instead of base_spec only

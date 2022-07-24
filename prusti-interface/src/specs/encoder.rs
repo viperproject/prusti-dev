@@ -1,10 +1,12 @@
-use prusti_rustc_interface::data_structures::fx::{FxHashMap, FxIndexSet};
-use prusti_rustc_interface::hir::def_id::{CrateNum, DefId, DefIndex};
-use prusti_rustc_interface::middle::mir::interpret::AllocId;
-use prusti_rustc_interface::middle::ty::{self, PredicateKind, Ty};
-use prusti_rustc_interface::middle::ty::codec::TyEncoder;
-use prusti_rustc_interface::middle::ty::TyCtxt;
-use prusti_rustc_interface::serialize::{Encodable, Encoder, opaque};
+use prusti_rustc_interface::{
+    data_structures::fx::{FxHashMap, FxIndexSet},
+    hir::def_id::{CrateNum, DefId, DefIndex},
+    middle::{
+        mir::interpret::AllocId,
+        ty::{self, codec::TyEncoder, PredicateKind, Ty, TyCtxt},
+    },
+    serialize::{opaque, Encodable, Encoder},
+};
 
 pub struct DefSpecsEncoder<'tcx> {
     tcx: TyCtxt<'tcx>,
@@ -97,10 +99,7 @@ impl<'tcx> TyEncoder for DefSpecsEncoder<'tcx> {
         &mut self.predicate_shorthands
     }
 
-    fn encode_alloc_id(
-        &mut self,
-        alloc_id: &rustc_middle::mir::interpret::AllocId,
-    ) {
+    fn encode_alloc_id(&mut self, alloc_id: &rustc_middle::mir::interpret::AllocId) {
         let (index, _) = self.interpret_allocs.insert_full(*alloc_id);
 
         index.encode(self)

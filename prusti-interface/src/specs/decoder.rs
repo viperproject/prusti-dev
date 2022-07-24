@@ -1,17 +1,16 @@
-use std::fs::File;
-use std::io::Read;
-use std::path::Path;
-use prusti_rustc_interface::data_structures::fx::FxHashMap;
-use prusti_rustc_interface::data_structures::sync::{Lrc, MetadataRef};
-use prusti_rustc_interface::hir::def_id::{CrateNum, DefId, DefIndex, DefPathHash};
-use prusti_rustc_interface::middle::ty::{Ty, TyCtxt};
-use prusti_rustc_interface::middle::ty::codec::TyDecoder;
-use prusti_rustc_interface::serialize::{Decodable, Decoder, opaque};
-use prusti_rustc_interface::session::StableCrateId;
+use prusti_rustc_interface::{
+    data_structures::{
+        fx::FxHashMap,
+        sync::{Lrc, MetadataRef},
+    },
+    hir::def_id::{CrateNum, DefId, DefIndex, DefPathHash},
+    middle::ty::{codec::TyDecoder, Ty, TyCtxt},
+    serialize::{opaque, Decodable, Decoder},
+    session::StableCrateId,
+};
+use std::{fs::File, io::Read, path::Path};
 
-
-use prusti_rustc_interface::data_structures::owning_ref::OwningRef;
-use prusti_rustc_interface::data_structures::rustc_erase_owner;
+use prusti_rustc_interface::data_structures::{owning_ref::OwningRef, rustc_erase_owner};
 
 #[derive(Clone)]
 pub struct DefSpecsBlob(pub Lrc<MetadataRef>);
@@ -46,7 +45,9 @@ impl<'a, 'tcx> DefSpecsDecoder<'a, 'tcx> {
 
     // From rustc
     fn def_path_hash_to_def_id(&self, hash: DefPathHash) -> DefId {
-        self.tcx.def_path_hash_to_def_id(hash, &mut || panic!("DefPathHash not found in the local crate"))
+        self.tcx.def_path_hash_to_def_id(hash, &mut || {
+            panic!("DefPathHash not found in the local crate")
+        })
     }
 }
 
@@ -87,7 +88,6 @@ macro_rules! decoder_methods {
         )*
     }
 }
-
 
 impl<'a, 'tcx> Decoder for DefSpecsDecoder<'a, 'tcx> {
     decoder_methods! {
@@ -137,8 +137,8 @@ impl<'a, 'tcx> TyDecoder for DefSpecsDecoder<'a, 'tcx> {
     }
 
     fn cached_ty_for_shorthand<F>(&mut self, shorthand: usize, or_insert_with: F) -> Ty<'tcx>
-        where
-            F: FnOnce(&mut Self) -> Ty<'tcx>,
+    where
+        F: FnOnce(&mut Self) -> Ty<'tcx>,
     {
         if let Some(&ty) = self.ty_rcache.get(&shorthand) {
             return ty;
@@ -150,8 +150,8 @@ impl<'a, 'tcx> TyDecoder for DefSpecsDecoder<'a, 'tcx> {
     }
 
     fn with_position<F, R>(&mut self, pos: usize, f: F) -> R
-        where
-            F: FnOnce(&mut Self) -> R,
+    where
+        F: FnOnce(&mut Self) -> R,
     {
         let new_opaque = opaque::MemDecoder::new(self.opaque.data, pos);
         let old_opaque = std::mem::replace(&mut self.opaque, new_opaque);

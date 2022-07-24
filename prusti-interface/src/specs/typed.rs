@@ -1,17 +1,19 @@
 use crate::{environment::Environment, utils::has_trait_bounds_ghost_constraint};
 pub use common::{SpecIdRef, SpecType, SpecificationId};
 use log::trace;
+use prusti_rustc_interface::{
+    hir::def_id::{DefId, LocalDefId},
+    macros::{TyDecodable, TyEncodable},
+    middle::mir,
+    span::Span,
+};
 use prusti_specs::specifications::common;
 use rustc_hash::FxHashMap;
-use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
-use prusti_rustc_interface::span::Span;
-use prusti_rustc_interface::middle::mir;
-use prusti_rustc_interface::macros::{TyEncodable, TyDecodable};
 use std::{
     collections::HashMap,
     fmt::{Debug, Display, Formatter},
+    rc::Rc,
 };
-use std::rc::Rc;
 
 /// A map of specifications keyed by crate-local DefIds.
 #[derive(Default, Debug, Clone)]
@@ -259,7 +261,9 @@ impl SpecGraph<ProcedureSpecification> {
                 // This would always violate behavioral subtyping rules
             }
             Some(constraint) => {
-                self.get_constrained_spec_mut(constraint).pres.push(pre.to_def_id());
+                self.get_constrained_spec_mut(constraint)
+                    .pres
+                    .push(pre.to_def_id());
             }
         }
     }
@@ -277,7 +281,9 @@ impl SpecGraph<ProcedureSpecification> {
                     .for_each(|s| s.posts.push(post.to_def_id()));
             }
             Some(obligation) => {
-                self.get_constrained_spec_mut(obligation).posts.push(post.to_def_id());
+                self.get_constrained_spec_mut(obligation)
+                    .posts
+                    .push(post.to_def_id());
             }
         }
     }
@@ -485,9 +491,7 @@ impl SpecificationItem<ProcedureSpecificationKind> {
         })
     }
 
-    pub fn get_predicate_body(
-        &self,
-    ) -> Result<Option<&DefId>, ProcedureSpecificationKindError> {
+    pub fn get_predicate_body(&self) -> Result<Option<&DefId>, ProcedureSpecificationKindError> {
         self.validate()?;
 
         Ok(match self.extract_with_selective_replacement() {
