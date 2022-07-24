@@ -4,13 +4,14 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         lifetimes::*,
+        lowerer::DomainsLowererInterface,
         references::ReferencesInterface,
         snapshots::{IntoSnapshot, SnapshotDomainsInterface, SnapshotValuesInterface},
         types::TypesInterface,
     },
 };
 use vir_crate::{
-    common::position::Positioned,
+    common::{identifier::WithIdentifier, position::Positioned},
     low::{self as vir_low},
     middle::{self as vir_mid, operations::ty::Typed},
 };
@@ -490,6 +491,17 @@ pub(super) trait IntoSnapshotLowerer<'p, 'v: 'p, 'tcx: 'v> {
         };
 
         match app.function {
+            BuiltinFunc::Size => {
+                assert_eq!(args.len(), 1);
+                let return_type = self.type_to_snapshot(lowerer, &app.return_type)?;
+                lowerer.create_domain_func_app(
+                    "Size",
+                    app.get_identifier(),
+                    args,
+                    return_type,
+                    app.position,
+                )
+            }
             BuiltinFunc::Discriminant => {
                 assert_eq!(args.len(), 1);
                 let discriminant_call = lowerer.obtain_enum_discriminant(

@@ -77,7 +77,7 @@ fn test_prusti_rustc_caching() {
             .skip_while(|line| !line.starts_with("Received verification request for: "));
         while let Some(l1) = hash_lines.next() {
             let mut full_name = l1.strip_prefix("Received verification request for: ").unwrap().to_string();
-            full_name.push_str(".vpr");
+            full_name.push_str("-Both.vpr");
             full_name = prusti_common::report::log::to_legal_file_name_of_max_length(full_name, 120);
             let mut name = full_name.split(".rs_");
             let _filename = name.next().unwrap();

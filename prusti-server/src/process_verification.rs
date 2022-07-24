@@ -40,7 +40,11 @@ pub fn process_verification_request<'v, 't: 'v>(
 
         if config::dump_viper_program() {
             stopwatch.start_next("dumping viper program");
-            dump_viper_program(&ast_utils, viper_program, request.program.get_name());
+            dump_viper_program(
+                &ast_utils,
+                viper_program,
+                &request.program.get_name_with_check_mode(),
+            );
         }
 
         viper_program
