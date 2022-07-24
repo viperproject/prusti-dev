@@ -1,21 +1,16 @@
-use std::collections::HashMap;
-use std::fs::File;
-use std::io;
-use std::io::{Write};
-use std::path::Path;
-use std::rc::Rc;
+use std::{collections::HashMap, fs::File, io, io::Write, path::Path, rc::Rc};
 
 use log::warn;
 
-use prusti_rustc_interface::hir::def_id::DefId;
-use prusti_rustc_interface::macros::{TyDecodable, TyEncodable};
-use prusti_rustc_interface::middle::mir;
-use prusti_rustc_interface::middle::ty::TyCtxt;
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    macros::{TyDecodable, TyEncodable},
+    middle::{mir, ty::TyCtxt},
+};
 use rustc_serialize::{Decodable, Encodable};
 
 use crate::specs::typed::{
-    DefSpecificationMap, ProcedureSpecification,
-    SpecGraph, TypeSpecification,
+    DefSpecificationMap, ProcedureSpecification, SpecGraph, TypeSpecification,
 };
 
 use super::{
@@ -49,10 +44,15 @@ impl<'tcx, 'a> DefSpecificationMapForExport<'tcx, 'a> {
         self.encode(&mut encoder);
 
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-        File::create(path).and_then(|mut file| file.write(&encoder.into_inner())).map_err(|err| {
-            warn!("could not encode metadata for crate `{:?}`, error: {:?}", "LOCAL_CRATE", err);
-            err
-        })?;
+        File::create(path)
+            .and_then(|mut file| file.write(&encoder.into_inner()))
+            .map_err(|err| {
+                warn!(
+                    "could not encode metadata for crate `{:?}`, error: {:?}",
+                    "LOCAL_CRATE", err
+                );
+                err
+            })?;
         Ok(())
     }
 }

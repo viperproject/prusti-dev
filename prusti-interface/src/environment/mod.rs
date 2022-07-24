@@ -277,10 +277,7 @@ impl<'tcx> Environment<'tcx> {
         Procedure::new(self, proc_def_id)
     }
 
-   fn local_mir_raw(
-        &self,
-        def_id: LocalDefId,
-    ) -> CachedBody<'tcx> {
+    fn local_mir_raw(&self, def_id: LocalDefId) -> CachedBody<'tcx> {
         let mut bodies = self.bodies.borrow_mut();
         let body = bodies.entry(def_id)
             .or_insert_with(|| {
@@ -314,14 +311,9 @@ impl<'tcx> Environment<'tcx> {
 
     /// Get the MIR body of a local procedure, monomorphised with the given
     /// type substitutions.
-    pub fn local_mir(
-        &self,
-        def_id: LocalDefId,
-        substs: SubstsRef<'tcx>,
-    ) -> Rc<mir::Body<'tcx>> {
+    pub fn local_mir(&self, def_id: LocalDefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
         let mut body = self.local_mir_raw(def_id);
-        body
-            .monomorphised_bodies
+        body.monomorphised_bodies
             .entry(substs)
             .or_insert_with(|| ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs))
             .clone()

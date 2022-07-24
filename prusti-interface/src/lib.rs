@@ -15,9 +15,9 @@
 #![feature(control_flow_enum)]
 #![feature(min_specialization)]
 
+extern crate rustc_middle;
 extern crate rustc_serialize;
 extern crate rustc_type_ir;
-extern crate rustc_middle;
 
 pub mod data;
 pub mod environment;
