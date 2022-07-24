@@ -241,9 +241,9 @@ def fmt_check_all():
             run_command(['rustfmt', '--check', file])
 
 def check_smir():
-    """Check that `extern crate` is used only in `prusti_rustc_interface`."""
+    """Check that `extern crate` is used only in `prusti_rustc_interface` (TODO: `prusti_interface` is also ignored for now)."""
     for folder in os.listdir('.'):
-        if folder == 'prusti-rustc-interface':
+        if folder == 'prusti-rustc-interface' or folder == 'prusti-interface':
             continue
         if os.path.exists(os.path.join(folder, 'Cargo.toml')):
             completed = subprocess.run(
