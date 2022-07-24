@@ -82,7 +82,7 @@ pub trait FixpointEngine<'mir, 'tcx: 'mir> {
                 self.new_bottom()
             };
 
-            for &pred_bb in &mir.predecessors()[bb] {
+            for &pred_bb in &mir.basic_blocks.predecessors()[bb] {
                 if let Some(map) = p_state.lookup_after_block(pred_bb) {
                     // map should contain bb, because we ensure that we have a state for every
                     // successor

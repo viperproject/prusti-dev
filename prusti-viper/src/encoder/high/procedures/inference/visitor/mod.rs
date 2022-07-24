@@ -105,8 +105,10 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
             self.successfully_processed_blocks
                 .insert(self.current_label.take().unwrap());
         }
+        let check_mode = procedure.check_mode;
         let new_procedure = vir_mid::ProcedureDecl {
             name: self.procedure_name.take().unwrap(),
+            check_mode,
             entry: self.entry_label.take().unwrap(),
             exit: self.lower_label(&procedure.exit),
             basic_blocks: std::mem::take(&mut self.basic_blocks),

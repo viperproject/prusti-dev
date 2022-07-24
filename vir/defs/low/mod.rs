@@ -10,14 +10,14 @@ pub use self::{
     ast::{
         expression::{self, BinaryOpKind, ConstantValue, Expression, Trigger, UnaryOpKind},
         field::FieldDecl,
-        function::FunctionDecl,
+        function::{FunctionDecl, FunctionKind},
         position::Position,
         predicate::PredicateDecl,
         statement::Statement,
         ty::{self, Type},
         variable::VariableDecl,
     },
-    cfg::{BasicBlock, Label, MethodDecl, ProcedureDecl, Successor},
+    cfg::{BasicBlock, Label, MethodDecl, MethodKind, ProcedureDecl, Successor},
     domain::{DomainAxiomDecl, DomainDecl, DomainFunctionDecl},
     program::Program,
 };

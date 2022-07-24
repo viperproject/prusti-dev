@@ -1,3 +1,4 @@
+use super::encoder::PredicateEncoder;
 use crate::encoder::{
     errors::SpannedEncodingResult,
     middle::core_proof::{
@@ -6,15 +7,11 @@ use crate::encoder::{
     },
 };
 use rustc_hash::FxHashSet;
-
-use crate::encoder::high::types::HighTypeEncoderInterface;
 use vir_crate::{
     low::{self as vir_low},
     middle as vir_mid,
-    middle::operations::ty::Typed,
+    middle::operations::lifetimes::WithLifetimes,
 };
-
-use super::encoder::PredicateEncoder;
 
 #[derive(Default)]
 pub(in super::super) struct PredicatesOwnedState {
@@ -42,11 +39,11 @@ pub(in super::super::super) trait PredicatesOwnedInterface {
     fn extract_lifetime_arguments_from_rvalue(
         &mut self,
         value: &vir_mid::Rvalue,
-    ) -> SpannedEncodingResult<Vec<vir_low::Expression>>;
-    fn extract_lifetime_arguments_from_type(
-        &mut self,
-        ty: &vir_mid::Type,
     ) -> SpannedEncodingResult<Vec<vir_low::VariableDecl>>;
+    fn extract_lifetime_arguments_from_rvalue_as_expr(
+        &mut self,
+        value: &vir_mid::Rvalue,
+    ) -> SpannedEncodingResult<Vec<vir_low::Expression>>;
     fn extract_non_type_arguments_from_type(
         &mut self,
         ty: &vir_mid::Type,
@@ -94,17 +91,21 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesOwnedInterface for Lowerer<'p, 'v, 'tcx> {
     fn collect_owned_predicate_decls(
         &mut self,
     ) -> SpannedEncodingResult<Vec<vir_low::PredicateDecl>> {
-        let unfolded_predicates = std::mem::take(
-            &mut self
-                .predicates_encoding_state
-                .owned
-                .unfolded_owned_non_aliased_predicates,
-        );
-        let mut predicate_encoder = PredicateEncoder::new(self, &unfolded_predicates);
-        for ty in &unfolded_predicates {
-            predicate_encoder.encode_owned_non_aliased(ty)?;
+        if self.only_check_specs() {
+            Ok(Vec::new())
+        } else {
+            let unfolded_predicates = std::mem::take(
+                &mut self
+                    .predicates_encoding_state
+                    .owned
+                    .unfolded_owned_non_aliased_predicates,
+            );
+            let mut predicate_encoder = PredicateEncoder::new(self, &unfolded_predicates);
+            for ty in &unfolded_predicates {
+                predicate_encoder.encode_owned_non_aliased(ty)?;
+            }
+            Ok(predicate_encoder.into_predicates())
         }
-        Ok(predicate_encoder.into_predicates())
     }
 
     fn acc_owned_non_aliased(
@@ -128,43 +129,24 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesOwnedInterface for Lowerer<'p, 'v, 'tcx> {
     fn extract_lifetime_arguments_from_rvalue(
         &mut self,
         value: &vir_mid::Rvalue,
-    ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
-        let mut lifetimes: Vec<vir_low::Expression> = vec![];
-        if let vir_mid::Rvalue::Aggregate(value) = value {
-            for operand in &value.operands {
-                match operand.kind {
-                    vir_mid::OperandKind::Copy | vir_mid::OperandKind::Move => {
-                        let operand_ty = operand.expression.get_type();
-                        if let vir_mid::ty::Type::Reference(reference) = operand_ty {
-                            let lifetime = self
-                                .encode_lifetime_const_into_variable(reference.lifetime.clone())?;
-                            lifetimes.push(lifetime.into());
-                        }
-                    }
-                    _ => {}
-                }
-            }
+    ) -> SpannedEncodingResult<Vec<vir_low::VariableDecl>> {
+        let mut lifetimes = Vec::new();
+        for lifetime in value.get_lifetimes() {
+            lifetimes.push(self.encode_lifetime_const_into_variable(lifetime)?);
         }
         Ok(lifetimes)
     }
 
-    fn extract_lifetime_arguments_from_type(
+    fn extract_lifetime_arguments_from_rvalue_as_expr(
         &mut self,
-        ty: &vir_mid::Type,
-    ) -> SpannedEncodingResult<Vec<vir_low::VariableDecl>> {
-        let mut lifetimes: Vec<vir_low::VariableDecl> = vec![];
-        if ty.is_struct() {
-            let type_decl = self.encoder.get_type_decl_mid(ty)?;
-            if let vir_mid::TypeDecl::Struct(decl) = type_decl {
-                for field in decl.iter_fields() {
-                    if let vir_mid::Type::Reference(reference) = &field.ty {
-                        let lifetime =
-                            self.encode_lifetime_const_into_variable(reference.lifetime.clone())?;
-                        lifetimes.push(lifetime)
-                    }
-                }
-            }
-        }
+        value: &vir_mid::Rvalue,
+    ) -> SpannedEncodingResult<Vec<vir_low::Expression>> {
+        let lifetimes = self
+            .extract_lifetime_arguments_from_rvalue(value)?
+            .iter()
+            .cloned()
+            .map(|x| x.into())
+            .collect();
         Ok(lifetimes)
     }
 
@@ -196,10 +178,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> PredicatesOwnedInterface for Lowerer<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<Vec<vir_low::VariableDecl>> {
         // FIXME: Figure out how to avoid these magic variable names.
         let parameters = match ty {
-            vir_mid::Type::Reference(_) => {
-                use vir_low::macros::*;
-                vec![var! { lifetime: Lifetime }]
-            }
             vir_mid::Type::Array(_) => {
                 vec![self.array_length_variable()?]
             }
