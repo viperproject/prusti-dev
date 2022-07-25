@@ -40,14 +40,15 @@ impl PositionManager {
     }
 
     pub fn get_span(&self, def_id: ProcedureDefId, pos: Position) -> Option<&MultiSpan> {
-        self.pos_id_map.get(&def_id).and_then(|proc_spans| proc_spans.get(Self::pos_to_idx(pos)))
+        let idx = Self::pos_to_idx(pos)?;
+        self.pos_id_map.get(&def_id).and_then(|proc_spans| proc_spans.get(idx))
     }
 
     fn idx_to_pos(idx: usize) -> Position {
         Position::new(idx as u64 + 1)
     }
-    fn pos_to_idx(pos: Position) -> usize {
-        assert!(pos.id() != 0);
-        pos.id() as usize - 1
+    fn pos_to_idx(pos: Position) -> Option<usize> {
+        if pos.id() == 0 { None }
+        else { Some(pos.id() as usize - 1) }
     }
 }

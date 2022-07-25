@@ -414,9 +414,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 self.parent_def_id,
                 assertion_substs,
             )?;
-            self.encoder
-                .error_manager()
-                .set_error(self.proc_def_id, encoded_assertion.pos(), ErrorCtxt::PureFunctionDefinition);
+            self.encoder.error_manager().set_error(
+                self.proc_def_id,
+                encoded_assertion.pos(),
+                ErrorCtxt::PureFunctionDefinition,
+            );
             func_spec.push(encoded_assertion);
         }
 
@@ -455,9 +457,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 self.parent_def_id,
                 assertion_substs,
             )?;
-            self.encoder
-                .error_manager()
-                .set_error(self.proc_def_id, encoded_postcond.pos(), ErrorCtxt::PureFunctionDefinition);
+            self.encoder.error_manager().set_error(
+                self.proc_def_id,
+                encoded_postcond.pos(),
+                ErrorCtxt::PureFunctionDefinition,
+            );
             func_spec.push(encoded_postcond);
         }
 

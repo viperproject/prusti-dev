@@ -96,7 +96,8 @@ impl<'v, 'tcx: 'v> ErrorInterface for super::super::super::Encoder<'v, 'tcx> {
         let new_position = self
             .error_manager()
             .duplicate_position(def_id, position.into());
-        self.error_manager().set_error(def_id, new_position, error_ctxt);
+        self.error_manager()
+            .set_error(def_id, new_position, error_ctxt);
         new_position.into()
     }
     fn set_surrounding_error_context(
