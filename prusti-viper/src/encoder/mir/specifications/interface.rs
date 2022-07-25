@@ -9,7 +9,7 @@ use prusti_interface::{
 };
 use prusti_rustc_interface::{
     hir::def_id::DefId,
-    middle::{mir, ty, ty::subst::SubstsRef},
+    middle::{mir, ty::subst::SubstsRef},
     span::Span,
 };
 use std::{cell::RefCell, hash::Hash, rc::Rc};
@@ -19,7 +19,7 @@ pub(crate) struct SpecificationsState<'tcx> {
 }
 
 impl<'tcx> SpecificationsState<'tcx> {
-    pub fn new(user_typed_specs: DefSpecificationMap<'tcx>) -> Self {
+    pub fn new(user_typed_specs: DefSpecificationMap) -> Self {
         Self {
             specs: RefCell::new(Specifications::new(user_typed_specs)),
         }
@@ -127,8 +127,6 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     /// Get the span of the declared specification, if any, or else the span of
     /// the method declaration.
     fn get_spec_span(&self, def_id: DefId) -> Span;
-
-    fn get_local_mir(&self, def_id: DefId) -> Rc<mir::Body<'tcx>>;
 
     fn get_mir(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>>;
 }
@@ -285,23 +283,11 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .unwrap_or_else(|| self.env().get_def_span(def_id))
     }
 
-    fn get_local_mir(&self, def_id: DefId) -> Rc<mir::Body<'tcx>> {
-        return self
-            .specifications_state
-            .specs
-            .borrow()
-            .get_mirs_of_specs()
-            .get(&def_id)
-            .unwrap()
-            .clone();
-    }
-
     fn get_mir(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
-        return if let Some(def_id) = def_id.as_local() {
+        if let Some(def_id) = def_id.as_local() {
             self.env().local_mir(def_id, substs)
         } else {
-            use ty::subst::Subst;
-            ty::EarlyBinder(self.get_local_mir(def_id)).subst(self.env().tcx(), substs)
-        };
+            self.env().external_mir(def_id, substs)
+        }
     }
 }

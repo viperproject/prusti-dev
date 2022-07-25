@@ -24,7 +24,8 @@ use prusti_interface::PrustiError;
 use vir_crate::polymorphic::{self as vir};
 use vir_crate::common::identifier::WithIdentifier;
 use prusti_rustc_interface::hir::def_id::DefId;
-use prusti_rustc_interface::middle::{mir, ty};
+use prusti_rustc_interface::middle::mir;
+use prusti_rustc_interface::middle::ty;
 use std::cell::{Cell, RefCell, RefMut, Ref};
 use rustc_hash::FxHashMap;
 use std::io::Write;
@@ -107,7 +108,7 @@ pub fn encode_field_name(field_name: &str) -> String {
 impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn new(
         env: &'v Environment<'tcx>,
-        def_spec: typed::DefSpecificationMap<'tcx>,
+        def_spec: typed::DefSpecificationMap,
     ) -> Self {
         let source_path = env.source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();

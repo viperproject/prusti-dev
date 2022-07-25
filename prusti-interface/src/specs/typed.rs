@@ -1,26 +1,18 @@
 use crate::{environment::Environment, utils::has_trait_bounds_ghost_constraint};
 pub use common::{SpecIdRef, SpecType, SpecificationId};
-use log::{trace, warn};
+use log::trace;
 use prusti_rustc_interface::{
     hir::def_id::{DefId, LocalDefId},
     macros::{TyDecodable, TyEncodable},
-    middle::mir,
-    serialize::{Decodable, Encodable},
     span::Span,
 };
 use prusti_specs::specifications::common;
 use rustc_hash::FxHashMap;
-use rustc_middle::ty::TyCtxt;
-use std::{
-    fmt::{Debug, Display, Formatter},
-    fs, io::{Read, Write}, path, rc::Rc,
-};
-
-use super::{encoder::DefSpecsEncoder, decoder::DefSpecsDecoder};
+use std::fmt::{Debug, Display, Formatter};
 
 /// A map of specifications keyed by crate-local DefIds.
 #[derive(Default, Debug, Clone)]
-pub struct DefSpecificationMap<'tcx> {
+pub struct DefSpecificationMap {
     pub proc_specs: FxHashMap<DefId, SpecGraph<ProcedureSpecification>>,
     pub loop_specs: FxHashMap<DefId, LoopSpecification>,
     pub type_specs: FxHashMap<DefId, TypeSpecification>,
@@ -28,11 +20,9 @@ pub struct DefSpecificationMap<'tcx> {
     pub prusti_assumptions: FxHashMap<DefId, PrustiAssumption>,
     pub ghost_begin: FxHashMap<DefId, GhostBegin>,
     pub ghost_end: FxHashMap<DefId, GhostEnd>,
-
-    pub mirs_of_specs: FxHashMap<DefId, Rc<mir::Body<'tcx>>>,
 }
 
-impl<'tcx> DefSpecificationMap<'tcx> {
+impl DefSpecificationMap {
     pub fn new() -> Self {
         Self::default()
     }
@@ -63,41 +53,6 @@ impl<'tcx> DefSpecificationMap<'tcx> {
 
     pub fn get_ghost_end(&self, def_id: &DefId) -> Option<&GhostEnd> {
         self.ghost_end.get(def_id)
-    }
-
-    pub(crate) fn write_into_file(&self, tcx: TyCtxt<'tcx>, path: &path::Path) -> std::io::Result<()> {
-        let mut encoder = DefSpecsEncoder::new(tcx);
-        self.proc_specs.encode(&mut encoder);
-        self.type_specs.encode(&mut encoder);
-        self.mirs_of_specs.encode(&mut encoder);
-
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-        fs::File::create(path)
-            .and_then(|mut file| file.write(&encoder.into_inner()))
-            .map_err(|err| {
-                warn!(
-                    "could not encode metadata for crate `{:?}`, error: {:?}",
-                    "LOCAL_CRATE", err
-                );
-                err
-            })?;
-        Ok(())
-    }
-
-    pub(crate) fn extend_from_file(&mut self, tcx: TyCtxt<'tcx>, path: &path::Path) -> std::io::Result<()> {
-        let mut data = Vec::new();
-        let mut file = fs::File::open(path)?;
-        file.read_to_end(&mut data)?;
-        let mut decoder = DefSpecsDecoder::new(tcx, &data);
-
-        let proc_specs = FxHashMap::decode(&mut decoder);
-        let type_specs = FxHashMap::decode(&mut decoder);
-        let mirs_of_specs = FxHashMap::decode(&mut decoder);
-        self.proc_specs.extend(proc_specs);
-        self.type_specs.extend(type_specs);
-
-        self.mirs_of_specs.extend(mirs_of_specs);
-        Ok(())
     }
 }
 
