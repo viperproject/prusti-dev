@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 use crate::{
-    joins::{apply_packings, unify_moves, PCSRepacker},
+    joins::{apply_packings, unify_moves},
     syntax::{
         hoare_semantics::HoareSemantics, LinearResource, MicroMirData, MicroMirEncoder,
         MicroMirStatement, MicroMirTerminator, PCSPermission, PCS,
@@ -12,14 +12,14 @@ use crate::{
     util::EncodingResult,
 };
 use prusti_interface::{
-    environment::{Environment, Procedure},
+    environment::{Environment},
     utils::is_prefix,
     PrustiError,
 };
 use prusti_rustc_interface::{
     data_structures::stable_set::FxHashSet,
     errors::MultiSpan,
-    middle::mir::{Body, Mutability, Place},
+    middle::mir::{Body},
 };
 use std::iter::zip;
 
