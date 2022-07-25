@@ -4,25 +4,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 use crate::{
-    joins::{unify_moves, PCSRepacker},
     pcs_analysis::straight::straight_line_pcs,
     syntax::{
-        hoare_semantics::HoareSemantics, LinearResource, MicroMirData, MicroMirEncoder,
-        MicroMirStatement, MicroMirTerminator, PCSPermission, PCS,
+        MicroMirEncoder,
     },
     util::EncodingResult,
 };
 use prusti_interface::{
     environment::{Environment, Procedure},
-    utils::is_prefix,
-    PrustiError,
 };
 use prusti_rustc_interface::{
-    data_structures::stable_set::FxHashSet,
-    errors::MultiSpan,
-    middle::mir::{Body, Mutability, Place},
+    middle::mir::{Body},
 };
-use std::iter::zip;
+
 
 /// Computes the PCS and prints it to the console
 /// Currently the entry point for the compiler

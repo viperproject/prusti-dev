@@ -4,27 +4,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{
-    joins::{unify_moves, PCSRepacker},
-    syntax::{
-        hoare_semantics::HoareSemantics, LinearResource, MicroMirData, MicroMirEncoder,
-        MicroMirStatement, MicroMirTerminator, PCSPermission, PCS,
-    },
-    util::EncodingResult,
-};
-use prusti_interface::{
-    environment::{Environment, Procedure},
-    utils::is_prefix,
-    PrustiError,
-};
-use prusti_rustc_interface::{
-    data_structures::stable_set::FxHashSet,
-    errors::MultiSpan,
-    middle::mir::{Body, Location, Mutability, Place},
-};
+use crate::{syntax::PCS, util::EncodingResult};
+use prusti_interface::environment::Environment;
+use prusti_rustc_interface::middle::mir::{Body, Location};
 
 pub mod straight;
-use straight::*;
+
+// Actually not sure if I like this abstraction
 
 // Methods for computing the operational PCS
 // Pass in the method with the DUMP_OPERATIONAL_PCS enviornment variable

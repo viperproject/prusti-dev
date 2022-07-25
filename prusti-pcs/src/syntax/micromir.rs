@@ -79,6 +79,8 @@ pub enum MicroMirTerminator<'tcx> {
 pub struct MicroMirData<'tcx> {
     pub statements: Vec<MicroMirStatement<'tcx>>,
     pub terminator: MicroMirTerminator<'tcx>,
+    // Mir parent is Location(basicBlock, mir_parent[i])
+    pub mir_parent: Vec<usize>,
 }
 
 pub struct MicroMirBody<'tcx> {
