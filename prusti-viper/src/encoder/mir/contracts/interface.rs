@@ -150,7 +150,7 @@ fn get_procedure_contract<'p, 'v: 'p, 'tcx: 'v>(
             .collect();
         return_ty = fn_sig.output();
     } else {
-        let mir = env.local_mir(proc_def_id.expect_local(), substs);
+        let mir = env.local_body_mir(proc_def_id.expect_local(), substs);
         // local_decls:
         // _0    - return, with closure's return type
         // _1    - closure's self

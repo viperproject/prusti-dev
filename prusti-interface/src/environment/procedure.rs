@@ -38,16 +38,14 @@ impl<'tcx> Procedure<'tcx> {
     /// identifier of a procedure
     pub fn new(env: &Environment<'tcx>, proc_def_id: ProcedureDefId) -> Self {
         trace!("Encoding procedure {:?}", proc_def_id);
-        let tcx = env.tcx();
-        // TOOD(tymap): add substs to procedure? check usages
-        let mir = env.local_mir(proc_def_id.expect_local(), env.identity_substs(proc_def_id));
+        let mir = env.local_body_mir(proc_def_id.expect_local(), env.identity_substs(proc_def_id));
         let real_edges = RealEdges::new(&mir);
         let reachable_basic_blocks = build_reachable_basic_blocks(&mir, &real_edges);
-        let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir, &real_edges, &tcx);
+        let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir, &real_edges, &env.tcx());
         let loop_info = loops::ProcedureLoops::new(&mir, &real_edges);
 
         Self {
-            tcx,
+            tcx: env.tcx(),
             proc_def_id,
             mir,
             real_edges,

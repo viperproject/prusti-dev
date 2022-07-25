@@ -47,29 +47,27 @@ use self::borrowck::facts::BorrowckFacts;
 use crate::data::ProcedureDefId;
 use prusti_rustc_interface::span::source_map::SourceMap;
 
-#[derive(Clone)]
 struct CachedBody<'tcx> {
     /// MIR body as known to the compiler.
     base_body: Rc<mir::Body<'tcx>>,
     /// Copies of the MIR body with the given substs applied.
     monomorphised_bodies: HashMap<SubstsRef<'tcx>, Rc<mir::Body<'tcx>>>,
-    /// Cached borrowck information.
-    borrowck_facts: Rc<BorrowckFacts>,
 }
 
-struct CachedExternalBody<'tcx> {
-    /// MIR body as known to the compiler.
-    base_body: Rc<mir::Body<'tcx>>,
-    /// Copies of the MIR body with the given substs applied.
-    monomorphised_bodies: HashMap<SubstsRef<'tcx>, Rc<mir::Body<'tcx>>>,
+struct CachedLocalBody<'tcx> {
+    body: CachedBody<'tcx>,
+    /// Cached borrowck information.
+    borrowck_facts: Rc<BorrowckFacts>,
 }
 
 /// Facade to the Rust compiler.
 // #[derive(Copy, Clone)]
 pub struct Environment<'tcx> {
     /// Cached MIR bodies.
-    bodies: RefCell<HashMap<LocalDefId, CachedBody<'tcx>>>,
-    external_bodies: RefCell<HashMap<DefId, CachedExternalBody<'tcx>>>,
+    bodies: RefCell<HashMap<LocalDefId, CachedLocalBody<'tcx>>>,
+    /// The spec bodies should be loaded into cache at the start
+    local_spec_bodies: RefCell<HashMap<LocalDefId, CachedBody<'tcx>>>,
+    external_spec_bodies: RefCell<HashMap<DefId, CachedBody<'tcx>>>,
     tcx: TyCtxt<'tcx>,
     warn_buffer: RefCell<Vec<prusti_rustc_interface::errors::Diagnostic>>,
 }
@@ -83,7 +81,8 @@ impl<'tcx> Environment<'tcx> {
         Environment {
             tcx,
             bodies: RefCell::new(HashMap::new()),
-            external_bodies: RefCell::new(HashMap::new()),
+            local_spec_bodies: RefCell::new(HashMap::new()),
+            external_spec_bodies: RefCell::new(HashMap::new()),
             warn_buffer: RefCell::new(Vec::new()),
         }
     }
@@ -280,9 +279,12 @@ impl<'tcx> Environment<'tcx> {
         Procedure::new(self, proc_def_id)
     }
 
-    fn local_mir_raw(&self, def_id: LocalDefId) -> CachedBody<'tcx> {
+    /// Get the MIR body of a local procedure, monomorphised with the given
+    /// type substitutions.
+    pub fn local_body_mir(&self, def_id: LocalDefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
+        assert!(!self.local_spec_bodies.borrow().contains_key(&def_id));
         let mut bodies = self.bodies.borrow_mut();
-        let body = bodies.entry(def_id)
+        let proc = bodies.entry(def_id)
             .or_insert_with(|| {
                 // SAFETY: This is safe because we are feeding in the same `tcx`
                 // that was used to store the data.
@@ -296,19 +298,32 @@ impl<'tcx> Environment<'tcx> {
                     location_table: RefCell::new(Some(body_with_facts.location_table)),
                 };
 
-                CachedBody {
-                    base_body: Rc::new(body),
-                    monomorphised_bodies: HashMap::new(),
+                CachedLocalBody {
+                    body: CachedBody {
+                        base_body: Rc::new(body),
+                        monomorphised_bodies: HashMap::new(),
+                    },
                     borrowck_facts: Rc::new(facts),
                 }
             });
-        body.clone()
+        self.subst_into_body(&mut proc.body, substs)
     }
 
-    /// Get the MIR body of a local procedure, monomorphised with the given
-    /// type substitutions.
-    pub fn local_mir(&self, def_id: LocalDefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
-        let mut body = self.local_mir_raw(def_id);
+    /// Get the MIR body of a spec, monomorphised with the given type substitutions.
+    /// Can be both local or non-local to the current crate.
+    pub fn spec_mir(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
+        if let Some(def_id) = def_id.as_local() {
+            let mut local_spec_bodies = self.local_spec_bodies.borrow_mut();
+            let body = local_spec_bodies.get_mut(&def_id).unwrap();
+            self.subst_into_body(body, substs)
+        } else {
+            let mut external_spec_bodies = self.external_spec_bodies.borrow_mut();
+            let body = external_spec_bodies.get_mut(&def_id).unwrap();
+            self.subst_into_body(body, substs)
+        }
+    }
+
+    fn subst_into_body(&self, body: &mut CachedBody<'tcx>, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
         body.monomorphised_bodies
             .entry(substs)
             .or_insert_with(|| ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs))
@@ -327,45 +342,36 @@ impl<'tcx> Environment<'tcx> {
             .map(|body| body.borrowck_facts.clone())
     }
 
-    /// Get the MIR body of an external procedure, monomorphised with the given
-    /// type substitutions.
-    pub fn external_mir(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
-        let mut external_bodies = self.external_bodies.borrow_mut();
-        let external_body = external_bodies.get_mut(&def_id).unwrap();
-            // TODO: should we be trying to load these here?
-            // .or_insert_with(|| {
-            //     let external_body = self.tcx.optimized_mir(def_id);
-            //     CachedExternalBody {
-            //         base_body: Rc::new(external_body.clone()),
-            //         monomorphised_bodies: HashMap::new(),
-            //     }
-            // });
-        external_body
-            .monomorphised_bodies
-            .entry(substs)
-            .or_insert_with(|| ty::EarlyBinder(external_body.base_body.clone()).subst(self.tcx, substs))
-            .clone()
-    }
-
-    /// Import non-local mir bodies of specs from cross-crate import
+    /// Import non-local mir bodies of specs from cross-crate import.
     pub fn import_external_bodies(&self, bodies: CrossCrateBodyMap<'tcx>) {
-        self.external_bodies.borrow_mut().extend(bodies.into_iter().map(|(id, body)|
-            (id, CachedExternalBody {
-                base_body: body,
-                monomorphised_bodies: HashMap::new(),
-            })
+        self.external_spec_bodies.borrow_mut().extend(bodies.into_iter().map(
+            |(id, base_body)|
+                (id, CachedBody { base_body, monomorphised_bodies: HashMap::new() })
         ));
     }
 
-    /// Ensures that the MIR body of a local procedure is cached, without performing any type substitution.
-    /// Used in conjunction with `bodies_for_export` to ensure all required specs are exported.
-    pub fn ensure_local_mir_loaded(&self, def_id: LocalDefId) {
-        self.local_mir_raw(def_id);
+    /// Ensures that the MIR body of a local spec is cached. This must be called on all specs,
+    /// prior to requesting their bodies with `spec_mir` or exporting with `bodies_for_export`!
+    pub fn load_local_spec_mir(&self, def_id: LocalDefId) {
+        let mut local_spec_bodies = self.local_spec_bodies.borrow_mut();
+        assert!(!local_spec_bodies.contains_key(&def_id));
+        // SAFETY: This is safe because we are feeding in the same `tcx`
+        // that was used to store the data.
+        let body_with_facts = unsafe {
+            self::mir_storage::retrieve_mir_body(self.tcx, def_id)
+        };
+        local_spec_bodies.insert(
+            def_id,
+            CachedBody {
+                base_body: Rc::new(body_with_facts.body),
+                monomorphised_bodies: HashMap::new()
+            }
+        );
     }
 
-    /// Get all local (TODO: spec only?) mir bodies to save to file for cross-crate export
+    /// Get all local spec mir bodies to save to file for cross-crate export
     pub fn bodies_for_export(&self) -> CrossCrateBodyMap<'tcx> {
-        self.bodies.borrow().iter().map(
+        self.local_spec_bodies.borrow().iter().map(
             |(id, cb)| (id.to_def_id(), cb.base_body.clone())
         ).collect()
     }
