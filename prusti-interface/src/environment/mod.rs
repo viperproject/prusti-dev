@@ -284,7 +284,7 @@ impl<'tcx> Environment<'tcx> {
     pub fn local_body_mir(&self, def_id: LocalDefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
         assert!(!self.local_spec_bodies.borrow().contains_key(&def_id));
         let mut bodies = self.bodies.borrow_mut();
-        let proc = bodies.entry(def_id)
+        let body = bodies.entry(def_id)
             .or_insert_with(|| {
                 // SAFETY: This is safe because we are feeding in the same `tcx`
                 // that was used to store the data.
@@ -306,7 +306,7 @@ impl<'tcx> Environment<'tcx> {
                     borrowck_facts: Rc::new(facts),
                 }
             });
-        self.subst_into_body(&mut proc.body, substs)
+        self.subst_into_body(&mut body.body, substs)
     }
 
     /// Get the MIR body of a spec, monomorphised with the given type substitutions.
