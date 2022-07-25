@@ -1,8 +1,12 @@
-use prusti_rustc_interface::ast::ast;
-use prusti_rustc_interface::errors::MultiSpan;
-use prusti_rustc_interface::hir::intravisit;
-use prusti_rustc_interface::middle::{hir::map::Map, ty::TyCtxt};
-use prusti_rustc_interface::span::Span;
+use prusti_rustc_interface::{
+    ast::ast,
+    errors::MultiSpan,
+    hir::{def_id::{CrateNum, DefId, LocalDefId, LOCAL_CRATE}, intravisit},
+    middle::{hir::map::Map, ty::TyCtxt},
+    serialize::{Decodable, Encodable},
+    span::Span
+};
+use rustc_hash::FxHashMap;
 
 use crate::{
     environment::Environment,
@@ -12,9 +16,11 @@ use crate::{
     },
     PrustiError,
 };
-use log::debug;
-use prusti_rustc_interface::hir::def_id::{CrateNum, DefId, LocalDefId, LOCAL_CRATE};
-use std::{collections::HashMap, convert::TryInto, fmt::Debug, path::{Path, PathBuf}};
+use log::{debug, warn};
+use std::{
+    collections::HashMap, convert::TryInto, fmt::Debug, fs,
+    io::{Read, Write}, path::{Path, PathBuf}
+};
 
 pub mod checker;
 pub mod decoder;
@@ -29,6 +35,9 @@ use crate::specs::{
     typed::{ProcedureSpecification, ProcedureSpecificationKind, SpecGraph, SpecificationItem},
 };
 use prusti_specs::specifications::common::SpecificationId;
+
+use self::decoder::DefSpecsDecoder;
+use self::encoder::DefSpecsEncoder;
 
 #[derive(Debug)]
 struct ProcedureSpecRefs {
@@ -87,7 +96,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     pub fn build_def_specs(
         &self,
         build_output_dir: &Option<PathBuf>,
-    ) -> typed::DefSpecificationMap<'tcx> {
+    ) -> typed::DefSpecificationMap {
         let mut def_spec = typed::DefSpecificationMap::new();
         self.determine_procedure_specs(&mut def_spec);
         self.determine_extern_specs(&mut def_spec);
@@ -98,19 +107,18 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_ghost_begin_ends(&mut def_spec);
         // TODO: remove spec functions (make sure none are duplicated or left over)
 
-        self.fetch_local_mirs(&mut def_spec);
-
         if let Some(build_output_dir) = build_output_dir {
-            self.write_specs_to_file(&def_spec, build_output_dir);
+            self.ensure_local_mirs_fetched(&mut def_spec);
+            let target_filename = self.get_crate_specs_path(build_output_dir, LOCAL_CRATE);
+            Self::write_into_file(&def_spec, self.env, self.tcx, target_filename.as_path()).unwrap();
             self.merge_specs_from_dependencies(&mut def_spec, build_output_dir);
         }
 
         def_spec
     }
 
-    fn get_crate_specs_path(&self, build_output_dir: &Path, crate_num: CrateNum) -> Box<PathBuf> {
-        let mut path = Box::new(build_output_dir.to_path_buf());
-        path.push("serialized_specs");
+    fn get_crate_specs_path(&self, build_output_dir: &Path, crate_num: CrateNum) -> PathBuf {
+        let mut path = build_output_dir.join("serialized_specs");
         path.push(format!(
             "{}-{:x}.bin",
             self.tcx.crate_name(crate_num),
@@ -119,18 +127,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         path
     }
 
-    fn write_specs_to_file(
-        &self,
-        def_spec: &typed::DefSpecificationMap<'tcx>,
-        build_output_dir: &Path,
-    ) {
-        let target_filename = self.get_crate_specs_path(build_output_dir, LOCAL_CRATE);
-        def_spec.write_into_file(self.tcx, &target_filename).unwrap()
-    }
-
     fn merge_specs_from_dependencies(
         &self,
-        def_spec: &mut typed::DefSpecificationMap<'tcx>,
+        def_spec: &mut typed::DefSpecificationMap,
         build_output_dir: &Path,
     ) {
         for crate_num in self.tcx.crates(()) {
@@ -140,10 +139,44 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
             let file = self.get_crate_specs_path(build_output_dir, *crate_num);
             if file.is_file() {
-                def_spec.extend_from_file(self.tcx, &file)
+                Self::extend_from_file(def_spec, self.env, self.tcx, &file)
                     .expect("error reading specs for dependency crate from file");
             }
         }
+    }
+
+    fn write_into_file(def_spec: &typed::DefSpecificationMap, env: &Environment<'tcx>, tcx: TyCtxt<'tcx>, path: &Path) -> std::io::Result<()> {
+        let mut encoder = DefSpecsEncoder::new(tcx);
+        def_spec.proc_specs.encode(&mut encoder);
+        def_spec.type_specs.encode(&mut encoder);
+        env.bodies_for_export().encode(&mut encoder);
+
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::File::create(path)
+            .and_then(|mut file| file.write(&encoder.into_inner()))
+            .map_err(|err| {
+                warn!(
+                    "could not encode metadata for crate `{:?}`, error: {:?}",
+                    "LOCAL_CRATE", err
+                );
+                err
+            })?;
+        Ok(())
+    }
+
+    fn extend_from_file(def_spec: &mut typed::DefSpecificationMap, env: &Environment<'tcx>, tcx: TyCtxt<'tcx>, path: &Path) -> std::io::Result<()> {
+        let mut data = Vec::new();
+        let mut file = fs::File::open(path)?;
+        file.read_to_end(&mut data)?;
+        let mut decoder = DefSpecsDecoder::new(tcx, &data);
+
+        let proc_specs = FxHashMap::decode(&mut decoder);
+        let type_specs = FxHashMap::decode(&mut decoder);
+        let mirs_of_specs = FxHashMap::decode(&mut decoder);
+        def_spec.proc_specs.extend(proc_specs);
+        def_spec.type_specs.extend(type_specs);
+        env.import_external_bodies(mirs_of_specs);
+        Ok(())
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
@@ -310,7 +343,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         }
     }
 
-    fn fetch_local_mirs(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>) {
+    fn ensure_local_mirs_fetched(&self, def_spec: &mut typed::DefSpecificationMap) {
         for def_id in def_spec
             .proc_specs
             // collect [DefId]s in specs of all procedures
@@ -323,8 +356,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 })
                     .flatten()
             }) {
-            let base_mir = self.env.local_base_mir(def_id.expect_local());
-            def_spec.mirs_of_specs.insert(*def_id,base_mir);
+            if let Some(local_def_id) = def_id.as_local() {
+                self.env.ensure_local_mir_loaded(local_def_id);
+            }
         }
     }
 }

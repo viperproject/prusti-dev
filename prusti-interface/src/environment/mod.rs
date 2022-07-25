@@ -12,10 +12,10 @@ use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
 use prusti_rustc_interface::middle::ty::{self, TyCtxt};
 use prusti_rustc_interface::middle::ty::subst::{Subst, SubstsRef};
 use prusti_rustc_interface::trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::path::PathBuf;
 use prusti_rustc_interface::errors::{DiagnosticBuilder, EmissionGuarantee, MultiSpan};
 use prusti_rustc_interface::span::{Span, symbol::Symbol};
-use std::collections::HashSet;
 use log::{debug, trace};
 use std::rc::Rc;
 use std::collections::HashMap;
@@ -73,6 +73,9 @@ pub struct Environment<'tcx> {
     tcx: TyCtxt<'tcx>,
     warn_buffer: RefCell<Vec<prusti_rustc_interface::errors::Diagnostic>>,
 }
+
+/// To ensure that the exported sturctre matches the imported one
+type CrossCrateBodyMap<'tcx> = FxHashMap<DefId, Rc<mir::Body<'tcx>>>;
 
 impl<'tcx> Environment<'tcx> {
     /// Builds an environment given a compiler state.
@@ -302,12 +305,6 @@ impl<'tcx> Environment<'tcx> {
         body.clone()
     }
 
-    /// Get the MIR body of a local procedure, without performing any type substitution.
-    /// This is equivalent to performing the substitution with `identity_substs(def_id)`.
-    pub fn local_base_mir(&self, def_id: LocalDefId) -> Rc<mir::Body<'tcx>> {
-        self.local_mir_raw(def_id).base_body
-    }
-
     /// Get the MIR body of a local procedure, monomorphised with the given
     /// type substitutions.
     pub fn local_mir(&self, def_id: LocalDefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
@@ -330,31 +327,52 @@ impl<'tcx> Environment<'tcx> {
             .map(|body| body.borrowck_facts.clone())
     }
 
-    /// Get the MIR body of an external procedure.
-    pub fn external_mir(
-        &self,
-        def_id: DefId,
-        substs: SubstsRef<'tcx>,
-    ) -> Rc<mir::Body<'tcx>> {
-        let mut bodies = self.external_bodies.borrow_mut();
-        let body = bodies.entry(def_id)
-            .or_insert_with(|| {
-                let body = self.tcx.optimized_mir(def_id);
-                CachedExternalBody {
-                    base_body: Rc::new(body.clone()),
-                    monomorphised_bodies: HashMap::new(),
-                }
-            });
-        body
+    /// Get the MIR body of an external procedure, monomorphised with the given
+    /// type substitutions.
+    pub fn external_mir(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
+        let mut external_bodies = self.external_bodies.borrow_mut();
+        let external_body = external_bodies.get_mut(&def_id).unwrap();
+            // TODO: should we be trying to load these here?
+            // .or_insert_with(|| {
+            //     let external_body = self.tcx.optimized_mir(def_id);
+            //     CachedExternalBody {
+            //         base_body: Rc::new(external_body.clone()),
+            //         monomorphised_bodies: HashMap::new(),
+            //     }
+            // });
+        external_body
             .monomorphised_bodies
             .entry(substs)
-            .or_insert_with(|| ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs))
+            .or_insert_with(|| ty::EarlyBinder(external_body.base_body.clone()).subst(self.tcx, substs))
             .clone()
     }
 
+    /// Import non-local mir bodies of specs from cross-crate import
+    pub fn import_external_bodies(&self, bodies: CrossCrateBodyMap<'tcx>) {
+        self.external_bodies.borrow_mut().extend(bodies.into_iter().map(|(id, body)|
+            (id, CachedExternalBody {
+                base_body: body,
+                monomorphised_bodies: HashMap::new(),
+            })
+        ));
+    }
+
+    /// Ensures that the MIR body of a local procedure is cached, without performing any type substitution.
+    /// Used in conjunction with `bodies_for_export` to ensure all required specs are exported.
+    pub fn ensure_local_mir_loaded(&self, def_id: LocalDefId) {
+        self.local_mir_raw(def_id);
+    }
+
+    /// Get all local (TODO: spec only?) mir bodies to save to file for cross-crate export
+    pub fn bodies_for_export(&self) -> CrossCrateBodyMap<'tcx> {
+        self.bodies.borrow().iter().map(
+            |(id, cb)| (id.to_def_id(), cb.base_body.clone())
+        ).collect()
+    }
+
     /// Get all relevant trait declarations for some type.
-    pub fn get_traits_decls_for_type(&self, ty: &ty::Ty<'tcx>) -> HashSet<DefId> {
-        let mut res = HashSet::new();
+    pub fn get_traits_decls_for_type(&self, ty: &ty::Ty<'tcx>) -> FxHashSet<DefId> {
+        let mut res = FxHashSet::default();
         let traits = self.tcx().all_traits();
         for trait_id in traits {
             self.tcx().for_each_relevant_impl(trait_id, *ty, |impl_id| {

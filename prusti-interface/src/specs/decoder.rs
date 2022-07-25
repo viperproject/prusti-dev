@@ -16,7 +16,7 @@ pub struct DefSpecsDecoder<'a, 'tcx> {
 }
 
 impl<'a, 'tcx> DefSpecsDecoder<'a, 'tcx> {
-    pub fn new(tcx: TyCtxt<'tcx>, data: &'a Vec<u8>) -> Self {
+    pub fn new(tcx: TyCtxt<'tcx>, data: &'a [u8]) -> Self {
         DefSpecsDecoder {
             opaque: opaque::MemDecoder::new(data, 0),
             tcx,
