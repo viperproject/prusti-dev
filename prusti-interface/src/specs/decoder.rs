@@ -1,33 +1,14 @@
 use prusti_rustc_interface::{
-    data_structures::{
-        fx::FxHashMap,
-        sync::{Lrc, MetadataRef},
-    },
     hir::def_id::{CrateNum, DefId, DefIndex, DefPathHash},
-    middle::ty::{codec::TyDecoder, Ty, TyCtxt},
-    serialize::{opaque, Decodable, Decoder},
+    middle::{
+        implement_ty_decoder,
+        ty::{codec::TyDecoder, Ty, TyCtxt}
+    },
+    serialize::{opaque, Decodable},
     session::StableCrateId,
 };
-use std::{fs::File, io::Read, path::Path};
+use rustc_hash::FxHashMap;
 
-use prusti_rustc_interface::data_structures::{owning_ref::OwningRef, rustc_erase_owner};
-
-#[derive(Clone)]
-pub struct DefSpecsBlob(pub Lrc<MetadataRef>);
-
-impl DefSpecsBlob {
-    pub fn from_file(path: &Path) -> Result<Self, std::io::Error> {
-        let mut encoded = Vec::new();
-        let mut file = File::open(path)?;
-        file.read_to_end(&mut encoded)?;
-
-        let encoded_owned = OwningRef::new(encoded);
-        let metadat_ref: OwningRef<Box<_>, [u8]> = encoded_owned.map_owner_box();
-        Ok(Self(Lrc::new(rustc_erase_owner!(metadat_ref))))
-    }
-}
-
-// This is only safe to decode the metadata of a single crate or the `ty_rcache` might confuse shorthands (see #360)
 pub struct DefSpecsDecoder<'a, 'tcx> {
     opaque: opaque::MemDecoder<'a>,
     tcx: TyCtxt<'tcx>,
@@ -35,9 +16,9 @@ pub struct DefSpecsDecoder<'a, 'tcx> {
 }
 
 impl<'a, 'tcx> DefSpecsDecoder<'a, 'tcx> {
-    pub fn new(tcx: TyCtxt<'tcx>, blob: &'a DefSpecsBlob) -> Self {
+    pub fn new(tcx: TyCtxt<'tcx>, data: &'a Vec<u8>) -> Self {
         DefSpecsDecoder {
-            opaque: opaque::MemDecoder::new(&blob.0, 0),
+            opaque: opaque::MemDecoder::new(data, 0),
             tcx,
             ty_rcache: Default::default(),
         }
@@ -78,45 +59,7 @@ impl<'a, 'tcx> Decodable<DefSpecsDecoder<'a, 'tcx>> for CrateNum {
     }
 }
 
-macro_rules! decoder_methods {
-    ($($name:ident -> $ty:ty;)*) => {
-        $(
-            #[inline]
-            fn $name(&mut self) -> $ty {
-                self.opaque.$name()
-            }
-        )*
-    }
-}
-
-impl<'a, 'tcx> Decoder for DefSpecsDecoder<'a, 'tcx> {
-    decoder_methods! {
-        read_u128 -> u128;
-        read_u64 -> u64;
-        read_u32 -> u32;
-        read_u16 -> u16;
-        read_u8 -> u8;
-        read_usize -> usize;
-
-        read_i128 -> i128;
-        read_i64 -> i64;
-        read_i32 -> i32;
-        read_i16 -> i16;
-        read_i8 -> i8;
-        read_isize -> isize;
-
-        read_bool -> bool;
-        read_f64 -> f64;
-        read_f32 -> f32;
-        read_char -> char;
-        read_str -> &str;
-    }
-
-    #[inline]
-    fn read_raw_bytes(&mut self, len: usize) -> &[u8] {
-        self.opaque.read_raw_bytes(len)
-    }
-}
+implement_ty_decoder!(DefSpecsDecoder<'a, 'tcx>);
 
 impl<'a, 'tcx> TyDecoder for DefSpecsDecoder<'a, 'tcx> {
     type I = TyCtxt<'tcx>;

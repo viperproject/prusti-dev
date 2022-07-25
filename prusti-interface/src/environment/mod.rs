@@ -305,8 +305,7 @@ impl<'tcx> Environment<'tcx> {
     /// Get the MIR body of a local procedure, without performing any type substitution.
     /// This is equivalent to performing the substitution with `identity_substs(def_id)`.
     pub fn local_base_mir(&self, def_id: LocalDefId) -> Rc<mir::Body<'tcx>> {
-        let body = self.local_mir_raw(def_id);
-        body.base_body
+        self.local_mir_raw(def_id).base_body
     }
 
     /// Get the MIR body of a local procedure, monomorphised with the given

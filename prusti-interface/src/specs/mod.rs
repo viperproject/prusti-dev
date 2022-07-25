@@ -14,13 +14,12 @@ use crate::{
 };
 use log::debug;
 use prusti_rustc_interface::hir::def_id::{CrateNum, DefId, LocalDefId, LOCAL_CRATE};
-use std::{collections::HashMap, convert::TryInto, fmt::Debug, path::PathBuf};
+use std::{collections::HashMap, convert::TryInto, fmt::Debug, path::{Path, PathBuf}};
 
 pub mod checker;
 pub mod decoder;
 pub mod encoder;
 pub mod external;
-pub mod for_export;
 pub mod typed;
 
 use typed::SpecIdRef;
@@ -30,9 +29,6 @@ use crate::specs::{
     typed::{ProcedureSpecification, ProcedureSpecificationKind, SpecGraph, SpecificationItem},
 };
 use prusti_specs::specifications::common::SpecificationId;
-
-use for_export::{DefSpecificationMapForExport, DefSpecificationMapForExportOwned};
-use std::path::Path;
 
 #[derive(Debug)]
 struct ProcedureSpecRefs {
@@ -128,11 +124,8 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         def_spec: &typed::DefSpecificationMap<'tcx>,
         build_output_dir: &Path,
     ) {
-        let def_spec_for_export = DefSpecificationMapForExport::from_def_spec(def_spec);
         let target_filename = self.get_crate_specs_path(build_output_dir, LOCAL_CRATE);
-        def_spec_for_export
-            .write_into_file(self.tcx, &target_filename)
-            .unwrap()
+        def_spec.write_into_file(self.tcx, &target_filename).unwrap()
     }
 
     fn merge_specs_from_dependencies(
@@ -147,16 +140,10 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
             let file = self.get_crate_specs_path(build_output_dir, *crate_num);
             if file.is_file() {
-                self.merge_specs_from_file(def_spec, &file);
+                def_spec.extend_from_file(self.tcx, &file)
+                    .expect("error reading specs for dependency crate from file");
             }
         }
-    }
-
-    fn merge_specs_from_file(&self, def_spec: &mut typed::DefSpecificationMap<'tcx>, path: &Path) {
-        let def_spec_for_export =
-            DefSpecificationMapForExportOwned::read_from_file(self.tcx, path).unwrap();
-
-        def_spec_for_export.extend(def_spec);
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
