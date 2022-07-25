@@ -15,10 +15,12 @@ use prusti_interface::{
     },
     PrustiError,
 };
-use prusti_rustc_interface::hir::def_id::DefId;
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    middle::mir
+};
 use rustc_hash::FxHashMap;
-use rustc_middle::mir;
-use std::{collections::HashMap, rc::Rc};
+use std::rc::Rc;
 
 /// Defines the context for which we perform refinement.
 /// It can be thought of as the variants of [SpecQuery] for which we can perform refinement.
@@ -131,7 +133,7 @@ impl<'tcx> Specifications<'tcx> {
         }
     }
 
-    pub(super) fn get_mirs_of_specs(&self) -> &HashMap<DefId, Rc<mir::Body<'tcx>>> {
+    pub(super) fn get_mirs_of_specs(&self) -> &FxHashMap<DefId, Rc<mir::Body<'tcx>>> {
         &self.user_typed_specs.mirs_of_specs
     }
 
