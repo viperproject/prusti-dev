@@ -314,11 +314,13 @@ impl<'tcx> Environment<'tcx> {
     pub fn spec_mir(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
         if let Some(def_id) = def_id.as_local() {
             let mut local_spec_bodies = self.local_spec_bodies.borrow_mut();
-            let body = local_spec_bodies.get_mut(&def_id).unwrap();
+            let body = local_spec_bodies.get_mut(&def_id)
+                .expect(&format!("Local body of spec {:?} was not loaded with `load_local_spec_mir`!", def_id));
             self.subst_into_body(body, substs)
         } else {
             let mut external_spec_bodies = self.external_spec_bodies.borrow_mut();
-            let body = external_spec_bodies.get_mut(&def_id).unwrap();
+            let body = external_spec_bodies.get_mut(&def_id)
+                .expect(&format!("External body of spec {:?} was not imported!", def_id));
             self.subst_into_body(body, substs)
         }
     }
