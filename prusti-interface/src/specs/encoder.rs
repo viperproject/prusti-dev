@@ -32,6 +32,8 @@ impl<'tcx> DefSpecsEncoder<'tcx> {
     }
 }
 
+// Taken from rustc:
+// https://doc.rust-lang.org/nightly/nightly-rustc/rustc_metadata/rmeta/encoder/macro.encoder_methods.html
 macro_rules! encoder_methods {
     ($($name:ident($ty:ty);)*) => {
         $(fn $name(&mut self, value: $ty) -> () {
@@ -84,7 +86,6 @@ impl<'tcx> Encodable<DefSpecsEncoder<'tcx>> for CrateNum {
 
 impl<'tcx> TyEncoder for DefSpecsEncoder<'tcx> {
     type I = TyCtxt<'tcx>;
-    // What the fuck does this mean?
     const CLEAR_CROSS_CRATE: bool = true;
 
     fn position(&self) -> usize {
