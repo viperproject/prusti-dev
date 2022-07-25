@@ -11,15 +11,9 @@ use crate::{
     },
     util::EncodingResult,
 };
-use prusti_interface::{
-    environment::{Environment},
-    utils::is_prefix,
-    PrustiError,
-};
+use prusti_interface::{environment::Environment, utils::is_prefix, PrustiError};
 use prusti_rustc_interface::{
-    data_structures::stable_set::FxHashSet,
-    errors::MultiSpan,
-    middle::mir::{Body},
+    data_structures::stable_set::FxHashSet, errors::MultiSpan, middle::mir::Body,
 };
 use std::iter::zip;
 
@@ -49,7 +43,7 @@ impl<'tcx> StraitLineOpPCS<'tcx> {
 ///     - Reduction to a single node (no CFG AST)
 ///     - Only exclusive and temporary permissions
 pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
-    micro_mir: &'mir MicroMirEncoder<'tcx>,
+    micro_mir: &'mir MicroMirEncoder<'mir, 'tcx>,
     mir: &'mir Body<'tcx>,
     env: &'env Environment<'tcx>,
 ) -> EncodingResult<StraitLineOpPCS<'tcx>> {
