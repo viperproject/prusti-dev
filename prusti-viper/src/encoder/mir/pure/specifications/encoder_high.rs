@@ -9,7 +9,6 @@ use crate::encoder::{
     mir::{
         places::PlacesEncoderInterface,
         pure::{specifications::utils::extract_closure_from_ty, PureFunctionEncoderInterface},
-        specifications::SpecificationsInterface,
         types::MirTypeEncoderInterface,
     },
     mir_encoder::{MirEncoder, PlaceEncoder},
@@ -42,7 +41,7 @@ pub(super) fn inline_closure_high<'tcx>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
-    let mir = encoder.get_mir(def_id, substs);
+    let mir = encoder.env().local_body_mir(def_id.expect_local(), substs);
     assert_eq!(mir.arg_count, args.len() + 1);
     let mut body_replacements = vec![];
     for (arg_idx, arg_local) in mir.args_iter().enumerate() {
@@ -73,7 +72,7 @@ pub(super) fn inline_spec_item_high<'tcx>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
-    let mir = encoder.get_mir(def_id, substs);
+    let mir = encoder.env().local_body_mir(def_id.expect_local(), substs);
     assert_eq!(
         mir.arg_count,
         target_args.len() + if target_return.is_some() { 1 } else { 0 },

@@ -60,7 +60,9 @@ pub(super) fn encode_body<'p, 'v: 'p, 'tcx: 'v>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir::Expr> {
-    let mir = encoder.get_mir(proc_def_id, substs);
+    let mir = encoder
+        .env()
+        .local_body_mir(proc_def_id.expect_local(), substs);
     let interpreter = PureFunctionBackwardInterpreter::new(
         encoder,
         &mir,
@@ -126,7 +128,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let mir = self
             .encoder
             .env()
-            .local_mir(self.proc_def_id.expect_local(), self.substs);
+            .local_body_mir(self.proc_def_id.expect_local(), self.substs);
         let interpreter = PureFunctionBackwardInterpreter::new(
             self.encoder,
             &mir,

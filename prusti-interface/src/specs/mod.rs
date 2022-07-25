@@ -108,9 +108,12 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         // TODO: remove spec functions (make sure none are duplicated or left over)
 
         if let Some(build_output_dir) = build_output_dir {
+            // First, load all local spec MIR bodies
             self.ensure_local_mirs_fetched(&mut def_spec);
+            // Then, write those to the export file
             let target_filename = self.get_crate_specs_path(build_output_dir, LOCAL_CRATE);
             Self::write_into_file(&def_spec, self.env, self.tcx, target_filename.as_path()).unwrap();
+            // Lastly, load all external MIR bodies
             self.merge_specs_from_dependencies(&mut def_spec, build_output_dir);
         }
 
@@ -344,8 +347,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn ensure_local_mirs_fetched(&self, def_spec: &mut typed::DefSpecificationMap) {
-        for def_id in def_spec
-            .proc_specs
+        let proc_specs = def_spec.proc_specs
             // collect [DefId]s in specs of all procedures
             .values()
             // TODO: extend also to specs_with_constraints instead of base_spec only
@@ -355,10 +357,13 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                     spec_item.extract_with_selective_replacement()
                 })
                     .flatten()
-            }) {
-            if let Some(local_def_id) = def_id.as_local() {
-                self.env.ensure_local_mir_loaded(local_def_id);
-            }
+            });
+        let type_specs = def_spec.type_specs
+            .values()
+            .filter_map(|ts| ts.invariant.extract_with_selective_replacement())
+            .flatten();
+        for def_id in proc_specs.chain(type_specs) {
+            self.env.load_local_spec_mir(def_id.expect_local());
         }
     }
 }
