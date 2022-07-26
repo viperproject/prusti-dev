@@ -756,7 +756,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                             self.construct_struct_snapshot(&value.ty, arguments, position)?;
                         self.construct_enum_snapshot(&value.ty, variant_constructor, position)?
                     }
-                    vir_mid::Type::Struct(_) | vir_mid::Type::Tuple(_) => {
+                    vir_mid::Type::Struct(_) => {
                         self.construct_struct_snapshot(&value.ty, arguments, position)?
                     }
                     vir_mid::Type::Array(value_ty) => vir_low::Expression::seq(
@@ -802,7 +802,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
             target_address: Address
         };
         let compute_address = ty!(Address);
-        let type_decl = self.encoder.get_type_decl_mid(ty)?.unwrap_tuple();
+        let type_decl = self.encoder.get_type_decl_mid(ty)?.unwrap_struct();
         let (operation_result_field, flag_field) = {
             let mut iter = type_decl.iter_fields();
             (iter.next().unwrap(), iter.next().unwrap())
@@ -1413,17 +1413,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 vir_mid::TypeDecl::Trusted(_) => {
                     // No body for Trusted
                 }
-                vir_mid::TypeDecl::Tuple(decl) => {
-                    if decl.arguments.is_empty() {
-                        self.encode_write_address_method(ty)?;
-                        statements.push(stmtp! { position =>
-                            // TODO: Replace with memcopy.
-                            call write_address<ty>([target_address], source_value)
-                        });
-                    } else {
-                        unimplemented!()
-                    }
-                }
                 vir_mid::TypeDecl::Struct(decl) => {
                     if decl.fields.is_empty() {
                         self.encode_write_address_method(ty)?;
@@ -1811,50 +1800,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 }
                 vir_mid::TypeDecl::Trusted(_) => {
                     unreachable!("Cannot write constants to variables of trusted type.");
-                }
-                vir_mid::TypeDecl::Tuple(decl) => {
-                    if decl.arguments.is_empty() {
-                        self.encode_write_address_method(ty)?;
-                        statements.push(stmtp! { position =>
-                            call write_address<ty>([address.clone()], value)
-                        });
-                    } else {
-                        self.encode_memory_block_split_method(ty)?;
-                        statements.push(stmtp! {
-                            position =>
-                            call memory_block_split<ty>(
-                                [address.clone()], [vir_low::Expression::full_permission()]
-                            )
-                        });
-                        for field in decl.iter_fields() {
-                            let field_place = self.encode_field_place(
-                                ty,
-                                &field,
-                                place.clone().into(),
-                                position,
-                            )?;
-                            let field_value = self.obtain_struct_field_snapshot(
-                                ty,
-                                &field,
-                                value.clone().into(),
-                                position,
-                            )?;
-                            let field_type = &field.ty;
-                            let field_lifetimes = self.extract_lifetime_variables(field_type)?;
-                            if !field_lifetimes.is_empty()
-                                || field_type.is_type_var()
-                                || field_type.is_trusted()
-                            {
-                                encode_body = false;
-                            }
-                            self.encode_write_place_method(field_type)?;
-                            statements.push(stmtp! { position =>
-                                call write_place<field_type>(
-                                    [field_place], root_address, [field_value]
-                                )
-                            });
-                        }
-                    }
                 }
                 vir_mid::TypeDecl::Struct(decl) => {
                     if decl.fields.is_empty() {
@@ -2616,30 +2561,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                                 // Primitive type. Nothing to do.
                             }
                             vir_mid::TypeDecl::TypeVar(_) => unreachable!("cannot convert abstract type into a memory block: {}", ty),
-                            vir_mid::TypeDecl::Tuple(decl) => {
-                                // TODO: Remove code duplication.
-                                for field in decl.iter_fields() {
-                                    let field_place = self.encode_field_place(
-                                        ty, &field, place.clone().into(), position
-                                    )?;
-                                    let field_value = self.obtain_struct_field_snapshot(
-                                        ty, &field, value.clone().into(), position
-                                    )?;
-                                    self.encode_into_memory_block_method(&field.ty)?;
-                                    let field_ty = &field.ty;
-                                    statements.push(stmtp! {
-                                        position =>
-                                        call into_memory_block<field_ty>([field_place], root_address, [field_value])
-                                    });
-                                }
-                                self.encode_memory_block_join_method(ty)?;
-                                statements.push(stmtp! {
-                                    position =>
-                                    call memory_block_join<ty>(
-                                        [address.clone()], [vir_low::Expression::full_permission()]
-                                    )
-                                });
-                            },
                             vir_mid::TypeDecl::Trusted(_) => {
                                 // into_memory_block for trusted types is trusted and has no statements.
                             },

@@ -1,21 +1,20 @@
 use super::{
-    super::ast::{
-        expression::visitors::{
-            default_fold_expression, default_fold_quantifier, default_walk_expression,
-            ExpressionFolder, ExpressionWalker,
+    super::{
+        super::ast::{
+            expression::visitors::{
+                default_fold_expression, default_fold_quantifier, default_walk_expression,
+                ExpressionFolder, ExpressionWalker,
+            },
+            position::Position,
+            rvalue::*,
+            ty::{self, LifetimeConst},
         },
-        position::Position,
-        rvalue::*,
-        ty::{self, LifetimeConst},
+        ty::Typed,
     },
-    ty::Typed,
+    WithLifetimes,
 };
 
-pub trait WithLifetimes {
-    fn get_lifetimes(&self) -> Vec<ty::LifetimeConst>;
-}
-
-fn get_lifetimes_with_arguments(
+pub(super) fn get_lifetimes_with_arguments(
     lifetimes: &[ty::LifetimeConst],
     arguments: &Vec<ty::Type>,
 ) -> Vec<ty::LifetimeConst> {
@@ -28,54 +27,6 @@ fn get_lifetimes_with_arguments(
         }
     }
     all_lifetimes
-}
-
-impl WithLifetimes for ty::Type {
-    fn get_lifetimes(&self) -> Vec<LifetimeConst> {
-        match self {
-            ty::Type::Reference(reference) => reference.get_lifetimes(),
-            ty::Type::Tuple(ty::Tuple {
-                arguments,
-                lifetimes,
-                ..
-            })
-            | ty::Type::Union(ty::Union {
-                arguments,
-                lifetimes,
-                ..
-            })
-            | ty::Type::Projection(ty::Projection {
-                arguments,
-                lifetimes,
-                ..
-            })
-            | ty::Type::Enum(ty::Enum {
-                arguments,
-                lifetimes,
-                ..
-            })
-            | ty::Type::Struct(ty::Struct {
-                arguments,
-                lifetimes,
-                ..
-            }) => get_lifetimes_with_arguments(lifetimes, arguments),
-            ty::Type::Sequence(ty::Sequence { lifetimes, .. })
-            | ty::Type::Map(ty::Map { lifetimes, .. })
-            | ty::Type::Array(ty::Array { lifetimes, .. })
-            | ty::Type::Slice(ty::Slice { lifetimes, .. })
-            | ty::Type::Trusted(ty::Trusted { lifetimes, .. }) => lifetimes.clone(),
-            _ => vec![],
-        }
-    }
-}
-
-impl WithLifetimes for ty::Reference {
-    fn get_lifetimes(&self) -> Vec<LifetimeConst> {
-        let mut lifetimes = vec![self.lifetime.clone()];
-        let target_lifetimes = self.target_type.get_lifetimes();
-        lifetimes.extend(target_lifetimes);
-        lifetimes
-    }
 }
 
 impl WithLifetimes for Expression {

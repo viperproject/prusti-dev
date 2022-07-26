@@ -31,11 +31,7 @@ async fn read_response(
             return Ok(true);
         }
     }
-    if response.chars().all(char::is_whitespace) {
-        Ok(true)
-    } else {
-        Ok(false)
-    }
+    Ok(false)
 }
 
 pub(crate) async fn communicate(
@@ -47,7 +43,8 @@ pub(crate) async fn communicate(
     let mut solver_stdout = BufReader::new(solver_stdout);
     let mut response = String::new();
     let mut command = String::new();
-    while read_command(&mut command).await? {
+    let mut not_finished = true;
+    while not_finished && read_command(&mut command).await? {
         context.write_to_log("in ", &command).await?;
         let now = std::time::Instant::now();
         solver_stdin.write_all(command.as_bytes()).await?;
@@ -62,7 +59,7 @@ pub(crate) async fn communicate(
                 "unbalanced EOF response: {}",
                 response
             );
-            break;
+            not_finished = false;
         }
         let elapsed = now.elapsed().as_millis();
         context.write_to_log("out", &response).await?;

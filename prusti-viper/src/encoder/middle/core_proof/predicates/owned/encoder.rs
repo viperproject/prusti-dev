@@ -131,13 +131,6 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                     None,
                 )
             }
-            vir_mid::TypeDecl::Tuple(tuple_decl) => self.encode_owned_non_aliased_with_fields(
-                ty,
-                snapshot,
-                snapshot_type,
-                validity,
-                tuple_decl.iter_fields(),
-            )?,
             vir_mid::TypeDecl::Struct(struct_decl) => self.encode_owned_non_aliased_with_fields(
                 ty,
                 snapshot,
@@ -676,7 +669,6 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                 parameters.extend(lifetimes_ty);
                 vir_low::PredicateDecl::new(predicate_name! {FracRef<ty>}, parameters, None)
             }
-            vir_mid::TypeDecl::Tuple(_decl) => unimplemented!(),
             vir_mid::TypeDecl::Struct(vir_mid::type_decl::Struct { fields, .. }) => {
                 let mut field_predicates = Vec::new();
                 for field in fields {
@@ -921,7 +913,6 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                 parameters.extend(lifetimes_ty);
                 vir_low::PredicateDecl::new(predicate_name! {UniqueRef<ty>}, parameters, None)
             }
-            vir_mid::TypeDecl::Tuple(_decl) => unimplemented!(),
             vir_mid::TypeDecl::Struct(vir_mid::type_decl::Struct { fields, .. }) => {
                 let mut field_predicates = Vec::new();
                 let mut field_lifetimes = Vec::new();
