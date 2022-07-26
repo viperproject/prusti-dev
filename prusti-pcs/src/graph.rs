@@ -11,32 +11,25 @@ use prusti_rustc_interface::{
     middle::{mir, ty::TyCtxt},
 };
 
+pub trait GraphOps<'tcx> {
+    fn unpack(&mut self, node: GraphNode<'tcx>, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>);
+    fn mutable_borrow(&mut self, from: GraphNode<'tcx>, loan: facts::Loan, to: GraphNode<'tcx>);
+    fn package(&mut self, from: GraphNode<'tcx>, to: GraphNode<'tcx>) -> Vec<Annotation<'tcx>>;
+    fn unwind(&mut self, killed_loans: FxHashSet<facts::Loan>) -> GraphResult<'tcx>;
+}
+
 struct Graph<'tcx> {
     edges: Vec<GraphEdge<'tcx>>,
     leaves: FxHashSet<GraphNode<'tcx>>,
 }
 
-impl<'tcx> Graph<'tcx> {
-    pub fn new() -> Self {
-        Self {
-            edges: Vec::new(),
-            leaves: FxHashSet::default(),
-        }
-    }
-
-    pub fn unpack(
-        &mut self,
-        node: GraphNode<'tcx>, // TODO: maybe place instead (same for pack too)?
-        mir: &mir::Body<'tcx>, // TODO: should these be parameters?
-        tcx: TyCtxt<'tcx>,
-    ) {
-        let places = mir_utils::expand_struct_place(node.0.place, mir, tcx, None)
+impl<'tcx> GraphOps<'tcx> for Graph<'tcx> {
+    fn unpack(&mut self, node: GraphNode<'tcx>, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) {
+        let places = mir_utils::expand_struct_place(node.place, mir, tcx, None)
             .iter()
-            .map(|p| {
-                GraphNode(TaggedPlace {
-                    place: p.to_mir_place(),
-                    location: node.0.location,
-                })
+            .map(|p| GraphNode {
+                place: p.to_mir_place(),
+                location: node.location,
             })
             .collect::<Vec<_>>();
 
@@ -51,28 +44,7 @@ impl<'tcx> Graph<'tcx> {
         });
     }
 
-    // TODO: is this return needed?
-    fn pack(&mut self, node: GraphNode<'tcx>) -> Annotation<'tcx> {
-        let edge = self.take_edge(|edge| matches!(edge, GraphEdge::Pack { to, .. } if to == &node));
-
-        if let GraphEdge::Pack { from: places, .. } = edge {
-            self.leaves.insert(node);
-            for place in places.iter() {
-                self.leaves.remove(place);
-            }
-
-            Annotation::Pack(node.0)
-        } else {
-            panic!("should have found a pack edge")
-        }
-    }
-
-    pub fn mutable_borrow(
-        &mut self,
-        from: GraphNode<'tcx>,
-        loan: facts::Loan,
-        to: GraphNode<'tcx>,
-    ) {
+    fn mutable_borrow(&mut self, from: GraphNode<'tcx>, loan: facts::Loan, to: GraphNode<'tcx>) {
         self.leaves.remove(&to);
         self.leaves.insert(from);
 
@@ -83,7 +55,7 @@ impl<'tcx> Graph<'tcx> {
         });
     }
 
-    pub fn package(&mut self, from: GraphNode<'tcx>, to: GraphNode<'tcx>) -> Vec<Annotation<'tcx>> {
+    fn package(&mut self, from: GraphNode<'tcx>, to: GraphNode<'tcx>) -> Vec<Annotation<'tcx>> {
         let mut curr_node = from;
         let mut final_loans = Vec::new();
         let mut final_annotations = Vec::new();
@@ -94,7 +66,7 @@ impl<'tcx> Graph<'tcx> {
 
             match curr_edge {
                 GraphEdge::Borrow { mut loans, .. } => final_loans.append(&mut loans),
-                GraphEdge::Pack { to, .. } => final_annotations.push(Annotation::Pack(to.0)),
+                GraphEdge::Pack { to, .. } => final_annotations.push(Annotation::Pack(to)),
                 GraphEdge::Abstract {
                     from,
                     mut loans,
@@ -122,6 +94,56 @@ impl<'tcx> Graph<'tcx> {
         final_annotations
     }
 
+    fn unwind(&mut self, killed_loans: FxHashSet<facts::Loan>) -> GraphResult<'tcx> {
+        for edge in &mut self.edges {
+            match edge {
+                GraphEdge::Borrow { loans, .. }
+                | GraphEdge::Abstract { loans, .. }
+                | GraphEdge::Collapsed { loans, .. } => {
+                    loans.retain(|loan| !killed_loans.contains(loan));
+                }
+                GraphEdge::Pack { .. } => {}
+            }
+        }
+
+        let mut annotations = Vec::new();
+        let leaves = self.leaves.clone();
+        for leaf in leaves {
+            annotations.append(&mut self.unwind_node(leaf));
+        }
+
+        GraphResult {
+            annotations,
+            removed: todo!(),
+            added: todo!(),
+        }
+    }
+}
+
+impl<'tcx> Graph<'tcx> {
+    pub fn new() -> Self {
+        Self {
+            edges: Vec::new(),
+            leaves: FxHashSet::default(),
+        }
+    }
+
+    // TODO: is this return needed?
+    fn pack(&mut self, node: GraphNode<'tcx>) -> Annotation<'tcx> {
+        let edge = self.take_edge(|edge| matches!(edge, GraphEdge::Pack { to, .. } if to == &node));
+
+        if let GraphEdge::Pack { from: places, .. } = edge {
+            self.leaves.insert(node);
+            for place in places.iter() {
+                self.leaves.remove(place);
+            }
+
+            Annotation::Pack(node)
+        } else {
+            panic!("should have found a pack edge")
+        }
+    }
+
     fn restore(&mut self, node: GraphNode<'tcx>) -> Annotation<'tcx> {
         let edge =
             self.take_edge(|edge| matches!(edge, GraphEdge::Abstract { to, .. } if to == &node));
@@ -136,7 +158,8 @@ impl<'tcx> Graph<'tcx> {
         }
     }
 
-    pub fn collapse(&mut self, node: GraphNode<'tcx>) {
+    // TODO: need to use in unwind
+    fn collapse(&mut self, node: GraphNode<'tcx>) {
         let mut final_loans = Vec::new();
         let mut final_annotations = Vec::new();
 
@@ -180,27 +203,6 @@ impl<'tcx> Graph<'tcx> {
             annotations: final_annotations,
             to,
         });
-    }
-
-    pub fn unwind(&mut self, killed_loans: FxHashSet<facts::Loan>) -> GraphResult<'tcx> {
-        for edge in &mut self.edges {
-            match edge {
-                GraphEdge::Borrow { loans, .. }
-                | GraphEdge::Abstract { loans, .. }
-                | GraphEdge::Collapsed { loans, .. } => {
-                    loans.retain(|loan| !killed_loans.contains(loan));
-                }
-                GraphEdge::Pack { .. } => {}
-            }
-        }
-
-        let mut annotations = Vec::new();
-        let leaves = self.leaves.clone();
-        for leaf in leaves {
-            annotations.append(&mut self.unwind_node(leaf));
-        }
-
-        (annotations, self.leaves.clone())
     }
 
     fn unwind_node(&mut self, node: GraphNode<'tcx>) -> Vec<Annotation<'tcx>> {
@@ -304,12 +306,9 @@ impl<'tcx> GraphEdge<'tcx> {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-struct GraphNode<'tcx>(TaggedPlace<'tcx>);
-
 #[derive(Clone, Copy, Eq, Hash, PartialEq)]
-enum Annotation<'tcx> {
-    Pack(TaggedPlace<'tcx>),
+pub enum Annotation<'tcx> {
+    Pack(GraphNode<'tcx>),
     Restore {
         from: GraphNode<'tcx>,
         to: GraphNode<'tcx>,
@@ -317,9 +316,13 @@ enum Annotation<'tcx> {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-struct TaggedPlace<'tcx> {
+pub struct GraphNode<'tcx> {
     place: mir::Place<'tcx>,
     location: mir::Location,
 }
 
-type GraphResult<'tcx> = (Vec<Annotation<'tcx>>, FxHashSet<GraphNode<'tcx>>);
+pub struct GraphResult<'tcx> {
+    annotations: Vec<Annotation<'tcx>>,
+    removed: FxHashSet<GraphNode<'tcx>>,
+    added: FxHashSet<GraphNode<'tcx>>,
+}
