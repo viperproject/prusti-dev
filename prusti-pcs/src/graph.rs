@@ -12,7 +12,6 @@ use prusti_rustc_interface::{
 };
 
 pub trait GraphOps<'tcx> {
-    fn unpack(&mut self, node: GraphNode<'tcx>, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>);
     fn mutable_borrow(&mut self, from: GraphNode<'tcx>, loan: facts::Loan, to: GraphNode<'tcx>);
     fn package(&mut self, from: GraphNode<'tcx>, to: GraphNode<'tcx>) -> Vec<Annotation<'tcx>>;
     fn unwind(&mut self, killed_loans: FxHashSet<facts::Loan>) -> GraphResult<'tcx>;
@@ -24,35 +23,13 @@ pub struct Graph<'tcx> {
 }
 
 impl<'tcx> GraphOps<'tcx> for Graph<'tcx> {
-    fn unpack(&mut self, node: GraphNode<'tcx>, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) {
-        let places = mir_utils::expand_struct_place(node.place, mir, tcx, None)
-            .iter()
-            .map(|p| GraphNode {
-                place: p.to_mir_place(),
-                location: node.location,
-            })
-            .collect::<Vec<_>>();
-
-        self.leaves.remove(&node);
-        for place in places.iter() {
-            self.leaves.insert(*place);
-        }
-
-        self.edges.push(GraphEdge::Pack {
-            from: places,
-            to: node,
-        });
-    }
-
+    // TODO: use unpack
+    // TODO: if edges were a set then we could ignore duplicates, maybe a bit easier
     fn mutable_borrow(&mut self, from: GraphNode<'tcx>, loan: facts::Loan, to: GraphNode<'tcx>) {
         self.leaves.remove(&to);
         self.leaves.insert(from);
 
-        self.edges.push(GraphEdge::Borrow {
-            from,
-            loans: vec![loan],
-            to,
-        });
+        self.edges.push(GraphEdge::Borrow { from, loan, to });
     }
 
     fn package(&mut self, from: GraphNode<'tcx>, to: GraphNode<'tcx>) -> Vec<Annotation<'tcx>> {
@@ -65,7 +42,7 @@ impl<'tcx> GraphOps<'tcx> for Graph<'tcx> {
             curr_node = *curr_edge.to();
 
             match curr_edge {
-                GraphEdge::Borrow { mut loans, .. } => final_loans.append(&mut loans),
+                GraphEdge::Borrow { loan, .. } => final_loans.push(loan),
                 GraphEdge::Pack { to, .. } => final_annotations.push(Annotation::Pack(to)),
                 GraphEdge::Abstract {
                     from,
@@ -95,22 +72,14 @@ impl<'tcx> GraphOps<'tcx> for Graph<'tcx> {
     }
 
     fn unwind(&mut self, killed_loans: FxHashSet<facts::Loan>) -> GraphResult<'tcx> {
-        for edge in &mut self.edges {
-            match edge {
-                GraphEdge::Borrow { loans, .. }
-                | GraphEdge::Abstract { loans, .. }
-                | GraphEdge::Collapsed { loans, .. } => {
-                    loans.retain(|loan| !killed_loans.contains(loan));
-                }
-                GraphEdge::Pack { .. } => {}
-            }
-        }
+        self.collapse_killed(killed_loans);
 
-        let mut annotations = Vec::new();
-        let leaves = self.leaves.clone();
-        for leaf in leaves {
-            annotations.append(&mut self.unwind_node(leaf));
-        }
+        let annotations = self
+            .leaves
+            .clone()
+            .into_iter()
+            .flat_map(|leaf| self.unwind_node(leaf))
+            .collect();
 
         GraphResult {
             annotations,
@@ -126,6 +95,26 @@ impl<'tcx> Graph<'tcx> {
             edges: Vec::new(),
             leaves: FxHashSet::default(),
         }
+    }
+
+    fn unpack(&mut self, node: GraphNode<'tcx>, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) {
+        let places = mir_utils::expand_struct_place(node.place, mir, tcx, None)
+            .iter()
+            .map(|p| GraphNode {
+                place: p.to_mir_place(),
+                location: node.location,
+            })
+            .collect::<Vec<_>>();
+
+        self.leaves.remove(&node);
+        for place in places.iter() {
+            self.leaves.insert(*place);
+        }
+
+        self.edges.push(GraphEdge::Pack {
+            from: places,
+            to: node,
+        });
     }
 
     // TODO: is this return needed?
@@ -158,6 +147,31 @@ impl<'tcx> Graph<'tcx> {
         }
     }
 
+    // TODO: have to check that to is collapsable
+    fn collapse_killed(&mut self, killed_loans: FxHashSet<facts::Loan>) {
+        let mut collapsed_nodes = Vec::new();
+        for edge in &mut self.edges {
+            match edge {
+                GraphEdge::Borrow { loan, to, .. } => {
+                    if killed_loans.contains(&loan) {
+                        collapsed_nodes.push(*to);
+                    }
+                }
+                GraphEdge::Abstract { loans, to, .. } | GraphEdge::Collapsed { loans, to, .. } => {
+                    loans.retain(|loan| !killed_loans.contains(loan));
+                    if loans.is_empty() {
+                        collapsed_nodes.push(*to);
+                    }
+                }
+                GraphEdge::Pack { .. } => {}
+            }
+        }
+
+        for node in collapsed_nodes {
+            self.collapse(node);
+        }
+    }
+
     // TODO: need to use in unwind
     fn collapse(&mut self, node: GraphNode<'tcx>) {
         let mut final_loans = Vec::new();
@@ -176,7 +190,7 @@ impl<'tcx> Graph<'tcx> {
 
         for edge in [from_edge, to_edge] {
             match edge {
-                GraphEdge::Borrow { mut loans, .. } => final_loans.append(&mut loans),
+                GraphEdge::Borrow { loan, .. } => final_loans.push(loan),
                 GraphEdge::Pack { .. } => panic!("collapsing a pack edge is unsupported"),
                 GraphEdge::Abstract {
                     from,
@@ -215,14 +229,15 @@ impl<'tcx> Graph<'tcx> {
 
                 // TODO: consume edge helper that updates annotations, loans, leaves?
                 match edge {
-                    GraphEdge::Borrow { from, loans, to } if loans.is_empty() => {
-                        self.leaves.remove(from);
-                        self.leaves.insert(*to);
-                        // TODO: duplicated, there should be an easier way
-                        self.take_edge(|edge| edge.comes_from(&curr));
+                    GraphEdge::Borrow { from, loan, to } => {
+                        // TODO: redo
+                        // self.leaves.remove(from);
+                        // self.leaves.insert(*to);
+                        // // TODO: duplicated, there should be an easier way
+                        // self.take_edge(|edge| edge.comes_from(&curr));
                     }
                     GraphEdge::Pack { to, .. } => {
-                        // TODO: can't quite eagerly pack, need to look at other leaves or maybe do bfs?
+                        // TODO: can't quite eagerly pack, need to look at other leaves
                         let annotation = self.pack(*to);
                         final_annotations.push(annotation);
                     }
@@ -267,7 +282,7 @@ impl<'tcx> Graph<'tcx> {
 enum GraphEdge<'tcx> {
     Borrow {
         from: GraphNode<'tcx>,
-        loans: Vec<facts::Loan>, // TODO: does this have to be a vec?
+        loan: facts::Loan,
         to: GraphNode<'tcx>,
     },
     Pack {
