@@ -18,9 +18,9 @@ pub trait GraphOps<'tcx> {
     fn unwind(&mut self, killed_loans: FxHashSet<facts::Loan>) -> GraphResult<'tcx>;
 }
 
-struct Graph<'tcx> {
+pub struct Graph<'tcx> {
     edges: Vec<GraphEdge<'tcx>>,
-    leaves: FxHashSet<GraphNode<'tcx>>,
+    pub leaves: FxHashSet<GraphNode<'tcx>>,
 }
 
 impl<'tcx> GraphOps<'tcx> for Graph<'tcx> {
@@ -222,6 +222,7 @@ impl<'tcx> Graph<'tcx> {
                         self.take_edge(|edge| edge.comes_from(&curr));
                     }
                     GraphEdge::Pack { to, .. } => {
+                        // TODO: can't quite eagerly pack, need to look at other leaves or maybe do bfs?
                         let annotation = self.pack(*to);
                         final_annotations.push(annotation);
                     }
