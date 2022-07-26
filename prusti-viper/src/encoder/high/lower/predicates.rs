@@ -34,6 +34,7 @@ impl IntoPredicates for vir_high::TypeDecl {
             vir_high::TypeDecl::Array(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Sequence(_ty_decl) => unimplemented!(),
             vir_high::TypeDecl::Map(_ty_decl) => unimplemented!(),
+            vir_high::TypeDecl::Slice(_ty_decl) => unimplemented!(),
             vir_high::TypeDecl::Reference(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Pointer(ty_decl) => ty_decl.lower(ty, encoder),
             vir_high::TypeDecl::Never => construct_never_predicate(encoder),

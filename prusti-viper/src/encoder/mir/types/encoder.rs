@@ -439,6 +439,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 let array_len = self.compute_array_len(*size);
                 vir::TypeDecl::array(array_len, self.encoder.encode_type_high(*elem_ty)?)
             }
+            ty::TyKind::Slice(elem_ty) => {
+                vir::TypeDecl::slice(self.encoder.encode_type_high(*elem_ty)?)
+            }
             ref ty_variant => {
                 debug!("Encoding of type '{:?}' is incomplete", ty_variant);
                 let ty = self.encoder.encode_type_high(self.ty)?;

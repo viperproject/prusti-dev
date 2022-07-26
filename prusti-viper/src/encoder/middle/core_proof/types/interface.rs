@@ -97,7 +97,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 // The ghost containers should be valid iff the values they
                 // contain are valid.
             }
-            vir_mid::TypeDecl::Sequence(vir_mid::type_decl::Sequence { element_type, .. })
+            vir_mid::TypeDecl::Slice(vir_mid::type_decl::Slice { element_type, .. })
+            | vir_mid::TypeDecl::Sequence(vir_mid::type_decl::Sequence { element_type, .. })
             | vir_mid::TypeDecl::Array(vir_mid::type_decl::Array { element_type, .. }) => {
                 self.ensure_type_definition(element_type)?;
                 let element_domain_name = &self.encode_snapshot_domain_name(element_type)?;

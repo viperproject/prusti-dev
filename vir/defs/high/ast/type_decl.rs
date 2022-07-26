@@ -20,8 +20,8 @@ pub enum TypeDecl {
     Map(Map),
     Enum(Enum),
     Union(Union),
+    Slice(Slice),
     Array(Array),
-    // Slice(Slice),
     Reference(Reference),
     Pointer(Pointer),
     // FnPointer,
@@ -110,6 +110,11 @@ pub struct Union {
     pub discriminant_values: Vec<DiscriminantValue>,
     pub variants: Vec<Struct>,
     pub lifetimes: Vec<LifetimeConst>,
+}
+
+#[display(fmt = "[{}]", element_type)]
+pub struct Slice {
+    pub element_type: Type,
 }
 
 #[display(fmt = "Array({}, {})", length, element_type)]

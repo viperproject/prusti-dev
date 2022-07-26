@@ -1555,6 +1555,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 vir_mid::TypeDecl::Union(_decl) => {
                     unimplemented!();
                 }
+                vir_mid::TypeDecl::Slice(_) => {
+                    unimplemented!()
+                }
                 vir_mid::TypeDecl::Array(_) => {
                     unimplemented!()
                 }
@@ -1994,8 +1997,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                 vir_mid::TypeDecl::Array(_) => {
                     // FIXME: See the comment below.
                 }
+                vir_mid::TypeDecl::Slice(_) |
                 vir_mid::TypeDecl::Reference(_) => {
-                    // References should never be written through `write_place`.
+                    // References and slices should never be written through `write_place`.
                     return Ok(());
                 }
                 vir_mid::TypeDecl::Never => {
@@ -2591,6 +2595,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BuiltinMethodsInterface for Lowerer<'p, 'v, 'tcx> {
                             | vir_mid::TypeDecl::Int(_)
                             | vir_mid::TypeDecl::Float(_)
                             | vir_mid::TypeDecl::Reference(_)
+                            | vir_mid::TypeDecl::Slice(_)
                             | vir_mid::TypeDecl::Pointer(_)
                             | vir_mid::TypeDecl::Sequence(_)
                             | vir_mid::TypeDecl::Map(_) => {

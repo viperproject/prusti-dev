@@ -174,6 +174,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                         )?,
                     ))
                 }
+                vir_mid::TypeDecl::Slice(_) => {
+                    unimplemented!()
+                }
                 vir_mid::TypeDecl::Array(_) => {
                     let call = place.clone().unwrap_builtin_func_app(); // FIXME: Implement a macro that takes a reference to avoid clonning.
                     assert_eq!(call.function, vir_mid::BuiltinFunc::Index);
