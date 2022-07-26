@@ -6,6 +6,76 @@ use syn::spanned::Spanned;
 use crate::common::{HasAttributes, HasSignature};
 use crate::span_overrider::SpanOverrider;
 use crate::untyped::AnyFnItem;
+use syn::visit::Visit;
+use syn::visit_mut::VisitMut;
+
+struct ElidedLifetimeCounter {
+    num_elided_lifetimes: u32
+}
+
+struct SelfLifetimeInserter {
+
+}
+
+impl ElidedLifetimeCounter {
+    fn new() -> ElidedLifetimeCounter {
+        ElidedLifetimeCounter { num_elided_lifetimes: 0 }
+    }
+}
+
+impl <'ast> syn::visit::Visit<'ast> for ElidedLifetimeCounter {
+    fn visit_receiver(&mut self, receiver: &syn::Receiver) {
+        if let Some((_, None)) = receiver.reference {
+            self.num_elided_lifetimes += 1;
+        }
+    }
+
+    fn visit_type_reference(&mut self, reference: &syn::TypeReference) {
+        if reference.lifetime.is_none() {
+            self.num_elided_lifetimes += 1;
+        }
+    }
+}
+
+impl <'ast> syn::visit_mut::VisitMut for SelfLifetimeInserter {
+    fn visit_type_reference_mut(&mut self, reference: &mut syn::TypeReference) {
+        reference.lifetime = parse_quote_spanned!{reference.span() => 'prusti_self_lifetime };
+    }
+
+    fn visit_receiver_mut(&mut self, receiver: &mut syn::Receiver) {
+        receiver.reference.as_mut().unwrap().1 = parse_quote_spanned!{receiver.span() => 'prusti_self_lifetime };
+    }
+}
+
+fn has_multiple_elided_lifetimes(inputs: &Punctuated<FnArg, syn::token::Comma>) -> bool {
+    let mut visitor = ElidedLifetimeCounter::new();
+    for input in inputs {
+        visitor.visit_fn_arg(input);
+    }
+    return visitor.num_elided_lifetimes > 1;
+}
+
+fn returns_reference_with_elided_lifetime(return_type: &syn::ReturnType) -> bool {
+    let mut visitor = ElidedLifetimeCounter::new();
+    visitor.visit_return_type(return_type);
+    return visitor.num_elided_lifetimes >= 1;
+}
+
+fn with_explicit_lifetimes(sig: &syn::Signature) -> Option<syn::Signature> {
+    if !returns_reference_with_elided_lifetime(&sig.output) ||
+       !has_multiple_elided_lifetimes(&sig.inputs)
+    {
+        return None;
+    }
+    let mut new_sig = sig.clone();
+    let mut inserter = SelfLifetimeInserter{};
+    new_sig.generics.params.insert(0, parse_quote_spanned!{new_sig.generics.params.span() => 'prusti_self_lifetime });
+    if let Some(syn::FnArg::Receiver(r)) = new_sig.inputs.first_mut() {
+        inserter.visit_receiver_mut(r)
+    }
+    inserter.visit_return_type_mut(&mut new_sig.output);
+    return Some(new_sig);
+}
 
 /// Generates a method stub and spec functions for an externally specified function.
 ///
@@ -34,7 +104,8 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
     self_type_trait: Option<&syn::TypePath>,
     extern_spec_kind: ExternSpecKind,
 ) -> syn::Result<(syn::ImplItemMethod, Vec<syn::ImplItemMethod>)> {
-    let method_sig = method.sig().clone();
+    let base_sig = method.sig();
+    let method_sig = with_explicit_lifetimes(base_sig).unwrap_or(base_sig.clone());
     let method_sig_span = method_sig.span();
     let method_ident = &method_sig.ident;
 
