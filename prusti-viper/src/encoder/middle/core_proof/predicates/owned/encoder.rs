@@ -1167,7 +1167,105 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
             vir_mid::TypeDecl::Union(_decl) => {
                 unimplemented!();
             }
-            // vir_mid::TypeDecl::Array(Array) => {},
+            vir_mid::TypeDecl::Array(decl) => {
+                self.lowerer.encode_place_array_index_axioms(ty)?;
+                let element_type = &decl.element_type;
+                self.lowerer.encode_place_array_index_axioms(ty)?;
+                // self.lowerer.ensure_type_definition(element_type)?;
+                self.encode_unique_ref(element_type)?;
+                let mut parameters: Vec<vir_low::VariableDecl> =
+                    self.lowerer.extract_non_type_parameters_from_type(ty)?;
+                let parameters_validity: vir_low::Expression = self
+                    .lowerer
+                    .extract_non_type_parameters_from_type_validity(ty)?
+                    .into_iter()
+                    .conjoin();
+                let size_type = self.lowerer.size_type()?;
+                var_decls! {
+                    index: {size_type}
+                };
+                let snapshot_length = self
+                    .lowerer
+                    .obtain_array_len_snapshot(current_snapshot.clone().into(), Default::default())?;
+                let array_length = self.lowerer.array_length_variable()?;
+                let size_type_mid = self.lowerer.size_type_mid()?;
+                let array_length_int = self.lowerer.obtain_constant_value(
+                    &size_type_mid,
+                    array_length.into(),
+                    Default::default(),
+                )?;
+                let index_int = self.lowerer.obtain_constant_value(
+                    &size_type_mid,
+                    index.clone().into(),
+                    position,
+                )?;
+                let index_validity = self
+                    .lowerer
+                    .encode_snapshot_valid_call_for_type(index.clone().into(), &size_type_mid)?;
+                let element_place = self.lowerer.encode_index_place(
+                    ty,
+                    place.into(),
+                    index.clone().into(),
+                    Default::default(),
+                )?;
+                let current_element_snapshot = self.lowerer.obtain_array_element_snapshot(
+                    current_snapshot.into(),
+                    index_int.clone(),
+                    Default::default(),
+                )?;
+                let final_element_snapshot = self.lowerer.obtain_array_element_snapshot(
+                    final_snapshot.into(),
+                    index_int.clone(),
+                    Default::default(),
+                )?;
+                let mut lifetimes_element_type_expr: Vec<vir_low::Expression> = vec![];
+                for lifetime in element_type.get_lifetimes() {
+                    lifetimes_element_type_expr.push(
+                        vir_low::VariableDecl {
+                            name: lifetime.name.clone(),
+                            ty: ty!(Lifetime),
+                        }
+                        .into(),
+                    );
+                }
+                let element_predicate_acc = expr! {
+                    (acc(UniqueRef<element_type>(
+                        [element_place],
+                        root_address,
+                        [current_element_snapshot],
+                        [final_element_snapshot],
+                        lifetime;
+                        lifetimes_element_type_expr
+                    )))
+                };
+                let elements = vir_low::Expression::forall(
+                    vec![index],
+                    vec![vir_low::Trigger::new(vec![element_predicate_acc.clone()])],
+                    expr! {
+                        ([index_validity] && ([index_int] < [array_length_int.clone()])) ==>
+                        [element_predicate_acc]
+                    },
+                );
+                self.encode_owned_non_aliased(element_type)?;
+                let mut lifetimes_ty = vec![];
+                for lifetime in ty.get_lifetimes() {
+                    lifetimes_ty.push(vir_low::VariableDecl {
+                        name: lifetime.name.clone(),
+                        ty: ty!(Lifetime),
+                    });
+                }
+                parameters.extend(lifetimes_ty);
+                vir_low::PredicateDecl::new(
+                    predicate_name! {UniqueRef<ty>},
+                    parameters,
+                    Some(expr! {
+                        [current_validity] &&
+                        [parameters_validity] &&
+                        ([array_length_int] == [snapshot_length]) &&
+                        [elements]
+                    }),
+                )
+            },
             vir_mid::TypeDecl::Reference(reference) if reference.uniqueness.is_unique() => {
                 let target_type = &reference.target_type;
                 self.encode_unique_ref(target_type)?;
