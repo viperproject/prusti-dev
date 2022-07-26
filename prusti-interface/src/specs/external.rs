@@ -159,21 +159,9 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
                     // type substitutions applied.
                     // TODO: there is more that we could check, e.g. that trait
                     // constraints are the same (otherwise specs might not make sense)
-                    //
-                    // Note that we only consider types, and exclude lifetimes,
-                    // because the external spec may introduce lifetimes that
-                    // are elided in the resolved method. In particular, a
-                    // function `fn get(&self, k: &K) -> &V` uses the lifetime
-                    // of `self` for elided lifetimes. Because the translation
-                    // of the extern spec does not use `self`, it is necessary
-                    // to explicitly introduce the lifetime:
-                    // `pub fn get<'a>(&'a self, k: &Q) -> Option<&'a V>`
-                    //  For more details see the lifetime elision rules here:
-                    //  https://doc.rust-lang.org/nomicon/lifetime-elision.html
-                    let current_substs = self.env.identity_substs(current_def_id).types().collect::<Vec<_>>();
-                    let resolved_substs = self.env.identity_substs(resolved_def_id).types().collect::<Vec<_>>();
-                    if current_substs.len() != resolved_substs.len() {
-                        let diff = resolved_substs.len() as isize - current_substs.len() as isize;
+                    if self.env.identity_substs(resolved_def_id).len() != self.env.identity_substs(current_def_id).len() {
+                        let diff = self.env.identity_substs(resolved_def_id).len() as isize
+                                            - self.env.identity_substs(current_def_id).len() as isize;
                         self.errors.push(
                             ExternSpecResolverError::InvalidGenerics(diff, resolved_def_id, span),
                         );
