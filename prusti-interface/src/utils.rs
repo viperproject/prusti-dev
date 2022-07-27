@@ -14,8 +14,6 @@ use prusti_rustc_interface::middle::{
     mir,
     ty::{self, TyCtxt},
 };
-use analysis::mir_utils::expand_struct_place;
-use prusti_utils::force_matches;
 
 /// Check if the place `potential_prefix` is a prefix of `place`. For example:
 ///
@@ -45,26 +43,9 @@ pub fn expand_one_level<'tcx>(
     current_place: mir::Place<'tcx>,
     guide_place: mir::Place<'tcx>,
 ) -> (mir::Place<'tcx>, Vec<mir::Place<'tcx>>) {
-    let index = current_place.projection.len();
-    match guide_place.projection[index] {
-        mir::ProjectionElem::Field(projected_field, field_ty) => {
-            let places =
-                expand_struct_place(current_place, mir, tcx, Some(projected_field.index()));
-            let new_current_place = tcx.mk_place_field(current_place, projected_field, field_ty);
-            (new_current_place, places)
-        }
-        mir::ProjectionElem::Downcast(_symbol, variant) => {
-            let kind = &current_place.ty(mir, tcx).ty.kind();
-            force_matches!(kind, ty::TyKind::Adt(adt, _) =>
-                (tcx.mk_place_downcast(current_place, *adt, variant), Vec::new())
-            )
-        }
-        mir::ProjectionElem::Deref => (tcx.mk_place_deref(current_place), Vec::new()),
-        mir::ProjectionElem::Index(idx) => (tcx.mk_place_index(current_place, idx), Vec::new()),
-        elem => {
-            unimplemented!("elem = {:?}", elem);
-        }
-    }
+    use analysis::mir_utils::{expand_one_level, PlaceImpl};
+    let res = expand_one_level(mir, tcx, current_place.into(), guide_place.into());
+    (res.0.to_mir_place(), res.1.into_iter().map(PlaceImpl::to_mir_place).collect())
 }
 
 /// Pop the last projection from the place and return the new place with the popped element.

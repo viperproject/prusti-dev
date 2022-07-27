@@ -645,24 +645,20 @@ impl Quantifier {
 }
 
 // For Prusti-specific operators, in both [operator2] and [operator3]
-// we only care about the spacing of the last [Punct], as this lets us
+// we mainly care about the spacing of the last [Punct], as this lets us
 // know that the last character is not itself part of an actual Rust
 // operator.
 //
-// "==>" will never have the "expected" spacing of [Joint, Joint, Alone]
-// because "==" and ">" are Rust operators, but "==>" is not.
-//
-// If [all_spacing] is enabled, we care about the spacing of all three
-// [Punct] characters, since we are parsing a Rust operator.
+// "==>" should still have the expected spacing of [Joint, Joint, Alone]
+// even though "==" and ">" are separate Rust operators.
 fn operator2(
     op: &str,
     p1: &Punct,
     p2: &Punct,
-    all_spacing: bool,
 ) -> bool {
     let chars = op.chars().collect::<Vec<_>>();
     [p1.as_char(), p2.as_char()] == chars[0..2]
-        && (!all_spacing || p1.spacing() == Joint)
+        && p1.spacing() == Joint
         && p2.spacing() == Alone
 }
 
@@ -671,11 +667,10 @@ fn operator3(
     p1: &Punct,
     p2: &Punct,
     p3: &Punct,
-    all_spacing: bool,
 ) -> bool {
     let chars = op.chars().collect::<Vec<_>>();
     [p1.as_char(), p2.as_char(), p3.as_char()] == chars[0..3]
-        && (!all_spacing || (p1.spacing() == Joint && p2.spacing() == Joint))
+        && p1.spacing() == Joint && p2.spacing() == Joint
         && p3.spacing() == Alone
 }
 
@@ -702,35 +697,35 @@ impl PrustiToken {
         p2: &Punct,
     ) -> Option<Self> {
         let span = p1.span().join(p2.span()).unwrap();
-        Some(Self::BinOp(span, if operator2("&&", p1, p2, true) {
+        Some(Self::BinOp(span, if operator2("&&", p1, p2) {
             PrustiBinaryOp::And
-        } else if operator2("||", p1, p2, true) {
+        } else if operator2("||", p1, p2) {
             PrustiBinaryOp::Or
-        } else if operator2("->", p1, p2, true) {
+        } else if operator2("->", p1, p2) {
             PrustiBinaryOp::Implies
-        } else if operator2("..", p1, p2, true) {
+        } else if operator2("..", p1, p2) {
             PrustiBinaryOp::Rust(RustOp::Range)
-        } else if operator2("+=", p1, p2, true) {
+        } else if operator2("+=", p1, p2) {
             PrustiBinaryOp::Rust(RustOp::AddAssign)
-        } else if operator2("-=", p1, p2, true) {
+        } else if operator2("-=", p1, p2) {
             PrustiBinaryOp::Rust(RustOp::SubtractAssign)
-        } else if operator2("*=", p1, p2, true) {
+        } else if operator2("*=", p1, p2) {
             PrustiBinaryOp::Rust(RustOp::MultiplyAssign)
-        } else if operator2("/=", p1, p2, true) {
+        } else if operator2("/=", p1, p2) {
             PrustiBinaryOp::Rust(RustOp::DivideAssign)
-        } else if operator2("%=", p1, p2, true) {
+        } else if operator2("%=", p1, p2) {
             PrustiBinaryOp::Rust(RustOp::ModuloAssign)
-        } else if operator2("&=", p1, p2, true) {
+        } else if operator2("&=", p1, p2) {
             PrustiBinaryOp::Rust(RustOp::BitAndAssign)
-        //} else if operator2("|=", p1, p2, true) {
+        //} else if operator2("|=", p1, p2) {
         //    PrustiBinaryOp::Rust(RustOp::BitOrAssign)
-        } else if operator2("^=", p1, p2, true) {
+        } else if operator2("^=", p1, p2) {
             PrustiBinaryOp::Rust(RustOp::BitXorAssign)
-        } else if operator2("=>", p1, p2, true) {
+        } else if operator2("=>", p1, p2) {
             PrustiBinaryOp::Rust(RustOp::Arrow)
-        } else if operator2("|=", p1, p2, true) {
+        } else if operator2("|=", p1, p2) {
             return Some(Self::SpecEnt(span, false));
-        } else if operator2("~>", p1, p2, false) {
+        } else if operator2("~>", p1, p2) {
             return Some(Self::CallDesc(span, false));
         } else {
             return None;
@@ -743,19 +738,19 @@ impl PrustiToken {
         p3: &Punct,
     ) -> Option<Self> {
         let span = p1.span().join(p2.span()).unwrap().join(p3.span()).unwrap();
-        Some(Self::BinOp(span, if operator3("==>", p1, p2, p3, false) {
+        Some(Self::BinOp(span, if operator3("==>", p1, p2, p3) {
             PrustiBinaryOp::Implies
-        } else if operator3("===", p1, p2, p3, false) {
+        } else if operator3("===", p1, p2, p3) {
             PrustiBinaryOp::SnapEq
-        } else if operator3("..=", p1, p2, p3, true) {
+        } else if operator3("..=", p1, p2, p3) {
             PrustiBinaryOp::Rust(RustOp::RangeInclusive)
-        } else if operator3("<<=", p1, p2, p3, true) {
+        } else if operator3("<<=", p1, p2, p3) {
             PrustiBinaryOp::Rust(RustOp::LeftShiftAssign)
-        } else if operator3(">>=", p1, p2, p3, true) {
+        } else if operator3(">>=", p1, p2, p3) {
             PrustiBinaryOp::Rust(RustOp::RightShiftAssign)
-        } else if operator3("|=!", p1, p2, p3, false) {
+        } else if operator3("|=!", p1, p2, p3) {
             return Some(Self::SpecEnt(span, true));
-        } else if operator3("~>!", p1, p2, p3, false) {
+        } else if operator3("~>!", p1, p2, p3) {
             return Some(Self::CallDesc(span, true));
         } else {
             return None;
@@ -882,28 +877,33 @@ mod tests {
     #[test]
     fn test_preparser() {
         assert_eq!(
-            parse_prusti(quote! { a ==> b }).unwrap().to_string(),
+            parse_prusti("a ==> b".parse().unwrap()).unwrap().to_string(),
             "(! (a) || (b))",
         );
         assert_eq!(
-            parse_prusti(quote! { a ==> b ==> c }).unwrap().to_string(),
+            parse_prusti("a ==> b ==> c".parse().unwrap()).unwrap().to_string(),
             "(! (a) || ((! (b) || (c))))",
         );
         assert_eq!(
-            parse_prusti(quote! { (a ==> b && c) ==> d || e }).unwrap().to_string(),
+            parse_prusti("(a ==> b && c) ==> d || e".parse().unwrap()).unwrap().to_string(),
             "(! (((! (a) || (b && c)))) || (d || e))",
         );
         assert_eq!(
-            parse_prusti(quote! { forall(|x: i32| a ==> b) }).unwrap().to_string(),
+            parse_prusti("forall(|x: i32| a ==> b)".parse().unwrap()).unwrap().to_string(),
             "forall (() , # [prusti :: spec_only] | x : i32 | -> bool { (((! (a) || (b))) : bool) })",
         );
         assert_eq!(
-            parse_prusti(quote! { exists(|x: i32| a === b) }).unwrap().to_string(),
+            parse_prusti("exists(|x: i32| a === b)".parse().unwrap()).unwrap().to_string(),
             "exists (() , # [prusti :: spec_only] | x : i32 | -> bool { ((snapshot_equality (& a , & b)) : bool) })",
         );
         assert_eq!(
-            parse_prusti(quote! { forall(|x: i32| a ==> b, triggers = [(c,), (d, e)]) }).unwrap().to_string(),
+            parse_prusti("forall(|x: i32| a ==> b, triggers = [(c,), (d, e)])".parse().unwrap()).unwrap().to_string(),
             "forall (((# [prusti :: spec_only] | x : i32 | (c) ,) , (# [prusti :: spec_only] | x : i32 | (d) , # [prusti :: spec_only] | x : i32 | (e) ,) ,) , # [prusti :: spec_only] | x : i32 | -> bool { (((! (a) || (b))) : bool) })",
+        );
+        let expr: syn::Expr = syn::parse2("assert!(a === b ==> b)".parse().unwrap()).unwrap();
+        assert_eq!(
+            parse_prusti(quote! { #expr }).unwrap().to_string(),
+            "assert ! ((! (snapshot_equality (a , b)) || (b)))",
         );
     }
 

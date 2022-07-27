@@ -11,6 +11,7 @@
 #![feature(never_type)]
 #![feature(btree_drain_filter)]
 #![feature(decl_macro)]
+#![feature(drain_filter)]
 
 #![deny(unused_must_use)]
 #![deny(unreachable_patterns)]

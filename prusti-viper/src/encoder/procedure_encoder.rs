@@ -3000,6 +3000,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             })
             .collect();
 
+        // Spans for fake exprs that cannot be encoded in viper
+        let mut fake_expr_spans: FxHashMap<Local, Span> = FxHashMap::default();
+
         // Arguments can be places or constants. For constants, we pretend they're places by
         // creating a new local variable of the same type. For arguments that are not just local
         // variables (i.e., for places that have projections), we do the same. We don't replace
@@ -3007,9 +3010,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // This data structure maps the newly created local variables to the expression that was
         // originally passed as an argument.
         let mut fake_exprs: FxHashMap<vir::Expr, vir::Expr> = FxHashMap::default();
-
-        // Spans for fake exprs that cannot be encoded in viper
-        let mut fake_expr_spans: FxHashMap<Local, Span> = FxHashMap::default();
 
         let mut arguments = vec![];
 

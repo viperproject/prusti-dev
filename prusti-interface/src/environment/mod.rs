@@ -16,6 +16,7 @@ use prusti_rustc_interface::middle::ty::TypeSuperFoldable;
 use std::path::PathBuf;
 use prusti_rustc_interface::errors::{DiagnosticBuilder, EmissionGuarantee, MultiSpan};
 use prusti_rustc_interface::span::{Span, symbol::Symbol};
+use prusti_common::config;
 use std::collections::HashSet;
 use log::{debug, trace};
 use std::rc::Rc;
@@ -381,6 +382,11 @@ impl<'tcx> Environment<'tcx> {
         self.tcx.impl_of_method(def_id)
             .and_then(|impl_id| self.tcx.trait_id_of_impl(impl_id))
             .is_some()
+    }
+
+    /// Returns true iff `def_id` is an unsafe function.
+    pub fn is_unsafe_function(&self, def_id: ProcedureDefId) -> bool {
+        self.tcx.fn_sig(def_id).unsafety() == prusti_rustc_interface::hir::Unsafety::Unsafe
     }
 
     /// Returns the `DefId` of the corresponding trait method, if any.
