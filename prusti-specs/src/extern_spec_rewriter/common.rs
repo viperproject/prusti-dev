@@ -9,13 +9,12 @@ use crate::untyped::AnyFnItem;
 use syn::visit::Visit;
 use syn::visit_mut::VisitMut;
 
+/// Counts the number of elided lifetimes in receivers and types.
+/// For details see the function `with_explicit_lifetimes`.
 struct ElidedLifetimeCounter {
     num_elided_lifetimes: u32
 }
 
-struct SelfLifetimeInserter {
-
-}
 
 impl ElidedLifetimeCounter {
     fn new() -> ElidedLifetimeCounter {
@@ -37,31 +36,45 @@ impl <'ast> syn::visit::Visit<'ast> for ElidedLifetimeCounter {
     }
 }
 
-impl <'ast> syn::visit_mut::VisitMut for SelfLifetimeInserter {
-    fn visit_type_reference_mut(&mut self, reference: &mut syn::TypeReference) {
-        reference.lifetime = parse_quote_spanned!{reference.span() => 'prusti_self_lifetime };
-    }
-
-    fn visit_receiver_mut(&mut self, receiver: &mut syn::Receiver) {
-        receiver.reference.as_mut().unwrap().1 = parse_quote_spanned!{receiver.span() => 'prusti_self_lifetime };
-    }
-}
 
 fn has_multiple_elided_lifetimes(inputs: &Punctuated<FnArg, syn::token::Comma>) -> bool {
     let mut visitor = ElidedLifetimeCounter::new();
     for input in inputs {
         visitor.visit_fn_arg(input);
     }
-    return visitor.num_elided_lifetimes > 1;
+    visitor.num_elided_lifetimes > 1
 }
 
 fn returns_reference_with_elided_lifetime(return_type: &syn::ReturnType) -> bool {
     let mut visitor = ElidedLifetimeCounter::new();
     visitor.visit_return_type(return_type);
-    return visitor.num_elided_lifetimes >= 1;
+    visitor.num_elided_lifetimes >= 1
 }
 
+/// Rust has a special lifetime elision rule for methods containing `&self` or
+/// `&mut self` (see rule 3 here: https://doc.rust-lang.org/nomicon/lifetime-elision.html)
+///
+/// Because the extern spec replaces `self` with `_self`; Rust will not apply this rule
+/// to the rewritten spec. This function detects if Rust would apply the rule 3 lifetime elision
+/// rules for the original signature; and if so, returns a new signature with explicit lifetime
+/// annotations. The explicit lifetime annotations correspond to what Rust would assign
+/// for the elided lifetimes in the original signature.
 fn with_explicit_lifetimes(sig: &syn::Signature) -> Option<syn::Signature> {
+
+    // This struct is responsible for inserting an explicit lifetime for elided
+    // lifetimes in the receiver and output type.
+    struct SelfLifetimeInserter {}
+
+    impl syn::visit_mut::VisitMut for SelfLifetimeInserter {
+        fn visit_type_reference_mut(&mut self, reference: &mut syn::TypeReference) {
+            reference.lifetime = parse_quote_spanned!{reference.span() => 'prusti_self_lifetime };
+        }
+
+        fn visit_receiver_mut(&mut self, receiver: &mut syn::Receiver) {
+            receiver.reference.as_mut().unwrap().1 = parse_quote_spanned!{receiver.span() => 'prusti_self_lifetime };
+        }
+    }
+
     if !returns_reference_with_elided_lifetime(&sig.output) ||
        !has_multiple_elided_lifetimes(&sig.inputs)
     {
@@ -69,12 +82,18 @@ fn with_explicit_lifetimes(sig: &syn::Signature) -> Option<syn::Signature> {
     }
     let mut new_sig = sig.clone();
     let mut inserter = SelfLifetimeInserter{};
+
+    // Insert explicit lifetime parameter to method signature
     new_sig.generics.params.insert(0, parse_quote_spanned!{new_sig.generics.params.span() => 'prusti_self_lifetime });
+
+    // Assign the explicit lifetime to the reference to self
     if let Some(syn::FnArg::Receiver(r)) = new_sig.inputs.first_mut() {
         inserter.visit_receiver_mut(r)
     }
+
+    // Assign the explicit lifetime to references in the output
     inserter.visit_return_type_mut(&mut new_sig.output);
-    return Some(new_sig);
+    Some(new_sig)
 }
 
 /// Generates a method stub and spec functions for an externally specified function.
@@ -105,7 +124,9 @@ pub(crate) fn generate_extern_spec_method_stub<T: HasSignature + HasAttributes +
     extern_spec_kind: ExternSpecKind,
 ) -> syn::Result<(syn::ImplItemMethod, Vec<syn::ImplItemMethod>)> {
     let base_sig = method.sig();
-    let method_sig = with_explicit_lifetimes(base_sig).unwrap_or(base_sig.clone());
+
+    // Make elided lifetimes explicit, if necessary.
+    let method_sig = with_explicit_lifetimes(base_sig).unwrap_or_else(|| base_sig.clone());
     let method_sig_span = method_sig.span();
     let method_ident = &method_sig.ident;
 
