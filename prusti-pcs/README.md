@@ -22,8 +22,14 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
     - [ ] test harness
         - [ ] tests
  - [ ] Branches
-    - [ ]
+    - [ ] implement conditional elaboration
+    - [ ] refactor conditional weakening to joins/
+    - [ ] ?
+ - [ ] Borrows 
+    - [ ] add type dependency to hoare semantics
+    - [ ] ? 
 
 
 - Maintainence
-    - [ ] turn moves into borrows
+    - [ ] refactor out common data structures
+    - [ ] hoare semantics trait has Option baked in (why?), remove this 
