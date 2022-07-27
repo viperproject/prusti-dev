@@ -12,7 +12,7 @@ use std::{
     process::Command,
 };
 use log::{error, info, warn, LevelFilter};
-use rustwide::{cmd, logging, logging::LogStorage, Crate, Toolchain, WorkspaceBuilder};
+use rustwide::{cmd, logging, logging::LogStorage, Crate, Toolchain, Workspace, WorkspaceBuilder};
 use serde::Deserialize;
 use clap::Parser;
 
@@ -129,6 +129,23 @@ struct Args {
     filter_crate_name: String,
 }
 
+fn attempt_fetch(krate: &Crate, workspace: &Workspace, num_retries: u8) -> Result<(), failure::Error> {
+    let mut i = 0;
+    while i < num_retries + 1 {
+        if let Err(err) = krate.fetch(&workspace) {
+            warn!("Error fetching crate {}: {}", krate, err);
+            if i == num_retries {
+                // Last attempt failed, return the error
+                return Err(err)
+            }
+        } else {
+            return Ok(())
+        }
+        i += 1;
+    }
+    unreachable!()
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     color_backtrace::install();
     setup_logs();
@@ -209,7 +226,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
 
         info!("Fetch crate...");
-        krate.fetch(&workspace)?;
+        attempt_fetch(krate, &workspace, 2)?;
 
         if !args.skip_build_check {
             info!("Build crate...");
