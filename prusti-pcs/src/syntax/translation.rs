@@ -35,9 +35,20 @@ struct BBCtx<'mir, 'tcx: 'mir> {
     stmt_idx: usize,
     statements: Vec<MicroMirStatement<'tcx>>,
     parents: Vec<usize>,
+    block: BasicBlock,
 }
 
 impl<'mir, 'tcx: 'mir> BBCtx<'mir, 'tcx> {
+    pub fn new(block: BasicBlock, mir: &'mir Body<'tcx>) -> Self {
+        BBCtx {
+            mir,
+            stmt_idx: 0,
+            statements: Vec::default(),
+            parents: Vec::default(),
+            block,
+        }
+    }
+
     pub fn set_stmt_idx(&mut self, i: usize) {
         self.stmt_idx = i;
     }
@@ -52,17 +63,21 @@ impl<'mir, 'tcx: 'mir> BBCtx<'mir, 'tcx> {
     }
 
     pub fn finalize(&self, term: MicroMirTerminator<'tcx>) -> MicroMirData<'tcx> {
+        // TODO: How to move out this data... external function not in impl? destructor?
         MicroMirData {
             statements: self.statements.clone(),
             terminator: term,
             mir_parent: self.parents.clone(),
+            mir_block: self.block,
         }
     }
 }
 
+pub type MicroMirEncoding<'tcx> = FxHashMap<BasicBlock, MicroMirData<'tcx>>;
+
 /// Intermediate object containing all information for the MIR->Pre-MicroMir translation
 pub struct MicroMirEncoder<'mir, 'tcx: 'mir> {
-    pub encoding: FxHashMap<BasicBlock, MicroMirData<'tcx>>,
+    pub encoding: MicroMirEncoding<'tcx>,
     pub mir: &'mir Body<'tcx>,
 }
 
@@ -70,12 +85,7 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
     pub fn expand_syntax(mir: &'mir Body<'tcx>) -> EncodingResult<Self> {
         let mut encoding: FxHashMap<BasicBlock, MicroMirData<'tcx>> = FxHashMap::default();
         for (bb, bbdata) in mir.basic_blocks().iter_enumerated() {
-            let mut ctx: BBCtx<'mir, 'tcx> = BBCtx {
-                mir,
-                stmt_idx: 0,
-                statements: Vec::default(),
-                parents: Vec::default(),
-            };
+            let mut ctx: BBCtx<'mir, 'tcx> = BBCtx::new(bb, &mir);
             // let mut statements: Vec<MicroMirStatement<'tcx>> = vec![];
             for (stmt_idx, statement) in bbdata.statements.iter().enumerate() {
                 ctx.set_stmt_idx(stmt_idx);
