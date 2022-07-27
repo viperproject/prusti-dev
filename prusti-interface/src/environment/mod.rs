@@ -473,6 +473,7 @@ impl<'tcx> Environment<'tcx> {
                 let mut sc = SelectionContext::new(&infcx);
                 let obligation = Obligation::new(
                     ObligationCause::dummy(),
+                    // TODO(tymap): don't use reveal_all
                     ty::ParamEnv::reveal_all(),
                     Binder::dummy(TraitPredicate {
                         trait_ref: TraitRef {
