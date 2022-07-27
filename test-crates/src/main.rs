@@ -132,7 +132,7 @@ struct Args {
 fn attempt_fetch(krate: &Crate, workspace: &Workspace, num_retries: u8) -> Result<(), failure::Error> {
     let mut i = 0;
     while i < num_retries + 1 {
-        if let Err(err) = krate.fetch(&workspace) {
+        if let Err(err) = krate.fetch(workspace) {
             warn!("Error fetching crate {}: {}", krate, err);
             if i == num_retries {
                 // Last attempt failed, return the error
