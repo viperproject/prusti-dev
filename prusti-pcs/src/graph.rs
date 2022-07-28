@@ -40,7 +40,7 @@ impl<'tcx> GraphOps<'tcx> for Graph<'tcx> {
         tcx: TyCtxt<'tcx>,
     ) {
         let place = to.place;
-        for i in 0..=place.projection.len() {
+        for i in 0..place.projection.len() {
             let node = GraphNode {
                 place: mir::Place {
                     local: place.local,
