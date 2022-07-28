@@ -489,7 +489,16 @@ impl<'tcx> Environment<'tcx> {
                 )
             });
             match result {
-                Ok(Some(ImplSource::UserDefined(data))) => Some(data.impl_def_id),
+                Ok(Some(ImplSource::UserDefined(data))) => {
+                    for item in self.tcx().associated_items(data.impl_def_id).in_definition_order() {
+                        if let Some(id) = item.trait_item_def_id {
+                            if id == proc_def_id {
+                                return Some(item.def_id);
+                            }
+                        }
+                    }
+                    unreachable!()
+                },
                 _ => None
             }
         } else {
