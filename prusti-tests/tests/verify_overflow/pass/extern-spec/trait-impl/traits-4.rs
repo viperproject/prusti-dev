@@ -1,5 +1,3 @@
-// ignore-test https://rust-lang.zulipchat.com/#narrow/stream/182449-t-compiler.2Fhelp/topic/Resolving.20a.20.60clone.60.20call.20to.20a.20.60DefId.60/near/290366147
-
 #![feature(allocator_api)]
 
 use prusti_contracts::*;
