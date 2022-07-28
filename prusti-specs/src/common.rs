@@ -295,11 +295,12 @@ mod receiver_rewriter {
         fn visit_fn_arg_mut(&mut self, fn_arg: &mut FnArg) {
             if let FnArg::Receiver(receiver) = fn_arg {
                 let span = receiver.span();
-                let and = if receiver.reference.is_some() {
-                    // TODO: do lifetimes need to be specified here?
-                    quote_spanned! {span=> &}
-                } else {
-                    quote! {}
+                let and = match &receiver.reference {
+                    Some((_, Some(lifetime))) =>
+                        quote_spanned!{span => &#lifetime},
+                    Some((_, None)) =>
+                        quote_spanned!{span => &},
+                    None => quote! {}
                 };
                 let mutability = &receiver.mutability;
                 let new_ty = self.new_ty;
