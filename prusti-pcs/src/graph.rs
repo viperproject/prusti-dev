@@ -12,7 +12,14 @@ use prusti_rustc_interface::{
 };
 
 pub trait GraphOps<'tcx> {
-    fn mutable_borrow(&mut self, from: GraphNode<'tcx>, loan: facts::Loan, to: GraphNode<'tcx>);
+    fn mutable_borrow(
+        &mut self,
+        from: GraphNode<'tcx>,
+        loan: facts::Loan,
+        to: GraphNode<'tcx>,
+        mir: &mir::Body<'tcx>,
+        tcx: TyCtxt<'tcx>,
+    );
     fn package(&mut self, from: GraphNode<'tcx>, to: GraphNode<'tcx>) -> Vec<Annotation<'tcx>>;
     fn unwind(&mut self, killed_loans: FxHashSet<facts::Loan>) -> GraphResult<'tcx>;
 }
@@ -23,9 +30,30 @@ pub struct Graph<'tcx> {
 }
 
 impl<'tcx> GraphOps<'tcx> for Graph<'tcx> {
-    // TODO: use unpack
     // TODO: if edges were a set then we could ignore duplicates, maybe a bit easier
-    fn mutable_borrow(&mut self, from: GraphNode<'tcx>, loan: facts::Loan, to: GraphNode<'tcx>) {
+    fn mutable_borrow(
+        &mut self,
+        from: GraphNode<'tcx>,
+        loan: facts::Loan,
+        to: GraphNode<'tcx>,
+        mir: &mir::Body<'tcx>,
+        tcx: TyCtxt<'tcx>,
+    ) {
+        let place = to.place;
+        for i in 0..=place.projection.len() {
+            let node = GraphNode {
+                place: mir::Place {
+                    local: place.local,
+                    projection: tcx.intern_place_elems(&place.projection[..i]),
+                },
+                location: to.location,
+            };
+
+            if !self.edges.iter().any(|edge| edge.to() == &node) {
+                self.unpack(node, mir, tcx);
+            }
+        }
+
         self.leaves.remove(&to);
         self.leaves.insert(from);
 
@@ -248,7 +276,7 @@ impl<'tcx> Graph<'tcx> {
                         self.take_edge(|edge| edge.comes_from(&curr));
                     }
                     GraphEdge::Pack { from, to }
-                        if self.edges.iter().all(|edge| !from.contains(edge.to())) =>
+                        if !self.edges.iter().any(|edge| from.contains(edge.to())) =>
                     {
                         let annotation = self.pack(*to);
                         final_annotations.push(annotation);
