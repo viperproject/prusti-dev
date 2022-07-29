@@ -184,7 +184,7 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
                 target,
                 unwind: _,
             } => {
-                ctx.push_stmt(MicroMirStatement::Kill((*place).into()));
+                ctx.push_stmt(MicroMirStatement::Kill(None, (*place).into()));
                 Ok(MicroMirTerminator::Jump(*target))
             }
 
@@ -214,7 +214,7 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
         p_dest: &Place<'tcx>,
         op: &Operand<'tcx>,
     ) -> EncodingResult<()> {
-        ctx.push_stmt(MicroMirStatement::Kill((*p_dest).into()));
+        ctx.push_stmt(MicroMirStatement::Kill(None, (*p_dest).into()));
         let temp_1 = TemporaryPlace { id: 1 };
         let temp1_mut = Self::encode_operand(ctx, op, temp_1)?;
         ctx.push_stmt(MicroMirStatement::Set(temp_1, *p_dest, temp1_mut));
@@ -230,7 +230,7 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
         p_dest: &Place<'tcx>,
         p0: &Place<'tcx>,
     ) -> EncodingResult<()> {
-        ctx.push_stmt(MicroMirStatement::Kill((*p_dest).into()));
+        ctx.push_stmt(MicroMirStatement::Kill(None, (*p_dest).into()));
         let p0_mut = Self::lookup_place_mutability(&p0, ctx.mir())?;
         let temp_1 = TemporaryPlace { id: 1 };
         ctx.push_stmt(MicroMirStatement::Len(*p0, temp_1, p0_mut));
@@ -246,7 +246,7 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
         nullop: NullOp,
         p_dest: &Place<'tcx>,
     ) -> EncodingResult<()> {
-        ctx.push_stmt(MicroMirStatement::Kill((*p_dest).into()));
+        ctx.push_stmt(MicroMirStatement::Kill(None, (*p_dest).into()));
         let temp_1 = TemporaryPlace { id: 1 };
         ctx.push_stmt(MicroMirStatement::NullOp(nullop, temp_1));
         ctx.push_stmt(MicroMirStatement::Set(temp_1, *p_dest, Mut));
@@ -265,7 +265,7 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
         op1: &Operand<'tcx>,
         p_dest: &Place<'tcx>,
     ) -> EncodingResult<()> {
-        ctx.push_stmt(MicroMirStatement::Kill((*p_dest).into()));
+        ctx.push_stmt(MicroMirStatement::Kill(None, (*p_dest).into()));
         let temp_1 = TemporaryPlace { id: 1 };
         let temp_2 = TemporaryPlace { id: 2 };
         let op_mut = Self::encode_operand(ctx, op1, temp_1)?;
@@ -294,7 +294,7 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
         p_dest: &Place<'tcx>,
         is_checked: bool,
     ) -> EncodingResult<()> {
-        ctx.push_stmt(MicroMirStatement::Kill((*p_dest).into()));
+        ctx.push_stmt(MicroMirStatement::Kill(None, (*p_dest).into()));
         let temp_1 = TemporaryPlace { id: 1 };
         let temp_2 = TemporaryPlace { id: 2 };
         let temp_3 = TemporaryPlace { id: 3 };
@@ -353,7 +353,7 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
         p_dest: &Place<'tcx>,
         operands: &Vec<Operand<'tcx>>,
     ) -> EncodingResult<()> {
-        ctx.push_stmt(MicroMirStatement::Kill((*p_dest).into()));
+        ctx.push_stmt(MicroMirStatement::Kill(None, (*p_dest).into()));
         let mut to_aggregate: Vec<PCSPermission<'tcx>> = vec![];
         let mut i: usize = 1;
         for op in operands.iter() {

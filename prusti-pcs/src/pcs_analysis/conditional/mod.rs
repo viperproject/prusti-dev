@@ -30,6 +30,13 @@ use prusti_rustc_interface::{
 };
 use std::iter::{repeat, zip};
 
+/// Straight line micromir
+/// Invariant:
+pub struct MicroMirSequence<'tcx> {
+    statements: Vec<MicroMirStatement<'tcx>>,
+    pcs_before: Vec<PCS<'tcx>>,
+}
+
 /// Result of a CondPCS procedure
 /// INVARIANT: len(statements) == len(pcs_before)
 pub struct CondPCSBlock<'tcx> {
@@ -170,9 +177,6 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                         pre_pack.into_iter().collect(),
                         post_pack,
                     ))
-
-                    // Terminators should have only one postcondition, I'm honestly
-                    // not sure why I didn't do it this way :)
                 }
 
                 // Trim
