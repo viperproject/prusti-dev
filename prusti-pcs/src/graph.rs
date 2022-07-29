@@ -76,23 +76,17 @@ impl<'tcx> GraphOps<'tcx> for Graph<'tcx> {
             curr_node = *curr_edge.to();
 
             match curr_edge {
-                GraphEdge::Borrow { mut loans, .. } => final_loans.append(&mut loans),
+                GraphEdge::Borrow { loans, .. } => final_loans.extend(loans),
                 GraphEdge::Pack { to, .. } => final_annotations.push(Annotation::Pack(to)),
-                GraphEdge::Abstract {
-                    from,
-                    mut loans,
-                    to,
-                } => {
-                    final_loans.append(&mut loans);
+                GraphEdge::Abstract { from, loans, to } => {
+                    final_loans.extend(loans);
                     final_annotations.push(Annotation::Restore { from, to });
                 }
                 GraphEdge::Collapsed {
-                    mut loans,
-                    mut annotations,
-                    ..
+                    loans, annotations, ..
                 } => {
-                    final_loans.append(&mut loans);
-                    final_annotations.append(&mut annotations);
+                    final_loans.extend(loans);
+                    final_annotations.extend(annotations);
                 }
             }
         }
@@ -111,7 +105,7 @@ impl<'tcx> GraphOps<'tcx> for Graph<'tcx> {
         let leaves_before = self.leaves.clone();
         let annotations = leaves_before
             .iter()
-            .flat_map(|leaf| self.unwind_node(*leaf))
+            .flat_map(|leaf| self.unwind_path(*leaf))
             .collect();
 
         GraphResult {
@@ -150,7 +144,6 @@ impl<'tcx> Graph<'tcx> {
         });
     }
 
-    // TODO: kind of messy
     fn collapse_killed(&mut self, killed_loans: FxHashSet<facts::Loan>) {
         for edge in &mut self.edges {
             match edge {
@@ -203,23 +196,17 @@ impl<'tcx> Graph<'tcx> {
 
         for edge in [from_edge, to_edge] {
             match edge {
-                GraphEdge::Borrow { mut loans, .. } => final_loans.append(&mut loans),
+                GraphEdge::Borrow { loans, .. } => final_loans.extend(loans),
                 GraphEdge::Pack { .. } => panic!("collapsing a pack edge is unsupported"),
-                GraphEdge::Abstract {
-                    from,
-                    mut loans,
-                    to,
-                } => {
-                    final_loans.append(&mut loans);
+                GraphEdge::Abstract { from, loans, to } => {
+                    final_loans.extend(loans);
                     final_annotations.push(Annotation::Restore { from, to });
                 }
                 GraphEdge::Collapsed {
-                    mut loans,
-                    mut annotations,
-                    ..
+                    loans, annotations, ..
                 } => {
-                    final_loans.append(&mut loans);
-                    final_annotations.append(&mut annotations);
+                    final_loans.extend(loans);
+                    final_annotations.extend(annotations);
                 }
             }
         }
@@ -232,70 +219,66 @@ impl<'tcx> Graph<'tcx> {
         });
     }
 
-    fn unwind_node(&mut self, node: GraphNode<'tcx>) -> Vec<Annotation<'tcx>> {
+    fn unwind_path(&mut self, start: GraphNode<'tcx>) -> Vec<Annotation<'tcx>> {
         let mut final_annotations = Vec::new();
-        let mut curr = node;
+        let mut curr = start;
 
-        loop {
-            if let Some((idx, edge)) = self
-                .edges
-                .iter()
-                .enumerate()
-                .find(|(_, edge)| edge.comes_from(&curr))
-            {
-                curr = *edge.to();
+        while let Some((idx, edge)) = self
+            .edges
+            .iter()
+            .enumerate()
+            .find(|(_, edge)| edge.comes_from(&curr))
+        {
+            curr = *edge.to();
 
-                match edge {
-                    GraphEdge::Borrow { from, loans, to } if loans.is_empty() => {
-                        self.leaves.remove(from);
-                        self.leaves.insert(*to);
+            match edge {
+                GraphEdge::Borrow { from, loans, to } if loans.is_empty() => {
+                    self.leaves.remove(from);
+                    self.leaves.insert(*to);
 
-                        self.edges.remove(idx);
-                    }
-                    GraphEdge::Pack { from, to }
-                        if !self.edges.iter().any(|edge| from.contains(edge.to())) =>
-                    {
-                        self.leaves.insert(*to);
-                        for place in from.iter() {
-                            self.leaves.remove(place);
-                        }
-
-                        final_annotations.push(Annotation::Pack(*to));
-
-                        self.edges.remove(idx);
-                    }
-                    GraphEdge::Abstract { from, loans, to } if loans.is_empty() => {
-                        self.leaves.insert(*to);
-                        self.leaves.remove(&from);
-
-                        final_annotations.push(Annotation::Restore {
-                            from: *from,
-                            to: *to,
-                        });
-
-                        self.edges.remove(idx);
-                    }
-                    GraphEdge::Collapsed {
-                        from,
-                        loans,
-                        annotations,
-                        to,
-                    } if loans.is_empty() => {
-                        self.leaves.remove(from);
-                        self.leaves.insert(*to);
-
-                        for annotation in annotations {
-                            final_annotations.push(*annotation);
-                        }
-
-                        self.edges.remove(idx);
-                    }
-                    _ => return final_annotations,
+                    self.edges.remove(idx);
                 }
-            } else {
-                return final_annotations;
+                GraphEdge::Pack { from, to }
+                    if !self.edges.iter().any(|edge| from.contains(edge.to())) =>
+                {
+                    self.leaves.insert(*to);
+                    for place in from.iter() {
+                        self.leaves.remove(place);
+                    }
+
+                    final_annotations.push(Annotation::Pack(*to));
+
+                    self.edges.remove(idx);
+                }
+                GraphEdge::Abstract { from, loans, to } if loans.is_empty() => {
+                    self.leaves.insert(*to);
+                    self.leaves.remove(from);
+
+                    final_annotations.push(Annotation::Restore {
+                        from: *from,
+                        to: *to,
+                    });
+
+                    self.edges.remove(idx);
+                }
+                GraphEdge::Collapsed {
+                    from,
+                    loans,
+                    annotations,
+                    to,
+                } if loans.is_empty() => {
+                    self.leaves.remove(from);
+                    self.leaves.insert(*to);
+
+                    final_annotations.extend(annotations);
+
+                    self.edges.remove(idx);
+                }
+                _ => break,
             }
         }
+
+        final_annotations
     }
 
     fn take_edge<F>(&mut self, pred: F) -> GraphEdge<'tcx>
