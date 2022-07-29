@@ -150,35 +150,6 @@ impl<'tcx> Graph<'tcx> {
         });
     }
 
-    fn pack(&mut self, node: GraphNode<'tcx>) -> Annotation<'tcx> {
-        let edge = self.take_edge(|edge| matches!(edge, GraphEdge::Pack { to, .. } if to == &node));
-
-        if let GraphEdge::Pack { from: places, .. } = edge {
-            self.leaves.insert(node);
-            for place in places.iter() {
-                self.leaves.remove(place);
-            }
-
-            Annotation::Pack(node)
-        } else {
-            panic!("should have found a pack edge")
-        }
-    }
-
-    fn restore(&mut self, node: GraphNode<'tcx>) -> Annotation<'tcx> {
-        let edge =
-            self.take_edge(|edge| matches!(edge, GraphEdge::Abstract { to, .. } if to == &node));
-
-        if let GraphEdge::Abstract { from, to, .. } = edge {
-            self.leaves.insert(node);
-            self.leaves.remove(&from);
-
-            Annotation::Restore { from, to }
-        } else {
-            panic!("should have found an abstract edge")
-        }
-    }
-
     // TODO: kind of messy
     fn collapse_killed(&mut self, killed_loans: FxHashSet<facts::Loan>) {
         for edge in &mut self.edges {
@@ -266,26 +237,43 @@ impl<'tcx> Graph<'tcx> {
         let mut curr = node;
 
         loop {
-            if let Some(edge) = self.edges.iter().find(|edge| edge.comes_from(&curr)) {
+            if let Some((idx, edge)) = self
+                .edges
+                .iter()
+                .enumerate()
+                .find(|(_, edge)| edge.comes_from(&curr))
+            {
                 curr = *edge.to();
 
-                // TODO: consume edge helper that updates annotations, loans, leaves?
                 match edge {
                     GraphEdge::Borrow { from, loans, to } if loans.is_empty() => {
                         self.leaves.remove(from);
                         self.leaves.insert(*to);
-                        // TODO: duplicated, there should be an easier way
-                        self.take_edge(|edge| edge.comes_from(&curr));
+
+                        self.edges.remove(idx);
                     }
                     GraphEdge::Pack { from, to }
                         if !self.edges.iter().any(|edge| from.contains(edge.to())) =>
                     {
-                        let annotation = self.pack(*to);
-                        final_annotations.push(annotation);
+                        self.leaves.insert(*to);
+                        for place in from.iter() {
+                            self.leaves.remove(place);
+                        }
+
+                        final_annotations.push(Annotation::Pack(*to));
+
+                        self.edges.remove(idx);
                     }
-                    GraphEdge::Abstract { loans, to, .. } if loans.is_empty() => {
-                        let annotation = self.restore(*to);
-                        final_annotations.push(annotation);
+                    GraphEdge::Abstract { from, loans, to } if loans.is_empty() => {
+                        self.leaves.insert(*to);
+                        self.leaves.remove(&from);
+
+                        final_annotations.push(Annotation::Restore {
+                            from: *from,
+                            to: *to,
+                        });
+
+                        self.edges.remove(idx);
                     }
                     GraphEdge::Collapsed {
                         from,
@@ -295,10 +283,12 @@ impl<'tcx> Graph<'tcx> {
                     } if loans.is_empty() => {
                         self.leaves.remove(from);
                         self.leaves.insert(*to);
+
                         for annotation in annotations {
                             final_annotations.push(*annotation);
                         }
-                        self.take_edge(|edge| edge.comes_from(&curr));
+
+                        self.edges.remove(idx);
                     }
                     _ => return final_annotations,
                 }
