@@ -287,7 +287,7 @@ impl<'tcx> HoareSemantics for MicroMirTerminator<'tcx> {
                 *m,
                 LinearResource::new_from_local_id(0),
             )]),
-            MicroMirTerminator::FailVerif => Some(PCS::empty()),
+            MicroMirTerminator::FailVerif => PCS::empty(),
         }
     }
 
