@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 use crate::{
-    syntax::{LinearResource, PCSPermissionKind, PCS},
+    syntax::{LinearResource, MicroMirStatement, PCSPermission, PCSPermissionKind, PCS},
     util::*,
 };
 use analysis::mir_utils::expand_struct_place;
@@ -13,7 +13,7 @@ use prusti_rustc_interface::{
     data_structures::{stable_map::FxHashMap, stable_set::FxHashSet},
     errors::MultiSpan,
     middle::{
-        mir::{Body, Local, Place},
+        mir::{Body, Local, Mutability, Place},
         ty::TyCtxt,
     },
 };
@@ -96,6 +96,51 @@ impl<'tcx> RepackPackup<'tcx> {
         }
 
         Ok(RepackPackup { packs })
+    }
+
+    /// Apply a PCSRepacker to a state
+    pub fn apply_packings(
+        &self,
+        mut state: PCS<'tcx>,
+        statements: &mut Vec<MicroMirStatement<'tcx>>,
+        before_pcs: &mut Vec<PCS<'tcx>>,
+    ) -> EncodingResult<PCS<'tcx>> {
+        // TODO: Move insert and remove (guarded with linearity) into PCS
+
+        for (pre_p, p) in self.packs.iter().rev() {
+            before_pcs.push(state.clone());
+
+            let to_lose: Vec<Place<'tcx>> = pre_p.iter().cloned().collect(); // expand_place(*p, mir, env)?;
+            for p1 in to_lose.iter() {
+                if !state.set.remove(&PCSPermission::new_initialized(
+                    Mutability::Mut,
+                    (*p1).into(),
+                )) {
+                    return Err(PrustiError::internal(
+                        format!("prusti generated an incoherent pack precondition {:?}", p1),
+                        MultiSpan::new(),
+                    ));
+                }
+            }
+
+            let to_regain = p.clone();
+
+            if !state.set.insert(PCSPermission::new_initialized(
+                Mutability::Mut,
+                to_regain.into(),
+            )) {
+                return Err(PrustiError::internal(
+                    format!(
+                        "prusti generated an incoherent pack postcondition: {:?}",
+                        to_regain
+                    ),
+                    MultiSpan::new(),
+                ));
+            }
+
+            statements.push(MicroMirStatement::Pack(to_lose, to_regain));
+        }
+        return Ok(state);
     }
 }
 

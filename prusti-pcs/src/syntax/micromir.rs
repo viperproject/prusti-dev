@@ -275,46 +275,38 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
 }
 
 impl<'tcx> HoareSemantics for MicroMirTerminator<'tcx> {
-    type PRE = Option<PCS<'tcx>>;
+    type PRE = PCS<'tcx>;
 
     fn precondition(&self) -> Self::PRE {
         match self {
-            MicroMirTerminator::Jump(_) => Some(PCS::empty()),
+            MicroMirTerminator::Jump(_) => PCS::empty(),
             MicroMirTerminator::JumpInt(t, _, m) => {
-                Some(PCS::from_vec(vec![PCSPermission::new_initialized(
-                    *m,
-                    (*t).into(),
-                )]))
+                PCS::from_vec(vec![PCSPermission::new_initialized(*m, (*t).into())])
             }
-            MicroMirTerminator::Return(m) => {
-                Some(PCS::from_vec(vec![PCSPermission::new_initialized(
-                    *m,
-                    LinearResource::new_from_local_id(0),
-                )]))
-            }
-            MicroMirTerminator::FailVerif => None,
+            MicroMirTerminator::Return(m) => PCS::from_vec(vec![PCSPermission::new_initialized(
+                *m,
+                LinearResource::new_from_local_id(0),
+            )]),
+            MicroMirTerminator::FailVerif => PCS::empty(),
         }
     }
 
-    type POST = Option<Vec<(BasicBlock, PCS<'tcx>)>>;
+    type POST = Vec<(BasicBlock, PCS<'tcx>)>;
 
     fn postcondition(&self) -> Self::POST {
         match self {
-            MicroMirTerminator::Jump(bb) => Some(vec![(*bb, PCS::empty())]),
-            MicroMirTerminator::JumpInt(t, mir_targets, m) => {
-                let target_permissions: Vec<(BasicBlock, PCS<'tcx>)> = mir_targets
-                    .iter()
-                    .map(|(_, bb)| {
-                        (
-                            *bb,
-                            PCS::from_vec(vec![PCSPermission::new_initialized(*m, *t)]),
-                        )
-                    })
-                    .collect();
-                Some(target_permissions)
-            }
-            MicroMirTerminator::Return(_) => None,
-            MicroMirTerminator::FailVerif => None,
+            MicroMirTerminator::Jump(bb) => vec![(*bb, PCS::empty())],
+            MicroMirTerminator::JumpInt(t, mir_targets, m) => mir_targets
+                .iter()
+                .map(|(_, bb)| {
+                    (
+                        *bb,
+                        PCS::from_vec(vec![PCSPermission::new_initialized(*m, *t)]),
+                    )
+                })
+                .collect(),
+            MicroMirTerminator::Return(_) => vec![],
+            MicroMirTerminator::FailVerif => vec![],
         }
     }
 }

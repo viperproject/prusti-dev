@@ -440,7 +440,7 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
             }
 
             print!("\t,----------------------------- ");
-            Self::pprint_pcs(&dat.terminator.precondition());
+            Self::pprint_pcs(&Some(dat.terminator.precondition()));
             println!("\t| {:?}", dat.terminator);
             Self::pprint_term(&dat.terminator.postcondition());
 
@@ -457,14 +457,9 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
         }
     }
 
-    fn pprint_term(jumps: &Option<Vec<(BasicBlock, PCS<'tcx>)>>) {
-        match jumps {
-            None => println!("\t| => None"),
-            Some(jumps1) => {
-                for (bb, pcs) in jumps1 {
-                    println!("\t| => {:?} -> {:?}", bb, pcs.set)
-                }
-            }
+    fn pprint_term(jumps: &Vec<(BasicBlock, PCS<'tcx>)>) {
+        for (bb, pcs) in jumps {
+            println!("\t| => {:?} -> {:?}", bb, pcs.set)
         }
     }
 }

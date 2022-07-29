@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #![allow(unused_imports)]
 use crate::{
-    joins::{apply_packings, unify_moves, RepackPackup},
+    joins::{RepackPackup, RepackUnify},
     syntax::{
         hoare_semantics::HoareSemantics, LinearResource, MicroMirData, MicroMirEncoder,
         MicroMirEncoding, MicroMirStatement, MicroMirTerminator, PCSPermission, PCS,
@@ -92,65 +92,26 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             let mut body = StraightOperationalMir::default();
             pcs = self.translate_body(block_data, &mut body, pcs)?;
 
-            // let statement_precondition = self.elaborate_precondition(statement)?;
-            // let statement_postcondition = self.elaborate_postcondition(statement)?;
+            // Repack to apply the terminaor PCS
+            let terminator = &block_data.terminator;
+            pcs = self.repack(pcs, &terminator.precondition(), &mut body)?;
 
-            // let packings = unify_moves(&pcs, &statement_precondition, self.mir, self.env)?;
-            // pcs = apply_packings(
-            //     pcs,
-            //     &mut op_mir.statements,
-            //     &mut op_mir.pcs_before,
-            //     packings,
-            // )?;
+            for (next_block, dependent_postcondition) in terminator.postcondition() {
+                //      Apply the semantics (we are now joinable mod repacks)
+                let mut this_pcs = transform_pcs(
+                    pcs.clone(),
+                    &terminator.precondition(),
+                    &dependent_postcondition,
+                )?;
 
-            // Repack to a state which can do the terminator
-            // For each outcome:
-            //      Apply the semantics (we are now joinable mod repacks)
-            //      Trim the PCS by way of eager drops (we are now the same mod repacks)
-            //      Pack to the most packed state possible (we are now identical)
+                // Trim the PCS by way of eager drops (we are now the same mod repacks)
+                this_pcs = self.trim_pcs(this_pcs);
+
+                // Pack to the most packed state possible (we are now identical)
+                // (any unique state works)
+            }
         }
         /*
-
-            let terminator: MicroMirTerminator<'tcx> = todo!();
-
-            // Elaborate the precondition for the terminator (nothing to elaborate)
-            let terminator_precondition =
-                terminator.precondition().ok_or(PrustiError::unsupported(
-                    "terminator precondition elaboration not supported",
-                    MultiSpan::new(),
-                ))?;
-
-            let terminator_postcondition =
-                terminator.postcondition().ok_or(PrustiError::unsupported(
-                    "terminator postcondition elaboration not supported",
-                    MultiSpan::new(),
-                ))?;
-
-            // Unify the current PCS with the PCS for the terminator
-            // Push the unification glue
-            let _ = self.repack(&pcs, &terminator_precondition)?;
-
-            // Apply the Hoare triple for the terminator's semantics
-            //  for each possible postcondition (there's a vector of them)
-            let applied_postconditions: Vec<(BasicBlock, PCS<'tcx>)> = vec![];
-            for (bb_next, post) in terminator_postcondition.iter() {
-                let pcs1 = pcs.clone();
-                transform_pcs(&mut pcs1, &terminator_precondition, post);
-                applied_postconditions.push((*bb_next, pcs1));
-
-                // Pack up the PCS as much as possible
-                let packup = RepackPackup::new(self.env.tcx(), self.mir, pcs)?;
-                for (pre_pack, post_pack) in packup.packs {
-                    working_pcs_before.push(pcs);
-                    working_statements.push(MicroMirStatement::Pack(
-                        pre_pack.into_iter().collect(),
-                        post_pack,
-                    ))
-                }
-
-                // Trim
-                todo!();
-            }
 
             // Set final PCS from current PCS
             // Push the next blocks with their respective states
@@ -177,7 +138,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         todo!();
     }
 
-    // Translate the body of a basic block and return it's straigh-line code.
+    // Straight-line PCS computation inside the body of a basic block
     fn translate_body(
         &self,
         block_data: &MicroMirData<'tcx>,
@@ -190,13 +151,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             let statement_postcondition = self.elaborate_postcondition(statement)?;
 
             // 2. Repack to precondition
-            let packings = unify_moves(&pcs, &statement_precondition, self.mir, self.env)?;
-            pcs = apply_packings(
-                pcs,
-                &mut op_mir.statements,
-                &mut op_mir.pcs_before,
-                packings,
-            )?;
+            pcs = self.repack(pcs, &statement_precondition, op_mir)?;
 
             // 3. Statement is coherent: push
             op_mir.statements.push(statement.clone());
@@ -217,12 +172,15 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
     }
 
     fn initial_state(&self) -> Vec<(BasicBlock, PCS<'tcx>)> {
+        // TODO
+        //   1. I do not know if bb0 is always the initial basic block
+        //   2. I certainly know that we do not always start with an empty PCS
         vec![((0 as u32).into(), PCS::empty())]
     }
 
     /// Modifies a PCS to be coherent with the initialization state, and returns permissions
     /// to weaken
-    fn trim_pcs(&self, pcs: &mut PCS<'tcx>) -> PCS<'tcx> {
+    fn trim_pcs(&self, mut pcs: PCS<'tcx>) -> PCS<'tcx> {
         todo!();
     }
 
@@ -253,9 +211,29 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
     }
 
     /// Computes the unification between two PCS's, inserts packs and repacks as necessary
-    fn repack(&self, current_pcs: &PCS<'tcx>, next_pre: &PCS<'tcx>) -> EncodingResult<()> {
-        let repacking = unify_moves(current_pcs, next_pre, self.mir, self.env)?;
-        todo!();
+    fn repack(
+        &self,
+        mut pcs: PCS<'tcx>,
+        next_pre: &PCS<'tcx>,
+        op_mir: &mut StraightOperationalMir<'tcx>,
+    ) -> EncodingResult<PCS<'tcx>> {
+        RepackUnify::unify_moves(&pcs, next_pre, self.mir, self.env)?.apply_packings(
+            pcs,
+            &mut op_mir.statements,
+            &mut op_mir.pcs_before,
+        )
+    }
+
+    fn packup(
+        &self,
+        mut pcs: PCS<'tcx>,
+        op_mir: &mut StraightOperationalMir<'tcx>,
+    ) -> EncodingResult<PCS<'tcx>> {
+        RepackPackup::new(self.env.tcx(), self.mir, pcs.clone())?.apply_packings(
+            pcs,
+            &mut op_mir.statements,
+            &mut op_mir.pcs_before,
+        )
     }
 
     // Note:
@@ -275,9 +253,9 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
     // Actually! We're doing a different strategy.
     //
-    // PCS A -- packs -- trim --.
-    //                         join -- unpacks --> PCS C
-    // PCS B -- packs -- trim --'
+    // PCS A -- unpacks -- trim --.
+    //                           join -- packs --> PCS C
+    // PCS B -- unpacks -- trim --'
     //
     // - Theorem: All unifiable PCS's can be unified by doing packs, then unpacks
     //  (no interleaving necessary). That is, there is a meet-semilattice of permissions
