@@ -4,6 +4,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::io;
+
 use analysis::mir_utils::{self, PlaceImpl};
 use prusti_interface::environment::borrowck::facts;
 use prusti_rustc_interface::{
@@ -315,9 +317,55 @@ impl<'tcx> Graph<'tcx> {
             .next()
             .expect("target node to be found")
     }
+
+    pub fn to_graphviz(&self, writer: &mut dyn io::Write) -> io::Result<()> {
+        writeln!(writer, "digraph ReborrowingGraph {{")?;
+        writeln!(writer, "rankdir=LR;")?;
+        writeln!(writer, "graph [fontname=monospace];")?;
+        writeln!(writer, "node [fontname=monospace];")?;
+        writeln!(writer, "edge [fontname=monospace];")?;
+
+        for edge in &self.edges {
+            match edge {
+                GraphEdge::Borrow { from, loans, to } => writeln!(
+                    writer,
+                    "\"{:?}\" -> \"{:?}\" [label={:?}];",
+                    from,
+                    to,
+                    format!("loans: {:?}", loans)
+                )?,
+                GraphEdge::Pack { from, to } => {
+                    for field in from {
+                        writeln!(writer, "\"{:?}\" -> \"{:?}\" [color=blue];", field, to)?;
+                    }
+                }
+                GraphEdge::Abstract { from, loans, to } => writeln!(
+                    writer,
+                    "\"{:?}\" -> \"{:?}\" [color=red,label={:?}];",
+                    from,
+                    to,
+                    format!("loans: {:?}", loans)
+                )?,
+                GraphEdge::Collapsed {
+                    from,
+                    loans,
+                    annotations,
+                    to,
+                } => writeln!(
+                    writer,
+                    "\"{:?}\" -> \"{:?}\" [color=green,label={:?}];",
+                    from,
+                    to,
+                    format!("loans: {:?}\nannotations: {:?}", loans, annotations)
+                )?,
+            }
+        }
+
+        writeln!(writer, "}}")
+    }
 }
 
-#[derive(Eq, Hash, PartialEq)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 enum GraphEdge<'tcx> {
     Borrow {
         from: GraphNode<'tcx>,
@@ -361,7 +409,7 @@ impl<'tcx> GraphEdge<'tcx> {
     }
 }
 
-#[derive(Clone, Copy, Eq, Hash, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, Hash, PartialEq)]
 pub enum Annotation<'tcx> {
     Pack(GraphNode<'tcx>),
     Restore {
@@ -370,10 +418,16 @@ pub enum Annotation<'tcx> {
     },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct GraphNode<'tcx> {
-    place: mir::Place<'tcx>,
-    location: mir::Location,
+    pub place: mir::Place<'tcx>,
+    pub location: mir::Location,
+}
+
+impl<'tcx> std::fmt::Debug for GraphNode<'tcx> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}@{:?}", self.place, self.location)
+    }
 }
 
 pub struct GraphResult<'tcx> {
