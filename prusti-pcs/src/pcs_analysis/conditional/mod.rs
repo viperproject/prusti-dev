@@ -30,20 +30,35 @@ use prusti_rustc_interface::{
 };
 use std::iter::{repeat, zip};
 
-/// Straight line micromir
-/// Invariant:
-pub struct MicroMirSequence<'tcx> {
+/// Straight line, fully elaborated MicroMir
+/// INVARIANT: coherent pre- and post- conditions
+/// INVARIANT: len(statements) == len(pcs_before)
+pub struct StraightOperationalMir<'tcx> {
     statements: Vec<MicroMirStatement<'tcx>>,
     pcs_before: Vec<PCS<'tcx>>,
 }
 
+impl<'tcx> Default for StraightOperationalMir<'tcx> {
+    fn default() -> StraightOperationalMir<'tcx> {
+        StraightOperationalMir {
+            statements: vec![],
+            pcs_before: vec![],
+        }
+    }
+}
+
+/// OperationalMIR which lives on CFG edges,
+/// Does not correspond to any MIR location
+pub struct PostBlock<'tcx> {
+    body: StraightOperationalMir<'tcx>,
+    next: BasicBlock,
+}
+
 /// Result of a CondPCS procedure
-/// INVARIANT: len(statements) == len(pcs_before)
 pub struct CondPCSBlock<'tcx> {
-    statements: Vec<MicroMirStatement<'tcx>>,
-    pcs_before: Vec<PCS<'tcx>>,
+    body: StraightOperationalMir<'tcx>,
     terminator: MicroMirTerminator<'tcx>,
-    pcs_after_terminator: Vec<(BasicBlock, PCS<'tcx>)>,
+    pcs_after: Vec<(PostBlock<'tcx>, PCS<'tcx>)>,
 }
 
 /// Result of a CondPCS procedure
@@ -61,86 +76,40 @@ pub struct CondPCSctx<'mir, 'env: 'mir, 'tcx: 'env> {
     pub alloc_analysis: DefinitelyAllocatedAnalysisResult,
 }
 
-/// Pointwise state during generation (transient)
-pub struct CondPCSstate<'tcx> {
-    bb: BasicBlock,
-    pcs: PCS<'tcx>,
-}
-
-/// Computation of the CondPCS is performed inside a context
+/// Data structure for all computations of the CondPCS
 impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
-    /// Computation of a PCS including conditionals
-    ///     Does not currently track conditionally flagged information needed
-    ///     for the viper encoding, just the PCS.
-    ///
-    /// INVARIANT: Free PCS is a subset of the Definitely Initialized places
     pub fn cond_pcs(&self) -> EncodingResult<CondPCS<'tcx>> {
-        let ret = CondPCS {
-            blocks: FxHashMap::default(),
-        };
+        // Map of blocks and their Operational PCS's
+        let mut generated_blocks: FxHashMap<BasicBlock, CondPCSBlock<'tcx>> = FxHashMap::default();
 
-        // todo: get this info from the compiler in the proper way
-        let mut initial_state = CondPCSstate {
-            bb: (0 as u32).into(),
-            pcs: PCS::empty(),
-        };
+        // Computation left to do
+        let mut dirty_blocks = self.initial_state();
 
-        // Iterate through the graph. Simple rule for all possible join points:
-        //    We will not store the weakened data right now,  just replace
-        //      e x -> u x and u x -> nothing. In the future it
-        //      must be stored in an auxiliarry data structure for defered drops.
-        // Note that: loops can only weaken the permissions. It's not possible for
-        //  a not-owned place to become owned in the loop. AFAICT The initial
-        //  permissions are an upper bound on the permissions at any loop iteration
-        //  on the lattice interpretation of places (is this true? formalize me!)
-        // Wait... is it just a bound or is it a characterization?
-        // INIT x => ALLOC x
-        // INIT x <=> e x
-        // ALLOC x & !INIT x <=> u x
-        let mut dirty_blocks: Vec<CondPCSstate> = vec![initial_state];
-        while let Some(current_block) = dirty_blocks.pop() {
-            let mut working_pcs_before: Vec<PCS<'tcx>> = vec![];
-            let mut working_statements: Vec<MicroMirStatement<'tcx>> = vec![];
+        while let Some((mut bb, mut pcs)) = dirty_blocks.pop() {
+            // Translate the basic block bb, starting with PCS pcs
+            //  (this should be the exact PCS that all in-edges end up with)
+            let block_data = self.get_block_data(&bb)?;
+            let mut body = StraightOperationalMir::default();
+            pcs = self.translate_body(block_data, &mut body, pcs)?;
 
-            // Load up current block
-            let mut pcs = current_block.pcs;
-            // Check that the PCS is coherent with the initialization analysis,
-            //  and if not, trim.
-            // Might this lead to packs and unpacks??? yes (damn!)
-            // However, most terminators have no preconditions, so it's sound to push these
-            // back through the terminator (ie. compute the packs/unpacks for the destination
-            // when computing the jumped-from block).
-            // Note that some terminators don't do this, like return or function calls.
-            // We'll have to handle these separately, maybe even introducing ghost blocks.
-            let _too_eager_permission_drops = self.trim_pcs(&mut pcs);
+            // let statement_precondition = self.elaborate_precondition(statement)?;
+            // let statement_postcondition = self.elaborate_postcondition(statement)?;
 
-            // For each statement...
-            let block_data = self
-                .micro_mir
-                .get(&current_block.bb)
-                .ok_or(PrustiError::internal(
-                    "basic block out of bounds",
-                    MultiSpan::new(),
-                ))?;
+            // let packings = unify_moves(&pcs, &statement_precondition, self.mir, self.env)?;
+            // pcs = apply_packings(
+            //     pcs,
+            //     &mut op_mir.statements,
+            //     &mut op_mir.pcs_before,
+            //     packings,
+            // )?;
 
-            for (stmt_idx, stmt) in block_data.statements.iter().enumerate() {
-                // Elaborate the precondition for the next statement
-                let next_precondition = self.elaborate_precondition(&stmt);
-                let next_postcondition = stmt.postcondition().ok_or(PrustiError::unsupported(
-                    "postcondition elaboration not supported",
-                    MultiSpan::new(),
-                ))?;
-                // Unify the current PCS with the PCS for the next statement
-                // Push the unificiation glue
-                let _ = self.repack(&pcs, &next_precondition)?;
-
-                // Push the statement and the current PCS
-                working_pcs_before.push(pcs.clone());
-                working_statements.push((*stmt).clone());
-
-                // Apply the Hoare triple for the statement's semantics
-                let _ = transform_pcs(&mut pcs, &next_precondition, &next_postcondition)?;
-            }
+            // Repack to a state which can do the terminator
+            // For each outcome:
+            //      Apply the semantics (we are now joinable mod repacks)
+            //      Trim the PCS by way of eager drops (we are now the same mod repacks)
+            //      Pack to the most packed state possible (we are now identical)
+        }
+        /*
 
             let terminator: MicroMirTerminator<'tcx> = todo!();
 
@@ -204,8 +173,51 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                     MultiSpan::new(),
                 ));
         }
-
+        */
         todo!();
+    }
+
+    // Translate the body of a basic block and return it's straigh-line code.
+    fn translate_body(
+        &self,
+        block_data: &MicroMirData<'tcx>,
+        op_mir: &mut StraightOperationalMir<'tcx>,
+        mut pcs: PCS<'tcx>,
+    ) -> EncodingResult<PCS<'tcx>> {
+        for statement in block_data.statements.iter() {
+            // 1. Elaborate the state-dependent conditions
+            let statement_precondition = self.elaborate_precondition(statement)?;
+            let statement_postcondition = self.elaborate_postcondition(statement)?;
+
+            // 2. Repack to precondition
+            let packings = unify_moves(&pcs, &statement_precondition, self.mir, self.env)?;
+            pcs = apply_packings(
+                pcs,
+                &mut op_mir.statements,
+                &mut op_mir.pcs_before,
+                packings,
+            )?;
+
+            // 3. Statement is coherent: push
+            op_mir.statements.push(statement.clone());
+            op_mir.pcs_before.push(pcs.clone());
+
+            // 4. Apply statement's semantics to state.
+            pcs = transform_pcs(pcs, &statement_precondition, &statement_postcondition)?;
+        }
+
+        Ok(pcs)
+    }
+
+    fn get_block_data(&self, bb: &BasicBlock) -> EncodingResult<&MicroMirData<'tcx>> {
+        self.micro_mir.get(bb).ok_or(PrustiError::internal(
+            "basic block out of bounds",
+            MultiSpan::new(),
+        ))
+    }
+
+    fn initial_state(&self) -> Vec<(BasicBlock, PCS<'tcx>)> {
+        vec![((0 as u32).into(), PCS::empty())]
     }
 
     /// Modifies a PCS to be coherent with the initialization state, and returns permissions
@@ -215,7 +227,10 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
     }
 
     /// Elaborate the precondition of a statement
-    fn elaborate_precondition(&self, stmt: &'mir MicroMirStatement<'tcx>) -> PCS<'tcx> {
+    fn elaborate_precondition(
+        &self,
+        stmt: &'mir MicroMirStatement<'tcx>,
+    ) -> EncodingResult<PCS<'tcx>> {
         // 1. collect the precondition from it's hoare semantics
         // 2. if the precondition is None
         //     2.1. if the statement is a kill of a (MIR) place p
@@ -225,6 +240,16 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         //     2.2. no other statements have undetermined preconditions in this model
         //              return precondition
         todo!();
+    }
+
+    fn elaborate_postcondition(
+        &self,
+        stmt: &'mir MicroMirStatement<'tcx>,
+    ) -> EncodingResult<PCS<'tcx>> {
+        stmt.postcondition().ok_or(PrustiError::unsupported(
+            "postconditions can not be elaborated",
+            MultiSpan::new(),
+        ))
     }
 
     /// Computes the unification between two PCS's, inserts packs and repacks as necessary
@@ -265,10 +290,10 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
 /// TODO: Refactor this out from this file.
 fn transform_pcs<'tcx>(
-    pcs: &mut PCS<'tcx>,
+    mut pcs: PCS<'tcx>,
     pre: &PCS<'tcx>,
     post: &PCS<'tcx>,
-) -> EncodingResult<()> {
+) -> EncodingResult<PCS<'tcx>> {
     for p in pre.set.iter() {
         if !pcs.set.remove(p) {
             return Err(PrustiError::internal(
@@ -287,5 +312,5 @@ fn transform_pcs<'tcx>(
         }
     }
 
-    return Ok(());
+    return Ok(pcs);
 }

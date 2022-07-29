@@ -25,8 +25,11 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
     - [ ] implement conditional elaboration
         - [ ] repacker
             - [ ] operational description of conditional joins
-            - [ ] terminator semantics should have only one postcondition
             - [ ] common PCS transformation interface (repack interface)
+        - [x] straight line translation
+        - [ ] terminator translation
+        - [ ] eager drops (trim to unique join footprint)
+        - [ ] eager dependent repacks (to maximal, identical, point)
  - [ ] Borrows 
     - [ ] add type dependency to hoare semantics
     - [ ] ? 
