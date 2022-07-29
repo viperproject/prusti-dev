@@ -523,13 +523,43 @@ impl<'tcx> Environment<'tcx> {
         if call_substs.needs_infer() {
             return (called_def_id, call_substs);
         }
-
-        let param_env = self.tcx.param_env(caller_def_id);
-        traits::resolve_instance(self.tcx, param_env.and((called_def_id, call_substs)))
-            .map(|opt_instance| opt_instance
-                .map(|instance| (instance.def_id(), instance.substs))
-                .unwrap_or((called_def_id, call_substs)))
-            .unwrap_or((called_def_id, call_substs))
+        if let Some(trait_id) = self.tcx().trait_of_item(called_def_id) {
+            // debug!("Fetching implementations of method '{:?}' defined in trait '{}' with substs '{:?}'", proc_def_id, self.tcx().def_path_str(trait_id), substs);
+            let result = self.tcx.infer_ctxt().enter(|infcx| {
+                let mut sc = SelectionContext::new(&infcx);
+                let obligation = Obligation::new(
+                    ObligationCause::dummy(),
+                    // TODO(tymap): don't use reveal_all
+                    ty::ParamEnv::reveal_all(),
+                    Binder::dummy(TraitPredicate {
+                        trait_ref: TraitRef {
+                            def_id: trait_id,
+                            substs: call_substs
+                        },
+                        constness: BoundConstness::NotConst,
+                        polarity: ImplPolarity::Positive,
+                    })
+                );
+                sc.select(
+                    &obligation
+                )
+            });
+            match result {
+                Ok(Some(ImplSource::UserDefined(data))) => {
+                    for item in self.tcx().associated_items(data.impl_def_id).in_definition_order() {
+                        if let Some(id) = item.trait_item_def_id {
+                            if id == called_def_id {
+                                return (item.def_id, data.substs);
+                            }
+                        }
+                    }
+                    unreachable!()
+                },
+                _ => (called_def_id, call_substs)
+            }
+        } else {
+            (called_def_id, call_substs)
+        }
     }
 
     /// Checks whether `ty` is copy.
