@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 use crate::{
-    joins::{apply_packings, unify_moves},
+    joins::RepackUnify,
     syntax::{
         hoare_semantics::HoareSemantics, LinearResource, MicroMirData, MicroMirEncoder,
         MicroMirStatement, MicroMirTerminator, PCSPermission, PCS,
@@ -60,9 +60,10 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
             // 1. Precondition elaboration
             let next_statement_state = naive_elaboration(&statement, &current_state)?;
             // 2. Unification of the free PCS via packs and unpacks
-            let packings = unify_moves(&current_state, &next_statement_state, mir, env)?;
+            let packings =
+                RepackUnify::unify_moves(&current_state, &next_statement_state, mir, env)?;
             current_state =
-                apply_packings(current_state, &mut statements, &mut pcs_before, packings)?;
+                packings.apply_packings(current_state, &mut statements, &mut pcs_before)?;
 
             // 3. Statement is now coherent, push
             statements.push(statement.clone());
