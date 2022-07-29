@@ -222,8 +222,9 @@ fn unwrap_model_entry<'a>(
         }
         "viper.silicon.reporting.LitPermEntry" => {
             let lit_perm_wrapper = silicon::reporting::LitPermEntry::with(env);
-            let value = jni.unwrap_result(lit_perm_wrapper.call_value(entry));
-            Some(ModelEntry::LitPerm(value.to_string()))
+            let value_scala = jni.unwrap_result(lit_perm_wrapper.call_value(entry));
+            let value = jni.to_string(value_scala);
+            Some(ModelEntry::LitPerm(value))
         }
         "viper.silicon.reporting.RefEntry" => {
             let ref_wrapper = silicon::reporting::RefEntry::with(env);

@@ -523,10 +523,18 @@ impl<'tcx> Environment<'tcx> {
         called_def_id: ProcedureDefId, // what are we calling?
         call_substs: SubstsRef<'tcx>,
     ) -> (ProcedureDefId, SubstsRef<'tcx>) {
+        use prusti_rustc_interface::middle::ty::TypeVisitable;
+
         // Avoids a compiler-internal panic
         // this check ignores any lifetimes/regions, which at this point would
         // need inference. They are thus ignored.
-        if self.any_type_needs_infer(call_substs) {
+        // TODO: different behaviour used for unsafe core proof
+        let needs_infer = if config::unsafe_core_proof() {
+            call_substs.needs_infer()
+        } else {
+            self.any_type_needs_infer(call_substs)
+        };
+        if needs_infer {
             return (called_def_id, call_substs);
         }
 
