@@ -58,6 +58,20 @@ impl<T> AnalysisResult<T> {
             .get(&location)
             .unwrap_or_else(|| panic!("Missing initialization info for location {:?}", location))
     }
+
+    /// Get initialization information before the statement.
+    /// If ``location.statement_index`` is zero, returns the intialization set
+    /// before the block.
+    pub fn get_before_statement(&self, location: mir::Location) -> &T {
+        if location.statement_index == 0 {
+            self.get_before_block(location.block)
+        } else {
+            self.get_after_statement(mir::Location {
+                block: location.block,
+                statement_index: (location.statement_index - 1),
+            })
+        }
+    }
 }
 
 /// The result of the definitely initialized analysis.

@@ -26,9 +26,10 @@ use prusti_interface::{
 use prusti_rustc_interface::{
     data_structures::fx::{FxHashMap, FxHashSet},
     errors::MultiSpan,
-    middle::mir::{BasicBlock, Body},
+    middle::mir::{BasicBlock, Body, Location, Mutability, Place},
 };
 use std::iter::{repeat, zip};
+use syn::__private::quote::__private::LineColumn;
 
 /// Straight line, fully elaborated MicroMir
 /// INVARIANT: coherent pre- and post- conditions
@@ -109,32 +110,18 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
                 // Pack to the most packed state possible (we are now identical)
                 // (any unique state works)
+                let mut this_op_mir = StraightOperationalMir::default();
+                this_pcs = self.packup(this_pcs, &mut this_op_mir)?;
+
+                // If the next block is not added, add it as a dirty block
+                todo!();
+
+                // Otherwise, just perform a runtime check that the PCS's before
+                //  the first statement are the same
+
+                todo!();
             }
         }
-        /*
-
-            // Set final PCS from current PCS
-            // Push the next blocks with their respective states
-            todo!();
-
-            // Push the fully completed block
-            let _ = ret
-                .blocks
-                .insert(
-                    current_block.bb,
-                    CondPCSBlock {
-                        statements: working_statements,
-                        pcs_before: working_pcs_before,
-                        terminator: todo!(),                          //
-                        pcs_after_terminator: applied_postconditions, // Postconditions
-                    },
-                )
-                .ok_or(PrustiError::internal(
-                    "attempt to compute a block twice",
-                    MultiSpan::new(),
-                ));
-        }
-        */
         todo!();
     }
 
@@ -171,10 +158,10 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         ))
     }
 
+    /// TODO
+    ///   1. I do not know if bb0 is always the initial basic block
+    ///   2. I certainly know that we do not always start with an empty PCS
     fn initial_state(&self) -> Vec<(BasicBlock, PCS<'tcx>)> {
-        // TODO
-        //   1. I do not know if bb0 is always the initial basic block
-        //   2. I certainly know that we do not always start with an empty PCS
         vec![((0 as u32).into(), PCS::empty())]
     }
 
@@ -194,10 +181,52 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         //     2.1. if the statement is a kill of a (MIR) place p
         //              INIT p  => return { e p }
         //              ALLOC p => return { u p }
-        //              neither => in principle, this never happens.
-        //     2.2. no other statements have undetermined preconditions in this model
+        //              neither => error!
+        //     2.2. (no other statements have undetermined preconditions in this model)
         //              return precondition
-        todo!();
+
+        stmt.precondition().ok_or(
+            // State-dependent preconditions we can elaborate:
+            //   - Kill of a MIR place
+            //          INIT p => { e p }
+            //          ALLOC p & !INIT p => { u p }
+            match stmt {
+                // MicroMirStatement::Kill(None, LinearResource::Mir(p)) => {
+                //     match
+                // }
+                _ => todo!(),
+            },
+        )
+    }
+
+    // TODO: contains prefix of??
+    // What about partial drops?
+    fn analysis_as_permission(
+        &self,
+        p: &Place<'tcx>,
+        location: Location,
+    ) -> Option<PCSPermission<'tcx>> {
+        if self
+            .init_analysis
+            .get_before_statement(location)
+            .contains_prefix_of(*p)
+        {
+            return Some(PCSPermission::new_initialized(
+                Mutability::Mut,
+                LinearResource::Mir(*p),
+            ));
+        } else if self
+            .alloc_analysis
+            .get_before_statement(location)
+            .contains_prefix_of(*p)
+        {
+            return Some(PCSPermission::new_initialized(
+                Mutability::Mut,
+                LinearResource::Mir(*p),
+            ));
+        } else {
+            return None;
+        }
     }
 
     fn elaborate_postcondition(
