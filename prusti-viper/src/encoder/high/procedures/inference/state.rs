@@ -163,6 +163,27 @@ impl PredicateState {
         })
     }
 
+    pub(super) fn contains_discriminant_with_prefix(
+        &self,
+        prefix: &vir_high::Expression,
+    ) -> Option<(PermissionKind, &vir_high::Expression)> {
+        let owned = self
+            .places(PermissionKind::Owned)
+            .iter()
+            .map(|place| (PermissionKind::Owned, place));
+        let memory_block = self
+            .places(PermissionKind::MemoryBlock)
+            .iter()
+            .map(|place| (PermissionKind::MemoryBlock, place));
+        owned.chain(memory_block).find(|(_, p)| {
+            if let vir_high::Expression::Field(field) = p {
+                field.field.is_discriminant() && &*field.base == prefix
+            } else {
+                false
+            }
+        })
+    }
+
     pub(super) fn get_all_with_prefix<'a>(
         &'a self,
         kind: PermissionKind,

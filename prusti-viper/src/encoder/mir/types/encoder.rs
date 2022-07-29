@@ -319,7 +319,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 up.set_type(vir::Type::MInt);
                 Some((low, up))
             }
-            ty::TyKind::Char => Some((0.into(), std::char::MAX.into())),
+            ty::TyKind::Char => {
+                let mut low: vir::Expression = 0.into();
+                let mut up: vir::Expression = std::char::MAX.into();
+                low.set_type(vir::Type::MInt);
+                up.set_type(vir::Type::MInt);
+                Some((low, up))
+            }
             ty::TyKind::Ref(_, ty, _) => Self::new(self.encoder, *ty).get_integer_bounds(),
             _ => None,
         }
