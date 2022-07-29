@@ -152,7 +152,7 @@ pub fn naive_elaboration<'tcx>(
     match statement.precondition() {
         Some(s) => Ok(s),
         None => match statement {
-            MicroMirStatement::Kill(LinearResource::Mir(p)) => {
+            MicroMirStatement::Kill(_, LinearResource::Mir(p)) => {
                 // Remove all places which are a prefix of the statement to kill (p).
                 let mut set: FxHashSet<PCSPermission<'tcx>> = FxHashSet::default();
                 for current_permission in current_state.set.iter() {

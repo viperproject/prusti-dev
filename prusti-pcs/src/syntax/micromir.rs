@@ -54,7 +54,8 @@ pub enum MicroMirStatement<'tcx> {
     Move(Place<'tcx>, TemporaryPlace),
     Duplicate(Place<'tcx>, TemporaryPlace, Mutability),
     Constant(Constant<'tcx>, TemporaryPlace),
-    Kill(LinearResource<'tcx>),
+    // Precondition is allowed to be None
+    Kill(Option<Vec<PCSPermission<'tcx>>>, LinearResource<'tcx>),
     NullOp(NullOp, TemporaryPlace),
     UnOp(UnOp, TemporaryPlace, TemporaryPlace),
     BinaryOp(BinOp, bool, TemporaryPlace, TemporaryPlace, TemporaryPlace),
@@ -128,9 +129,9 @@ impl<'tcx> PCS<'tcx> {
 }
 
 impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
-    type PRE = PCS<'tcx>;
+    type PRE = Option<PCS<'tcx>>;
 
-    fn precondition(&self) -> Option<Self::PRE> {
+    fn precondition(&self) -> Self::PRE {
         match self {
             MicroMirStatement::Nop => Some(PCS::from_vec(vec![])),
             MicroMirStatement::Set(t, p, m) => Some(PCS::from_vec(vec![
@@ -150,7 +151,9 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
                 )]))
             }
             MicroMirStatement::Constant(_, _) => Some(PCS::empty()),
-            MicroMirStatement::Kill(_) => None,
+            MicroMirStatement::Kill(pre, _) => {
+                pre.clone().and_then(|pre_v| Some(PCS::from_vec(pre_v)))
+            }
             MicroMirStatement::NullOp(_, _) => Some(PCS::empty()),
             MicroMirStatement::UnOp(_, t1, _) => {
                 Some(PCS::from_vec(vec![PCSPermission::new_initialized(
@@ -192,9 +195,9 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
         }
     }
 
-    type POST = PCS<'tcx>;
+    type POST = Option<PCS<'tcx>>;
 
-    fn postcondition(&self) -> Option<Self::POST> {
+    fn postcondition(&self) -> Self::POST {
         match self {
             MicroMirStatement::Nop => Some(PCS::from_vec(vec![])),
             MicroMirStatement::Set(_, p, m) => {
@@ -217,7 +220,9 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
                     (*t).into(),
                 )]))
             }
-            MicroMirStatement::Kill(p) => Some(PCS::from_vec(vec![PCSPermission::new_uninit(*p)])),
+            MicroMirStatement::Kill(_, p) => {
+                Some(PCS::from_vec(vec![PCSPermission::new_uninit(*p)]))
+            }
             MicroMirStatement::NullOp(_, t1) => {
                 Some(PCS::from_vec(vec![PCSPermission::new_initialized(
                     Mutability::Mut,
@@ -270,9 +275,9 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
 }
 
 impl<'tcx> HoareSemantics for MicroMirTerminator<'tcx> {
-    type PRE = PCS<'tcx>;
+    type PRE = Option<PCS<'tcx>>;
 
-    fn precondition(&self) -> Option<Self::PRE> {
+    fn precondition(&self) -> Self::PRE {
         match self {
             MicroMirTerminator::Jump(_) => Some(PCS::empty()),
             MicroMirTerminator::JumpInt(t, _, m) => {
@@ -291,9 +296,9 @@ impl<'tcx> HoareSemantics for MicroMirTerminator<'tcx> {
         }
     }
 
-    type POST = Vec<(BasicBlock, PCS<'tcx>)>;
+    type POST = Option<Vec<(BasicBlock, PCS<'tcx>)>>;
 
-    fn postcondition(&self) -> Option<Self::POST> {
+    fn postcondition(&self) -> Self::POST {
         match self {
             MicroMirTerminator::Jump(bb) => Some(vec![(*bb, PCS::empty())]),
             MicroMirTerminator::JumpInt(t, mir_targets, m) => {
@@ -431,8 +436,12 @@ impl<'tcx> Debug for MicroMirStatement<'tcx> {
             MicroMirStatement::Move(p, t) => write!(f, "move {:?} -> {:?}", p, t),
             MicroMirStatement::Duplicate(p, t, m) => write!(f, "dup {:?} -> {:?} ({:?})", p, t, m),
             MicroMirStatement::Constant(k, t) => write!(f, "constant {:?} -> {:?}", k, t),
-            MicroMirStatement::Kill(LinearResource::Tmp(t)) => write!(f, "kill {:?}", t),
-            MicroMirStatement::Kill(LinearResource::Mir(p)) => write!(f, "kill {:?}", p),
+            MicroMirStatement::Kill(pls, LinearResource::Tmp(t)) => {
+                write!(f, "kill ({:?}) {:?}", pls, t)
+            }
+            MicroMirStatement::Kill(pls, LinearResource::Mir(p)) => {
+                write!(f, "kill ({:?}) {:?}", pls, p)
+            }
             MicroMirStatement::NullOp(op, t) => write!(f, "op0 {:?} -> {:?}", op, t),
             MicroMirStatement::UnOp(op, t1, t2) => write!(f, "op1 {:?} {:?} -> {:?}", op, t1, t2),
             MicroMirStatement::BinaryOp(op, false, t1, t2, t3) => {

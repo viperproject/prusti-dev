@@ -7,6 +7,6 @@
 pub trait HoareSemantics {
     type PRE;
     type POST;
-    fn precondition(&self) -> Option<Self::PRE>;
-    fn postcondition(&self) -> Option<Self::POST>;
+    fn precondition(&self) -> Self::PRE;
+    fn postcondition(&self) -> Self::POST;
 }
