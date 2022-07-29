@@ -97,6 +97,8 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             let terminator = &block_data.terminator;
             pcs = self.repack(pcs, &terminator.precondition(), &mut body)?;
 
+            let mut pcs_after: Vec<(PostBlock<'tcx>, PCS<'tcx>)> = Vec::default();
+
             for (next_block, dependent_postcondition) in terminator.postcondition() {
                 //      Apply the semantics (we are now joinable mod repacks)
                 let mut this_pcs = transform_pcs(
@@ -106,23 +108,51 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 )?;
 
                 // Trim the PCS by way of eager drops (we are now the same mod repacks)
-                this_pcs = self.trim_pcs(this_pcs);
+                this_pcs = self.trim_pcs(this_pcs, next_block);
 
                 // Pack to the most packed state possible (we are now identical)
                 // (any unique state works)
                 let mut this_op_mir = StraightOperationalMir::default();
                 this_pcs = self.packup(this_pcs, &mut this_op_mir)?;
 
-                // If the next block is not added, add it as a dirty block
-                todo!();
+                // If the next block is not already done, add it as a dirty block (to do)
+                if generated_blocks.contains_key(&next_block) {
+                    // Do a runtime check that the final PCS is the same as the
+                    // intial PCS in the block
+                    todo!();
+                } else if
+                /*dirty_blocks.contains_key(&next_block)*/
+                todo!() {
+                    // Do a runtime check that the final PCS is the same as the
+                    // intial PCS in the block
+                    todo!();
+                } else {
+                    // Mark the next block as dirty
+                    dirty_blocks.push((next_block, this_pcs.clone()));
+                }
 
-                // Otherwise, just perform a runtime check that the PCS's before
-                //  the first statement are the same
-
-                todo!();
+                pcs_after.push((
+                    PostBlock {
+                        body: this_op_mir,
+                        next: next_block,
+                    },
+                    this_pcs,
+                ));
             }
+
+            generated_blocks.insert(
+                block_data.mir_block,
+                CondPCSBlock {
+                    body,
+                    terminator: todo!(),
+                    pcs_after,
+                },
+            );
         }
-        todo!();
+
+        Ok(CondPCS {
+            blocks: generated_blocks,
+        })
     }
 
     // Straight-line PCS computation inside the body of a basic block
@@ -132,9 +162,13 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         op_mir: &mut StraightOperationalMir<'tcx>,
         mut pcs: PCS<'tcx>,
     ) -> EncodingResult<PCS<'tcx>> {
-        for statement in block_data.statements.iter() {
+        for (statement_index, statement) in block_data.statements.iter().enumerate() {
             // 1. Elaborate the state-dependent conditions
-            let statement_precondition = self.elaborate_precondition(statement)?;
+            let location = Location {
+                block: block_data.mir_block,
+                statement_index: block_data.mir_parent[statement_index],
+            };
+            let statement_precondition = self.elaborate_precondition(statement, location)?;
             let statement_postcondition = self.elaborate_postcondition(statement)?;
 
             // 2. Repack to precondition
@@ -167,7 +201,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
     /// Modifies a PCS to be coherent with the initialization state, and returns permissions
     /// to weaken
-    fn trim_pcs(&self, mut pcs: PCS<'tcx>) -> PCS<'tcx> {
+    fn trim_pcs(&self, mut pcs: PCS<'tcx>, block: BasicBlock) -> PCS<'tcx> {
         todo!();
     }
 
@@ -175,28 +209,33 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
     fn elaborate_precondition(
         &self,
         stmt: &'mir MicroMirStatement<'tcx>,
+        location: Location,
     ) -> EncodingResult<PCS<'tcx>> {
-        // 1. collect the precondition from it's hoare semantics
-        // 2. if the precondition is None
-        //     2.1. if the statement is a kill of a (MIR) place p
-        //              INIT p  => return { e p }
-        //              ALLOC p => return { u p }
-        //              neither => error!
-        //     2.2. (no other statements have undetermined preconditions in this model)
-        //              return precondition
+        if let Some(r) = stmt.precondition() {
+            return Ok(r);
+        }
 
-        stmt.precondition().ok_or(
-            // State-dependent preconditions we can elaborate:
-            //   - Kill of a MIR place
-            //          INIT p => { e p }
-            //          ALLOC p & !INIT p => { u p }
-            match stmt {
-                // MicroMirStatement::Kill(None, LinearResource::Mir(p)) => {
-                //     match
-                // }
-                _ => todo!(),
-            },
-        )
+        // State-dependent preconditions we can elaborate:
+        //   - Kill of a MIR place
+        //          INIT p => { e p }
+        //          ALLOC p & !INIT p => { u p }
+        match stmt {
+            MicroMirStatement::Kill(None, LinearResource::Mir(p)) => {
+                self.analysis_as_permission(p, location).map_or_else(
+                    || {
+                        Err(PrustiError::internal(
+                            "could not find permission in analyses",
+                            MultiSpan::new(),
+                        ))
+                    },
+                    |perm| Ok(PCS::from_vec(vec![perm])),
+                )
+            }
+            _ => Err(PrustiError::unsupported(
+                "unsupported kill elaboration",
+                MultiSpan::new(),
+            )),
+        }
     }
 
     // TODO: contains prefix of??
