@@ -21,7 +21,7 @@ use prusti_rustc_interface::{
 
 // Assumption: All places are mutably owned
 #[derive(Debug)]
-pub struct PCSRepacker<'tcx> {
+pub struct RepackUnify<'tcx> {
     pub packs: Vec<(Place<'tcx>, FxHashSet<Place<'tcx>>)>,
     pub unpacks: Vec<(Place<'tcx>, FxHashSet<Place<'tcx>>)>,
 }
@@ -32,7 +32,7 @@ pub fn unify_moves<'mir, 'env: 'mir, 'tcx: 'env>(
     b_pcs: &PCS<'tcx>,
     mir: &'mir Body<'tcx>,
     env: &'env Environment<'tcx>,
-) -> EncodingResult<PCSRepacker<'tcx>> {
+) -> EncodingResult<RepackUnify<'tcx>> {
     let mut mir_problems: FxHashMap<
         (Local, PCSPermissionKind),
         (FxHashSet<Place<'tcx>>, FxHashSet<Place<'tcx>>),
@@ -151,10 +151,19 @@ pub fn unify_moves<'mir, 'env: 'mir, 'tcx: 'env>(
         }
     }
 
-    Ok(PCSRepacker {
+    Ok(RepackUnify {
         unpacks: a_unpacks,
         packs: b_unpacks,
     })
+}
+
+/// Returns a PCSRepacker which transforms a PCS into it's most packed state
+pub fn pack_up<'mir, 'env: 'mir, 'tcx: 'env>(
+    a_pcs: &PCS<'tcx>,
+    mir: &'mir Body<'tcx>,
+    env: &'env Environment<'tcx>,
+) -> EncodingResult<RepackUnify<'tcx>> {
+    todo!();
 }
 
 /// Apply a PCSRepacker to a state
@@ -162,7 +171,7 @@ pub fn apply_packings<'tcx>(
     mut state: PCS<'tcx>,
     statements: &mut Vec<MicroMirStatement<'tcx>>,
     before_pcs: &mut Vec<PCS<'tcx>>,
-    packings: PCSRepacker<'tcx>,
+    packings: RepackUnify<'tcx>,
 ) -> EncodingResult<PCS<'tcx>> {
     // TODO: Move insert and remove (guarded with linearity) into PCS
 

@@ -11,7 +11,7 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
         - [x] uninit
         - [x] apply-packing
         - [x] separating union
-        - [ ] refactor
+        - [x] refactor
         - [x] fix lifetimes
         - [x] change pcs-after back to pcs-before again
     - [ ] stable output representation for testing
@@ -23,8 +23,10 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
         - [ ] tests
  - [ ] Branches
     - [ ] implement conditional elaboration
-    - [ ] refactor conditional weakening to joins/
-    - [ ] ?
+        - [ ] repacker
+            - [ ] operational description of conditional joins
+            - [ ] terminator semantics should have only one postcondition
+            - [ ] common PCS transformation interface (repack interface)
  - [ ] Borrows 
     - [ ] add type dependency to hoare semantics
     - [ ] ? 
