@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #![allow(unused_imports)]
 use crate::{
-    joins::{apply_packings, unify_moves},
+    joins::{apply_packings, unify_moves, RepackPackup},
     syntax::{
         hoare_semantics::HoareSemantics, LinearResource, MicroMirData, MicroMirEncoder,
         MicroMirEncoding, MicroMirStatement, MicroMirTerminator, PCSPermission, PCS,
@@ -162,15 +162,20 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 transform_pcs(&mut pcs1, &terminator_precondition, post);
                 applied_postconditions.push((*bb_next, pcs1));
 
-                // TODO (now) how are we going to make sure the PCS's are compatible?
-                // most packed state? add packs afterwards?
+                // Pack up the PCS as much as possible
+                let packup = RepackPackup::new(self.env.tcx(), self.mir, pcs)?;
+                for (pre_pack, post_pack) in packup.packs {
+                    working_pcs_before.push(pcs);
+                    working_statements.push(MicroMirStatement::Pack(
+                        pre_pack.into_iter().collect(),
+                        post_pack,
+                    ))
 
-                // This probably requires that terminators do not have a postcondition, or that
-                // their postconditions are not dependent.
+                    // Terminators should have only one postcondition, I'm honestly
+                    // not sure why I didn't do it this way :)
+                }
 
-                // Alternative 1: Introduce imaginary blocks to conditionally repack. clunky!
-                // Alternative 2: Require that MicroMir terminators do not modify the PCS conditionally
-                //      possibly too strong an assumption?
+                // Trim
                 todo!();
             }
 
@@ -224,7 +229,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         todo!();
     }
 
-    // Note: Always repack on outgoing edges.
+    // Note:
     //
     // PCS A -- repacks --.
     //                   join = PCS C
@@ -238,6 +243,20 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
     //
     // as every unification done by the latter can be done by the former,
     //  but not vice-versa.
+
+    // Actually! We're doing a different strategy.
+    //
+    // PCS A -- packs -- trim --.
+    //                         join -- unpacks --> PCS C
+    // PCS B -- packs -- trim --'
+    //
+    // - Theorem: All unifiable PCS's can be unified by doing packs, then unpacks
+    //  (no interleaving necessary). That is, there is a meet-semilattice of permissions
+    //
+    // The trimming join enforces the following:
+    //      - All exclusive permissions are exactly = init (alloc is a subset of init)
+    //      - All uninit permissions are exactly = (init - alloc)
+    //
 }
 
 /// TODO: Refactor this out from this file.
