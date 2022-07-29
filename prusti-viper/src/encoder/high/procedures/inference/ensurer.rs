@@ -81,6 +81,18 @@ fn ensure_required_permission(
             "cannot drop unconditional state"
         );
     } else {
+        if let Some((discriminant_permission_kind, discriminant)) =
+            unconditional_predicate_state.contains_discriminant_with_prefix(&place)
+        {
+            // If unconditional contains the discriminant, transfer it to all
+            // conditionals.
+            let discriminant = discriminant.clone();
+            unconditional_predicate_state.remove(discriminant_permission_kind, &discriminant)?;
+            for (_, conditional_predicate_state) in state.get_conditional_states()? {
+                conditional_predicate_state
+                    .insert(discriminant_permission_kind, discriminant.clone())?;
+            }
+        }
         for (condition, conditional_predicate_state) in state.get_conditional_states()? {
             if can_place_be_ensured_in(
                 context,
@@ -387,7 +399,10 @@ fn ensure_permission_in_state(
         }
     } else {
         // The requirement cannot be satisfied.
-        unreachable!("{} {:?}", place, permission_kind);
+        unreachable!(
+            "place={} permission_kind={:?} predicate_state={}",
+            place, permission_kind, predicate_state
+        );
     };
     Ok(to_drop)
 }
