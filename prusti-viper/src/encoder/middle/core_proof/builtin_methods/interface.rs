@@ -15,8 +15,8 @@ use crate::encoder::{
         predicates::{PredicatesMemoryBlockInterface, PredicatesOwnedInterface},
         references::ReferencesInterface,
         snapshots::{
-            BuiltinFunctionsInterface, IntoProcedureFinalSnapshot, IntoProcedureSnapshot,
-            IntoSnapshot, SnapshotBytesInterface, SnapshotValidityInterface,
+            BuiltinFunctionsInterface, IntoBuiltinMethodSnapshot, IntoProcedureFinalSnapshot,
+            IntoProcedureSnapshot, IntoSnapshot, SnapshotBytesInterface, SnapshotValidityInterface,
             SnapshotValuesInterface, SnapshotVariablesInterface,
         },
         type_layouts::TypeLayoutsInterface,
@@ -665,6 +665,25 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     &value.right,
                     position,
                 )?;
+                if value.kind == vir_mid::BinaryOpKind::Div {
+                    // For some reason, division is not CheckedBinaryOp, but the
+                    // regular one. Therefore, we need to put the checks for
+                    // overflows into the precondition.
+                    let type_decl = self.encoder.get_type_decl_mid(result_type)?.unwrap_int();
+                    if let Some(lower) = type_decl.lower_bound {
+                        let zero =
+                            self.construct_constant_snapshot(result_type, 0.into(), position)?;
+                        pres.push(expr! {operand_right != [zero]});
+                        let minus_one =
+                            self.construct_constant_snapshot(result_type, (-1).into(), position)?;
+                        let lower_snap = lower.to_builtin_method_snapshot(self)?;
+                        let min =
+                            self.construct_constant_snapshot(result_type, lower_snap, position)?;
+                        pres.push(
+                            expr! {((operand_right != [minus_one]) || (operand_left != [min]))},
+                        );
+                    }
+                }
                 self.construct_binary_op_snapshot(
                     value.kind,
                     value.kind.get_result_type(value.left.expression.get_type()),
