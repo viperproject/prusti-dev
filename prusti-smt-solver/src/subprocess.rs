@@ -31,7 +31,11 @@ async fn read_response(
             return Ok(true);
         }
     }
-    Ok(false)
+    if response.chars().all(char::is_whitespace) {
+        Ok(true)
+    } else {
+        Ok(false)
+    }
 }
 
 pub(crate) async fn communicate(
@@ -49,12 +53,17 @@ pub(crate) async fn communicate(
         solver_stdin.write_all(command.as_bytes()).await?;
         solver_stdin.flush().await?;
 
-        assert!(
-            read_response(&mut solver_stdout, &mut response)
-                .await
-                .unwrap(),
-            "reached EOF while reading response"
-        );
+        if !read_response(&mut solver_stdout, &mut response)
+            .await
+            .unwrap()
+        {
+            assert!(
+                are_parens_balanced(&response),
+                "unbalanced EOF response: {}",
+                response
+            );
+            break;
+        }
         let elapsed = now.elapsed().as_millis();
         context.write_to_log("out", &response).await?;
         context.write_number_to_log("elapsed-time", elapsed).await?;
