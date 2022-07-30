@@ -1,10 +1,12 @@
 use crate::{environment::Environment, utils::has_trait_bounds_ghost_constraint};
 pub use common::{SpecIdRef, SpecType, SpecificationId};
 use log::trace;
+use prusti_rustc_interface::{
+    hir::def_id::{DefId, LocalDefId},
+    span::Span,
+};
 use prusti_specs::specifications::common;
 use rustc_hash::FxHashMap;
-use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
-use prusti_rustc_interface::span::Span;
 use std::{
     collections::HashMap,
     fmt::{Debug, Display, Formatter},
@@ -593,9 +595,15 @@ impl<T: Debug + Clone + PartialEq> Refinable for SpecificationItem<T> {
 
 impl Refinable for ProcedureSpecification {
     fn refine(self, other: &Self) -> Self {
+        let empty_spec = SpecificationItem::Inherent(Vec::new());
+        let other_pres = match &other.pres {
+            SpecificationItem::Empty => &empty_spec,
+            // A refinement spec without preconditions should still be considered as inherently specifying true
+            other => other,
+        };
         ProcedureSpecification {
             span: self.span.or(other.span),
-            pres: self.pres.refine(&other.pres),
+            pres: self.pres.refine(other_pres),
             posts: self.posts.refine(&other.posts),
             pledges: self.pledges.refine(&other.pledges),
             kind: self.kind.refine(&other.kind),
