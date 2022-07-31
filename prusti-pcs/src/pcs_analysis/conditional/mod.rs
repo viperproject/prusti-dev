@@ -74,8 +74,9 @@ impl<'a, 'tcx: 'a> Iterator for StraightOperationalMirIter<'a, 'tcx> {
     type Item = (&'a PCS<'tcx>, &'a MicroMirStatement<'tcx>);
     fn next(&mut self) -> Option<Self::Item> {
         if self.index < self.base.len() {
+            let ret = self.base.get(self.index);
             self.index += 1;
-            Some(self.base.get(self.index))
+            Some(ret)
         } else {
             None
         }
@@ -267,11 +268,6 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             let statement_postcondition = self.elaborate_postcondition(statement)?;
 
             // 2. Repack to precondition
-            println!("pcs is {:?}", pcs);
-            println!(
-                "{:?} {:?} {:?}",
-                statement_precondition, statement, statement_precondition
-            );
             pcs = self.repack(pcs, &statement_precondition, op_mir)?;
 
             // 3. Statement is coherent: push
@@ -322,15 +318,12 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         //          ALLOC p & !INIT p => { u p }
         match stmt {
             MicroMirStatement::Kill(None, LinearResource::Mir(p)) => {
-                self.analysis_as_permission(p, location).map_or_else(
-                    || {
-                        Err(PrustiError::internal(
-                            "could not find permission in analyses",
-                            MultiSpan::new(),
-                        ))
-                    },
-                    |perm| Ok(PCS::from_vec(vec![perm])),
-                )
+                self.analysis_as_permission(p, location).ok_or_else(|| {
+                    PrustiError::internal(
+                        format!("could not find permission {:?} in analyses", p),
+                        MultiSpan::new(),
+                    )
+                })
             }
             _ => Err(PrustiError::unsupported(
                 "unsupported kill elaboration",
@@ -341,31 +334,31 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
     // TODO: contains prefix of??
     // What about partial drops?
-    fn analysis_as_permission(
-        &self,
-        p: &Place<'tcx>,
-        location: Location,
-    ) -> Option<PCSPermission<'tcx>> {
-        println!("Init analysis before");
-        println!("{:?}", self.init_analysis.get_before_statement(location));
-        println!("Alloc analysis before");
-        println!("{:?}", self.alloc_analysis.get_before_statement(location));
-
+    fn analysis_as_permission(&self, p: &Place<'tcx>, location: Location) -> Option<PCS<'tcx>> {
         if self
             .init_analysis
             .get_before_statement(location)
             .contains_prefix_of(*p)
         {
-            Some(PCSPermission::new_initialized(
+            Some(PCS::from_vec(vec![PCSPermission::new_initialized(
                 Mutability::Mut,
                 LinearResource::Mir(*p),
-            ))
+            )]))
         } else if self
             .alloc_analysis
             .get_before_statement(location)
             .contains_prefix_of(*p)
         {
-            Some(PCSPermission::new_uninit(LinearResource::Mir(*p)))
+            Some(PCS::from_vec(vec![PCSPermission::new_uninit(
+                LinearResource::Mir(*p),
+            )]))
+        } else if LinearResource::new_from_local_id(0) == LinearResource::Mir(*p) {
+            // if _0 is not mentioned, assume uninit _0
+            // probably *fine* because _0 is SSA but this is a hack
+            Some(PCS::from_vec(vec![]))
+            // Some(PCSPermission::new_uninit(
+            //     LinearResource::new_from_local_id(0),
+            // ))
         } else {
             None
         }
@@ -388,7 +381,6 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         next_pre: &PCS<'tcx>,
         op_mir: &mut StraightOperationalMir<'tcx>,
     ) -> EncodingResult<PCS<'tcx>> {
-        println!("Repacking...");
         RepackUnify::unify_moves(&pcs, next_pre, self.mir, self.env)?.apply_packings(
             pcs,
             &mut op_mir.statements,
