@@ -306,7 +306,8 @@ impl<'tcx> HoareSemantics for MicroMirTerminator<'tcx> {
                 .map(|(_, bb)| {
                     (
                         *bb,
-                        PCS::from_vec(vec![PCSPermission::new_initialized(*m, *t)]),
+                        PCS::from_vec(vec![]),
+                        /*PCS::from_vec(vec![PCSPermission::new_initialized(*m, *t)]),*/
                     )
                 })
                 .collect(),

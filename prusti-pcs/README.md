@@ -43,8 +43,10 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
     - [ ] refactor out common data structures
     - [x] hoare semantics trait has Option baked in (why?), remove this 
     - [x] add explicit precondition to kill syntax
-    - [ ] retranslate ``retuhrn``, ``_0`` only when returning a value?
+    - [ ] retranslate ``return``, ``_0`` only when returning a value?
         - [ ] (semi-urgent) remove u _0 hack for place lookup
-    - [x] translation is either printing or generating the wrong basic blocks
-    - [x] translation missing some conditional jumps
-    - [ ] translation missing initial PCS (eg. function arguments)
+        - [ ] translation missing initial PCS (eg. function arguments)
+    - [x] conditional translation incorrect
+        - [x] missing blocks (pretty printing)
+        - [x] missing some conditional jumps
+        - [x] unsoundness in postconditions
