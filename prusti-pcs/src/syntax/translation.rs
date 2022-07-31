@@ -174,9 +174,9 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
             Unreachable => Ok(MicroMirTerminator::FailVerif),
 
             Return => {
-                let return_mutability =
-                    Self::lookup_place_mutability(&Local::from_usize(0).into(), ctx.mir())?;
-                Ok(MicroMirTerminator::Return(return_mutability))
+                // let return_mutability =
+                //     Self::lookup_place_mutability(&Local::from_usize(0).into(), ctx.mir())?;
+                Ok(MicroMirTerminator::Return())
             }
 
             Drop {
@@ -374,8 +374,8 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
     }
 
     // Appends the encoding for a StorageLive
-    fn encode_storagelive(_ctx: &mut BBCtx<'mir, 'tcx>, _l: Local) -> EncodingResult<()> {
-        // current.push(MicroMirStatement::Allocate(l.into()));
+    fn encode_storagelive(ctx: &mut BBCtx<'mir, 'tcx>, l: Local) -> EncodingResult<()> {
+        ctx.push_stmt(MicroMirStatement::Allocate(l.into()));
         Ok(())
     }
 

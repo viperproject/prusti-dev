@@ -121,9 +121,7 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
                     }
                 }
             }
-            MicroMirTerminator::Return(_) => {
-                // Log result and break
-                // todo: technically has a precondition, see encoding.
+            MicroMirTerminator::Return() => {
                 break;
             }
             _ => {

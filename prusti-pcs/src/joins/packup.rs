@@ -55,7 +55,7 @@ impl<'tcx> RepackPackup<'tcx> {
         }
 
         let mut mir_problem_iter = mir_problems.drain();
-        while let Some((local, mut places)) = mir_problem_iter.next() {
+        while let Some((_local, mut places)) = mir_problem_iter.next() {
             // Fully pack the given place set:
 
             // Order the places by length of their projection lists

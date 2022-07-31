@@ -267,6 +267,11 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             let statement_postcondition = self.elaborate_postcondition(statement)?;
 
             // 2. Repack to precondition
+            println!("pcs is {:?}", pcs);
+            println!(
+                "{:?} {:?} {:?}",
+                statement_precondition, statement, statement_precondition
+            );
             pcs = self.repack(pcs, &statement_precondition, op_mir)?;
 
             // 3. Statement is coherent: push
@@ -341,26 +346,28 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         p: &Place<'tcx>,
         location: Location,
     ) -> Option<PCSPermission<'tcx>> {
+        println!("Init analysis before");
+        println!("{:?}", self.init_analysis.get_before_statement(location));
+        println!("Alloc analysis before");
+        println!("{:?}", self.alloc_analysis.get_before_statement(location));
+
         if self
             .init_analysis
             .get_before_statement(location)
             .contains_prefix_of(*p)
         {
-            return Some(PCSPermission::new_initialized(
+            Some(PCSPermission::new_initialized(
                 Mutability::Mut,
                 LinearResource::Mir(*p),
-            ));
+            ))
         } else if self
             .alloc_analysis
             .get_before_statement(location)
             .contains_prefix_of(*p)
         {
-            return Some(PCSPermission::new_initialized(
-                Mutability::Mut,
-                LinearResource::Mir(*p),
-            ));
+            Some(PCSPermission::new_uninit(LinearResource::Mir(*p)))
         } else {
-            return None;
+            None
         }
     }
 
@@ -381,6 +388,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         next_pre: &PCS<'tcx>,
         op_mir: &mut StraightOperationalMir<'tcx>,
     ) -> EncodingResult<PCS<'tcx>> {
+        println!("Repacking...");
         RepackUnify::unify_moves(&pcs, next_pre, self.mir, self.env)?.apply_packings(
             pcs,
             &mut op_mir.statements,
@@ -445,7 +453,7 @@ fn transform_pcs<'tcx>(
         }
     }
 
-    for p in pre.set.iter() {
+    for p in post.set.iter() {
         if !pcs.set.insert((*p).clone()) {
             return Err(PrustiError::internal(
                 format!("incoherent postcondition: {:#?} in {:#?}", p, pcs.set),
