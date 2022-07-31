@@ -116,16 +116,34 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 this_pcs = self.packup(this_pcs, &mut this_op_mir)?;
 
                 // If the next block is not already done, add it as a dirty block (to do)
-                if generated_blocks.contains_key(&next_block) {
-                    // Do a runtime check that the final PCS is the same as the
+                if let Some(done_block) = generated_blocks.get(&next_block) {
+                    // Check that the final PCS is the same as the
                     // intial PCS in the block
-                    todo!();
-                } else if
-                /*dirty_blocks.contains_key(&next_block)*/
-                todo!() {
-                    // Do a runtime check that the final PCS is the same as the
+                    if this_pcs != done_block.body.pcs_before[0] {
+                        return Err(PrustiError::internal(
+                            "trimmed+packed pcs does not match exiting a join",
+                            MultiSpan::new(),
+                        ));
+                    }
+                } else if let Some(todo_pcs) = dirty_blocks
+                    .iter()
+                    .filter_map(|(todo_bb, todo_pcs)| {
+                        if *todo_bb == next_block {
+                            Some(todo_pcs)
+                        } else {
+                            None
+                        }
+                    })
+                    .next()
+                {
+                    // Check that the final PCS is the same as the
                     // intial PCS in the block
-                    todo!();
+                    if this_pcs != *todo_pcs {
+                        return Err(PrustiError::internal(
+                            "trimmed+packed pcs does not join with a dirty PCS",
+                            MultiSpan::new(),
+                        ));
+                    }
                 } else {
                     // Mark the next block as dirty
                     dirty_blocks.push((next_block, this_pcs.clone()));
@@ -144,7 +162,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 block_data.mir_block,
                 CondPCSBlock {
                     body,
-                    terminator: todo!(),
+                    terminator: (*terminator).clone(),
                     pcs_after,
                 },
             );

@@ -70,6 +70,7 @@ pub enum MicroMirStatement<'tcx> {
     Unpack(Place<'tcx>, Vec<Place<'tcx>>),
 }
 
+#[derive(Clone)]
 pub enum MicroMirTerminator<'tcx> {
     Jump(BasicBlock),
     JumpInt(LinearResource<'tcx>, Vec<(u128, BasicBlock)>, Mutability),
@@ -103,7 +104,7 @@ pub struct PCSPermission<'tcx> {
     pub kind: PCSPermissionKind,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PCS<'tcx> {
     pub set: FxHashSet<PCSPermission<'tcx>>,
 }
