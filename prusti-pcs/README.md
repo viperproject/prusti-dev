@@ -46,5 +46,5 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
     - [ ] retranslate ``retuhrn``, ``_0`` only when returning a value?
         - [ ] (semi-urgent) remove u _0 hack for place lookup
     - [x] translation is either printing or generating the wrong basic blocks
-    - [ ] translation missing some conditional jumps
+    - [x] translation missing some conditional jumps
     - [ ] translation missing initial PCS (eg. function arguments)

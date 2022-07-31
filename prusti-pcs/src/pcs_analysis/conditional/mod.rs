@@ -164,7 +164,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         // Computation left to do
         let mut dirty_blocks = self.initial_state();
 
-        while let Some((mut bb, mut pcs)) = dirty_blocks.pop() {
+        while let Some((bb, mut pcs)) = dirty_blocks.pop() {
             // Translate the basic block bb, starting with PCS pcs
             //  (this should be the exact PCS that all in-edges end up with)
             let block_data = self.get_block_data(&bb)?;
@@ -297,7 +297,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
     /// Modifies a PCS to be coherent with the initialization state, and returns permissions
     /// to weaken
-    fn trim_pcs(&self, mut pcs: PCS<'tcx>, block: BasicBlock) -> PCS<'tcx> {
+    fn trim_pcs(&self, pcs: PCS<'tcx>, _block: BasicBlock) -> PCS<'tcx> {
         // todo!();
         pcs
     }
@@ -377,7 +377,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
     /// Computes the unification between two PCS's, inserts packs and repacks as necessary
     fn repack(
         &self,
-        mut pcs: PCS<'tcx>,
+        pcs: PCS<'tcx>,
         next_pre: &PCS<'tcx>,
         op_mir: &mut StraightOperationalMir<'tcx>,
     ) -> EncodingResult<PCS<'tcx>> {
@@ -390,7 +390,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
     fn packup(
         &self,
-        mut pcs: PCS<'tcx>,
+        pcs: PCS<'tcx>,
         op_mir: &mut StraightOperationalMir<'tcx>,
     ) -> EncodingResult<PCS<'tcx>> {
         RepackPackup::new(self.env.tcx(), self.mir, pcs.clone())?.apply_packings(

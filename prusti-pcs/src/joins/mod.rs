@@ -10,7 +10,7 @@ mod unify;
 pub use packup::*;
 pub use unify::*;
 
-use crate::syntax::{MicroMirStatement, PCSPermission, PCSPermissionKind, PCS};
+use crate::syntax::MicroMirStatement;
 
 /// Represents any transformation of the free PCS we are permitted to do
 pub trait Repacking<'tcx> {
