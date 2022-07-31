@@ -4,9 +4,16 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 use crate::{
-    pcs_analysis::straight::straight_line_pcs, syntax::MicroMirEncoder, util::EncodingResult,
+    pcs_analysis::{conditional::CondPCSctx, straight::straight_line_pcs},
+    syntax::MicroMirEncoder,
+    util::EncodingResult,
 };
-use prusti_interface::environment::{Environment, Procedure};
+use prusti_interface::environment::{
+    mir_analyses::{
+        allocation::compute_definitely_allocated, initialization::compute_definitely_initialized,
+    },
+    Environment, Procedure,
+};
 use prusti_rustc_interface::middle::mir::Body;
 
 /// Computes the PCS and prints it to the console
@@ -18,7 +25,18 @@ pub fn dump_pcs<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> EncodingResul
         let mir: &Body<'tcx> = current_procedure.get_mir();
         let micro_mir: MicroMirEncoder<'_, 'tcx> = MicroMirEncoder::expand_syntax(mir)?;
         micro_mir.pprint();
-        straight_line_pcs(&micro_mir, mir, env)?.pprint();
+
+        CondPCSctx {
+            micro_mir: &(micro_mir.encoding),
+            mir,
+            env,
+            init_analysis: compute_definitely_initialized((*proc_id).clone(), mir, env.tcx()),
+            alloc_analysis: compute_definitely_allocated((*proc_id).clone(), mir),
+        }
+        .cond_pcs()?
+        .pprint();
+
+        // straight_line_pcs(&micro_mir, mir, env)?.pprint();
     }
     Ok(())
 }
