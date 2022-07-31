@@ -73,7 +73,11 @@ pub enum MicroMirStatement<'tcx> {
 #[derive(Clone)]
 pub enum MicroMirTerminator<'tcx> {
     Jump(BasicBlock),
-    JumpInt(LinearResource<'tcx>, Vec<(u128, BasicBlock)>, Mutability),
+    JumpInt(
+        LinearResource<'tcx>,
+        Vec<(Option<u128>, BasicBlock)>,
+        Mutability,
+    ),
     Return(),
     FailVerif,
 }
