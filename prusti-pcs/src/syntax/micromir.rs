@@ -74,7 +74,7 @@ pub enum MicroMirStatement<'tcx> {
 pub enum MicroMirTerminator<'tcx> {
     Jump(BasicBlock),
     JumpInt(LinearResource<'tcx>, Vec<(u128, BasicBlock)>, Mutability),
-    Return(Mutability),
+    Return(),
     FailVerif,
 }
 
@@ -284,10 +284,12 @@ impl<'tcx> HoareSemantics for MicroMirTerminator<'tcx> {
             MicroMirTerminator::JumpInt(t, _, m) => {
                 PCS::from_vec(vec![PCSPermission::new_initialized(*m, (*t).into())])
             }
-            MicroMirTerminator::Return(m) => PCS::from_vec(vec![PCSPermission::new_initialized(
-                *m,
-                LinearResource::new_from_local_id(0),
-            )]),
+            MicroMirTerminator::Return() => PCS::from_vec(vec![]),
+
+            // PCS::from_vec(vec![PCSPermission::new_initialized(
+            //     *m,
+            //     LinearResource::new_from_local_id(0),
+            // )]),
             MicroMirTerminator::FailVerif => PCS::empty(),
         }
     }
@@ -306,7 +308,7 @@ impl<'tcx> HoareSemantics for MicroMirTerminator<'tcx> {
                     )
                 })
                 .collect(),
-            MicroMirTerminator::Return(_) => vec![],
+            MicroMirTerminator::Return() => vec![],
             MicroMirTerminator::FailVerif => vec![],
         }
     }
@@ -464,7 +466,7 @@ impl<'tcx> Debug for MicroMirTerminator<'tcx> {
         match self {
             Self::Jump(bb) => write!(f, "jump {:?}", bb),
             Self::JumpInt(t, cond, m) => write!(f, "jumpInt {:?}:{:?} ({:?})", t, cond, m),
-            Self::Return(m) => write!(f, "return ({:?})", m),
+            Self::Return() => write!(f, "return"),
             Self::FailVerif => write!(f, "fail"),
         }
     }
