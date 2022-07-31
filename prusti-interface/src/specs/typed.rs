@@ -75,9 +75,9 @@ impl ProcedureSpecification {
             // We never create an empty "kind". Having no concrete user-annotation
             // defaults to an impure function
             kind: SpecificationItem::Inherent(ProcedureSpecificationKind::Impure),
-            pres: SpecificationItem::Empty,
-            posts: SpecificationItem::Empty,
-            pledges: SpecificationItem::Empty,
+            pres: SpecificationItem::Inherent(vec![]),
+            posts: SpecificationItem::Inherent(vec![]),
+            pledges: SpecificationItem::Inherent(vec![]),
             trusted: SpecificationItem::Inherent(false),
         }
     }
@@ -595,15 +595,9 @@ impl<T: Debug + Clone + PartialEq> Refinable for SpecificationItem<T> {
 
 impl Refinable for ProcedureSpecification {
     fn refine(self, other: &Self) -> Self {
-        let empty_spec = SpecificationItem::Inherent(Vec::new());
-        let other_pres = match &other.pres {
-            SpecificationItem::Empty => &empty_spec,
-            // A refinement spec without preconditions should still be considered as inherently specifying true
-            other => other,
-        };
         ProcedureSpecification {
             span: self.span.or(other.span),
-            pres: self.pres.refine(other_pres),
+            pres: self.pres.refine(&other.pres),
             posts: self.posts.refine(&other.posts),
             pledges: self.pledges.refine(&other.pledges),
             kind: self.kind.refine(&other.kind),
