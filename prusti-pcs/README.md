@@ -32,7 +32,7 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
             - [x] implement before_statement for analysis results
             - [ ] kills in terms of before_statement of parent MIR place
         - [x] eager dependent repacks (to maximal, identical, point)
-        - [ ] runtime checks of packing invariants
+        - [x] runtime checks of packing invariants
     - [ ] check: analysis_as_permission might not be granular enough
  - [ ] Borrows 
     - [ ] add type dependency to hoare semantics
