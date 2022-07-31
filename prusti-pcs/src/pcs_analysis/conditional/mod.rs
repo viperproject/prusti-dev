@@ -28,15 +28,58 @@ use prusti_rustc_interface::{
     errors::MultiSpan,
     middle::mir::{BasicBlock, Body, Location, Mutability, Place},
 };
-use std::iter::{repeat, zip};
+use std::{
+    cmp::min,
+    iter::{repeat, zip},
+};
 use syn::__private::quote::__private::LineColumn;
 
 /// Straight line, fully elaborated MicroMir
 /// INVARIANT: coherent pre- and post- conditions
 /// INVARIANT: len(statements) == len(pcs_before)
+/// todo: remove the pub(crate) permission here... implement iterator.
 pub struct StraightOperationalMir<'tcx> {
     statements: Vec<MicroMirStatement<'tcx>>,
     pcs_before: Vec<PCS<'tcx>>,
+}
+
+impl<'tcx> StraightOperationalMir<'tcx> {
+    pub fn len(&self) -> usize {
+        min(self.statements.len(), self.pcs_before.len())
+    }
+
+    pub fn get(&self, index: usize) -> (&PCS<'tcx>, &MicroMirStatement<'tcx>) {
+        (&self.pcs_before[index], &self.statements[index])
+    }
+}
+
+pub struct StraightOperationalMirIter<'a, 'tcx: 'a> {
+    base: &'a StraightOperationalMir<'tcx>,
+    index: usize,
+}
+
+impl<'a, 'tcx: 'a> IntoIterator for &'a StraightOperationalMir<'tcx> {
+    type Item = (&'a PCS<'tcx>, &'a MicroMirStatement<'tcx>);
+    type IntoIter = StraightOperationalMirIter<'a, 'tcx>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        StraightOperationalMirIter {
+            base: self,
+            index: 0,
+        }
+    }
+}
+
+impl<'a, 'tcx: 'a> Iterator for StraightOperationalMirIter<'a, 'tcx> {
+    type Item = (&'a PCS<'tcx>, &'a MicroMirStatement<'tcx>);
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index < self.base.len() {
+            self.index += 1;
+            Some(self.base.get(self.index))
+        } else {
+            None
+        }
+    }
 }
 
 impl<'tcx> Default for StraightOperationalMir<'tcx> {
@@ -51,8 +94,8 @@ impl<'tcx> Default for StraightOperationalMir<'tcx> {
 /// OperationalMIR which lives on CFG edges,
 /// Does not correspond to any MIR location
 pub struct PostBlock<'tcx> {
-    body: StraightOperationalMir<'tcx>,
-    next: BasicBlock,
+    pub body: StraightOperationalMir<'tcx>,
+    pub next: BasicBlock,
 }
 
 /// Result of a CondPCS procedure
@@ -65,6 +108,40 @@ pub struct CondPCSBlock<'tcx> {
 /// Result of a CondPCS procedure
 pub struct CondPCS<'tcx> {
     pub blocks: FxHashMap<BasicBlock, CondPCSBlock<'tcx>>,
+}
+
+impl<'tcx> CondPCS<'tcx> {
+    pub fn pprint(&self) {
+        for (current_bb, cond_pcs_block) in self.blocks.iter() {
+            println!(
+                " ===================== {:?} ===================== ",
+                current_bb
+            );
+
+            for (pcs, st) in (&(cond_pcs_block.body)).into_iter() {
+                print!("\tPCS: ");
+                pcs.pprint_contents();
+                println!();
+                println!("\t\t{:?}", st);
+            }
+
+            println!("{:?}", cond_pcs_block.terminator);
+
+            for (post_block, post_pcs) in cond_pcs_block.pcs_after.iter() {
+                println!(" ~ {:?} ~>", post_block.next);
+                for (pcs, st) in (&(post_block.body)).into_iter() {
+                    print!("\tPCS: ");
+                    pcs.pprint_contents();
+                    println!();
+                    println!("\t\t{:?}", st);
+                }
+                println!("{:?}", post_pcs);
+            }
+
+            println!();
+        }
+        println!();
+    }
 }
 
 /// Collection of all information needed to compute the CondPCS
@@ -220,7 +297,8 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
     /// Modifies a PCS to be coherent with the initialization state, and returns permissions
     /// to weaken
     fn trim_pcs(&self, mut pcs: PCS<'tcx>, block: BasicBlock) -> PCS<'tcx> {
-        todo!();
+        // todo!();
+        pcs
     }
 
     /// Elaborate the precondition of a statement
