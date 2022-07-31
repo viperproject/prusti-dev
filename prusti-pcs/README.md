@@ -44,3 +44,4 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
     - [x] hoare semantics trait has Option baked in (why?), remove this 
     - [x] add explicit precondition to kill syntax
     - [ ] retranslate ``retuhrn``, ``_0`` only when returning a value?
+        - [ ] (semi-urgent) remove u _0 hack for place lookup

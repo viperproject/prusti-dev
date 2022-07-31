@@ -174,8 +174,8 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
             Unreachable => Ok(MicroMirTerminator::FailVerif),
 
             Return => {
-                // let return_mutability =
-                //     Self::lookup_place_mutability(&Local::from_usize(0).into(), ctx.mir())?;
+                let return_mutability =
+                    Self::lookup_place_mutability(&Local::from_usize(0).into(), ctx.mir())?;
                 Ok(MicroMirTerminator::Return())
             }
 

@@ -284,12 +284,10 @@ impl<'tcx> HoareSemantics for MicroMirTerminator<'tcx> {
             MicroMirTerminator::JumpInt(t, _, m) => {
                 PCS::from_vec(vec![PCSPermission::new_initialized(*m, (*t).into())])
             }
-            MicroMirTerminator::Return() => PCS::from_vec(vec![]),
-
-            // PCS::from_vec(vec![PCSPermission::new_initialized(
-            //     *m,
-            //     LinearResource::new_from_local_id(0),
-            // )]),
+            MicroMirTerminator::Return() => PCS::from_vec(vec![PCSPermission::new_initialized(
+                Mutability::Mut,
+                LinearResource::new_from_local_id(0),
+            )]),
             MicroMirTerminator::FailVerif => PCS::empty(),
         }
     }
