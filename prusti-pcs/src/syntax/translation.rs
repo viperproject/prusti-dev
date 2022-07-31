@@ -162,9 +162,14 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
             } => {
                 let temp_1 = TemporaryPlace { id: 1 };
                 let temp_1_mut = Self::encode_operand(ctx, discr, temp_1)?;
+
+                let mut next_targets: Vec<(Option<u128>, BasicBlock)> =
+                    targets.iter().map(|(v, bb)| (Some(v), bb)).collect();
+                next_targets.push((None, targets.otherwise()));
+
                 Ok(MicroMirTerminator::JumpInt(
                     temp_1.into(),
-                    targets.iter().collect(),
+                    next_targets,
                     temp_1_mut,
                 ))
             }
@@ -418,12 +423,8 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
     }
 
     pub fn pprint(&self) {
-        let mut current_bb: usize = 0;
         for (block, dat) in self.encoding.iter() {
-            println!(
-                " ===================== {} ===================== ",
-                current_bb
-            );
+            println!(" ===================== {:?} ===================== ", block);
             for (statement_index, stmt) in dat.statements.iter().enumerate() {
                 let mir_loc = Location {
                     block: *block,
@@ -444,7 +445,6 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
             println!("\t| {:?}", dat.terminator);
             Self::pprint_term(&dat.terminator.postcondition());
 
-            current_bb += 1;
             println!();
             println!();
         }
