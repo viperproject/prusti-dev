@@ -8,7 +8,8 @@ use crate::{
     joins::{RepackPackup, RepackUnify},
     syntax::{
         hoare_semantics::HoareSemantics, LinearResource, MicroMirData, MicroMirEncoder,
-        MicroMirEncoding, MicroMirStatement, MicroMirTerminator, PCSPermission, PCS,
+        MicroMirEncoding, MicroMirStatement, MicroMirTerminator, PCSPermission,
+        PCSPermissionKind::*, PCS,
     },
     util::EncodingResult,
 };
@@ -186,7 +187,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 )?;
 
                 // Trim the PCS by way of eager drops (we are now the same mod repacks)
-                this_pcs = self.trim_pcs(this_pcs, next_block);
+                this_pcs = self.trim_pcs(this_pcs, next_block)?;
 
                 // Pack to the most packed state possible (we are now identical)
                 // (any unique state works)
@@ -199,7 +200,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                     // intial PCS in the block
                     if this_pcs != done_block.body.pcs_before[0] {
                         return Err(PrustiError::internal(
-                            "trimmed+packed pcs does not match exiting a join",
+                            format!("trimmed+packed pcs ({:?}) does not match existing block ({:?}) exiting a join", this_pcs, done_block.body.pcs_before[0]),
                             MultiSpan::new(),
                         ));
                     }
@@ -295,11 +296,84 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         vec![((0 as u32).into(), PCS::empty())]
     }
 
-    /// Modifies a PCS to be coherent with the initialization state, and returns permissions
-    /// to weaken
-    fn trim_pcs(&self, pcs: PCS<'tcx>, _block: BasicBlock) -> PCS<'tcx> {
-        // todo!();
-        pcs
+    /// Modifies a PCS to be coherent with the initialization state
+    fn trim_pcs(&self, mut pcs: PCS<'tcx>, next_bb: BasicBlock) -> EncodingResult<PCS<'tcx>> {
+        // Weaken accoring to this table (top row = current perms, left column = after join)
+        //              e p     u p     exit
+        //         +-------------------------
+        //         |    e p    error   error
+        //    e p  |
+        //         |
+        //    u p  |    u p     u p     ?       (I think this is an error- as in we can't strengthen the PCS)
+        //         |
+        //    exit |   error    exit    exit
+        //
+        // Also: Compare to only base place (for now). I think this is sound but might have a
+        //  permission leak in the case of conditionally open drops (not unsound though)
+
+        let mut ret_pcs = PCS {
+            set: FxHashSet::default(),
+        };
+
+        for perm in pcs.set.iter() {
+            match (perm.target, perm.kind) {
+                (LinearResource::Tmp(_), _) => {
+                    return Err(PrustiError::internal(
+                        "temporaries should not be joined",
+                        MultiSpan::new(),
+                    ))
+                }
+                (LinearResource::Mir(p), Exclusive) => {
+                    if self
+                        .init_analysis
+                        .get_before_block(next_bb)
+                        .contains_prefix_of(p)
+                    {
+                        ret_pcs.set.insert(perm.clone());
+                    } else if self
+                        .alloc_analysis
+                        .get_before_block(next_bb)
+                        .contains_prefix_of(p)
+                    {
+                        // Add in weakened permission
+                        // this is the "eager drop"
+                        ret_pcs.set.insert(PCSPermission {
+                            target: LinearResource::Mir(p),
+                            kind: Uninit,
+                        });
+                    } else {
+                        return Err(PrustiError::internal(
+                            "cannot weaken an exclusive place out of the PCS",
+                            MultiSpan::new(),
+                        ));
+                    }
+                }
+                (LinearResource::Mir(p), Uninit) => {
+                    // Even if conditionally allocated, have to be deallocated
+                    if self
+                        .alloc_analysis
+                        .get_before_block(next_bb)
+                        .contains_prefix_of(p)
+                    {
+                        ret_pcs.set.insert(perm.clone());
+                    } else {
+                        // todo! I don't know if this should be an error.
+                        // return Err(PrustiError::internal(
+                        //     format!("cannot weaken an uninit place {:?} out of the PCS", p),
+                        //     MultiSpan::new(),
+                        // ));
+                    }
+                }
+                _ => {
+                    return Err(PrustiError::unsupported(
+                        "unsupported trim kind",
+                        MultiSpan::new(),
+                    ))
+                }
+            }
+        }
+
+        return Ok(ret_pcs);
     }
 
     /// Elaborate the precondition of a statement
