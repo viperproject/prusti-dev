@@ -65,7 +65,10 @@ pub(crate) trait MirTypeEncoderInterface<'tcx> {
         &self,
         ty: ty::Ty<'tcx>,
     ) -> Option<(vir_high::Expression, vir_high::Expression)>;
-    fn encode_type_def(&self, ty: &vir_high::Type) -> SpannedEncodingResult<vir_high::TypeDecl>;
+    fn encode_type_def_high(
+        &self,
+        ty: &vir_high::Type,
+    ) -> SpannedEncodingResult<vir_high::TypeDecl>;
     fn encode_adt_def(
         &self,
         adt_def: ty::AdtDef<'tcx>,
@@ -112,7 +115,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
         use_span: Option<Span>,
         declaration_span: Span,
     ) -> SpannedEncodingResult<vir_high::FieldDecl> {
-        let type_decl = self.encode_type_def(ty)?;
+        let type_decl = self.encode_type_def_high(ty)?;
         let primary_span = if let Some(use_span) = use_span {
             use_span
         } else {
@@ -371,7 +374,10 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
         // FIXME: This should replaced with the type invariant.
         type_encoder.get_integer_bounds()
     }
-    fn encode_type_def(&self, ty: &vir_high::Type) -> SpannedEncodingResult<vir_high::TypeDecl> {
+    fn encode_type_def_high(
+        &self,
+        ty: &vir_high::Type,
+    ) -> SpannedEncodingResult<vir_high::TypeDecl> {
         if !self
             .mir_type_encoder_state
             .encoded_type_decls
@@ -386,7 +392,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
                     lifetimes,
                 }) => {
                     let encoded_enum = self
-                        .encode_type_def(&vir_high::Type::enum_(
+                        .encode_type_def_high(&vir_high::Type::enum_(
                             name.clone(),
                             arguments.clone(),
                             None,
@@ -402,7 +408,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
                     lifetimes,
                 }) => {
                     let encoded_union = self
-                        .encode_type_def(&vir_high::Type::union_(
+                        .encode_type_def_high(&vir_high::Type::union_(
                             name.clone(),
                             arguments.clone(),
                             None,
@@ -414,7 +420,7 @@ impl<'v, 'tcx: 'v> MirTypeEncoderInterface<'tcx> for super::super::super::Encode
                 _ => {
                     let original_ty = self.decode_type_high(ty);
                     let type_encoder = TypeEncoder::new(self, original_ty);
-                    type_encoder.encode_type_def()?
+                    type_encoder.encode_type_def_high()?
                 }
             };
             self.mir_type_encoder_state
