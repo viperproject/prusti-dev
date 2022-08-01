@@ -17,6 +17,7 @@ use prusti_rustc_interface::{
         ty::TyCtxt,
     },
 };
+use std::cmp::{Ordering, Ordering::*};
 
 /// Repacks a PCS so it's maximally packed
 pub struct RepackPackup<'tcx> {
@@ -70,19 +71,24 @@ impl<'tcx> RepackPackup<'tcx> {
                 // generate the unpack of p'... is it contained in places?
                 // if so, remove all relevant places and insert packed place
                 if let Some(pack_set) = pack_set(tcx, mir, p) {
-                    if pack_set.iter().all(|pm| places.contains(pm)) {
+                    if pack_set.iter().all(|pm| (*pm == p) || places.contains(pm)) {
                         let to_insert = strip_level(tcx, p)
                             .ok_or(PrustiError::internal("unexpected", MultiSpan::new()))?;
                         packs.push((pack_set.clone(), to_insert));
                         // Remove the pack_set from places
                         for to_remove in pack_set.iter() {
-                            if let Some(pos) = places.iter().position(|p1| *p1 == *to_remove) {
-                                places.remove(pos);
-                            } else {
-                                return Err(PrustiError::internal(
-                                    "tried to remove a nonexistent element",
-                                    MultiSpan::new(),
-                                ));
+                            if (*to_remove != p) {
+                                if let Some(pos) = places.iter().position(|p1| *p1 == *to_remove) {
+                                    places.remove(pos);
+                                } else {
+                                    return Err(PrustiError::internal(
+                                        format!(
+                                            "tried to remove a nonexistent element {:?}",
+                                            to_remove
+                                        ),
+                                        MultiSpan::new(),
+                                    ));
+                                }
                             }
                         }
 
@@ -106,8 +112,7 @@ impl<'tcx> RepackPackup<'tcx> {
         before_pcs: &mut Vec<PCS<'tcx>>,
     ) -> EncodingResult<PCS<'tcx>> {
         // TODO: Move insert and remove (guarded with linearity) into PCS
-
-        for (pre_p, p) in self.packs.iter().rev() {
+        for (pre_p, p) in self.packs.iter() {
             before_pcs.push(state.clone());
 
             let to_lose: Vec<Place<'tcx>> = pre_p.iter().cloned().collect(); // expand_place(*p, mir, env)?;
@@ -169,4 +174,12 @@ fn pack_set<'mir, 'tcx: 'mir>(
             .cloned()
             .collect(),
     )
+}
+
+fn rev_cmp(c: Ordering) -> Ordering {
+    match c {
+        Less => Greater,
+        Equal => Equal,
+        Greater => Less,
+    }
 }

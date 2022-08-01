@@ -95,7 +95,7 @@ pub struct MicroMirBody<'tcx> {
     pub required_prestates: FxHashMap<Location, PCS<'tcx>>,
 }
 
-#[derive(PartialEq, Eq, Hash, Clone, Ord, PartialOrd)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Ord, PartialOrd)]
 pub enum PCSPermissionKind {
     Shared,
     Exclusive,
