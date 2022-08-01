@@ -33,7 +33,6 @@ use std::{
     cmp::min,
     iter::{repeat, zip},
 };
-use syn::__private::quote::__private::LineColumn;
 
 /// Straight line, fully elaborated MicroMir
 /// INVARIANT: coherent pre- and post- conditions
@@ -103,6 +102,7 @@ pub struct PostBlock<'tcx> {
 /// Result of a CondPCS procedure
 pub struct CondPCSBlock<'tcx> {
     body: StraightOperationalMir<'tcx>,
+    terminator_precondition: PCS<'tcx>,
     terminator: MicroMirTerminator<'tcx>,
     pcs_after: Vec<(PostBlock<'tcx>, PCS<'tcx>)>,
 }
@@ -127,17 +127,21 @@ impl<'tcx> CondPCS<'tcx> {
                 println!("\t\t{:?}", st);
             }
 
-            println!("{:?}", cond_pcs_block.terminator);
+            print!("\tPCS: ");
+            cond_pcs_block.terminator_precondition.pprint_contents();
+            println!();
+
+            println!("\t\t{:?}", cond_pcs_block.terminator);
 
             for (post_block, post_pcs) in cond_pcs_block.pcs_after.iter() {
-                println!(" ~ {:?} ~>", post_block.next);
+                println!("\t~ {:?} ~>", post_block.next);
                 for (pcs, st) in (&(post_block.body)).into_iter() {
                     print!("\tPCS: ");
                     pcs.pprint_contents();
                     println!();
                     println!("\t\t{:?}", st);
                 }
-                println!("{:?}", post_pcs);
+                println!("\t\t~> {:?}", post_pcs);
             }
 
             println!();
@@ -175,6 +179,8 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             // Repack to apply the terminaor PCS
             let terminator = &block_data.terminator;
             pcs = self.repack(pcs, &terminator.precondition(), &mut body)?;
+
+            let terminator_precondition = pcs.clone();
 
             let mut pcs_after: Vec<(PostBlock<'tcx>, PCS<'tcx>)> = Vec::default();
 
@@ -241,6 +247,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 block_data.mir_block,
                 CondPCSBlock {
                     body,
+                    terminator_precondition,
                     terminator: (*terminator).clone(),
                     pcs_after,
                 },
@@ -297,7 +304,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
     }
 
     /// Modifies a PCS to be coherent with the initialization state
-    fn trim_pcs(&self, mut pcs: PCS<'tcx>, next_bb: BasicBlock) -> EncodingResult<PCS<'tcx>> {
+    fn trim_pcs(&self, pcs: PCS<'tcx>, next_bb: BasicBlock) -> EncodingResult<PCS<'tcx>> {
         // Weaken accoring to this table (top row = current perms, left column = after join)
         //              e p     u p     exit
         //         +-------------------------

@@ -203,6 +203,14 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
                 Ok(MicroMirTerminator::Jump(*target))
             }
 
+            FalseUnwind {
+                real_target,
+                unwind: _,
+            } => Ok(MicroMirTerminator::Jump(*real_target)),
+
+            // TODO: This is wrong, but is a patch until I get DFS/BFS translation
+            Resume => Ok(MicroMirTerminator::FailVerif),
+
             us => Err(PrustiError::unsupported(
                 format!("untranslated terminator {:#?}", us),
                 MultiSpan::new(),
