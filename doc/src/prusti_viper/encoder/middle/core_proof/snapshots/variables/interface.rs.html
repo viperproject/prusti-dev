@@ -419,46 +419,9 @@
 <span id="413">413</span>
 <span id="414">414</span>
 <span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <span class="ident">errors</span>::{<a class="ident" href="../../../../../../../src/prusti_viper/encoder/errors/error_manager.rs.html#46">ErrorCtxt</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>},
-    <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#122">high::types::HighTypeEncoderInterface</a>,
+    <a class="ident" href="../../../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#127">high::types::HighTypeEncoderInterface</a>,
     <span class="ident">middle::core_proof</span>::{
         <span class="ident">lowerer</span>::{<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/mod.rs.html#63">Lowerer</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/lowerer/variables/interface.rs.html#21">VariablesLowererInterface</a>},
         <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/references/interface.rs.html#45">references::ReferencesInterface</a>,
@@ -466,7 +429,7 @@
             <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/procedure/traits.rs.html#32">IntoProcedureSnapshot</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/into_snapshot/context_independent/traits.rs.html#13">IntoSnapshot</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/validity/interface.rs.html#36">SnapshotValidityInterface</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/values/interface.rs.html#16">SnapshotValuesInterface</a>,
         },
         <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/type_layouts/interface.rs.html#11">type_layouts::TypeLayoutsInterface</a>,
-        <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/types/interface.rs.html#306">types::TypesInterface</a>,
+        <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/types/interface.rs.html#295">types::TypesInterface</a>,
     },
     <a class="ident" href="../../../../../../../src/prusti_viper/encoder/mir/errors/interface.rs.html#13">mir::errors::ErrorInterface</a>,
 };
@@ -540,43 +503,6 @@
                 }
                 <span class="ident">vir_mid::TypeDecl::Trusted</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">vir_mid::TypeDecl::TypeVar</span>(<span class="kw">_</span>) =&gt; {
                     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(<span class="string">&quot;ty: {}&quot;</span>, <span class="ident">type_decl</span>)
-                }
-                <span class="ident">vir_mid::TypeDecl::Tuple</span>(<span class="ident">decl</span>) =&gt; {
-                    <span class="comment">// FIXME: Remove duplication with vir_mid::TypeDecl::Struct</span>
-                    <span class="kw">let</span> <span class="ident">place_field</span> <span class="op">=</span> <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#62">place</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">unwrap_field</span>(); <span class="comment">// FIXME: Implement a macro that takes a reference to avoid clonning.</span>
-                    <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="ident">decl</span>.<span class="ident">iter_fields</span>() {
-                        <span class="kw">if</span> <span class="ident">field</span>.<span class="ident">as_ref</span>() <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">place_field</span>.<span class="ident">field</span> {
-                            <span class="kw">let</span> <span class="ident">old_field_snapshot</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">obtain_struct_field_snapshot</span>(
-                                <span class="ident">parent_type</span>,
-                                <span class="kw-2">&amp;</span><span class="ident">field</span>,
-                                <span class="ident">old_snapshot</span>.<span class="ident">clone</span>(),
-                                <span class="ident">position</span>,
-                            )<span class="question-mark">?</span>;
-                            <span class="kw">let</span> <span class="ident">new_field_snapshot</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">obtain_struct_field_snapshot</span>(
-                                <span class="ident">parent_type</span>,
-                                <span class="kw-2">&amp;</span><span class="ident">field</span>,
-                                <span class="ident">new_snapshot</span>.<span class="ident">clone</span>(),
-                                <span class="ident">position</span>,
-                            )<span class="question-mark">?</span>;
-                            <span class="ident">statements</span>.<span class="ident">push</span>(
-                                <span class="macro">stmtp!</span> { <span class="ident">position</span> =&gt; <span class="ident">assume</span> ([<span class="ident">new_field_snapshot</span>] <span class="op">==</span> [<span class="ident">old_field_snapshot</span>])},
-                            );
-                        }
-                    }
-                    <span class="prelude-val">Ok</span>((
-                        <span class="self">self</span>.<span class="ident">obtain_struct_field_snapshot</span>(
-                            <span class="ident">parent_type</span>,
-                            <span class="kw-2">&amp;</span><span class="ident">place_field</span>.<span class="ident">field</span>,
-                            <span class="ident">old_snapshot</span>,
-                            <span class="ident">position</span>,
-                        )<span class="question-mark">?</span>,
-                        <span class="self">self</span>.<span class="ident">obtain_struct_field_snapshot</span>(
-                            <span class="ident">parent_type</span>,
-                            <span class="kw-2">&amp;</span><span class="ident">place_field</span>.<span class="ident">field</span>,
-                            <span class="ident">new_snapshot</span>,
-                            <span class="ident">position</span>,
-                        )<span class="question-mark">?</span>,
-                    ))
                 }
                 <span class="ident">vir_mid::TypeDecl::Struct</span>(<span class="ident">decl</span>) =&gt; {
                     <span class="comment">// FIXME: Remove duplication with vir_mid::TypeDecl::Tuple</span>
@@ -771,47 +697,47 @@
     <span class="kw">fn</span> <span class="ident">save_old_label</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#277">SnapshotVariablesInterface</a> <span class="kw">for</span> <span class="ident">Lowerer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>: <span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#240">SnapshotVariablesInterface</a> <span class="kw">for</span> <span class="ident">Lowerer</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">new_snapshot_variable_version</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">variable</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../vir/gen/middle/ast/variable/struct.VariableDecl.html">vir_mid::VariableDecl</a>,
         <span class="ident">position</span>: <a class="ident" href="../../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">new_version</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#318">self</a>
+        <span class="kw">let</span> <span class="ident">new_version</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#281">self</a>
             .<span class="ident">snapshots_state</span>
             .<span class="ident">all_variables</span>
-            .<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#55-59">new_version_or_default</a>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#319">variable</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#320">position</a>);
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#318">self</a>.<span class="ident">snapshots_state</span>
+            .<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#55-59">new_version_or_default</a>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#282">variable</a>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#283">position</a>);
+        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#281">self</a>.<span class="ident">snapshots_state</span>
             .<span class="ident">current_variables</span>
             .<span class="ident">as_mut</span>()
             .<span class="ident">unwrap</span>()
-            .<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#28">set</a>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#319">variable</a>.<span class="ident">name</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#322">new_version</a>);
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#318">self</a>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#319">variable</a>.<span class="ident">name</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#319">variable</a>.<span class="ident">ty</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#322">new_version</a>)
+            .<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#28">set</a>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#282">variable</a>.<span class="ident">name</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#285">new_version</a>);
+        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#281">self</a>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#282">variable</a>.<span class="ident">name</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#282">variable</a>.<span class="ident">ty</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#285">new_version</a>)
     }
     <span class="kw">fn</span> <span class="ident">current_snapshot_variable_version</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">variable</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../vir/gen/middle/ast/variable/struct.VariableDecl.html">vir_mid::VariableDecl</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#334">self</a>
+        <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#297">self</a>
             .<span class="ident">snapshots_state</span>
             .<span class="ident">current_variables</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">unwrap</span>()
-            .<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#25">get_or_default</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#335">variable</a>.<span class="ident">name</span>);
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#334">self</a>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#335">variable</a>.<span class="ident">name</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#335">variable</a>.<span class="ident">ty</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#337">version</a>)
+            .<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#25">get_or_default</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#298">variable</a>.<span class="ident">name</span>);
+        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#297">self</a>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#298">variable</a>.<span class="ident">name</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#298">variable</a>.<span class="ident">ty</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#300">version</a>)
     }
     <span class="kw">fn</span> <span class="ident">snapshot_variable_version_at_label</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">variable</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../vir/gen/middle/ast/variable/struct.VariableDecl.html">vir_mid::VariableDecl</a>,
         <span class="ident">label</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../../vir/gen/low/ast/variable/struct.VariableDecl.html">vir_low::VariableDecl</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#346">self</a>
+        <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#309">self</a>
             .<span class="ident">snapshots_state</span>
             .<span class="ident">variables_at_label</span>
-            .<span class="ident">get</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#348">label</a>)
+            .<span class="ident">get</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#311">label</a>)
             .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;not found label {}&quot;</span>, <span class="ident">label</span>))
-            .<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#25">get_or_default</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#347">variable</a>.<span class="ident">name</span>);
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#346">self</a>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#347">variable</a>.<span class="ident">name</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#347">variable</a>.<span class="ident">ty</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#350">version</a>)
+            .<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/state.rs.html#25">get_or_default</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#310">variable</a>.<span class="ident">name</span>);
+        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#309">self</a>.<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#25-30">create_snapshot_variable</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#310">variable</a>.<span class="ident">name</span>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#310">variable</a>.<span class="ident">ty</span>, <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#313">version</a>)
     }
     <span class="kw">fn</span> <span class="ident">encode_snapshot_update</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
@@ -821,12 +747,12 @@
         <span class="ident">position</span>: <a class="ident" href="../../../../../../../vir/common/position/struct.Position.html">vir_low::Position</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">use</span> <a class="ident" href="../../../../../../../vir/low/macros/index.html">vir_low::macros</a>::<span class="kw-2">*</span>;
-        <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#361">target</a>.<span class="ident">get_base</span>();
+        <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#324">target</a>.<span class="ident">get_base</span>();
         <span class="self">self</span>.<span class="ident">ensure_type_definition</span>(<span class="kw-2">&amp;</span><span class="ident">base</span>.<span class="ident">ty</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">old_snapshot</span> <span class="op">=</span> <span class="ident">base</span>.<span class="ident">to_procedure_snapshot</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">new_snapshot</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">new_snapshot_variable_version</span>(<span class="kw-2">&amp;</span><span class="ident">base</span>, <span class="ident">position</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">snapshot_copy_except</span>(<span class="ident">statements</span>, <span class="ident">old_snapshot</span>, <span class="ident">new_snapshot</span>, <span class="ident">target</span>, <span class="ident">position</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#360">statements</a>
+        <a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#323">statements</a>
             .<span class="ident">push</span>(<a class="macro" href="../../../../../../../vir/vir/low/macros/macro.stmtp.html">stmtp!</a> { <span class="ident">position</span> =&gt; <span class="ident">assume</span> ([<span class="ident">target</span>.<span class="ident">to_procedure_snapshot</span>(<span class="self">self</span>)<span class="question-mark">?</span>] <span class="op">==</span> [<span class="ident">value</span>]) });
         <span class="prelude-val">Ok</span>(())
     }
@@ -841,7 +767,7 @@
             <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>, <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../../../vir/gen/low/ast/statement/enum.Statement.html">vir_low::Statement</a><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="op">&gt;</span>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">predecessor_labels</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#380">predecessors</a>[<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#379">label</a>];
+        <span class="kw">let</span> <span class="ident">predecessor_labels</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#343">predecessors</a>[<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#342">label</a>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_map</span> <span class="op">=</span> <span class="ident">VariableVersionMap::default</span>();
         <span class="kw">for</span> <span class="ident">variable</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">snapshots_state</span>.<span class="ident">all_variables</span>.<span class="ident">names_clone</span>() {
             <span class="kw">let</span> <span class="ident">predecessor_maps</span> <span class="op">=</span> <span class="ident">predecessor_labels</span>
@@ -883,14 +809,14 @@
                 <span class="ident">new_map</span>.<span class="ident">set</span>(<span class="ident">variable</span>, <span class="ident">first_version</span>);
             }
         }
-        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#378">self</a>.<span class="ident">snapshots_state</span>.<span class="ident">current_variables</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#387">new_map</a>);
+        <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#341">self</a>.<span class="ident">snapshots_state</span>.<span class="ident">current_variables</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#350">new_map</a>);
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn</span> <span class="ident">unset_current_block_for_snapshots</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">label</span>: <a class="ident" href="../../../../../../../vir/gen/middle/cfg/procedure/struct.BasicBlockId.html">vir_mid::BasicBlockId</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">current_variables</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#432">self</a>.<span class="ident">snapshots_state</span>.<span class="ident">current_variables</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">current_variables</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#395">self</a>.<span class="ident">snapshots_state</span>.<span class="ident">current_variables</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>
             .<span class="ident">snapshots_state</span>
             .<span class="ident">variables</span>
@@ -899,7 +825,7 @@
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">fn</span> <span class="ident">save_old_label</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">current_variables</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#443">self</a>.<span class="ident">snapshots_state</span>.<span class="ident">current_variables</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">current_variables</span> <span class="op">=</span> <a class="self" href="../../../../../../../src/prusti_viper/encoder/middle/core_proof/snapshots/variables/interface.rs.html#406">self</a>.<span class="ident">snapshots_state</span>.<span class="ident">current_variables</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">unwrap</span>();
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="self">self</span>
             .<span class="ident">snapshots_state</span>
             .<span class="ident">variables_at_label</span>

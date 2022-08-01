@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["TypeDecl",""]],"struct":[["Indexed",""],["Pointer",""],["Product",""],["Sum",""],["TypeVar",""]]};

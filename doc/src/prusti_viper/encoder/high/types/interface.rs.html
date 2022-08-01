@@ -289,9 +289,21 @@
 <span id="283">283</span>
 <span id="284">284</span>
 <span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder</span>::{
     <span class="ident">errors</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15">EncodingError</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">EncodingResult</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/spanned_encoding_error.rs.html#23">SpannedEncodingResult</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/with_span.rs.html#13">WithSpan</a>},
-    <span class="ident">high::lower</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/predicates.rs.html#11">predicates::IntoPredicates</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#14">IntoPolymorphic</a>},
+    <span class="ident">high</span>::{
+        <span class="ident">lower</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/predicates.rs.html#11">predicates::IntoPredicates</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#14">IntoPolymorphic</a>},
+        <a class="ident" href="../../../../../src/prusti_viper/encoder/high/to_middle/mod.rs.html#11">to_middle::HighToMiddle</a>,
+        <a class="ident" href="../../../../../src/prusti_viper/encoder/high/to_typed/types/interface.rs.html#14">to_typed::types::HighToTypedTypeEncoderInterface</a>,
+    },
     <a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#24">mir::types::MirTypeEncoderInterface</a>,
 };
 <span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
@@ -301,7 +313,7 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">std::cell::RefCell</a>;
 <span class="kw">use</span> <span class="ident">vir_crate</span>::{
     <a class="ident" href="../../../../../vir/high/index.html">high</a> <span class="kw">as</span> <span class="ident">vir_high</span>,
-    <span class="ident">middle</span>::{<a class="self" href="../../../../../vir/middle/index.html">self</a> <span class="kw">as</span> <span class="ident">vir_mid</span>, <a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleTypeDecl.html">operations::ToMiddleTypeDecl</a>},
+    <span class="ident">middle</span>::{<a class="self" href="../../../../../vir/middle/index.html">self</a> <span class="kw">as</span> <span class="ident">vir_mid</span>},
     <a class="ident" href="../../../../../vir/polymorphic/index.html">polymorphic</a> <span class="kw">as</span> <span class="ident">vir_poly</span>,
 };
 
@@ -338,7 +350,7 @@
         -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir_high::Type</a><span class="op">&gt;</span>;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#39">HighTypeEncoderInterfacePrivate</a> <span class="kw">for</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>::Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#43">HighTypeEncoderInterfacePrivate</a> <span class="kw">for</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>::Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">ensure_viper_predicate_encoded</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">predicate_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir_poly::Type</a>,
@@ -349,10 +361,10 @@
             .<span class="ident">borrow</span>()
             .<span class="ident">contains_key</span>(<span class="ident">predicate_name</span>)
         {
-            <span class="kw">let</span> <span class="ident">encoded_type</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#52">self</a>.<span class="ident">high_type_encoder_state</span>.<span class="ident">lowered_types_inverse</span>.<span class="ident">borrow</span>()
-                [<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#53">predicate_name</a>]
+            <span class="kw">let</span> <span class="ident">encoded_type</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#56">self</a>.<span class="ident">high_type_encoder_state</span>.<span class="ident">lowered_types_inverse</span>.<span class="ident">borrow</span>()
+                [<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#57">predicate_name</a>]
                 .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-            <span class="kw">let</span> <span class="ident">encoded_type_decl</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encode_type_def</span>(<span class="ident">encoded_type</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">encoded_type_decl</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encode_type_def_high</span>(<span class="ident">encoded_type</span>)<span class="question-mark">?</span>;
             <span class="comment">// FIXME: Change not to use `with_default_span` here.</span>
             <span class="kw">let</span> <span class="ident">predicates</span> <span class="op">=</span> <span class="ident">encoded_type_decl</span>
                 .<span class="ident">lower</span>(<span class="ident">encoded_type</span>, <span class="self">self</span>)
@@ -383,30 +395,31 @@
         <span class="ident">constructor</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>() -&gt; <a class="ident" href="../../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir_poly::Type</a>,
     ) -&gt; <a class="ident" href="../../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir_poly::Type</a> {
         {
-            <span class="kw">let</span> <span class="ident">_fixme</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#90">self</a>.<span class="ident">high_type_encoder_state</span>.<span class="ident">lowered_high_types</span>.<span class="ident">borrow_mut</span>();
+            <span class="kw">let</span> <span class="ident">_fixme</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#94">self</a>.<span class="ident">high_type_encoder_state</span>.<span class="ident">lowered_high_types</span>.<span class="ident">borrow_mut</span>();
         }
-        <span class="kw">let</span> <span class="ident">lowered_high_types</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#90">self</a>.<span class="ident">high_type_encoder_state</span>.<span class="ident">lowered_high_types</span>.<span class="ident">borrow</span>();
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">poly_ty</span>) <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#97">lowered_high_types</a>.<span class="ident">get</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#91">ty</a>) {
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#98">poly_ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <span class="kw">let</span> <span class="ident">lowered_high_types</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#94">self</a>.<span class="ident">high_type_encoder_state</span>.<span class="ident">lowered_high_types</span>.<span class="ident">borrow</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">poly_ty</span>) <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#101">lowered_high_types</a>.<span class="ident">get</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#95">ty</a>) {
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#102">poly_ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
         } <span class="kw">else</span> {
-            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#97">lowered_high_types</a>);
-            <span class="kw">let</span> <span class="ident">poly_ty</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#92">constructor</a>();
-            <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#90">self</a>.<span class="ident">high_type_encoder_state</span>
+            <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#101">lowered_high_types</a>);
+            <span class="kw">let</span> <span class="ident">poly_ty</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#96">constructor</a>();
+            <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#94">self</a>.<span class="ident">high_type_encoder_state</span>
                 .<span class="ident">lowered_high_types</span>
                 .<span class="ident">borrow_mut</span>()
-                .<span class="ident">insert</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#91">ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#102">poly_ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#90">self</a>.<span class="ident">high_type_encoder_state</span>
+                .<span class="ident">insert</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#95">ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#106">poly_ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#94">self</a>.<span class="ident">high_type_encoder_state</span>
                 .<span class="ident">lowered_types_inverse</span>
                 .<span class="ident">borrow_mut</span>()
-                .<span class="ident">insert</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#102">poly_ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#91">ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#102">poly_ty</a>
+                .<span class="ident">insert</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#106">poly_ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#95">ty</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#106">poly_ty</a>
         }
     }
     <span class="kw">fn</span> <span class="ident">decode_type_mid_into_high</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">ty</span>: <a class="ident" href="../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir_high::Type</a><span class="op">&gt;</span> {
-        <a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.RestoreHighType.html">vir_mid::operations::RestoreHighType::restore_high_type</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#116">ty</a>, <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#115">self</a>)
+        <span class="kw">let</span> <span class="ident">typed_ty</span> <span class="op">=</span> <span class="ident">vir_mid::operations::MiddleToTypedType::middle_to_typed_type</span>(<span class="ident">ty</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
+        <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#119">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/to_typed/types/interface.rs.html#23-26">type_from_typed_to_high</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#122">typed_ty</a>)
     }
 }
 
@@ -427,11 +440,12 @@
     <span class="kw">fn</span> <span class="ident">decode_type_mid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>;
     <span class="doccomment">/// An empty type is similar to the compiler&#39;s ZSTs, just it also includes</span>
     <span class="doccomment">/// enum variants with no fields (such as `Option::None`).</span>
-    <span class="kw">fn</span> <span class="ident">is_type_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">is_type_empty</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span>;
     <span class="doccomment">/// If the type is user defined, returns its span. Otherwise, returns the</span>
     <span class="doccomment">/// default span.</span>
     <span class="kw">fn</span> <span class="ident">get_type_definition_span_mid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="ident">MultiSpan</span><span class="op">&gt;</span>;
-    <span class="kw">fn</span> <span class="ident">get_type_decl_mid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/middle/ast/type_decl/enum.TypeDecl.html">vir_mid::TypeDecl</a><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">get_type_decl_mid</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>)
+        -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/middle/ast/type_decl/enum.TypeDecl.html">vir_mid::TypeDecl</a><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span> <span class="ident">HighTypeEncoderInterface</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span>::<span class="kw">super</span>::Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
@@ -444,22 +458,22 @@
         <span class="comment">//     let predicate = self.get_viper_predicate(&amp;predicate_name)?;</span>
         <span class="comment">//     predicates.insert(predicate_name, predicate);</span>
         <span class="comment">// }</span>
-        <span class="kw">let</span> <span class="ident">predicates</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#148">self</a>
+        <span class="kw">let</span> <span class="ident">predicates</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#154">self</a>
             .<span class="ident">high_type_encoder_state</span>
             .<span class="ident">viper_predicates</span>
             .<span class="ident">borrow</span>()
             .<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>();
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#156">predicates</a>)
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#162">predicates</a>)
     }
     <span class="kw">fn</span> <span class="ident">get_viper_predicate</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir_poly::Type</a>,
     ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/polymorphic/ast/predicate/enum.Predicate.html">vir_poly::Predicate</a><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">ensure_viper_predicate_encoded</span>(<span class="ident">name</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#164">self</a>.<span class="ident">high_type_encoder_state</span>.<span class="ident">viper_predicates</span>.<span class="ident">borrow</span>()[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#165">name</a>].<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#170">self</a>.<span class="ident">high_type_encoder_state</span>.<span class="ident">viper_predicates</span>.<span class="ident">borrow</span>()[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#171">name</a>].<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
     <span class="kw">fn</span> <span class="ident">encode_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir_poly::Type</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">ty_kind</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#170">ty</a>.<span class="ident">kind</span>();
+        <span class="kw">let</span> <span class="ident">ty_kind</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#176">ty</a>.<span class="ident">kind</span>();
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>
             .<span class="ident">high_type_encoder_state</span>
             .<span class="ident">encoded_types</span>
@@ -467,28 +481,28 @@
             .<span class="ident">contains_key</span>(<span class="ident">ty_kind</span>)
         {
             <span class="kw">let</span> <span class="ident">high_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encode_type_high</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">polymorphic_type</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#178">high_type</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#170">self</a>);
-            <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#170">self</a>.<span class="ident">high_type_encoder_state</span>
+            <span class="kw">let</span> <span class="ident">polymorphic_type</span> <span class="op">=</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#184">high_type</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#176">self</a>);
+            <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#176">self</a>.<span class="ident">high_type_encoder_state</span>
                 .<span class="ident">encoded_types</span>
                 .<span class="ident">borrow_mut</span>()
-                .<span class="ident">insert</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#171">ty_kind</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#179">polymorphic_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-            <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#170">self</a>.<span class="ident">high_type_encoder_state</span>
+                .<span class="ident">insert</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#177">ty_kind</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#185">polymorphic_type</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#176">self</a>.<span class="ident">high_type_encoder_state</span>
                 .<span class="ident">lowered_types_inverse</span>
                 .<span class="ident">borrow_mut</span>()
-                .<span class="ident">insert</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#179">polymorphic_type</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#178">high_type</a>);
+                .<span class="ident">insert</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#185">polymorphic_type</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#184">high_type</a>);
             <span class="comment">// FIXME: Triggering the encoding of definition should not be</span>
             <span class="comment">// needed. Currently we have to do this for</span>
             <span class="comment">// `get_used_viper_predicates_map` to work. Once we fix the</span>
             <span class="comment">// fold-unfold algorithm to not depend on it, we should remove this.</span>
             <span class="self">self</span>.<span class="ident">ensure_type_predicate_encoded</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
         }
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#170">self</a>.<span class="ident">high_type_encoder_state</span>.<span class="ident">encoded_types</span>.<span class="ident">borrow</span>()[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#171">ty_kind</a>].<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#176">self</a>.<span class="ident">high_type_encoder_state</span>.<span class="ident">encoded_types</span>.<span class="ident">borrow</span>()[<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#177">ty_kind</a>].<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
     <span class="kw">fn</span> <span class="ident">encode_value_field</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/polymorphic/ast/common/struct.Field.html">vir_poly::Field</a><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should not be needed:</span>
         <span class="self">self</span>.<span class="ident">ensure_type_predicate_encoded</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encode_value_field_high</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#199">field</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#196">self</a>))
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#205">field</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/lower/mod.rs.html#15">lower</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#202">self</a>))
     }
     <span class="kw">fn</span> <span class="ident">encode_type_predicate_def</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/polymorphic/ast/predicate/enum.Predicate.html">vir_poly::Predicate</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">predicate_name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encode_type</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
@@ -501,14 +515,14 @@
     }
     <span class="kw">fn</span> <span class="ident">decode_type_predicate_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">typ</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir_poly::Type</a>) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">check</span> <span class="op">=</span> <span class="op">|</span><span class="ident">typ</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/polymorphic/ast/common/enum.Type.html">vir_poly::Type</a><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ty</span>) <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#211">self</a>
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ty</span>) <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#217">self</a>
                 .<span class="ident">high_type_encoder_state</span>
                 .<span class="ident">lowered_types_inverse</span>
                 .<span class="ident">borrow</span>()
-                .<span class="ident">get</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#212">typ</a>)
+                .<span class="ident">get</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#218">typ</a>)
             {
-                <span class="kw">let</span> <span class="ident">original_ty</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#211">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#62">decode_type_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#213">ty</a>);
-                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#219">original_ty</a>)
+                <span class="kw">let</span> <span class="ident">original_ty</span> <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#217">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#62">decode_type_high</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#219">ty</a>);
+                <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#225">original_ty</a>)
             } <span class="kw">else</span> {
                 <span class="prelude-val">Err</span>(<span class="ident">EncodingError::internal</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                     <span class="string">&quot;type predicate not known: {:?}&quot;</span>,
@@ -516,10 +530,10 @@
                 )))
             }
         };
-        <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#211">typ</a> {
-            <span class="ident">vir_poly::Type::TypeVar</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">vir_poly::Type::TypedRef</span>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#212">check</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#211">typ</a>),
+        <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#217">typ</a> {
+            <span class="ident">vir_poly::Type::TypeVar</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">vir_poly::Type::TypedRef</span>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#218">check</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#217">typ</a>),
             <span class="ident">vir_poly::Type::Snapshot</span>(<span class="ident">snapshot</span>) =&gt; {
-                <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#212">check</a>(<span class="kw-2">&amp;</span><span class="ident">vir_poly::Type::TypedRef</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#230">snapshot</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
+                <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#218">check</a>(<span class="kw-2">&amp;</span><span class="ident">vir_poly::Type::TypedRef</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#236">snapshot</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()))
             }
             <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">EncodingError::internal</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;type predicate not known: {:?}&quot;</span>,
@@ -529,7 +543,7 @@
     }
     <span class="kw">fn</span> <span class="ident">encode_type_bounds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">var</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir_poly::Expr</a>, <span class="ident">ty</span>: <span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir_poly::Expr</a><span class="op">&gt;</span> {
         <span class="comment">// FIXME: This should replaced with the type invariant.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">lower_bound</span>, <span class="ident">upper_bound</span>)) <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#239">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#64-67">get_integer_type_bounds</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#239">ty</a>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">lower_bound</span>, <span class="ident">upper_bound</span>)) <span class="op">=</span> <a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#245">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#64-67">get_integer_type_bounds</a>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#245">ty</a>) {
             <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
                 <span class="ident">vir_poly::Expr::le_cmp</span>(<span class="ident">lower_bound</span>.<span class="ident">lower</span>(<span class="self">self</span>), <span class="ident">var</span>.<span class="ident">clone</span>()),
                 <span class="ident">vir_poly::Expr::le_cmp</span>(<span class="ident">var</span>.<span class="ident">clone</span>(), <span class="ident">upper_bound</span>.<span class="ident">lower</span>(<span class="self">self</span>)),
@@ -540,11 +554,11 @@
     }
     <span class="kw">fn</span> <span class="ident">decode_type_mid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="ident">ty::Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">high_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">decode_type_mid_into_high</span>(<span class="ident">ty</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#250">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#62">decode_type_high</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#251">high_type</a>))
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#256">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#62">decode_type_high</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#257">high_type</a>))
     }
-    <span class="kw">fn</span> <span class="ident">is_type_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">is_type_empty</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">type_decl</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_type_decl_mid</span>(<span class="ident">ty</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#255">type_decl</a> {
+        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#261">type_decl</a> {
             <span class="ident">vir_mid::TypeDecl::Bool</span>
             <span class="op">|</span> <span class="ident">vir_mid::TypeDecl::Int</span>(<span class="kw">_</span>)
             <span class="op">|</span> <span class="ident">vir_mid::TypeDecl::Float</span>(<span class="kw">_</span>)
@@ -554,11 +568,10 @@
             <span class="op">|</span> <span class="ident">vir_mid::TypeDecl::Pointer</span>(<span class="kw">_</span>)
             <span class="op">|</span> <span class="ident">vir_mid::TypeDecl::Sequence</span>(<span class="kw">_</span>)
             <span class="op">|</span> <span class="ident">vir_mid::TypeDecl::Map</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-            <span class="ident">vir_mid::TypeDecl::Tuple</span>(<span class="ident">decl</span>) =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#266">decl</a>.<span class="ident">arguments</span>.<span class="ident">is_empty</span>(),
-            <span class="ident">vir_mid::TypeDecl::Struct</span>(<span class="ident">decl</span>) =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#267">decl</a>.<span class="ident">fields</span>.<span class="ident">is_empty</span>(),
-            <span class="ident">vir_mid::TypeDecl::Enum</span>(<span class="ident">decl</span>) =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#268">decl</a>.<span class="ident">variants</span>.<span class="ident">is_empty</span>(),
-            <span class="ident">vir_mid::TypeDecl::Union</span>(<span class="ident">decl</span>) =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#269">decl</a>.<span class="ident">variants</span>.<span class="ident">is_empty</span>(),
-            <span class="ident">vir_mid::TypeDecl::Array</span>(<span class="ident">decl</span>) =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#270">decl</a>.<span class="ident">length</span> <span class="op">==</span> <span class="number">0</span>,
+            <span class="ident">vir_mid::TypeDecl::Struct</span>(<span class="ident">decl</span>) =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#272">decl</a>.<span class="ident">fields</span>.<span class="ident">is_empty</span>(),
+            <span class="ident">vir_mid::TypeDecl::Enum</span>(<span class="ident">decl</span>) =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#273">decl</a>.<span class="ident">variants</span>.<span class="ident">is_empty</span>(),
+            <span class="ident">vir_mid::TypeDecl::Union</span>(<span class="ident">decl</span>) =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#274">decl</a>.<span class="ident">variants</span>.<span class="ident">is_empty</span>(),
+            <span class="ident">vir_mid::TypeDecl::Array</span>(<span class="ident">decl</span>) =&gt; <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#275">decl</a>.<span class="ident">length</span> <span class="op">==</span> <span class="number">0</span>,
             <span class="ident">vir_mid::TypeDecl::Never</span> =&gt; <span class="bool-val">true</span>,
             <span class="ident">vir_mid::TypeDecl::Closure</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(),
             <span class="ident">vir_mid::TypeDecl::Unsupported</span>(<span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unimplemented.html">unimplemented!</a>(),
@@ -566,12 +579,15 @@
     }
     <span class="kw">fn</span> <span class="ident">get_type_definition_span_mid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><span class="ident">MultiSpan</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">high_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">decode_type_mid_into_high</span>(<span class="ident">ty</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#276">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#26">get_type_definition_span_high</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#277">high_type</a>))
+        <span class="prelude-val">Ok</span>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#281">self</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/mir/types/interface.rs.html#26">get_type_definition_span_high</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#282">high_type</a>))
     }
-    <span class="kw">fn</span> <span class="ident">get_type_decl_mid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/middle/ast/type_decl/enum.TypeDecl.html">vir_mid::TypeDecl</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">get_type_decl_mid</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">ty</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../vir/gen/middle/ast/ty/enum.Type.html">vir_mid::Type</a>,
+    ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/middle/ast/type_decl/enum.TypeDecl.html">vir_mid::TypeDecl</a><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">high_type</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">decode_type_mid_into_high</span>(<span class="ident">ty</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">high_type_decl</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encode_type_def</span>(<span class="kw-2">&amp;</span><span class="ident">high_type</span>)<span class="question-mark">?</span>;
-        <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#282">high_type_decl</a>.<a class="ident" href="../../../../../vir/gen/middle/derived_operations/trait.ToMiddleTypeDecl.html">to_middle_type_decl</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#280">self</a>)
+        <span class="kw">let</span> <span class="ident">high_type_decl</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">encode_type_def_high</span>(<span class="kw-2">&amp;</span><span class="ident">high_type</span>)<span class="question-mark">?</span>;
+        <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#290">high_type_decl</a>.<a class="ident" href="../../../../../src/prusti_viper/encoder/high/to_middle/mod.rs.html#13-16">high_to_middle</a>(<a class="self" href="../../../../../src/prusti_viper/encoder/high/types/interface.rs.html#286">self</a>)
     }
 }
 </code></pre></div>

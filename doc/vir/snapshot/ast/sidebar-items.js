@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["expression",""],["field",""],["position",""],["ty",""],["type_decl",""],["variable",""]]};
