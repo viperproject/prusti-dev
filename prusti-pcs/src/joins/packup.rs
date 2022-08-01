@@ -17,7 +17,6 @@ use prusti_rustc_interface::{
         ty::TyCtxt,
     },
 };
-use std::cmp::{Ordering, Ordering::*};
 
 /// Repacks a PCS so it's maximally packed
 pub struct RepackPackup<'tcx> {
@@ -77,7 +76,7 @@ impl<'tcx> RepackPackup<'tcx> {
                         packs.push((pack_set.clone(), to_insert));
                         // Remove the pack_set from places
                         for to_remove in pack_set.iter() {
-                            if (*to_remove != p) {
+                            if *to_remove != p {
                                 if let Some(pos) = places.iter().position(|p1| *p1 == *to_remove) {
                                     places.remove(pos);
                                 } else {
@@ -174,12 +173,4 @@ fn pack_set<'mir, 'tcx: 'mir>(
             .cloned()
             .collect(),
     )
-}
-
-fn rev_cmp(c: Ordering) -> Ordering {
-    match c {
-        Less => Greater,
-        Equal => Equal,
-        Greater => Less,
-    }
 }

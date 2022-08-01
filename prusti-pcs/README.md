@@ -22,9 +22,9 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
     - [ ] test harness
         - [ ] tests
  - [ ] Branches
-    - [ ] implement conditional elaboration
-        - [ ] repacker
-            - [ ] operational description of conditional joins
+    - [x] implement conditional elaboration
+        - [x] repacker
+            - [x] operational description of conditional joins
             - [ ] common PCS transformation interface (repack interface)
         - [x] straight line translation
         - [x] terminator translation
@@ -33,6 +33,7 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
             - [ ] kills in terms of before_statement of parent MIR place
         - [x] eager dependent repacks (to maximal, identical, point)
         - [x] runtime checks of packing invariants
+    - [ ] loops?
     - [ ] check: analysis_as_permission might not be granular enough
  - [ ] Borrows 
     - [ ] add type dependency to hoare semantics
@@ -50,3 +51,5 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
         - [x] missing blocks (pretty printing)
         - [x] missing some conditional jumps
         - [x] unsoundness in postconditions
+    - [ ] traversal during translation which ignores unwind paths
+        - [ ] remove ``resume`` translation hack

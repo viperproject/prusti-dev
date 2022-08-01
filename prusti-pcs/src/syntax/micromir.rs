@@ -301,7 +301,7 @@ impl<'tcx> HoareSemantics for MicroMirTerminator<'tcx> {
     fn postcondition(&self) -> Self::POST {
         match self {
             MicroMirTerminator::Jump(bb) => vec![(*bb, PCS::empty())],
-            MicroMirTerminator::JumpInt(t, mir_targets, m) => mir_targets
+            MicroMirTerminator::JumpInt(_t, mir_targets, _m) => mir_targets
                 .iter()
                 .map(|(_, bb)| {
                     (
