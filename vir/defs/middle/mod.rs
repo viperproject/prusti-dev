@@ -1,5 +1,5 @@
 pub mod ast;
-copy_module!(crate::high::cfg);
+copy_module!(crate::typed::cfg);
 pub(crate) mod derived_operations;
 pub(crate) mod operations_internal;
 

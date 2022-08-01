@@ -108,17 +108,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     element_type_snapshot,
                 )?;
             }
-            vir_mid::TypeDecl::Tuple(decl) => {
-                let mut parameters = Vec::new();
-                for field in decl.iter_fields() {
-                    parameters.push(vir_low::VariableDecl::new(
-                        field.name.clone(),
-                        field.ty.to_snapshot(self)?,
-                    ));
-                }
-                self.register_struct_constructor(&domain_name, parameters.clone())?;
-                self.encode_validity_axioms_struct(&domain_name, parameters, true.into())?;
-            }
             vir_mid::TypeDecl::Struct(decl) => {
                 let mut parameters = Vec::new();
                 for field in decl.iter_fields() {

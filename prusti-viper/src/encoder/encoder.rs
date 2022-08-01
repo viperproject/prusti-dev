@@ -60,6 +60,7 @@ use super::mir::{
     }
 };
 use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
+use super::high::to_typed::types::HighToTypedTypeEncoderState;
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
@@ -78,6 +79,7 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub(super) type_invariant_encoder_state: TypeInvariantEncoderState<'tcx>,
     pub(super) high_type_encoder_state: HighTypeEncoderState<'tcx>,
     pub(super) pure_function_encoder_state: PureFunctionEncoderState<'v, 'tcx>,
+    pub(super) typed_type_encoder_state: HighToTypedTypeEncoderState,
     pub(super) specifications_state: SpecificationsState<'tcx>,
     spec_functions: RefCell<FxHashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
     type_discriminant_funcs: RefCell<FxHashMap<String, vir::FunctionIdentifier>>,
@@ -149,6 +151,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             type_invariant_encoder_state: Default::default(),
             high_type_encoder_state: Default::default(),
             pure_function_encoder_state: Default::default(),
+            typed_type_encoder_state: Default::default(),
             spec_functions: RefCell::new(FxHashMap::default()),
             type_discriminant_funcs: RefCell::new(FxHashMap::default()),
             type_cast_functions: RefCell::new(FxHashMap::default()),
