@@ -80,6 +80,10 @@ pub fn implies<E: BinaryOperationHelpers>(left: E, right: E) -> E {
     BinaryOperationHelpers::implies(left, right)
 }
 
+pub trait ConditionalHelpers: Sized {
+    fn conditional(guard: Self, then_expr: Self, else_expr: Self) -> Self;
+}
+
 pub trait QuantifierHelpers {
     type QuantifierKind;
     type BoundedVariableDecl;
@@ -161,5 +165,43 @@ where
         } else {
             E::bool(false)
         }
+    }
+}
+
+pub trait GuardedExpressionIterator<E> {
+    /// From a sequence of guarded expressions `(guard, expression)` creates a
+    /// match expression:
+    /// ```viper
+    /// (
+    ///     guard0 ?
+    ///         expression0 :
+    ///         (
+    ///             guard1 ?
+    ///             expression1 : false
+    ///         )
+    /// )
+    /// ```
+    fn create_match(&mut self) -> E;
+}
+
+impl<I, E> GuardedExpressionIterator<E> for I
+where
+    I: Iterator<Item = (E, E)>,
+    E: ConditionalHelpers + ConstantHelpers,
+{
+    fn create_match(&mut self) -> E {
+        fn recurse<I, E>(iter: &mut I) -> E
+        where
+            I: Iterator<Item = (E, E)>,
+            E: ConditionalHelpers + ConstantHelpers,
+        {
+            if let Some((guard, then_expr)) = iter.next() {
+                let else_expr = recurse(iter);
+                E::conditional(guard, then_expr, else_expr)
+            } else {
+                E::bool(false)
+            }
+        }
+        recurse(self)
     }
 }

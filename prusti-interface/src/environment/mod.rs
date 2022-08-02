@@ -6,7 +6,7 @@
 
 //! This module defines the interface provided to a verifier.
 
-use prusti_rustc_interface::middle::ty::TyCtxt;
+use prusti_rustc_interface::middle::ty::{self, TyCtxt};
 
 pub mod body;
 pub mod borrowck;
@@ -88,7 +88,7 @@ impl<'tcx> Environment<'tcx> {
     }
 
     /// Get ids of Rust procedures that are annotated with a Prusti specification
-    pub fn get_annotated_procedures(&self) -> Vec<ProcedureDefId> {
+    pub fn get_annotated_procedures_and_types(&self) -> (Vec<ProcedureDefId>, Vec<ty::Ty<'tcx>>) {
         let mut visitor = CollectPrustiSpecVisitor::new(self);
         visitor.visit_all_item_likes();
 
@@ -97,9 +97,9 @@ impl<'tcx> Environment<'tcx> {
             .hir()
             .visit_all_item_likes_in_crate(&mut cl_visitor);
 
-        let mut result: Vec<_> = visitor.get_annotated_procedures();
-        result.extend(cl_visitor.get_closure_defs());
-        result
+        let (mut procedures, types) = visitor.into_result();
+        procedures.extend(cl_visitor.get_closure_defs());
+        (procedures, types)
     }
 
     /// Compare the current version of the `prusti` crate to the given other version

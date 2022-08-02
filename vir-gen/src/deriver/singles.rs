@@ -155,6 +155,7 @@ fn derive_new<'a>(
     }
     parse_quote! {
         impl #struct_ident {
+            #[allow(clippy::too_many_arguments)]
             pub fn #name<#(#generics),*>(#(#parameters),*) -> Self {
                 Self {
                     #(#fields),*

@@ -1,8 +1,10 @@
 use crate::encoder::{
-    errors::SpannedEncodingResult, mir::procedures::MirProcedureEncoderInterface,
+    errors::SpannedEncodingResult,
+    high::to_middle::HighToMiddle,
+    mir::{procedures::MirProcedureEncoderInterface, types::MirTypeEncoderInterface},
 };
 use log::debug;
-use prusti_rustc_interface::hir::def_id::DefId;
+use prusti_rustc_interface::{hir::def_id::DefId, middle::ty};
 use std::collections::BTreeMap;
 use vir_crate::{
     common::check_mode::CheckMode,
@@ -97,6 +99,11 @@ pub(crate) trait HighProcedureEncoderInterface<'tcx> {
         proc_def_id: DefId,
         check_mode: CheckMode,
     ) -> SpannedEncodingResult<vir_mid::ProcedureDecl>;
+    fn encode_type_core_proof(
+        &mut self,
+        ty: ty::Ty<'tcx>,
+        check_mode: CheckMode,
+    ) -> SpannedEncodingResult<vir_mid::Type>;
 }
 
 impl<'v, 'tcx: 'v> HighProcedureEncoderInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {
@@ -112,5 +119,15 @@ impl<'v, 'tcx: 'v> HighProcedureEncoderInterface<'tcx> for super::super::super::
         let procedure =
             super::inference::infer_shape_operations(self, proc_def_id, procedure_typed)?;
         Ok(procedure)
+    }
+
+    fn encode_type_core_proof(
+        &mut self,
+        ty: ty::Ty<'tcx>,
+        check_mode: CheckMode,
+    ) -> SpannedEncodingResult<vir_mid::Type> {
+        assert_eq!(check_mode, CheckMode::CoreProof);
+        let ty_high = self.encode_type_high(ty)?;
+        ty_high.high_to_middle(self)
     }
 }

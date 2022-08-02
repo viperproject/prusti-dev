@@ -53,4 +53,11 @@ impl<'v, 'tcx> HighToTypedRvalueLowerer for crate::encoder::Encoder<'v, 'tcx> {
     ) -> Result<vir_typed::VariableDecl, Self::Error> {
         variable.high_to_typed_expression(self)
     }
+
+    fn high_to_typed_rvalue_uniqueness(
+        &mut self,
+        uniqueness: vir_high::ty::Uniqueness,
+    ) -> Result<vir_typed::ty::Uniqueness, Self::Error> {
+        uniqueness.high_to_typed_type(self)
+    }
 }

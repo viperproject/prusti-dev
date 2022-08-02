@@ -86,17 +86,17 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 vir_mid::TypeDecl::Struct(decl) => {
                     // FIXME: Remove duplication with vir_mid::TypeDecl::Tuple
                     let place_field = place.clone().unwrap_field(); // FIXME: Implement a macro that takes a reference to avoid clonning.
-                    for field in decl.iter_fields() {
-                        if field.as_ref() != &place_field.field {
+                    for field in decl.fields.iter() {
+                        if field != &place_field.field {
                             let old_field_snapshot = self.obtain_struct_field_snapshot(
                                 parent_type,
-                                &field,
+                                field,
                                 old_snapshot.clone(),
                                 position,
                             )?;
                             let new_field_snapshot = self.obtain_struct_field_snapshot(
                                 parent_type,
-                                &field,
+                                field,
                                 new_snapshot.clone(),
                                 position,
                             )?;
@@ -120,7 +120,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                         )?,
                     ))
                 }
-                vir_mid::TypeDecl::Union(_) | vir_mid::TypeDecl::Enum(_) => {
+                vir_mid::TypeDecl::Enum(_) => {
                     let place_variant = place.clone().unwrap_variant(); // FIXME: Implement a macro that takes a reference to avoid clonning.
                     let old_discriminant =
                         self.obtain_enum_discriminant(old_snapshot.clone(), parent_type, position)?;
@@ -254,6 +254,10 @@ pub(in super::super::super) trait SnapshotVariablesInterface {
         &mut self,
         variable: &vir_mid::VariableDecl,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
+    fn initial_snapshot_variable_version(
+        &mut self,
+        variable: &vir_mid::VariableDecl,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl>;
     fn snapshot_variable_version_at_label(
         &mut self,
         variable: &vir_mid::VariableDecl,
@@ -317,6 +321,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
             .unwrap()
             .get_or_default(&variable.name);
         self.create_snapshot_variable(&variable.name, &variable.ty, version)
+    }
+    fn initial_snapshot_variable_version(
+        &mut self,
+        variable: &vir_mid::VariableDecl,
+    ) -> SpannedEncodingResult<vir_low::VariableDecl> {
+        self.create_snapshot_variable(&variable.name, &variable.ty, 0)
     }
     fn snapshot_variable_version_at_label(
         &mut self,

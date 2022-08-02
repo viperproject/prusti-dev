@@ -70,16 +70,16 @@ impl WithLifetimes for Repeat {
 
 impl WithLifetimes for Ref {
     fn get_lifetimes(&self) -> Vec<LifetimeConst> {
-        let mut lifetimes = vec![self.operand_lifetime.clone()];
-        lifetimes.extend(self.place_lifetimes.clone());
+        let mut lifetimes = vec![self.new_borrow_lifetime.clone()];
+        lifetimes.extend(self.place.get_type().get_lifetimes());
         lifetimes
     }
 }
 
 impl WithLifetimes for Reborrow {
     fn get_lifetimes(&self) -> Vec<LifetimeConst> {
-        let mut lifetimes = vec![self.operand_lifetime.clone()];
-        lifetimes.extend(self.place_lifetimes.clone());
+        let mut lifetimes = vec![self.new_borrow_lifetime.clone()];
+        lifetimes.extend(self.deref_place.get_type().get_lifetimes());
         lifetimes
     }
 }

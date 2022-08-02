@@ -1,4 +1,5 @@
 // compile-flags: -Punsafe_core_proof=true -Pcounterexample=true -Pcheck_overflows=false
+// ignore-test: this test is flaky
 
 use prusti_contracts::*;
 

@@ -1,4 +1,5 @@
 mod ty;
+mod type_decl;
 copy_module!(crate::high::operations_internal::lifetimes::common);
 
 pub trait WithLifetimes {

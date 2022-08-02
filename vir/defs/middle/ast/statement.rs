@@ -41,7 +41,6 @@ pub enum Statement {
     DeadInclusion(DeadInclusion),
     LifetimeTake(LifetimeTake),
     LifetimeReturn(LifetimeReturn),
-    ObtainMutRef(ObtainMutRef),
     OpenMutRef(OpenMutRef),
     OpenFracRef(OpenFracRef),
     CloseMutRef(CloseMutRef),
@@ -309,16 +308,10 @@ pub struct DeadReference {
     pub position: Position,
 }
 
-#[display(
-    fmt = "dead-lifetime({}, before={}, after={})",
-    target,
-    "display::cjoin(dead_lifetimes_before)",
-    "display::cjoin(dead_lifetimes_after)"
-)]
+#[display(fmt = "dead-lifetime({}, {})", target, lifetime)]
 pub struct DeadLifetime {
     pub target: Expression,
-    pub dead_lifetimes_before: Vec<bool>,
-    pub dead_lifetimes_after: Vec<bool>,
+    pub lifetime: LifetimeConst,
     pub condition: Option<BlockMarkerCondition>,
     pub position: Position,
 }
@@ -353,13 +346,6 @@ pub struct LifetimeReturn {
     pub target: VariableDecl,
     pub value: Vec<VariableDecl>,
     pub lifetime_token_permission: Expression,
-    pub position: Position,
-}
-
-#[display(fmt = "obtain_mut_ref({}, {})", place, lifetime)]
-pub struct ObtainMutRef {
-    pub place: Expression,
-    pub lifetime: LifetimeConst,
     pub position: Position,
 }
 

@@ -1,3 +1,4 @@
+pub(crate) use super::expression::Expression;
 use crate::common::display;
 
 #[derive_helpers]
@@ -26,7 +27,6 @@ pub enum Type {
     TypeVar(TypeVar),
     Struct(Struct),
     Enum(Enum),
-    Union(Union),
     Array(Array),
     Slice(Slice),
     Reference(Reference),
@@ -127,6 +127,12 @@ pub struct VariantIndex {
     pub index: String,
 }
 
+#[derive(Copy, derive_more::IsVariant)]
+pub enum EnumSafety {
+    Enum,
+    Union,
+}
+
 #[display(
     fmt = "{}{}<{}, {}>",
     name,
@@ -136,6 +142,7 @@ pub struct VariantIndex {
 )]
 pub struct Enum {
     pub name: String,
+    pub safety: EnumSafety,
     /// Type arguments.
     pub arguments: Vec<Type>,
     /// A specific variant of the enum that this type represents.
@@ -143,19 +150,10 @@ pub struct Enum {
     pub lifetimes: Vec<LifetimeConst>,
 }
 
-#[display(
-    fmt = "{}<{}, {}>",
-    name,
-    "display::cjoin(arguments)",
-    "display::cjoin(lifetimes)"
-)]
-pub struct Union {
-    pub name: String,
-    /// Type arguments.
-    pub arguments: Vec<Type>,
-    /// A specific field of the union that this type represents.
-    pub variant: Option<VariantIndex>,
-    pub lifetimes: Vec<LifetimeConst>,
+/// A marker type for const generics.
+#[display(fmt = "ConstArg({})", "display::option!(value, \"{}\", \"\")")]
+pub struct ConstGenericArgument {
+    pub value: Option<Box<Expression>>,
 }
 
 #[display(
@@ -165,7 +163,7 @@ pub struct Union {
     "display::cjoin(lifetimes)"
 )]
 pub struct Array {
-    pub length: u64,
+    pub length: ConstGenericArgument,
     pub element_type: Box<Type>,
     pub lifetimes: Vec<LifetimeConst>,
 }

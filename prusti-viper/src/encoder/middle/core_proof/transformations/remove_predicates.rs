@@ -1,4 +1,4 @@
-use rustc_hash::FxHashSet;
+use rustc_hash::{FxHashMap, FxHashSet};
 use vir_crate::low as vir_low;
 use vir_low::expression::visitors::ExpressionFolder;
 
@@ -6,18 +6,29 @@ pub(in super::super) fn remove_predicates(
     procedure: &mut vir_low::ProcedureDecl,
     methods: &mut Vec<vir_low::MethodDecl>,
     removed_functions: &FxHashSet<String>,
+    predicates: Vec<vir_low::PredicateDecl>,
 ) {
+    let predicates = predicates
+        .into_iter()
+        .map(|predicate| (predicate.name.clone(), predicate))
+        .collect();
     let removed_methods = from_methods(methods, removed_functions);
-    from_procedure(procedure, &removed_methods, removed_functions);
+    from_procedure(procedure, &removed_methods, removed_functions, &predicates);
 }
 
 fn from_procedure(
     procedure: &mut vir_low::ProcedureDecl,
     removed_methods: &FxHashSet<String>,
     removed_functions: &FxHashSet<String>,
+    predicates: &FxHashMap<String, vir_low::PredicateDecl>,
 ) {
     for block in &mut procedure.basic_blocks {
-        from_statements(&mut block.statements, removed_methods, removed_functions);
+        from_statements(
+            &mut block.statements,
+            removed_methods,
+            removed_functions,
+            predicates,
+        );
     }
 }
 
@@ -44,7 +55,9 @@ fn from_statements(
     statements: &mut Vec<vir_low::Statement>,
     removed_methods: &FxHashSet<String>,
     removed_functions: &FxHashSet<String>,
+    predicates: &FxHashMap<String, vir_low::PredicateDecl>,
 ) {
+    let mut inliner = PredicateInliner::new(predicates);
     let mut remover = PredicateRemover::new(removed_functions);
     let mut sentinel = true.into();
     for statement in std::mem::take(statements) {
@@ -73,8 +86,12 @@ fn from_statements(
                 std::mem::swap(&mut exhale.expression, &mut sentinel);
                 statements.push(vir_low::Statement::Exhale(exhale));
             }
+            vir_low::Statement::Unfold(unfold) => {
+                let expression = inliner.fold_expression(unfold.expression);
+                let pure_expression = remover.fold_expression(expression);
+                statements.push(vir_low::Statement::inhale(pure_expression, unfold.position));
+            }
             vir_low::Statement::Fold(_)
-            | vir_low::Statement::Unfold(_)
             | vir_low::Statement::ApplyMagicWand(_)
             | vir_low::Statement::Conditional(_) => {}
         }
@@ -131,6 +148,35 @@ impl<'a> ExpressionFolder for PredicateRemover<'a> {
             true.into()
         } else {
             vir_low::Expression::BinaryOp(binary_op)
+        }
+    }
+}
+
+struct PredicateInliner<'a> {
+    predicates: &'a FxHashMap<String, vir_low::PredicateDecl>,
+}
+
+impl<'a> PredicateInliner<'a> {
+    fn new(predicates: &'a FxHashMap<String, vir_low::PredicateDecl>) -> Self {
+        Self { predicates }
+    }
+}
+
+impl<'a> ExpressionFolder for PredicateInliner<'a> {
+    fn fold_predicate_access_predicate_enum(
+        &mut self,
+        predicate: vir_low::expression::PredicateAccessPredicate,
+    ) -> vir_low::Expression {
+        let decl = &self.predicates[&predicate.name];
+        if let Some(body) = &decl.body {
+            let replacements = decl
+                .parameters
+                .iter()
+                .zip(predicate.arguments.iter())
+                .collect();
+            body.clone().substitute_variables(&replacements)
+        } else {
+            true.into()
         }
     }
 }

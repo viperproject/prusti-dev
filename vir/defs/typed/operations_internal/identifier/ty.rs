@@ -17,7 +17,6 @@ impl WithIdentifier for ty::Type {
             ty::Type::TypeVar(ty) => ty.get_identifier(),
             ty::Type::Struct(ty) => ty.get_identifier(),
             ty::Type::Enum(ty) => ty.get_identifier(),
-            ty::Type::Union(ty) => ty.get_identifier(),
             ty::Type::Array(ty) => ty.get_identifier(),
             ty::Type::Slice(ty) => ty.get_identifier(),
             ty::Type::Reference(ty) => ty.get_identifier(),
@@ -94,20 +93,6 @@ impl WithIdentifier for ty::Struct {
 }
 
 impl WithIdentifier for ty::Enum {
-    fn get_identifier(&self) -> String {
-        let mut identifier = self.name.clone();
-        identifier.push('$');
-        if let Some(variant) = &self.variant {
-            identifier.push_str(&variant.index);
-        } else {
-            identifier.push('_');
-        }
-        append_type_arguments(&mut identifier, &self.arguments);
-        identifier
-    }
-}
-
-impl WithIdentifier for ty::Union {
     fn get_identifier(&self) -> String {
         let mut identifier = self.name.clone();
         identifier.push('$');

@@ -132,13 +132,13 @@ impl WithIdentifier for ty::Union {
 
 impl WithIdentifier for ty::Array {
     fn get_identifier(&self) -> String {
-        format!("array${}", self.element_type.get_identifier())
+        format!("Array${}", self.element_type.get_identifier())
     }
 }
 
 impl WithIdentifier for ty::Slice {
     fn get_identifier(&self) -> String {
-        format!("slice${}", self.element_type.get_identifier())
+        format!("Slice${}", self.element_type.get_identifier())
     }
 }
 

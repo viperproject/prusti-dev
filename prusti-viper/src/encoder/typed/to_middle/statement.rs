@@ -103,4 +103,11 @@ impl<'v, 'tcx> TypedToMiddleStatementLowerer for crate::encoder::Encoder<'v, 'tc
     ) -> Result<vir_mid::statement::DeadLifetime, Self::Error> {
         unreachable!("DeadLifetime statement cannot be lowered");
     }
+
+    fn typed_to_middle_statement_statement_obtain_mut_ref(
+        &self,
+        _statement: vir_typed::ObtainMutRef,
+    ) -> Result<vir_mid::statement::Statement, Self::Error> {
+        unreachable!("ObtainMutRef statement cannot be lowered");
+    }
 }
