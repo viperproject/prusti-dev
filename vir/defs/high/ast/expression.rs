@@ -231,6 +231,7 @@ pub struct FuncApp {
 #[derive(Copy)]
 pub enum BuiltinFunc {
     Size,
+    PaddingSize,
     Discriminant,
     LifetimeIncluded,
     LifetimeIntersect,

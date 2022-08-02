@@ -23,14 +23,12 @@ impl Typed for Expression {
             Expression::BinaryOp(expression) => expression.get_type(),
             Expression::PermBinaryOp(expression) => expression.get_type(),
             Expression::ContainerOp(expression) => expression.get_type(),
-            Expression::Seq(expression) => expression.get_type(),
             Expression::Conditional(expression) => expression.get_type(),
             Expression::Quantifier(expression) => expression.get_type(),
             Expression::LetExpr(expression) => expression.get_type(),
             Expression::FuncApp(expression) => expression.get_type(),
             Expression::DomainFuncApp(expression) => expression.get_type(),
             Expression::InhaleExhale(expression) => expression.get_type(),
-            Expression::MapOp(expression) => expression.get_type(),
         }
     }
     fn set_type(&mut self, new_type: Type) {
@@ -47,14 +45,12 @@ impl Typed for Expression {
             Expression::BinaryOp(expression) => expression.set_type(new_type),
             Expression::PermBinaryOp(expression) => expression.set_type(new_type),
             Expression::ContainerOp(expression) => expression.set_type(new_type),
-            Expression::Seq(expression) => expression.set_type(new_type),
             Expression::Conditional(expression) => expression.set_type(new_type),
             Expression::Quantifier(expression) => expression.set_type(new_type),
             Expression::LetExpr(expression) => expression.set_type(new_type),
             Expression::FuncApp(expression) => expression.set_type(new_type),
             Expression::DomainFuncApp(expression) => expression.set_type(new_type),
             Expression::InhaleExhale(expression) => expression.set_type(new_type),
-            Expression::MapOp(expression) => expression.set_type(new_type),
         }
     }
 }
@@ -181,12 +177,38 @@ impl Typed for PermBinaryOp {
 
 impl Typed for ContainerOp {
     fn get_type(&self) -> &Type {
-        match self.op_kind {
-            ContainerOpKind::SeqConcat => self.left.get_type(),
-            ContainerOpKind::SeqLen => &Type::Int,
-            ContainerOpKind::SeqIndex => match self.left.get_type() {
+        match self.kind {
+            ContainerOpKind::SeqEmpty
+            | ContainerOpKind::SeqConstructor
+            | ContainerOpKind::SeqConcat
+            | ContainerOpKind::MapEmpty
+            | ContainerOpKind::MapUpdate
+            | ContainerOpKind::SetEmpty
+            | ContainerOpKind::SetConstructor
+            | ContainerOpKind::SetUnion
+            | ContainerOpKind::SetIntersection
+            | ContainerOpKind::SetMinus
+            | ContainerOpKind::MultiSetEmpty
+            | ContainerOpKind::MultiSetConstructor
+            | ContainerOpKind::MultiSetUnion
+            | ContainerOpKind::MultiSetIntersection
+            | ContainerOpKind::MultiSetMinus => &self.container_type,
+            ContainerOpKind::SeqLen
+            | ContainerOpKind::MapLen
+            | ContainerOpKind::SetCardinality
+            | ContainerOpKind::MultiSetCardinality => &Type::Int,
+            ContainerOpKind::MapContains
+            | ContainerOpKind::SetSubset
+            | ContainerOpKind::SetContains
+            | ContainerOpKind::MultiSetSubset
+            | ContainerOpKind::MultiSetContains => &Type::Bool,
+            ContainerOpKind::SeqIndex => match &self.container_type {
                 Type::Seq(ty::Seq { element_type, .. }) => element_type,
-                _ => unreachable!("Expected Seq type, got {:?}", self.left.get_type()),
+                _ => unreachable!("Expected Seq type, got {:?}", self.container_type),
+            },
+            ContainerOpKind::MapLookup => match &self.container_type {
+                Type::Map(ty::Map { val_type, .. }) => val_type,
+                _ => unreachable!("Expected Seq type, got {:?}", self.container_type),
             },
         }
     }
@@ -196,32 +218,6 @@ impl Typed for ContainerOp {
             &new_type,
             "Changing the type of ContainerOp."
         );
-    }
-}
-
-impl Typed for MapOp {
-    fn get_type(&self) -> &Type {
-        match self.kind {
-            MapOpKind::Empty | MapOpKind::Update => &self.map_ty,
-            MapOpKind::Lookup => match &self.map_ty {
-                Type::Map(Map { val_type, .. }) => val_type,
-                _ => unreachable!(),
-            },
-            MapOpKind::Len => &Type::Int,
-            MapOpKind::Contains => &Type::Bool,
-        }
-    }
-    fn set_type(&mut self, new_type: Type) {
-        assert_eq!(self.get_type(), &new_type, "Changing the type of MapOp.");
-    }
-}
-
-impl Typed for expression::Seq {
-    fn get_type(&self) -> &Type {
-        &self.ty
-    }
-    fn set_type(&mut self, _new_type: Type) {
-        unimplemented!();
     }
 }
 

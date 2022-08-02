@@ -36,32 +36,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         &self,
         substs: prusti_rustc_interface::middle::ty::subst::SubstsRef<'tcx>,
     ) -> Vec<vir::Type> {
-        substs
-            .iter()
-            .filter_map(|kind| {
-                if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
-                    self.encoder.encode_type_high(ty).ok()
-                } else {
-                    None
-                }
-            })
-            .collect()
-    }
-
-    fn encode_enum_name(&self, did: DefId) -> String {
-        format!("enum${}", self.encoder.encode_item_name(did))
-    }
-
-    fn encode_union_name(&self, did: DefId) -> String {
-        format!("union${}", self.encoder.encode_item_name(did))
-    }
-
-    fn encode_closure_name(&self, did: DefId) -> String {
-        format!("closure${}", self.encoder.encode_item_name(did))
-    }
-
-    fn encode_function_def_name(&self, did: DefId) -> String {
-        format!("fndef${}", self.encoder.encode_item_name(did))
+        encode_substs(self.encoder, substs)
     }
 
     fn is_mathematical_type(&self, did: DefId) -> bool {
@@ -87,10 +62,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         self.encoder.compute_array_len(size)
     }
 
-    pub fn encode_type(self) -> SpannedEncodingResult<vir::Type> {
+    pub fn encode_type(
+        self,
+        const_arguments: &[vir::Expression],
+    ) -> SpannedEncodingResult<vir::Type> {
         debug!("Encode type '{:?}'", self.ty);
         // self.encode_polymorphic_predicate_use()
-        let lifetimes = self.encoder.get_lifetimes_high(&self.ty)?;
+        let lifetimes = self.encoder.get_lifetimes_from_type_high(self.ty)?;
         let result = match self.ty.kind() {
             ty::TyKind::Bool => vir::Type::Bool,
 
@@ -180,7 +158,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     )
                 } else {
                     vir::Type::enum_(
-                        self.encode_enum_name(adt_def.did()),
+                        encode_enum_name(self.encoder, adt_def.did()),
                         self.encode_substs(substs),
                         None,
                         lifetimes,
@@ -189,7 +167,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Adt(adt_def, substs) if adt_def.is_union() => vir::Type::union_(
-                self.encode_union_name(adt_def.did()),
+                encode_union_name(self.encoder, adt_def.did()),
                 self.encode_substs(substs),
                 None,
                 lifetimes,
@@ -212,11 +190,18 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             ty::TyKind::Str => vir::Type::Str,
 
             ty::TyKind::Array(elem_ty, size) => {
-                let array_len = self.compute_array_len(*size);
-                let lifetimes = self.encoder.get_lifetimes_high(elem_ty)?;
+                let (array_len, tail) = const_arguments
+                    .split_first()
+                    .map(|(array_len, tail)| (array_len.clone(), tail))
+                    .unwrap_or_else(|| {
+                        let array_len: usize = self.compute_array_len(*size).try_into().unwrap();
+                        (array_len.into(), &[])
+                    });
+                let lifetimes = self.encoder.get_lifetimes_from_type_high(*elem_ty)?;
                 vir::Type::array(
-                    array_len,
-                    self.encoder.encode_type_high(*elem_ty)?,
+                    vir::ty::ConstGenericArgument::new(Some(Box::new(array_len))),
+                    self.encoder
+                        .encode_type_high_with_const_arguments(*elem_ty, tail)?,
                     lifetimes,
                 )
             }
@@ -226,14 +211,14 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Closure(def_id, _substs) => vir::Type::closure(
-                self.encode_closure_name(*def_id),
+                encode_closure_name(self.encoder, *def_id),
                 // FIXME: We are currently ignoring type arguments and lifetimes.
                 // self.encode_substs(substs),
                 // lifetimes,
             ),
 
             ty::TyKind::FnDef(def_id, _substs) => vir::Type::function_def(
-                self.encode_function_def_name(*def_id),
+                encode_function_def_name(self.encoder, *def_id),
                 // FIXME: We are currently ignoring type arguments and lifetimes.
                 // self.encode_substs(substs),
                 // lifetimes,
@@ -382,20 +367,54 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::TypeDecl::float(lower_bound, upper_bound)
             }
             ty::TyKind::RawPtr(prusti_rustc_interface::middle::ty::TypeAndMut { ty, mutbl: _ }) => {
-                let target_type = self.encoder.encode_type_high(*ty)?;
-                vir::TypeDecl::pointer(target_type)
+                // FIXME: Remove code duplication with ty::TyKind::Array
+                let const_parameters = self.encoder.get_const_parameters_from_type_high(self.ty)?;
+                let const_arguments: Vec<_> = const_parameters
+                    .iter()
+                    .cloned()
+                    .map(|argument| argument.into())
+                    .collect();
+                let target_type = self
+                    .encoder
+                    .encode_type_high(*ty)?
+                    .replace_const_arguments_with(const_arguments);
+                let lifetimes = self.encoder.get_lifetimes_from_type_high(self.ty)?;
+                vir::TypeDecl::pointer(lifetimes, const_parameters, target_type)
             }
             ty::TyKind::Ref(_, ty, mutability) => {
-                let target_type = self.encoder.encode_type_high(*ty)?;
-                vir::TypeDecl::reference(self.encode_uniqueness(*mutability), target_type)
+                // FIXME: Remove code duplication with ty::TyKind::Array
+                let const_parameters = self.encoder.get_const_parameters_from_type_high(self.ty)?;
+                let const_arguments: Vec<_> = const_parameters
+                    .iter()
+                    .cloned()
+                    .map(|argument| argument.into())
+                    .collect();
+                let target_type = self
+                    .encoder
+                    .encode_type_high(*ty)?
+                    .replace_const_arguments_with(const_arguments);
+                let lifetimes = self.encoder.get_lifetimes_from_type_high(self.ty)?;
+                vir::TypeDecl::reference(
+                    lifetimes,
+                    const_parameters,
+                    self.encode_uniqueness(*mutability),
+                    target_type,
+                )
             }
-            ty::TyKind::Tuple(elems) => vir::TypeDecl::tuple(
-                elems
+            ty::TyKind::Tuple(elems) => {
+                let lifetimes = self.encoder.get_lifetimes_from_substs(elems.as_substs())?;
+                let const_parameters = self
+                    .encoder
+                    .get_const_parameters_from_substs(elems.as_substs())?;
+                let arguments = elems
                     .into_iter()
-                    .filter_map(|ty| self.encoder.encode_type_high(ty).ok())
-                    .collect(),
-            ),
+                    .map(|ty| self.encoder.encode_type_high(ty))
+                    .collect::<Result<_, _>>()?;
+                vir::TypeDecl::tuple(lifetimes, const_parameters, arguments)
+            }
             ty::TyKind::Adt(adt_def, substs) if self.is_mathematical_type(adt_def.did()) => {
+                let lifetimes = self.encoder.get_lifetimes_from_substs(substs)?;
+                let const_parameters = self.encoder.get_const_parameters_from_substs(substs)?;
                 let type_name: &str = &self
                     .encoder
                     .env()
@@ -403,13 +422,15 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     .get_absolute_item_name(adt_def.did());
                 let enc_substs = self.encode_substs(substs).into_iter().collect::<Vec<_>>();
                 match type_name {
-                    "prusti_contracts::Seq" => vir::TypeDecl::Sequence(vir::type_decl::Sequence {
-                        element_type: enc_substs[0].clone(),
-                    }),
-                    "prusti_contracts::Map" => vir::TypeDecl::Map(vir::type_decl::Map {
-                        key_type: enc_substs[0].clone(),
-                        val_type: enc_substs[1].clone(),
-                    }),
+                    "prusti_contracts::Seq" => {
+                        vir::TypeDecl::sequence(lifetimes, const_parameters, enc_substs[0].clone())
+                    }
+                    "prusti_contracts::Map" => vir::TypeDecl::map(
+                        lifetimes,
+                        const_parameters,
+                        enc_substs[0].clone(),
+                        enc_substs[1].clone(),
+                    ),
                     "prusti_contracts::Int" => vir::TypeDecl::Int(vir::type_decl::Int {
                         lower_bound: None,
                         upper_bound: None,
@@ -426,19 +447,21 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     }
                 }
             }
-            ty::TyKind::Adt(adt_def, _substs) if self.is_trusted_type(adt_def.did()) => {
-                vir::TypeDecl::trusted(encode_trusted_name(self.encoder, adt_def.did()))
+            ty::TyKind::Adt(adt_def, substs) if self.is_trusted_type(adt_def.did()) => {
+                let lifetimes = self.encoder.get_lifetimes_from_substs(substs)?;
+                let const_parameters = self.encoder.get_const_parameters_from_substs(substs)?;
+                vir::TypeDecl::trusted(
+                    encode_trusted_name(self.encoder, adt_def.did()),
+                    lifetimes,
+                    const_parameters,
+                )
             }
             ty::TyKind::Adt(adt_def, substs) => {
                 encode_adt_def(self.encoder, *adt_def, substs, None)?
             }
             ty::TyKind::Never => vir::TypeDecl::never(),
             ty::TyKind::Param(param_ty) => {
-                vir::TypeDecl::type_var(vir_crate::high::type_decl::TypeVar::GenericType(
-                    vir_crate::high::type_decl::GenericType {
-                        name: param_ty.name.as_str().to_string(),
-                    },
-                ))
+                vir::TypeDecl::type_var(param_ty.name.as_str().to_string())
             }
             ty::TyKind::Closure(def_id, internal_substs) => {
                 let cl_substs = internal_substs.as_closure();
@@ -446,12 +469,37 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     .upvar_tys()
                     .filter_map(|ty| self.encoder.encode_type_high(ty).ok())
                     .collect();
-                let name = self.encode_closure_name(*def_id);
+                let name = encode_closure_name(self.encoder, *def_id);
                 vir::TypeDecl::closure(name, arguments)
             }
-            ty::TyKind::Array(elem_ty, size) => {
-                let array_len = self.compute_array_len(*size);
-                vir::TypeDecl::array(array_len, self.encoder.encode_type_high(*elem_ty)?)
+            ty::TyKind::Array(elem_ty, _size) => {
+                let lifetimes = self.encoder.get_lifetimes_from_type_high(self.ty)?;
+                let const_parameters = self.encoder.get_const_parameters_from_type_high(self.ty)?;
+                let const_arguments: Vec<_> = const_parameters
+                    .iter()
+                    .skip(1)
+                    .cloned()
+                    .map(|argument| argument.into())
+                    .collect();
+                let element_type = self
+                    .encoder
+                    .encode_type_high(*elem_ty)?
+                    .replace_const_arguments_with(const_arguments);
+                vir::TypeDecl::array(lifetimes, const_parameters, element_type)
+            }
+            ty::TyKind::Slice(elem_ty) => {
+                let lifetimes = self.encoder.get_lifetimes_from_type_high(self.ty)?;
+                let const_parameters = self.encoder.get_const_parameters_from_type_high(self.ty)?;
+                let const_arguments: Vec<_> = const_parameters
+                    .iter()
+                    .cloned()
+                    .map(|argument| argument.into())
+                    .collect();
+                let element_type = self
+                    .encoder
+                    .encode_type_high(*elem_ty)?
+                    .replace_const_arguments_with(const_arguments);
+                vir::TypeDecl::slice(lifetimes, const_parameters, element_type)
             }
             ref ty_variant => {
                 debug!("Encoding of type '{:?}' is incomplete", ty_variant);
@@ -594,6 +642,38 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
 }
 
+fn encode_substs<'v, 'tcx: 'v>(
+    encoder: &Encoder<'v, 'tcx>,
+    substs: prusti_rustc_interface::middle::ty::subst::SubstsRef<'tcx>,
+) -> Vec<vir::Type> {
+    substs
+        .iter()
+        .filter_map(|kind| {
+            if let ty::subst::GenericArgKind::Type(ty) = kind.unpack() {
+                encoder.encode_type_high(ty).ok()
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
+fn encode_enum_name<'v, 'tcx: 'v>(encoder: &Encoder<'v, 'tcx>, did: DefId) -> String {
+    format!("enum${}", encoder.encode_item_name(did))
+}
+
+fn encode_union_name<'v, 'tcx: 'v>(encoder: &Encoder<'v, 'tcx>, did: DefId) -> String {
+    format!("union${}", encoder.encode_item_name(did))
+}
+
+fn encode_closure_name<'v, 'tcx: 'v>(encoder: &Encoder<'v, 'tcx>, did: DefId) -> String {
+    format!("closure${}", encoder.encode_item_name(did))
+}
+
+fn encode_function_def_name<'v, 'tcx: 'v>(encoder: &Encoder<'v, 'tcx>, did: DefId) -> String {
+    format!("fndef${}", encoder.encode_item_name(did))
+}
+
 fn encode_box_name() -> String {
     "box$".to_string()
 }
@@ -621,7 +701,9 @@ fn encode_variant<'v, 'tcx: 'v>(
             vir::FieldDecl::new(field_name, field_index, encoder.encode_type_high(field_ty)?);
         fields.push(field);
     }
-    let variant = vir::type_decl::Struct::new(name, fields);
+    let lifetimes = encoder.get_lifetimes_from_substs(substs)?;
+    let const_parameters = encoder.get_const_parameters_from_substs(substs)?;
+    let variant = vir::type_decl::Struct::new(name, lifetimes, const_parameters, fields);
     Ok(variant)
 }
 
@@ -631,14 +713,20 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
     substs: ty::subst::SubstsRef<'tcx>,
     variant_index: Option<prusti_rustc_interface::target::abi::VariantIdx>,
 ) -> SpannedEncodingResult<vir::TypeDecl> {
-    let lifetimes = encoder.get_lifetimes_substs_as_type_decl(&substs)?;
+    let lifetimes = encoder.get_lifetimes_from_substs(substs)?;
+    let const_parameters = encoder.get_const_parameters_from_substs(substs)?;
     let tcx = encoder.env().tcx();
     if adt_def.is_box() {
         debug!("ADT {:?} is a box", adt_def);
         assert!(variant_index.is_none());
         let boxed_ty = encoder.encode_type_high(substs.type_at(0))?;
         let field = vir::FieldDecl::new("val_ref", 0usize, boxed_ty);
-        Ok(vir::TypeDecl::struct_(encode_box_name(), vec![field]))
+        Ok(vir::TypeDecl::struct_(
+            encode_box_name(),
+            lifetimes,
+            const_parameters,
+            vec![field],
+        ))
     } else if adt_def.is_struct() {
         debug!("ADT {:?} is a struct", adt_def);
         assert!(variant_index.is_none());
@@ -656,7 +744,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
             ));
         }
         assert!(variant_index.is_none());
-        let name = encode_struct_name(encoder, adt_def.did());
+        let name = encode_union_name(encoder, adt_def.did());
         // We treat union fields as variants.
         let variant = adt_def.non_enum_variant();
         let num_variants: i128 = variant.fields.len().try_into().unwrap();
@@ -668,20 +756,27 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
             let field_ty = field.ty(tcx, substs);
             let encoded_field =
                 vir::FieldDecl::new("value", field_index, encoder.encode_type_high(field_ty)?);
-            let variant = vir::type_decl::Struct::new(field_name, vec![encoded_field]);
+            let variant = vir::type_decl::Struct::new(
+                field_name,
+                lifetimes.clone(),
+                const_parameters.clone(),
+                vec![encoded_field],
+            );
             variants.push(variant);
         }
         Ok(vir::TypeDecl::union_(
             name,
+            encode_substs(encoder, substs),
             vir::Type::Int(vir::ty::Int::Usize),
             vec![discriminant_bounds],
             discriminant_values,
             variants,
             lifetimes,
+            const_parameters,
         ))
     } else if adt_def.is_enum() {
         debug!("ADT {:?} is an enum", adt_def);
-        let name = encode_struct_name(encoder, adt_def.did());
+        let name = encode_enum_name(encoder, adt_def.did());
         let num_variants = adt_def.variants().len();
         debug!("ADT {:?} is enum with {} variants", adt_def, num_variants);
         let type_decl = if num_variants == 1 {
@@ -755,11 +850,13 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
             let discriminant_type = encoder.encode_type_high(mir_discriminant_type)?;
             vir::TypeDecl::enum_(
                 name,
+                encode_substs(encoder, substs),
                 discriminant_type,
                 discriminant_bounds,
                 discriminant_values,
                 variants,
                 lifetimes,
+                const_parameters,
             )
         };
         Ok(type_decl)

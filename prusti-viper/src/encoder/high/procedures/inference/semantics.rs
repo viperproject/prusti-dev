@@ -310,11 +310,8 @@ impl CollectPermissionChanges for vir_typed::Assign {
                 .encode_type_def_typed(self.target.get_type())?
                 .unwrap_struct();
             let (operation_result_field, flag_field) = {
-                let mut iter = type_decl.iter_fields();
-                (
-                    iter.next().unwrap().into_owned(),
-                    iter.next().unwrap().into_owned(),
-                )
+                let mut iter = type_decl.fields.iter();
+                (iter.next().unwrap().clone(), iter.next().unwrap().clone())
             };
             produced_permissions.push(Permission::Owned(
                 self.target
@@ -396,14 +393,14 @@ impl CollectPermissionChanges for vir_typed::ast::rvalue::Reborrow {
         consumed_permissions: &mut Vec<Permission>,
         produced_permissions: &mut Vec<Permission>,
     ) -> SpannedEncodingResult<()> {
-        consumed_permissions.push(Permission::Owned(self.place.clone()));
-        if self.is_mut {
+        consumed_permissions.push(Permission::Owned(self.deref_place.clone()));
+        if self.uniqueness.is_unique() {
             produced_permissions.push(Permission::MutBorrowed(MutBorrowed {
-                lifetime: self.operand_lifetime.clone(),
-                place: self.place.clone(),
+                lifetime: self.new_borrow_lifetime.clone(),
+                place: self.deref_place.clone(),
             }));
         } else {
-            produced_permissions.push(Permission::Owned(self.place.clone()));
+            produced_permissions.push(Permission::Owned(self.deref_place.clone()));
         }
         Ok(())
     }
@@ -418,7 +415,7 @@ impl CollectPermissionChanges for vir_typed::ast::rvalue::Ref {
     ) -> SpannedEncodingResult<()> {
         consumed_permissions.push(Permission::Owned(self.place.clone()));
         produced_permissions.push(Permission::MutBorrowed(MutBorrowed {
-            lifetime: self.operand_lifetime.clone(),
+            lifetime: self.new_borrow_lifetime.clone(),
             place: self.place.clone(),
         }));
         Ok(())

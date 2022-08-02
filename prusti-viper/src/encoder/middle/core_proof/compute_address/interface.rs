@@ -3,6 +3,7 @@ use crate::encoder::{
     high::types::HighTypeEncoderInterface,
     middle::core_proof::{
         addresses::AddressesInterface, lowerer::Lowerer, places::PlacesInterface,
+        references::ReferencesInterface, snapshots::IntoSnapshot,
     },
 };
 use rustc_hash::FxHashSet;
@@ -96,7 +97,7 @@ pub(in super::super) trait ComputeAddressInterface {
 
 impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
     fn encode_compute_address(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
-        let ty_without_lifetime = ty.clone().erase_lifetimes();
+        let ty_without_lifetime = ty.normalize_type();
         if !self
             .compute_address_state
             .encoded_types
@@ -126,50 +127,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
                     }
                 }
                 vir_mid::TypeDecl::Enum(decl) => {
-                    let discriminant_field = decl.discriminant_field();
-                    let axiom =
-                        self.encode_compute_address_axiom_for_field(ty, &discriminant_field)?;
-                    self.compute_address_state.axioms.push(axiom);
-                    self.encode_compute_address(&decl.discriminant_type)?;
-                    for variant in &decl.variants {
-                        use vir_low::macros::*;
-                        let compute_address = ty!(Address);
-                        let body = expr! {
-                            forall(
-                                place: Place, address: Address ::
-                                raw_code {
-                                    let variant_index = variant.name.clone().into();
-                                    let variant_place = self.encode_enum_variant_place(
-                                        ty,
-                                        &variant_index,
-                                        place.clone().into(),
-                                        Default::default()
-                                    )?;
-                                    let variant_address = self.encode_enum_variant_address(
-                                        ty,
-                                        &variant_index,
-                                        expr! { ComputeAddress::compute_address(place, address) },
-                                        Default::default(),
-                                    )?;
-                                }
-                                [ { (ComputeAddress::compute_address([variant_place.clone()], address)) } ]
-                                (ComputeAddress::compute_address([variant_place], address)) == [variant_address]
-                            )
-                        };
-                        let axiom = vir_low::DomainAxiomDecl {
-                            name: format!(
-                                "{}${}$compute_address_axiom",
-                                ty.get_identifier(),
-                                variant.name
-                            ),
-                            body,
-                        };
+                    if decl.safety.is_enum() {
+                        let discriminant_field = decl.discriminant_field();
+                        let axiom =
+                            self.encode_compute_address_axiom_for_field(ty, &discriminant_field)?;
                         self.compute_address_state.axioms.push(axiom);
-                        let variant_ty = ty.clone().variant(variant.name.clone().into());
-                        self.encode_compute_address(&variant_ty)?;
                     }
-                }
-                vir_mid::TypeDecl::Union(decl) => {
                     self.encode_compute_address(&decl.discriminant_type)?;
                     for variant in &decl.variants {
                         use vir_low::macros::*;
@@ -213,7 +176,32 @@ impl<'p, 'v: 'p, 'tcx: 'v> ComputeAddressInterface for Lowerer<'p, 'v, 'tcx> {
                     // FIXME: Doing nothing is probably wrong.
                 }
                 vir_mid::TypeDecl::Reference(_reference) => {
-                    // Do nothing
+                    use vir_low::macros::*;
+                    let compute_address = ty!(Address);
+                    let body = expr! {
+                        forall(
+                            place: Place, snapshot: {ty.to_snapshot(self)?} ::
+                            raw_code {
+                                let position = vir_low::Position::default();
+                                let deref_place = self.reference_deref_place(
+                                    place.clone().into(), position)?;
+                                let address = self.reference_address(
+                                    ty,
+                                    snapshot.clone().into(),
+                                    position,
+                                )?;
+                            }
+                            [ { (ComputeAddress::compute_address(
+                                [deref_place.clone()], [address.clone()])) } ]
+                            (ComputeAddress::compute_address(
+                                [deref_place], [address.clone()])) == [address]
+                        )
+                    };
+                    let axiom = vir_low::DomainAxiomDecl {
+                        name: format!("{}$compute_address_axiom", ty.get_identifier(),),
+                        body,
+                    };
+                    self.compute_address_state.axioms.push(axiom);
                 }
                 // vir_mid::TypeDecl::Never => {},
                 // vir_mid::TypeDecl::Closure(Closure) => {},
