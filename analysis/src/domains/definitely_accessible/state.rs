@@ -10,7 +10,7 @@ use crate::{
 };
 use log::info;
 use prusti_rustc_interface::{
-    data_structures::{fx::FxHashSet, stable_map::FxHashMap},
+    data_structures::fx::{FxHashSet, FxHashMap},
     middle::{mir, ty, ty::TyCtxt},
     span::source_map::SourceMap,
     target::abi::VariantIdx,
