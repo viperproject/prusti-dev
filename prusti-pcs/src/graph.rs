@@ -14,6 +14,7 @@ use prusti_rustc_interface::{
 };
 
 pub trait GraphOps<'tcx> {
+    fn r#move(&mut self, from: GraphNode<'tcx>, to: GraphNode<'tcx>);
     fn mutable_borrow(
         &mut self,
         from: GraphNode<'tcx>,
@@ -32,6 +33,25 @@ pub struct Graph<'tcx> {
 }
 
 impl<'tcx> GraphOps<'tcx> for Graph<'tcx> {
+    fn r#move(&mut self, new: GraphNode<'tcx>, old: GraphNode<'tcx>) {
+        let edge = self
+            .edges
+            .iter_mut()
+            .find(|edge| edge.comes_from(&old))
+            .expect("old node to be found");
+
+        match edge {
+            GraphEdge::Borrow { from, .. }
+            | GraphEdge::Abstract { from, .. }
+            | GraphEdge::Collapsed { from, .. } => {
+                *from = new;
+                self.leaves.remove(&old);
+                self.leaves.insert(new);
+            }
+            GraphEdge::Pack { .. } => panic!("moving a pack edge is unsupported"),
+        }
+    }
+
     // TODO: if edges were a set then we could ignore duplicates, maybe a bit easier
     fn mutable_borrow(
         &mut self,
