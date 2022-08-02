@@ -6,7 +6,7 @@ trait SomeTrait {
 struct SomeStruct;
 #[refine_trait_spec]
 impl SomeTrait for SomeStruct {
-    predicate!{
+    predicate! {
         fn foo(x: i32) -> bool { //~ ERROR
             true
         }
