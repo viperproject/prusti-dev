@@ -585,7 +585,7 @@ impl Refinable for ProcedureSpecification {
         static EMPTYP: SpecVec<Pledge> = SpecificationItem::Inherent(vec![]);
         fn replace_empty<'a, T>(empty: &'a SpecVec<T>, spec: &'a SpecVec<T>) -> &'a SpecVec<T> {
             match spec {
-                SpecificationItem::Empty => &empty,
+                SpecificationItem::Empty => empty,
                 other => other
             }
         }
