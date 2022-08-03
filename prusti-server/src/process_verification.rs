@@ -13,7 +13,9 @@ use prusti_common::{
     Stopwatch,
 };
 use std::{fs::create_dir_all, path::PathBuf};
-use viper::{Cache, VerificationBackend, VerificationContext, VerificationResult};
+use viper::{
+    smt_manager::SmtManager, Cache, VerificationBackend, VerificationContext, VerificationResult,
+};
 
 pub fn process_verification_request<'v, 't: 'v>(
     verification_context: &'v VerificationContext<'t>,
@@ -51,7 +53,11 @@ pub fn process_verification_request<'v, 't: 'v>(
 
         if config::dump_viper_program() {
             stopwatch.start_next("dumping viper program");
-            dump_viper_program(&ast_utils, viper_program, request.program.get_name());
+            dump_viper_program(
+                &ast_utils,
+                viper_program,
+                &request.program.get_name_with_check_mode(),
+            );
         }
 
         viper_program
@@ -100,7 +106,7 @@ pub fn process_verification_request<'v, 't: 'v>(
         // Create a new verifier each time.
         // Workaround for https://github.com/viperproject/prusti-dev/issues/744
         let mut stopwatch = Stopwatch::start("prusti-server", "verifier startup");
-        let verifier =
+        let mut verifier =
             new_viper_verifier(program_name, verification_context, request.backend_config);
 
         stopwatch.start_next("verification");
@@ -164,6 +170,49 @@ fn new_viper_verifier<'v, 't: 'v>(
             verifier_args.extend(vec!["--disableTempDirectory".to_string()]);
         }
     }
+    let (smt_solver, smt_manager) = if config::use_smt_wrapper() {
+        std::env::set_var("PRUSTI_ORIGINAL_SMT_SOLVER_PATH", config::smt_solver_path());
+        let log_path = config::log_dir()
+            .join("smt")
+            .join(to_legal_file_name(program_name));
+        create_dir_all(&log_path).unwrap();
+        let smt_manager = SmtManager::new(
+            log_path,
+            config::preserve_smt_trace_files(),
+            config::write_smt_statistics(),
+            config::smt_quantifier_instantiations_ignore_builtin(),
+            config::smt_quantifier_instantiations_bound_global_kind(),
+            config::smt_quantifier_instantiations_bound_trace(),
+            config::smt_quantifier_instantiations_bound_trace_kind(),
+            config::smt_unique_triggers_bound(),
+            config::smt_unique_triggers_bound_total(),
+        );
+        std::env::set_var(
+            "PRUSTI_SMT_SOLVER_MANAGER_PORT",
+            smt_manager.port().to_string(),
+        );
+        if config::log_smt_wrapper_interaction() {
+            std::env::set_var("PRUSTI_LOG_SMT_INTERACTION", "true");
+        }
+        (config::smt_solver_wrapper_path(), smt_manager)
+    } else {
+        (config::smt_solver_path(), SmtManager::default())
+    };
+    let boogie_path = config::boogie_path();
+    if let Some(bound) = config::smt_quantifier_instantiations_bound_global() {
+        // We need to set the environment variable to reach our Z3 wrapper.
+        std::env::set_var(
+            "PRUSTI_SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL",
+            bound.to_string(),
+        );
+    }
 
-    verification_context.new_verifier_with_args(backend_config.backend, verifier_args, report_path)
+    verification_context.new_verifier(
+        backend_config.backend,
+        verifier_args,
+        report_path,
+        smt_solver,
+        boogie_path,
+        smt_manager,
+    )
 }

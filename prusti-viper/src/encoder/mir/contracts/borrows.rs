@@ -9,11 +9,13 @@ use crate::{
     utils::type_visitor::{self, TypeVisitor},
 };
 use log::trace;
-use rustc_hir::{self as hir, Mutability};
-use rustc_index::vec::Idx;
-use rustc_middle::{
-    mir,
-    ty::{self, Ty, TyCtxt, TyKind},
+use prusti_rustc_interface::{
+    hir::{self as hir, Mutability},
+    index::vec::Idx,
+    middle::{
+        mir,
+        ty::{self, Ty, TyCtxt, TyKind},
+    },
 };
 use std::fmt;
 
@@ -150,6 +152,21 @@ impl<'tcx> TypeVisitor<'tcx> for BorrowInfoCollectingVisitor<'tcx> {
 
     fn unsupported<S: ToString>(&self, msg: S) -> Self::Error {
         EncodingError::unsupported(msg.to_string())
+    }
+
+    fn visit_adt_variant(
+        &mut self,
+        adt: ty::AdtDef<'tcx>,
+        idx: prusti_rustc_interface::target::abi::VariantIdx,
+        variant: &ty::VariantDef,
+        substs: ty::subst::SubstsRef<'tcx>,
+    ) -> Result<(), Self::Error> {
+        trace!("visit_adt_variant({:?})", variant);
+        let old_path = self.current_path.take().unwrap();
+        self.current_path = Some(self.tcx.mk_place_downcast(old_path, adt, idx));
+        type_visitor::walk_adt_variant(self, variant, substs)?;
+        self.current_path = Some(old_path);
+        Ok(())
     }
 
     fn visit_field(

@@ -4,12 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc_hir::Mutability;
-use rustc_middle::ty::{
+use prusti_rustc_interface::hir::Mutability;
+use prusti_rustc_interface::middle::ty::{
     AdtDef, FieldDef, List, ParamTy, ProjectionTy, Region, Ty, TyCtxt,
     TypeFlags, TyKind, IntTy, UintTy, FloatTy, VariantDef, subst::SubstsRef, Const
 };
-use rustc_hir::def_id::DefId;
+use prusti_rustc_interface::hir::def_id::DefId;
 use log::trace;
 
 pub trait TypeVisitor<'tcx>: Sized {
@@ -134,10 +134,12 @@ pub trait TypeVisitor<'tcx>: Sized {
 
     fn visit_adt_variant(
         &mut self,
+        adt: AdtDef<'tcx>,
+        idx: prusti_rustc_interface::target::abi::VariantIdx,
         variant: &VariantDef,
         substs: SubstsRef<'tcx>,
     )  -> Result<(), Self::Error> {
-        trace!("visit_adt_variant({:?})", variant);
+        trace!("visit_adt_variant({:?}, {:?}, {:?})", adt, idx, variant);
         walk_adt_variant(self, variant, substs)
     }
 
@@ -221,8 +223,8 @@ pub fn walk_adt<'tcx, E, V: TypeVisitor<'tcx, Error = E>>(
     adt_def: AdtDef<'tcx>,
     substs: SubstsRef<'tcx>,
 ) -> Result<(), E> {
-    for variant in adt_def.variants().iter() {
-        visitor.visit_adt_variant(variant, substs)?;
+    for (idx, variant) in adt_def.variants().iter_enumerated() {
+        visitor.visit_adt_variant(adt_def, idx, variant, substs)?;
     }
     Ok(())
 }

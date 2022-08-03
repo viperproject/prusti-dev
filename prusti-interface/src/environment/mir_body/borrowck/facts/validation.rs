@@ -1,7 +1,6 @@
 use super::{AllInputFacts, LocationTable, RichLocation};
-use rustc_data_structures::graph::WithSuccessors;
+use prusti_rustc_interface::{data_structures::graph::WithSuccessors, middle::mir};
 use rustc_hash::{FxHashMap, FxHashSet};
-use rustc_middle::mir;
 
 /// Validate that the input facts match the body.
 pub fn validate<'tcx>(
@@ -46,7 +45,7 @@ pub fn validate<'tcx>(
         let mid_point = location_table.location_to_point(RichLocation::Mid(location));
         assert_eq!(cfg_edges[&start_point], [mid_point]);
         let successor_points = &cfg_edges[&mid_point];
-        let successors: Vec<_> = body.successors(block).collect();
+        let successors: Vec<_> = body.basic_blocks.successors(block).collect();
         assert_eq!(
             successors.len(),
             successor_points.len(),

@@ -4,11 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use rustc_middle::mir::{self, TerminatorKind};
+use prusti_rustc_interface::middle::mir::{self, TerminatorKind};
 
-use rustc_index::vec::IndexVec;
-
-
+use prusti_rustc_interface::index::vec::IndexVec;
 
 /// A data structure to store the non-virtual CFG edges of a MIR body.
 pub struct RealEdges {
@@ -48,14 +46,11 @@ impl RealEdges {
 
 fn real_targets(terminator: &mir::Terminator) -> Vec<mir::BasicBlock> {
     match terminator.kind {
-        TerminatorKind::Goto { ref target }
-        | TerminatorKind::Assert { ref target, .. } => {
+        TerminatorKind::Goto { ref target } | TerminatorKind::Assert { ref target, .. } => {
             vec![*target]
         }
 
-        TerminatorKind::SwitchInt { ref targets, .. } => {
-            targets.all_targets().to_vec()
-        }
+        TerminatorKind::SwitchInt { ref targets, .. } => targets.all_targets().to_vec(),
 
         TerminatorKind::Resume
         | TerminatorKind::Abort
@@ -66,10 +61,8 @@ fn real_targets(terminator: &mir::Terminator) -> Vec<mir::BasicBlock> {
         TerminatorKind::DropAndReplace { ref target, .. }
         | TerminatorKind::Drop { ref target, .. } => vec![*target],
 
-        TerminatorKind::Call {
-            ref destination, ..
-        } => match *destination {
-            Some((_, target)) => vec![target],
+        TerminatorKind::Call { target, .. } => match target {
+            Some(target) => vec![target],
             None => vec![],
         },
 
@@ -81,9 +74,7 @@ fn real_targets(terminator: &mir::Terminator) -> Vec<mir::BasicBlock> {
             ref real_target, ..
         } => vec![*real_target],
 
-        TerminatorKind::Yield {
-            ref resume, ..
-        } => vec![*resume],
+        TerminatorKind::Yield { ref resume, .. } => vec![*resume],
 
         TerminatorKind::InlineAsm {
             ref destination, ..

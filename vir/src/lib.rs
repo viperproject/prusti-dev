@@ -9,13 +9,6 @@
 #![deny(unused_variables)]
 #![deny(unused_doc_comments)]
 
-#[macro_use]
-extern crate log;
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate serde;
-
 #[rustfmt::skip]
 #[path = "../gen/vir_gen.rs"]
 mod gen;
@@ -27,4 +20,4 @@ pub mod legacy;
 pub mod low;
 pub mod middle;
 pub mod polymorphic;
-pub mod snapshot;
+pub mod typed;

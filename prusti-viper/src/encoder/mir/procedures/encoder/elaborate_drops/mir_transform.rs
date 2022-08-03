@@ -13,21 +13,23 @@
 use super::mir_dataflow::{elaborate_drop, DropElaborator};
 use log::debug;
 use prusti_interface::environment::mir_body::patch::MirPatch;
-use rustc_data_structures::fx::FxHashMap;
-use rustc_index::bit_set::BitSet;
-use rustc_middle::{
-    mir::*,
-    ty::{self, TyCtxt},
+use prusti_rustc_interface::{
+    data_structures::fx::FxHashMap,
+    dataflow::{
+        elaborate_drops::{DropFlagMode, DropFlagState, DropStyle, Unwind},
+        impls::{MaybeInitializedPlaces, MaybeUninitializedPlaces},
+        move_paths::{LookupResult, MoveData, MovePathIndex},
+        on_all_children_bits, on_all_drop_children_bits, on_lookup_result_bits, Analysis,
+        MoveDataParamEnv, ResultsCursor,
+    },
+    index::bit_set::BitSet,
+    middle::{
+        mir::*,
+        ty::{self, TyCtxt},
+    },
+    span::Span,
+    target::abi::VariantIdx,
 };
-use rustc_mir_dataflow::{
-    elaborate_drops::{DropFlagMode, DropFlagState, DropStyle, Unwind},
-    impls::{MaybeInitializedPlaces, MaybeUninitializedPlaces},
-    move_paths::{LookupResult, MoveData, MovePathIndex},
-    on_all_children_bits, on_all_drop_children_bits, on_lookup_result_bits, Analysis,
-    MoveDataParamEnv, ResultsCursor,
-};
-use rustc_span::Span;
-use rustc_target::abi::VariantIdx;
 use std::fmt;
 
 pub(in super::super) fn run_pass<'tcx>(tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> MirPatch<'tcx> {
@@ -46,7 +48,6 @@ pub(in super::super) fn run_pass<'tcx>(tcx: TyCtxt<'tcx>, body: &Body<'tcx>) -> 
         }
     };
     let elaborate_patch = {
-        let body = &*body;
         let env = MoveDataParamEnv {
             move_data,
             param_env,
@@ -234,41 +235,55 @@ impl<'a, 'tcx> DropElaborator<'a, 'tcx> for Elaborator<'a, '_, 'tcx> {
     }
 
     fn field_subpath(&self, path: Self::Path, field: Field) -> Option<Self::Path> {
-        rustc_mir_dataflow::move_path_children_matching(self.ctxt.move_data(), path, |e| match e {
-            ProjectionElem::Field(idx, _) => idx == field,
-            _ => false,
-        })
+        prusti_rustc_interface::dataflow::move_path_children_matching(
+            self.ctxt.move_data(),
+            path,
+            |e| match e {
+                ProjectionElem::Field(idx, _) => idx == field,
+                _ => false,
+            },
+        )
     }
 
     fn array_subpath(&self, path: Self::Path, index: u64, size: u64) -> Option<Self::Path> {
-        rustc_mir_dataflow::move_path_children_matching(self.ctxt.move_data(), path, |e| match e {
-            ProjectionElem::ConstantIndex {
-                offset,
-                min_length,
-                from_end,
-            } => {
-                debug_assert!(size == min_length, "min_length should be exact for arrays");
-                assert!(
-                    !from_end,
-                    "from_end should not be used for array element ConstantIndex"
-                );
-                offset == index
-            }
-            _ => false,
-        })
+        prusti_rustc_interface::dataflow::move_path_children_matching(
+            self.ctxt.move_data(),
+            path,
+            |e| match e {
+                ProjectionElem::ConstantIndex {
+                    offset,
+                    min_length,
+                    from_end,
+                } => {
+                    debug_assert!(size == min_length, "min_length should be exact for arrays");
+                    assert!(
+                        !from_end,
+                        "from_end should not be used for array element ConstantIndex"
+                    );
+                    offset == index
+                }
+                _ => false,
+            },
+        )
     }
 
     fn deref_subpath(&self, path: Self::Path) -> Option<Self::Path> {
-        rustc_mir_dataflow::move_path_children_matching(self.ctxt.move_data(), path, |e| {
-            e == ProjectionElem::Deref
-        })
+        prusti_rustc_interface::dataflow::move_path_children_matching(
+            self.ctxt.move_data(),
+            path,
+            |e| e == ProjectionElem::Deref,
+        )
     }
 
     fn downcast_subpath(&self, path: Self::Path, variant: VariantIdx) -> Option<Self::Path> {
-        rustc_mir_dataflow::move_path_children_matching(self.ctxt.move_data(), path, |e| match e {
-            ProjectionElem::Downcast(_, idx) => idx == variant,
-            _ => false,
-        })
+        prusti_rustc_interface::dataflow::move_path_children_matching(
+            self.ctxt.move_data(),
+            path,
+            |e| match e {
+                ProjectionElem::Downcast(_, idx) => idx == variant,
+                _ => false,
+            },
+        )
     }
 
     fn get_drop_flag(&mut self, path: Self::Path) -> Option<Operand<'tcx>> {
@@ -536,7 +551,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
         Rvalue::Use(Operand::Constant(Box::new(Constant {
             span,
             user_ty: None,
-            literal: ty::Const::from_bool(self.tcx, val).into(),
+            literal: ConstantKind::Ty(ty::Const::from_bool(self.tcx, val)),
         })))
     }
 
@@ -561,7 +576,8 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
     fn drop_flags_for_fn_rets(&mut self) {
         for (bb, data) in self.body.basic_blocks().iter_enumerated() {
             if let TerminatorKind::Call {
-                destination: Some((ref place, tgt)),
+                destination,
+                target: Some(tgt),
                 cleanup: Some(_),
                 ..
             } = data.terminator().kind
@@ -572,7 +588,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
                     block: tgt,
                     statement_index: 0,
                 };
-                let path = self.move_data().rev_lookup.find(place.as_ref());
+                let path = self.move_data().rev_lookup.find(destination.as_ref());
                 on_lookup_result_bits(self.tcx, self.body, self.move_data(), path, |child| {
                     self.set_drop_flag(loc, child, DropFlagState::Present)
                 });
@@ -582,7 +598,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
 
     fn drop_flags_for_args(&mut self) {
         let loc = Location::START;
-        rustc_mir_dataflow::drop_flag_effects_for_function_entry(
+        prusti_rustc_interface::dataflow::drop_flag_effects_for_function_entry(
             self.tcx,
             self.body,
             self.env,
@@ -633,7 +649,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
                     block: bb,
                     statement_index: i,
                 };
-                rustc_mir_dataflow::drop_flag_effects_for_location(
+                prusti_rustc_interface::dataflow::drop_flag_effects_for_location(
                     self.tcx,
                     self.body,
                     self.env,
@@ -650,7 +666,8 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
             // so mark the return as initialized *before* the
             // call.
             if let TerminatorKind::Call {
-                destination: Some((ref place, _)),
+                destination,
+                target: Some(_),
                 cleanup: None,
                 ..
             } = data.terminator().kind
@@ -661,7 +678,7 @@ impl<'b, 'tcx> ElaborateDropsCtxt<'b, 'tcx> {
                     block: bb,
                     statement_index: data.statements.len(),
                 };
-                let path = self.move_data().rev_lookup.find(place.as_ref());
+                let path = self.move_data().rev_lookup.find(destination.as_ref());
                 on_lookup_result_bits(self.tcx, self.body, self.move_data(), path, |child| {
                     self.set_drop_flag(loc, child, DropFlagState::Present)
                 });

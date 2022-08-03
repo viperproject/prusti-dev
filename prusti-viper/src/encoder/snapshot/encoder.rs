@@ -17,12 +17,14 @@ use crate::encoder::{
 use log::debug;
 use prusti_common::{vir_expr, vir_local};
 
-use rustc_hash::FxHashMap;
-use rustc_middle::{
-    ty,
-    ty::{layout::IntegerExt, ParamEnv},
+use prusti_rustc_interface::{
+    middle::{
+        ty,
+        ty::{layout::IntegerExt, ParamEnv},
+    },
+    target::abi::Integer,
 };
-use rustc_target::abi::Integer;
+use rustc_hash::FxHashMap;
 use std::rc::Rc;
 use vir_crate::{
     common::identifier::WithIdentifier,
@@ -803,7 +805,9 @@ impl SnapshotEncoder {
                     let discriminant_raw = adt_def
                         .discriminant_for_variant(
                             tcx,
-                            rustc_target::abi::VariantIdx::from_usize(variant_idx),
+                            prusti_rustc_interface::target::abi::VariantIdx::from_usize(
+                                variant_idx,
+                            ),
                         )
                         .val;
                     let size = ty::tls::with(|tcx| {

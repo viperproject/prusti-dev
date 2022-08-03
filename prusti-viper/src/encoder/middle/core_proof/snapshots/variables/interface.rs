@@ -4,7 +4,10 @@ use crate::encoder::{
     middle::core_proof::{
         lowerer::{Lowerer, VariablesLowererInterface},
         references::ReferencesInterface,
-        snapshots::{IntoProcedureSnapshot, IntoSnapshot, SnapshotValuesInterface},
+        snapshots::{
+            IntoProcedureSnapshot, IntoSnapshot, SnapshotValidityInterface, SnapshotValuesInterface,
+        },
+        type_layouts::TypeLayoutsInterface,
         types::TypesInterface,
     },
     mir::errors::ErrorInterface,
@@ -77,45 +80,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 | vir_mid::TypeDecl::Pointer(_) => {
                     unreachable!("place: {}", place);
                 }
-                vir_mid::TypeDecl::TypeVar(_) | vir_mid::TypeDecl::Trusted(_) => {
+                vir_mid::TypeDecl::Trusted(_) | vir_mid::TypeDecl::TypeVar(_) => {
                     unimplemented!("ty: {}", type_decl)
-                }
-                vir_mid::TypeDecl::Tuple(decl) => {
-                    // FIXME: Remove duplication with vir_mid::TypeDecl::Struct
-                    let place_field = place.clone().unwrap_field(); // FIXME: Implement a macro that takes a reference to avoid clonning.
-                    for field in decl.iter_fields() {
-                        if field.as_ref() != &place_field.field {
-                            let old_field_snapshot = self.obtain_struct_field_snapshot(
-                                parent_type,
-                                &field,
-                                old_snapshot.clone(),
-                                Default::default(),
-                            )?;
-                            let new_field_snapshot = self.obtain_struct_field_snapshot(
-                                parent_type,
-                                &field,
-                                new_snapshot.clone(),
-                                Default::default(),
-                            )?;
-                            statements.push(
-                                stmtp! { position => assume ([new_field_snapshot] == [old_field_snapshot])},
-                            );
-                        }
-                    }
-                    Ok((
-                        self.obtain_struct_field_snapshot(
-                            parent_type,
-                            &place_field.field,
-                            old_snapshot,
-                            Default::default(),
-                        )?,
-                        self.obtain_struct_field_snapshot(
-                            parent_type,
-                            &place_field.field,
-                            new_snapshot,
-                            Default::default(),
-                        )?,
-                    ))
                 }
                 vir_mid::TypeDecl::Struct(decl) => {
                     // FIXME: Remove duplication with vir_mid::TypeDecl::Tuple
@@ -126,13 +92,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                                 parent_type,
                                 &field,
                                 old_snapshot.clone(),
-                                Default::default(),
+                                position,
                             )?;
                             let new_field_snapshot = self.obtain_struct_field_snapshot(
                                 parent_type,
                                 &field,
                                 new_snapshot.clone(),
-                                Default::default(),
+                                position,
                             )?;
                             statements.push(
                                 stmtp! { position => assume ([new_field_snapshot] == [old_field_snapshot])},
@@ -144,13 +110,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                             parent_type,
                             &place_field.field,
                             old_snapshot,
-                            Default::default(),
+                            position,
                         )?,
                         self.obtain_struct_field_snapshot(
                             parent_type,
                             &place_field.field,
                             new_snapshot,
-                            Default::default(),
+                            position,
                         )?,
                     ))
                 }
@@ -161,55 +127,97 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                             parent_type,
                             &place_variant.variant_index,
                             old_snapshot,
-                            Default::default(),
+                            position,
                         )?,
                         self.obtain_enum_variant_snapshot(
                             parent_type,
                             &place_variant.variant_index,
                             new_snapshot,
-                            Default::default(),
+                            position,
                         )?,
                     ))
                 }
-                vir_mid::TypeDecl::Array(_) => unimplemented!("ty: {}", type_decl),
-                vir_mid::TypeDecl::Reference(_) => {
+                vir_mid::TypeDecl::Array(_) => {
+                    let call = place.clone().unwrap_builtin_func_app(); // FIXME: Implement a macro that takes a reference to avoid clonning.
+                    assert_eq!(call.function, vir_mid::BuiltinFunc::Index);
+                    let index = call.arguments[1].to_procedure_snapshot(self)?;
+                    let index_int = self.obtain_constant_value(
+                        call.arguments[1].get_type(),
+                        index.clone(),
+                        position,
+                    )?;
+                    let old_len = self.obtain_array_len_snapshot(old_snapshot.clone(), position)?;
+                    let new_len = self.obtain_array_len_snapshot(new_snapshot.clone(), position)?;
+                    let size_type = self.size_type()?;
+                    let size_type_mid = self.size_type_mid()?;
+                    var_decls! { i: {size_type.clone()} };
+                    let i_int =
+                        self.obtain_constant_value(&size_type_mid, i.clone().into(), position)?;
+                    let i_validity =
+                        self.encode_snapshot_valid_call_for_type(i.into(), &size_type_mid)?;
+                    let new_element_snapshot = self.obtain_array_element_snapshot(
+                        new_snapshot.clone(),
+                        i_int.clone(),
+                        position,
+                    )?;
+                    let old_element_snapshot = self.obtain_array_element_snapshot(
+                        old_snapshot.clone(),
+                        i_int.clone(),
+                        position,
+                    )?;
+                    statements.push(stmtp! { position => assume ([new_len.clone()] == [old_len])});
+                    statements.push(stmtp! { position =>
+                        assume (
+                            forall(
+                                i: {size_type} :: [ {[new_element_snapshot.clone()]} ]
+                                ([i_validity] && ([i_int] < [new_len]) && (i != [index])) ==>
+                                ([new_element_snapshot] == [old_element_snapshot])
+                            )
+                        )
+                    });
+                    Ok((
+                        self.obtain_array_element_snapshot(
+                            old_snapshot,
+                            index_int.clone(),
+                            position,
+                        )?,
+                        self.obtain_array_element_snapshot(new_snapshot, index_int, position)?,
+                    ))
+                }
+                vir_mid::TypeDecl::Reference(decl) => {
                     if place.is_deref() {
-                        let old_address_snapshot = self.reference_address(
-                            parent_type,
-                            old_snapshot.clone(),
-                            Default::default(),
-                        )?;
-                        let new_address_snapshot = self.reference_address(
-                            parent_type,
-                            new_snapshot.clone(),
-                            Default::default(),
-                        )?;
+                        let old_address_snapshot =
+                            self.reference_address(parent_type, old_snapshot.clone(), position)?;
+                        let new_address_snapshot =
+                            self.reference_address(parent_type, new_snapshot.clone(), position)?;
                         statements.push(stmtp! { position =>
                             assume ([new_address_snapshot] == [old_address_snapshot])
                         });
-                        let old_final_snapshot = self.reference_target_final_snapshot(
-                            parent_type,
-                            old_snapshot.clone(),
-                            Default::default(),
-                        )?;
-                        let new_final_snapshot = self.reference_target_final_snapshot(
-                            parent_type,
-                            new_snapshot.clone(),
-                            Default::default(),
-                        )?;
-                        statements.push(stmtp! { position =>
-                            assume ([new_final_snapshot] == [old_final_snapshot])
-                        });
+                        if decl.uniqueness.is_unique() {
+                            let old_final_snapshot = self.reference_target_final_snapshot(
+                                parent_type,
+                                old_snapshot.clone(),
+                                position,
+                            )?;
+                            let new_final_snapshot = self.reference_target_final_snapshot(
+                                parent_type,
+                                new_snapshot.clone(),
+                                position,
+                            )?;
+                            statements.push(stmtp! { position =>
+                                assume ([new_final_snapshot] == [old_final_snapshot])
+                            });
+                        }
                         Ok((
                             self.reference_target_current_snapshot(
                                 parent_type,
                                 old_snapshot,
-                                Default::default(),
+                                position,
                             )?,
                             self.reference_target_current_snapshot(
                                 parent_type,
                                 new_snapshot,
-                                Default::default(),
+                                position,
                             )?,
                         ))
                     } else {

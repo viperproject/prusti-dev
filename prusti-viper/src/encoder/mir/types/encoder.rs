@@ -15,10 +15,11 @@ use crate::encoder::{
 };
 use log::debug;
 use prusti_common::config;
-use prusti_interface::environment::debug_utils::to_text::ToText;
-use rustc_errors::MultiSpan;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty};
+use prusti_rustc_interface::{
+    errors::MultiSpan,
+    hir::def_id::DefId,
+    middle::{mir, ty},
+};
 use vir_crate::high::{self as vir, operations::ty::Typed};
 
 pub struct TypeEncoder<'p, 'v: 'p, 'tcx: 'v> {
@@ -31,7 +32,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         TypeEncoder { encoder, ty }
     }
 
-    fn encode_substs(&self, substs: rustc_middle::ty::subst::SubstsRef<'tcx>) -> Vec<vir::Type> {
+    fn encode_substs(
+        &self,
+        substs: prusti_rustc_interface::middle::ty::subst::SubstsRef<'tcx>,
+    ) -> Vec<vir::Type> {
         substs
             .iter()
             .filter_map(|kind| {
@@ -64,7 +68,10 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         let type_name: &str = &self.encoder.env().tcx().def_path_str(did);
         matches!(
             type_name,
-            "prusti_contracts::Seq" | "prusti_contracts::Map" | "prusti_contracts::Int"
+            "prusti_contracts::Seq"
+                | "prusti_contracts::Map"
+                | "prusti_contracts::Int"
+                | "prusti_contracts::Ghost"
         )
     }
 
@@ -83,6 +90,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     pub fn encode_type(self) -> SpannedEncodingResult<vir::Type> {
         debug!("Encode type '{:?}'", self.ty);
         // self.encode_polymorphic_predicate_use()
+        let lifetimes = self.encoder.get_lifetimes_high(&self.ty)?;
         let result = match self.ty.kind() {
             ty::TyKind::Bool => vir::Type::Bool,
 
@@ -109,9 +117,8 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::Type::pointer(self.encoder.encode_type_high(*ty)?)
             }
 
-            ty::TyKind::Ref(region, ty, mutability) => {
-                let lft_name = region.to_text();
-                let lifetime = vir::ty::LifetimeConst { name: lft_name };
+            ty::TyKind::Ref(_region, ty, mutability) => {
+                let lifetime = lifetimes.first().unwrap().clone();
                 let uniqueness = self.encode_uniqueness(*mutability);
                 vir::Type::reference(lifetime, uniqueness, self.encoder.encode_type_high(*ty)?)
             }
@@ -120,6 +127,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 vir::Type::trusted(
                     encode_trusted_name(self.encoder, adt_def.did()),
                     self.encode_substs(substs),
+                    lifetimes,
                 )
             }
 
@@ -136,18 +144,23 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 if type_name == "prusti_contracts::Seq" {
                     vir::Type::Sequence(vir::ty::Sequence {
                         element_type: enc_substs[0].clone(),
+                        lifetimes,
                     })
                 } else if type_name == "prusti_contracts::Map" {
                     vir::Type::Map(vir::ty::Map {
                         key_type: enc_substs[0].clone(),
                         val_type: enc_substs[1].clone(),
+                        lifetimes,
                     })
                 } else if type_name == "prusti_contracts::Int" {
                     vir::Type::Int(vir::ty::Int::Unbounded)
+                } else if type_name == "prusti_contracts::Ghost" {
+                    (*enc_substs[0]).clone()
                 } else {
                     vir::Type::struct_(
                         encode_struct_name(self.encoder, adt_def.did()),
                         self.encode_substs(substs),
+                        lifetimes,
                     )
                 }
             }
@@ -159,12 +172,14 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     vir::Type::struct_(
                         encode_struct_name(self.encoder, adt_def.did()),
                         self.encode_substs(substs),
+                        lifetimes,
                     )
                 } else {
                     vir::Type::enum_(
                         self.encode_enum_name(adt_def.did()),
                         self.encode_substs(substs),
                         None,
+                        lifetimes,
                     )
                 }
             }
@@ -173,6 +188,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 self.encode_union_name(adt_def.did()),
                 self.encode_substs(substs),
                 None,
+                lifetimes,
             ),
 
             ty::TyKind::Adt(_adt_def, _substs) => {
@@ -184,6 +200,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     .iter()
                     .filter_map(|ty| self.encoder.encode_type_high(ty).ok())
                     .collect(),
+                lifetimes,
             ),
 
             ty::TyKind::Never => vir::Type::Never,
@@ -192,23 +209,30 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
 
             ty::TyKind::Array(elem_ty, size) => {
                 let array_len = self.compute_array_len(*size);
-                vir::Type::array(array_len, self.encoder.encode_type_high(*elem_ty)?)
+                let lifetimes = self.encoder.get_lifetimes_high(elem_ty)?;
+                vir::Type::array(
+                    array_len,
+                    self.encoder.encode_type_high(*elem_ty)?,
+                    lifetimes,
+                )
             }
 
             ty::TyKind::Slice(elem_ty) => {
-                vir::Type::slice(self.encoder.encode_type_high(*elem_ty)?)
+                vir::Type::slice(self.encoder.encode_type_high(*elem_ty)?, lifetimes)
             }
 
             ty::TyKind::Closure(def_id, _substs) => vir::Type::closure(
                 self.encode_closure_name(*def_id),
-                // FIXME: We are currently ignoring type arguments.
+                // FIXME: We are currently ignoring type arguments and lifetimes.
                 // self.encode_substs(substs),
+                // lifetimes,
             ),
 
             ty::TyKind::FnDef(def_id, _substs) => vir::Type::function_def(
                 self.encode_function_def_name(*def_id),
-                // FIXME: We are currently ignoring type arguments.
+                // FIXME: We are currently ignoring type arguments and lifetimes.
                 // self.encode_substs(substs),
+                // lifetimes,
             ),
 
             ty::TyKind::Param(param_ty) => {
@@ -221,6 +245,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }) => vir::Type::projection(
                 self.encoder.encode_item_name(*item_def_id),
                 self.encode_substs(substs),
+                lifetimes,
             ),
 
             ty::TyKind::Dynamic(..) => vir::Type::unsupported("dynamic".to_string()),
@@ -294,7 +319,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 up.set_type(vir::Type::MInt);
                 Some((low, up))
             }
-            ty::TyKind::Char => Some((0.into(), std::char::MAX.into())),
+            ty::TyKind::Char => {
+                let mut low: vir::Expression = 0.into();
+                let mut up: vir::Expression = std::char::MAX.into();
+                low.set_type(vir::Type::MInt);
+                up.set_type(vir::Type::MInt);
+                Some((low, up))
+            }
             ty::TyKind::Ref(_, ty, _) => Self::new(self.encoder, *ty).get_integer_bounds(),
             _ => None,
         }
@@ -313,7 +344,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_type_def(self) -> SpannedEncodingResult<vir::TypeDecl> {
+    pub fn encode_type_def_high(self) -> SpannedEncodingResult<vir::TypeDecl> {
         debug!("Encode type predicate '{:?}'", self.ty);
         let type_decl = match self.ty.kind() {
             ty::TyKind::Bool => vir::TypeDecl::bool(),
@@ -328,7 +359,9 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 }
                 if config::encode_unsigned_num_constraint() && lower_bound.is_none() {
                     if let ty::TyKind::Uint(_) = self.ty.kind() {
-                        lower_bound = Some(Box::new(0usize.into()));
+                        let mut bound: vir::Expression = 0usize.into();
+                        bound.set_type(vir::Type::MInt);
+                        lower_bound = Some(Box::new(bound));
                     }
                 }
                 vir::TypeDecl::int(lower_bound, upper_bound)
@@ -344,7 +377,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 }
                 vir::TypeDecl::float(lower_bound, upper_bound)
             }
-            ty::TyKind::RawPtr(rustc_middle::ty::TypeAndMut { ty, mutbl: _ }) => {
+            ty::TyKind::RawPtr(prusti_rustc_interface::middle::ty::TypeAndMut { ty, mutbl: _ }) => {
                 let target_type = self.encoder.encode_type_high(*ty)?;
                 vir::TypeDecl::pointer(target_type)
             }
@@ -373,12 +406,19 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                         lower_bound: None,
                         upper_bound: None,
                     }),
+                    "prusti_contracts::Ghost" => {
+                        if let ty::subst::GenericArgKind::Type(ty) = substs[0].unpack() {
+                            Self::new(self.encoder, ty).encode_type_def_high()?
+                        } else {
+                            unreachable!("no type parameter given for Ghost<T>")
+                        }
+                    }
                     _ => {
                         unreachable!();
                     }
                 }
             }
-            ty::TyKind::Adt(adt_def, _) if self.is_trusted_type(adt_def.did()) => {
+            ty::TyKind::Adt(adt_def, _substs) if self.is_trusted_type(adt_def.did()) => {
                 vir::TypeDecl::trusted(encode_trusted_name(self.encoder, adt_def.did()))
             }
             ty::TyKind::Adt(adt_def, substs) => {
@@ -472,7 +512,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     //         ty::TyKind::Array(elem_ty, size) => {
     //             let array_len = self
     //                 .encoder
-    //                 .const_eval_intlike(&size.val)
+    //                 .const_eval_intlike(&size.kind)
     //                 .unwrap()
     //                 .to_u64()
     //                 .unwrap();
@@ -581,8 +621,9 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
     encoder: &Encoder<'v, 'tcx>,
     adt_def: ty::AdtDef<'tcx>,
     substs: ty::subst::SubstsRef<'tcx>,
-    variant_index: Option<rustc_target::abi::VariantIdx>,
+    variant_index: Option<prusti_rustc_interface::target::abi::VariantIdx>,
 ) -> SpannedEncodingResult<vir::TypeDecl> {
+    let lifetimes = encoder.get_lifetimes_substs_as_type_decl(&substs)?;
     let tcx = encoder.env().tcx();
     if adt_def.is_box() {
         debug!("ADT {:?} is a box", adt_def);
@@ -628,6 +669,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
             vec![discriminant_bounds],
             discriminant_values,
             variants,
+            lifetimes,
         ))
     } else if adt_def.is_enum() {
         debug!("ADT {:?} is an enum", adt_def);
@@ -655,25 +697,49 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
                 variants.push(encoded_variant);
             }
             let mir_discriminant_type = match adt_def.repr().discr_type() {
-                rustc_attr::IntType::SignedInt(int) => {
+                prusti_rustc_interface::attr::IntType::SignedInt(int) => {
                     let int = match int {
-                        rustc_ast::ast::IntTy::Isize => rustc_middle::ty::IntTy::Isize,
-                        rustc_ast::ast::IntTy::I8 => rustc_middle::ty::IntTy::I8,
-                        rustc_ast::ast::IntTy::I16 => rustc_middle::ty::IntTy::I16,
-                        rustc_ast::ast::IntTy::I32 => rustc_middle::ty::IntTy::I32,
-                        rustc_ast::ast::IntTy::I64 => rustc_middle::ty::IntTy::I64,
-                        rustc_ast::ast::IntTy::I128 => rustc_middle::ty::IntTy::I128,
+                        prusti_rustc_interface::ast::ast::IntTy::Isize => {
+                            prusti_rustc_interface::middle::ty::IntTy::Isize
+                        }
+                        prusti_rustc_interface::ast::ast::IntTy::I8 => {
+                            prusti_rustc_interface::middle::ty::IntTy::I8
+                        }
+                        prusti_rustc_interface::ast::ast::IntTy::I16 => {
+                            prusti_rustc_interface::middle::ty::IntTy::I16
+                        }
+                        prusti_rustc_interface::ast::ast::IntTy::I32 => {
+                            prusti_rustc_interface::middle::ty::IntTy::I32
+                        }
+                        prusti_rustc_interface::ast::ast::IntTy::I64 => {
+                            prusti_rustc_interface::middle::ty::IntTy::I64
+                        }
+                        prusti_rustc_interface::ast::ast::IntTy::I128 => {
+                            prusti_rustc_interface::middle::ty::IntTy::I128
+                        }
                     };
                     encoder.env().tcx().mk_ty(ty::TyKind::Int(int))
                 }
-                rustc_attr::IntType::UnsignedInt(uint) => {
+                prusti_rustc_interface::attr::IntType::UnsignedInt(uint) => {
                     let uint = match uint {
-                        rustc_ast::ast::UintTy::Usize => rustc_middle::ty::UintTy::Usize,
-                        rustc_ast::ast::UintTy::U8 => rustc_middle::ty::UintTy::U8,
-                        rustc_ast::ast::UintTy::U16 => rustc_middle::ty::UintTy::U16,
-                        rustc_ast::ast::UintTy::U32 => rustc_middle::ty::UintTy::U32,
-                        rustc_ast::ast::UintTy::U64 => rustc_middle::ty::UintTy::U64,
-                        rustc_ast::ast::UintTy::U128 => rustc_middle::ty::UintTy::U128,
+                        prusti_rustc_interface::ast::ast::UintTy::Usize => {
+                            prusti_rustc_interface::middle::ty::UintTy::Usize
+                        }
+                        prusti_rustc_interface::ast::ast::UintTy::U8 => {
+                            prusti_rustc_interface::middle::ty::UintTy::U8
+                        }
+                        prusti_rustc_interface::ast::ast::UintTy::U16 => {
+                            prusti_rustc_interface::middle::ty::UintTy::U16
+                        }
+                        prusti_rustc_interface::ast::ast::UintTy::U32 => {
+                            prusti_rustc_interface::middle::ty::UintTy::U32
+                        }
+                        prusti_rustc_interface::ast::ast::UintTy::U64 => {
+                            prusti_rustc_interface::middle::ty::UintTy::U64
+                        }
+                        prusti_rustc_interface::ast::ast::UintTy::U128 => {
+                            prusti_rustc_interface::middle::ty::UintTy::U128
+                        }
                     };
                     encoder.env().tcx().mk_ty(ty::TyKind::Uint(uint))
                 }
@@ -685,6 +751,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
                 discriminant_bounds,
                 discriminant_values,
                 variants,
+                lifetimes,
             )
         };
         Ok(type_decl)

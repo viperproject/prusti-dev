@@ -1,9 +1,8 @@
-pub(crate) use super::super::{
-    expression::{BinaryOpKind, Expression, UnaryOpKind},
+pub(crate) use super::{
+    expression::{BinaryOpKind, Expression, UnaryOpKind, VariableDecl},
     ty::{LifetimeConst, Type},
-    Position,
 };
-use crate::common::display;
+use crate::common::{display, position::Position};
 
 #[derive_helpers]
 #[derive_visitors]
@@ -13,6 +12,7 @@ pub enum Rvalue {
     // Use(Use),
     Repeat(Repeat),
     Ref(Ref),
+    Reborrow(Reborrow),
     // ThreadLocalRef(ThreadLocalRef),
     AddressOf(AddressOf),
     Len(Len),
@@ -33,10 +33,32 @@ pub struct Repeat {
     pub count: u64,
 }
 
-#[display(fmt = "&{} {}", lifetime, place)]
+#[display(
+    fmt = "&{} {}<{}>",
+    operand_lifetime,
+    place,
+    "display::cjoin(place_lifetimes)"
+)]
 pub struct Ref {
     pub place: Expression,
-    pub lifetime: LifetimeConst,
+    pub operand_lifetime: LifetimeConst,
+    pub place_lifetimes: Vec<LifetimeConst>,
+    pub is_mut: bool,
+    pub lifetime_token_permission: Expression,
+    pub target: Expression,
+}
+
+#[display(
+    fmt = "{} := &'{} (*{}<{}>)",
+    target,
+    operand_lifetime,
+    place,
+    "display::cjoin(place_lifetimes)"
+)]
+pub struct Reborrow {
+    pub place: Expression,
+    pub operand_lifetime: LifetimeConst,
+    pub place_lifetimes: Vec<LifetimeConst>,
     pub is_mut: bool,
     pub lifetime_token_permission: Expression,
     pub target: Expression,
@@ -72,9 +94,12 @@ pub struct UnaryOp {
     pub argument: Operand,
 }
 
+/// If `source_permission` is `None`, it means `write`. Otherwise, it is a
+/// variable denoting the permission amount.
 #[display(fmt = "discriminant({})", place)]
 pub struct Discriminant {
     pub place: Expression,
+    pub source_permission: Option<VariableDecl>,
 }
 
 #[display(fmt = "aggregate<{}>({})", ty, "display::cjoin(operands)")]

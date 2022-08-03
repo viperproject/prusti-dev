@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use ast_factory::{
+use crate::ast_factory::{
     structs::{Declaration, Expr, Field, Position, Stmt},
     AstFactory,
 };
@@ -62,6 +62,24 @@ impl<'a> AstFactory<'a> {
             self.jni.new_string(method_name),
             self.jni.new_seq(&map_to_jobjects!(args)),
             self.jni.new_seq(&map_to_jobjects!(targets))
+        )
+    }
+
+    pub fn method_call_with_pos(
+        &self,
+        method_name: &str,
+        args: &[Expr],
+        targets: &[Expr],
+        pos: Position,
+    ) -> Stmt<'a> {
+        build_ast_node_with_pos!(
+            self,
+            Stmt,
+            ast::MethodCall,
+            self.jni.new_string(method_name),
+            self.jni.new_seq(&map_to_jobjects!(args)),
+            self.jni.new_seq(&map_to_jobjects!(targets)),
+            pos.to_jobject()
         )
     }
 

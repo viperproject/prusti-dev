@@ -4,7 +4,9 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use serde::{Deserialize, Serialize};
+use log::{error, info};
+
+use crate::verification_result::VerificationResult;
 use std::{
     collections::HashMap,
     fs, io,
@@ -12,7 +14,6 @@ use std::{
     path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
-use verification_result::VerificationResult;
 
 pub trait Cache {
     fn get(&self, request: u64) -> Option<VerificationResult>;
@@ -26,7 +27,7 @@ pub struct PersistentCache {
     data: HashMap<u64, VerificationResult>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 enum ResultCache {
     V1(HashMap<u64, VerificationResult>),
     // To save/load different data (e.g. updated PersistentCache) use:

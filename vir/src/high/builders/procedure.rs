@@ -1,14 +1,18 @@
-use crate::high as vir_high;
+use log::debug;
+
+use crate::{common::check_mode::CheckMode, high as vir_high};
 use std::collections::BTreeMap;
 
 #[must_use]
 pub struct ProcedureBuilder {
     name: String,
+    check_mode: CheckMode,
     pre_statements: Vec<vir_high::Statement>,
     post_statements: Vec<vir_high::Statement>,
     start_label: vir_high::BasicBlockId,
     entry_label: Option<vir_high::BasicBlockId>,
     return_label: vir_high::BasicBlockId,
+    is_return_label_used: bool,
     resume_panic_label: vir_high::BasicBlockId,
     is_resume_panic_label_used: bool,
     end_label: vir_high::BasicBlockId,
@@ -40,16 +44,19 @@ pub enum SuccessorBuilder {
 impl ProcedureBuilder {
     pub fn new(
         name: String,
+        check_mode: CheckMode,
         pre_statements: Vec<vir_high::Statement>,
         post_statements: Vec<vir_high::Statement>,
     ) -> Self {
         Self {
             name,
+            check_mode,
             pre_statements,
             post_statements,
             start_label: vir_high::BasicBlockId::new("start_label".to_string()),
             entry_label: None,
             return_label: vir_high::BasicBlockId::new("return_label".to_string()),
+            is_return_label_used: false,
             resume_panic_label: vir_high::BasicBlockId::new("resume_panic_label".to_string()),
             is_resume_panic_label_used: false,
             end_label: vir_high::BasicBlockId::new("end_label".to_string()),
@@ -69,7 +76,9 @@ impl ProcedureBuilder {
             statements: self.post_statements,
             successor: vir_high::Successor::Goto(self.end_label.clone()),
         };
-        assert!(basic_blocks.insert(self.return_label, deallocate).is_none());
+        if self.is_return_label_used {
+            assert!(basic_blocks.insert(self.return_label, deallocate).is_none());
+        }
         if self.is_resume_panic_label_used {
             let leak = vir_high::BasicBlock {
                 statements: vec![vir_high::Statement::leak_all()],
@@ -86,6 +95,7 @@ impl ProcedureBuilder {
             .is_none());
         vir_high::ProcedureDecl {
             name: self.name,
+            check_mode: self.check_mode,
             entry: self.start_label,
             exit: self.end_label,
             basic_blocks,
@@ -116,6 +126,7 @@ impl<'a> BasicBlockBuilder<'a> {
         debug!("Building: {:?}", self.id);
         let successor = match self.successor {
             SuccessorBuilder::Exit(SuccessorExitKind::Return) => {
+                self.procedure_builder.is_return_label_used = true;
                 vir_high::Successor::Goto(self.procedure_builder.return_label.clone())
             }
             SuccessorBuilder::Exit(SuccessorExitKind::ResumePanic) => {

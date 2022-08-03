@@ -61,7 +61,7 @@ pub macro expr {
     )) ) => {
         {
             let mut arguments = vec![ $( $crate::low::macros::expr!( $argument ) ),* ];
-            $( arguments.extend($argument_list); )?
+            $( arguments.extend($argument_list.clone()); )?
             $crate::low::ast::expression::Expression::predicate_access_predicate_no_pos(
                 format!(
                     "{}${}",
@@ -73,9 +73,10 @@ pub macro expr {
             )
         }
     },
-    ( acc($predicate_name:ident<$ty:tt>( $($argument:tt),*), $perm:tt) ) => {
+    ( acc($predicate_name:ident<$ty:tt>( $($argument:tt),* $(; $argument_list:ident )?), $perm:tt) ) => {
         {
             let mut arguments = vec![ $( $crate::low::macros::expr!( $argument ) ),* ];
+            $( arguments.extend($argument_list); )?
             $crate::low::ast::expression::Expression::predicate_access_predicate_no_pos(
                 format!(
                     "{}${}",
@@ -113,7 +114,7 @@ pub macro expr {
             $( $( $statement; )+ )?
             $crate::low::ast::expression::Expression::quantifier_no_pos(
                 $crate::low::ast::expression::QuantifierKind::ForAll,
-                $crate::low::macros::vars!{ $( $var_name : $var_type ),* },
+                vec![ $( $var_name.clone() ),* ],
                 vec![
                     $(
                         $crate::low::ast::expression::Trigger::new(
@@ -199,6 +200,14 @@ pub macro expr {
             Default::default(),
         )
     },
+    ($lhs: tt != $rhs: tt) => {
+        $crate::low::ast::expression::Expression::binary_op(
+            $crate::low::ast::expression::BinaryOpKind::NeCmp,
+            $crate::low::macros::expr!( $lhs ),
+            $crate::low::macros::expr!( $rhs ),
+            Default::default(),
+        )
+    },
     ($lhs: tt <= $rhs: tt) => {
         $crate::low::ast::expression::Expression::binary_op(
             $crate::low::ast::expression::BinaryOpKind::LeCmp,
@@ -218,6 +227,14 @@ pub macro expr {
     ($lhs: tt * $rhs: tt) => {
         $crate::low::ast::expression::Expression::binary_op(
             $crate::low::ast::expression::BinaryOpKind::Mul,
+            $crate::low::macros::expr!( $lhs ),
+            $crate::low::macros::expr!( $rhs ),
+            Default::default(),
+        )
+    },
+    ($lhs: tt || $rhs: tt) => {
+        $crate::low::ast::expression::Expression::binary_op(
+            $crate::low::ast::expression::BinaryOpKind::Or,
             $crate::low::macros::expr!( $lhs ),
             $crate::low::macros::expr!( $rhs ),
             Default::default(),
@@ -403,6 +420,7 @@ pub macro stmts {
 
 pub macro method {
     (
+        $kind:ident =>
         $method_name:ident<$ty:tt>( $( $parameter_name:ident : $parameter_type:tt ),* )
             returns ( $( $result_name:ident : $result_type:tt ),* )
         $( raw_code { $( $statement:stmt; )+ } )?
@@ -418,6 +436,7 @@ pub macro method {
             $( $( $statement; )+ )?
             $crate::low::cfg::method::MethodDecl::new(
                 $crate::low::macros::method_name!{ $method_name<$ty> },
+                $crate::low::cfg::method::MethodKind::$kind,
                 vec![ $($parameter_name.clone()),* ],
                 vec![ $($result_name.clone()),* ],
                 vec![ $( $crate::low::macros::expr!( $pre ) ),* ],
@@ -427,6 +446,7 @@ pub macro method {
         }
     },
     (
+        $kind:ident =>
         $method_name:ident<$ty:tt>(
             $( $parameter_name:ident : $parameter_type:tt ),*
             $(,* $parameter_list:ident )?
@@ -444,6 +464,7 @@ pub macro method {
             $( parameters.extend($parameter_list); )?
             $crate::low::cfg::method::MethodDecl::new(
                 $crate::low::macros::method_name!{ $method_name<$ty> },
+                $crate::low::cfg::method::MethodKind::$kind,
                 parameters,
                 vec![ $($result_name.clone()),* ],
                 vec![ $( $crate::low::macros::expr!( $pre ) ),* ],
@@ -456,6 +477,7 @@ pub macro method {
 
 pub macro function {
     (
+        $kind:ident =>
         $function_name:ident(
             $( $parameter_name:ident : $parameter_type:tt ),*
         ): $result_type:tt
@@ -468,6 +490,7 @@ pub macro function {
             let result = $crate::low::macros::var! { result: $result_type };
             $crate::low::ast::function::FunctionDecl::new(
                 stringify!($function_name).to_string(),
+                $crate::low::ast::function::FunctionKind::$kind,
                 $crate::low::macros::vars!{ $( $parameter_name : $parameter_type ),* },
                 $crate::low::macros::ty! { $result_type },
                 vec![ $( $crate::low::macros::expr!( $pre ) ),* ],
@@ -477,6 +500,7 @@ pub macro function {
         }
     },
     (
+        $kind:ident =>
         $function_name:ident(
             $( $parameter_name:ident : $parameter_type:tt ),*
         ): $result_type:tt
@@ -488,6 +512,7 @@ pub macro function {
             let result = $crate::low::macros::var! { result: $result_type };
             $crate::low::ast::function::FunctionDecl::new(
                 stringify!($function_name).to_string(),
+                $crate::low::ast::function::FunctionKind::$kind,
                 vars!{ $( $parameter_name : $parameter_type ),* },
                 $crate::low::macros::ty! { $result_type },
                 vec![ $( $crate::low::macros::expr!( $pre ) ),* ],

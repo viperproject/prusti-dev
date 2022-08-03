@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use vir_crate::polymorphic as vir;
-use rustc_middle::mir;
+use prusti_rustc_interface::middle::mir;
 use rustc_hash::{FxHashMap};
 use std::fmt::{self, Debug, Display};
 use std::iter::FromIterator;
@@ -63,7 +63,7 @@ pub fn run_backward_interpretation<'tcx, S, E, I>(
 
         // Apply the terminator
         let terminator = bb_data.terminator();
-        let states = FxHashMap::from_iter(terminator.successors().map(|bb| (*bb, &heads[bb])));
+        let states = FxHashMap::from_iter(terminator.successors().map(|bb| (bb, &heads[&bb])));
         trace!("States before: {:?}", states);
         trace!("Apply terminator {:?}", terminator);
         let mut curr_state = interpreter.apply_terminator(curr_bb, terminator, states)?;
@@ -81,9 +81,9 @@ pub fn run_backward_interpretation<'tcx, S, E, I>(
         heads.insert(curr_bb, curr_state);
 
         // Put the preceding basic blocks
-        for &pred_bb in mir.predecessors()[curr_bb].iter() {
+        for &pred_bb in mir.basic_blocks.predecessors()[curr_bb].iter() {
             if let Some(ref term) = basic_blocks[pred_bb].terminator {
-                if term.successors().all(|succ_bb| heads.contains_key(succ_bb)) {
+                if term.successors().all(|succ_bb| heads.contains_key(&succ_bb)) {
                     pending_blocks.push(pred_bb);
                 }
             }
@@ -143,13 +143,13 @@ pub fn run_backward_interpretation_point_to_point<
             // This happens for example when Prusti skips the encoding of a cleanup CFG edge.
             let default_state = terminator
                 .successors()
-                .flat_map(|bb| heads.get(bb))
+                .flat_map(|bb| heads.get(&bb))
                 .next()
                 .unwrap_or(&undef_state);
             FxHashMap::from_iter(
                 terminator
                     .successors()
-                    .map(|bb| (*bb, heads.get(bb).unwrap_or(default_state))),
+                    .map(|bb| (bb, heads.get(&bb).unwrap_or(default_state))),
             )
         };
         trace!("States before: {:?}", states);
@@ -185,7 +185,7 @@ pub fn run_backward_interpretation_point_to_point<
 
         if curr_bb != initial_bbi {
             // Put the preceding basic blocks
-            for &pred_bb in mir.predecessors()[curr_bb].iter() {
+            for &pred_bb in mir.basic_blocks.predecessors()[curr_bb].iter() {
                 // Note: here we don't check that all the successors of `pred_bb` has been visited.
                 // It's a known limitation, because this is the point-to-point interpretation.
                 // Use `run_backward_interpretation` if the check is important.

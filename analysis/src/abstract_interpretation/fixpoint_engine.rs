@@ -9,9 +9,7 @@ use crate::{
     PointwiseState,
 };
 pub use crate::{domains::*, AnalysisError};
-use rustc_data_structures::fx::FxHashMap;
-use rustc_middle::mir;
-use rustc_span::def_id::DefId;
+use prusti_rustc_interface::{data_structures::fx::FxHashMap, middle::mir, span::def_id::DefId};
 use std::{collections::BTreeSet, iter::FromIterator};
 
 pub type AnalysisResult<T> = std::result::Result<T, AnalysisError>;
@@ -84,7 +82,7 @@ pub trait FixpointEngine<'mir, 'tcx: 'mir> {
                 self.new_bottom()
             };
 
-            for &pred_bb in &mir.predecessors()[bb] {
+            for &pred_bb in &mir.basic_blocks.predecessors()[bb] {
                 if let Some(map) = p_state.lookup_after_block(pred_bb) {
                     // map should contain bb, because we ensure that we have a state for every
                     // successor
@@ -149,17 +147,17 @@ pub trait FixpointEngine<'mir, 'tcx: 'mir> {
             }
 
             let terminator = mir[bb].terminator();
-            for &next_bb in terminator.successors() {
+            for next_bb in terminator.successors() {
                 if !new_map.contains_key(&next_bb) {
                     return Err(NoStateAfterSuccessor(bb, next_bb));
                 }
             }
             debug_assert_eq!(
                 terminator.successors().collect::<BTreeSet<_>>(),
-                new_map.keys().collect::<BTreeSet<_>>(),
+                new_map.keys().copied().collect::<BTreeSet<_>>(),
             );
             let map_after_block = p_state.lookup_mut_after_block(bb);
-            for &next_bb in terminator.successors() {
+            for next_bb in terminator.successors() {
                 if let Some(s) = new_map.remove(&next_bb) {
                     let prev_state = map_after_block.insert(next_bb, s);
                     let new_state_ref = map_after_block.get(&next_bb);

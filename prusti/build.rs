@@ -1,5 +1,3 @@
-extern crate chrono;
-
 use chrono::{prelude::Utc, DateTime, NaiveDateTime};
 use std::process::Command;
 

@@ -3,12 +3,23 @@ use super::{
 };
 use crate::encoder::{
     errors::SpannedEncodingResult,
-    middle::core_proof::lowerer::{DomainsLowererInterface, Lowerer},
+    middle::core_proof::{
+        lowerer::{DomainsLowererInterface, Lowerer},
+        type_layouts::TypeLayoutsInterface,
+    },
 };
+use prusti_rustc_interface::data_structures::stable_set::FxHashSet;
 use vir_crate::{
-    low as vir_low,
+    common::{expression::QuantifierHelpers, identifier::WithIdentifier},
+    low::{self as vir_low, macros::var_decls},
     middle::{self as vir_mid},
 };
+
+#[derive(Default)]
+pub(in super::super) struct PlacesState {
+    /// For which types array index axioms were generated.
+    array_index_axioms: FxHashSet<vir_mid::Type>,
+}
 
 pub(in super::super) trait PlacesInterface {
     fn place_type(&mut self) -> SpannedEncodingResult<vir_low::Type>;
@@ -42,6 +53,7 @@ pub(in super::super) trait PlacesInterface {
         index: vir_low::Expression,
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression>;
+    fn encode_place_array_index_axioms(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()>;
 }
 
 impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
@@ -96,5 +108,53 @@ impl<'p, 'v: 'p, 'tcx: 'v> PlacesInterface for Lowerer<'p, 'v, 'tcx> {
         position: vir_mid::Position,
     ) -> SpannedEncodingResult<vir_low::ast::expression::Expression> {
         self.encode_index_access_function_app("Place", base_place, base_type, index, position)
+    }
+    fn encode_place_array_index_axioms(&mut self, ty: &vir_mid::Type) -> SpannedEncodingResult<()> {
+        if !self.places_state.array_index_axioms.contains(ty) {
+            self.places_state.array_index_axioms.insert(ty.clone());
+            let position = vir_low::Position::default();
+            use vir_low::macros::*;
+            let place_type = self.place_type()?;
+            let size_type = self.size_type()?;
+            var_decls! {
+                place: Place,
+                index: { size_type.clone() }
+            };
+            let function_app = self.encode_index_access_function_app(
+                "Place",
+                place.clone().into(),
+                ty,
+                index.clone().into(),
+                position,
+            )?;
+            let place_inverse = self.create_domain_func_app(
+                "Place",
+                format!("index_place$${}$$inv_place", ty.get_identifier()),
+                vec![function_app.clone()],
+                place_type,
+                position,
+            )?;
+            let index_inverse = self.create_domain_func_app(
+                "Place",
+                format!("index_place$${}$$inv_index", ty.get_identifier()),
+                vec![function_app.clone()],
+                size_type,
+                position,
+            )?;
+            let body = vir_low::Expression::forall(
+                vec![place.clone(), index.clone()],
+                vec![vir_low::Trigger::new(vec![function_app])],
+                expr! {
+                    ([place_inverse] == place) &&
+                    ([index_inverse] == index)
+                },
+            );
+            let axiom = vir_low::DomainAxiomDecl {
+                name: format!("index_place$${}$$injectivity_axiom", ty.get_identifier()),
+                body,
+            };
+            self.declare_axiom("Place", axiom)?;
+        }
+        Ok(())
     }
 }

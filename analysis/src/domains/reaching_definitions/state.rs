@@ -7,12 +7,14 @@
 use crate::{
     abstract_interpretation::AbstractState, mir_utils::location_to_stmt_str, AnalysisError,
 };
-use rustc_data_structures::{
-    fingerprint::Fingerprint,
-    fx::{FxHashMap, FxHashSet},
-    stable_hasher::{HashStable, StableHasher},
+use prusti_rustc_interface::{
+    data_structures::{
+        fingerprint::Fingerprint,
+        fx::{FxHashMap, FxHashSet},
+        stable_hasher::{HashStable, StableHasher},
+    },
+    middle::{mir, ty::TyCtxt},
 };
-use rustc_middle::{mir, ty::TyCtxt};
 use serde::{ser::SerializeMap, Serialize, Serializer};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -53,18 +55,16 @@ impl<'mir, 'tcx: 'mir> PartialEq for ReachingDefsState<'mir, 'tcx> {
         debug_assert_eq!(
             {
                 let mut stable_hasher = StableHasher::new();
-                self.mir.hash_stable(
-                    &mut self.tcx.create_stable_hashing_context(),
-                    &mut stable_hasher,
-                );
+                self.tcx.with_stable_hashing_context(|mut ctx| {
+                    self.mir.hash_stable(&mut ctx, &mut stable_hasher)
+                });
                 stable_hasher.finish::<Fingerprint>()
             },
             {
                 let mut stable_hasher = StableHasher::new();
-                other.mir.hash_stable(
-                    &mut other.tcx.create_stable_hashing_context(),
-                    &mut stable_hasher,
-                );
+                other.tcx.with_stable_hashing_context(|mut ctx| {
+                    other.mir.hash_stable(&mut ctx, &mut stable_hasher)
+                });
                 stable_hasher.finish::<Fingerprint>()
             },
         );
@@ -127,12 +127,13 @@ impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
         match terminator.kind {
             mir::TerminatorKind::Call {
                 ref destination,
+                target,
                 cleanup,
                 ..
             } => {
-                if let Some((place, bb)) = destination {
+                if let Some(bb) = target {
                     let mut dest_state = self.clone();
-                    if let Some(local) = place.as_local() {
+                    if let Some(local) = destination.as_local() {
                         let location_set = dest_state
                             .reaching_defs
                             .entry(local)
@@ -140,15 +141,15 @@ impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
                         location_set.clear();
                         location_set.insert(DefLocation::Assignment(location));
                     }
-                    res_vec.push((*bb, dest_state));
+                    res_vec.push((bb, dest_state));
                 }
 
                 if let Some(bb) = cleanup {
                     let mut cleanup_state = self.clone();
                     // error state -> be conservative & add destination as possible reaching def
                     // while keeping all others
-                    if let Some((place, _)) = destination {
-                        if let Some(local) = place.as_local() {
+                    if target.is_some() {
+                        if let Some(local) = destination.as_local() {
                             let location_set = cleanup_state
                                 .reaching_defs
                                 .entry(local)
@@ -163,7 +164,7 @@ impl<'mir, 'tcx: 'mir> ReachingDefsState<'mir, 'tcx> {
                 return Err(AnalysisError::UnsupportedStatement(location));
             }
             _ => {
-                for &bb in terminator.successors() {
+                for bb in terminator.successors() {
                     // no assignment -> no change of state
                     res_vec.push((bb, self.clone()));
                 }

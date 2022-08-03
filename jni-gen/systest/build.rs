@@ -1,8 +1,3 @@
-extern crate env_logger;
-extern crate error_chain;
-extern crate jni_gen;
-extern crate tempdir;
-
 use error_chain::ChainedError;
 use jni_gen::*;
 use std::{env, fs::File, io::copy, path::Path};

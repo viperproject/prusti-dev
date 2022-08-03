@@ -7,7 +7,7 @@
 use crate::legacy::ast::*;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub struct Trigger(Vec<Expr>);
 
 impl fmt::Display for Trigger {

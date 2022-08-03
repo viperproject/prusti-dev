@@ -1,9 +1,9 @@
-use rustc_hir::{
+use prusti_rustc_interface::hir::{
     self as hir,
     intravisit::{self, Visitor},
 };
-use rustc_middle::{hir::map::Map, ty::TyCtxt};
-use rustc_span::Span;
+use prusti_rustc_interface::middle::{hir::map::Map, ty::TyCtxt};
+use prusti_rustc_interface::span::Span;
 use crate::{
     environment::Environment,
     utils::has_spec_only_attr,
@@ -44,7 +44,7 @@ pub struct NonSpecExprVisitorWrapper<'tcx, T: NonSpecExprVisitor<'tcx>> {
 /// An implementation for `intravisit::Visitor` for [NonSpecExprVisitor] implementing types
 impl<'tcx, T: NonSpecExprVisitor<'tcx>> Visitor<'tcx> for NonSpecExprVisitorWrapper<'tcx, T> {
     type Map = Map<'tcx>;
-    type NestedFilter = rustc_middle::hir::nested_filter::All;
+    type NestedFilter =prusti_rustc_interface::middle::hir::nested_filter::All;
 
     fn nested_visit_map(&mut self) -> Self::Map {
         self.wrapped.tcx().hir()

@@ -6,9 +6,10 @@ use super::{
 };
 use crate::encoder::errors::{ErrorCtxt, SpannedEncodingError, SpannedEncodingResult};
 use log::debug;
+use prusti_rustc_interface::errors::MultiSpan;
 use vir_crate::{
     common::position::Positioned,
-    high::{self as vir_high, operations::ty::Typed},
+    typed::{self as vir_typed, operations::ty::Typed},
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -24,15 +25,15 @@ pub(in super::super) trait Context {
     /// be used.
     fn expand_place(
         &mut self,
-        place: &vir_high::Expression,
-        guiding_place: &vir_high::Expression,
-    ) -> SpannedEncodingResult<Vec<(ExpandedPermissionKind, vir_high::Expression)>>;
-    fn get_span(&mut self, position: vir_high::Position) -> Option<rustc_errors::MultiSpan>;
+        place: &vir_typed::Expression,
+        guiding_place: &vir_typed::Expression,
+    ) -> SpannedEncodingResult<Vec<(ExpandedPermissionKind, vir_typed::Expression)>>;
+    fn get_span(&mut self, position: vir_typed::Position) -> Option<MultiSpan>;
     fn change_error_context(
         &mut self,
-        position: vir_high::Position,
+        position: vir_typed::Position,
         error_ctxt: ErrorCtxt,
-    ) -> vir_high::Position;
+    ) -> vir_typed::Position;
 }
 
 pub(in super::super) fn ensure_required_permissions(
@@ -80,6 +81,18 @@ fn ensure_required_permission(
             "cannot drop unconditional state"
         );
     } else {
+        if let Some((discriminant_permission_kind, discriminant)) =
+            unconditional_predicate_state.contains_discriminant_with_prefix(&place)
+        {
+            // If unconditional contains the discriminant, transfer it to all
+            // conditionals.
+            let discriminant = discriminant.clone();
+            unconditional_predicate_state.remove(discriminant_permission_kind, &discriminant)?;
+            for (_, conditional_predicate_state) in state.get_conditional_states()? {
+                conditional_predicate_state
+                    .insert(discriminant_permission_kind, discriminant.clone())?;
+            }
+        }
         for (condition, conditional_predicate_state) in state.get_conditional_states()? {
             if can_place_be_ensured_in(
                 context,
@@ -121,7 +134,7 @@ fn ensure_required_permission(
 
 fn check_can_place_be_ensured_in(
     context: &mut impl Context,
-    place: &vir_high::Expression,
+    place: &vir_typed::Expression,
     permission_kind: PermissionKind,
     predicate_state: &PredicateState,
     check_conversions: bool,
@@ -169,7 +182,7 @@ fn check_can_place_be_ensured_in(
         // different variant) and report an error to the user suggesting that
         // they should fold.
         for prefix in place.iter_prefixes() {
-            if let vir_high::Expression::Variant(variant) = prefix {
+            if let vir_typed::Expression::Variant(variant) = prefix {
                 for prefixed in predicate_state.get_all_with_prefix(permission_kind, &variant.base)
                 {
                     if !prefixed.has_prefix(prefix) {
@@ -198,7 +211,7 @@ fn check_can_place_be_ensured_in(
 
 fn can_place_be_ensured_in(
     context: &mut impl Context,
-    place: &vir_high::Expression,
+    place: &vir_typed::Expression,
     permission_kind: PermissionKind,
     predicate_state: &PredicateState,
 ) -> SpannedEncodingResult<bool> {
@@ -210,7 +223,7 @@ fn can_place_be_ensured_in(
 fn ensure_permission_in_state(
     context: &mut impl Context,
     predicate_state: &mut PredicateState,
-    place: vir_high::Expression,
+    place: vir_typed::Expression,
     permission_kind: PermissionKind,
     actions: &mut Vec<Action>,
 ) -> SpannedEncodingResult<bool> {
@@ -243,7 +256,7 @@ fn ensure_permission_in_state(
             None
         };
         let position = {
-            let error_ctxt = if let vir_high::Type::Union(vir_high::ty::Union {
+            let error_ctxt = if let vir_typed::Type::Union(vir_typed::ty::Union {
                 variant: Some(_),
                 ..
             }) = prefix.get_type()
@@ -255,11 +268,7 @@ fn ensure_permission_in_state(
             context.change_error_context(place.position(), error_ctxt)
         };
         let prefix = prefix.replace_position(position);
-        actions.push(Action::unfold(
-            permission_kind,
-            prefix.clone(),
-            enum_variant,
-        ));
+        actions.push(Action::unfold(permission_kind, prefix, enum_variant));
         for (kind, new_place) in expanded_place {
             debug!("  kind={:?} new_place={}", kind, new_place);
             new_place.check_no_default_position();
@@ -268,16 +277,6 @@ fn ensure_permission_in_state(
                 ExpandedPermissionKind::Same,
                 "This should never lead to unfolding up to memory blocks."
             );
-            if prefix.get_type().is_array() {
-                // To satisfy injectivity requirements, array elements are
-                // wrapped in additional predicates, which we need to unfold
-                // together with the main array predicate.
-                actions.push(Action::unfold_array_element(
-                    permission_kind,
-                    prefix.clone(),
-                    prefix.get_index(&new_place).clone(),
-                ));
-            }
             predicate_state.insert(permission_kind, new_place)?;
         }
         ensure_permission_in_state(context, predicate_state, place, permission_kind, actions)?
@@ -303,16 +302,6 @@ fn ensure_permission_in_state(
                 return Ok(true);
             }
             predicate_state.remove(permission_kind, &new_place)?;
-        }
-        if place.get_type().is_array() {
-            // To satisfy injectivity requirements, array elements are wrapped
-            // in additional predicates, which we need to fold together with the
-            // main array predicate.
-            actions.push(Action::fold_array_element(
-                permission_kind,
-                place.clone(),
-                place.get_index(&witness).clone(),
-            ));
         }
         actions.push(Action::fold(permission_kind, place.clone(), enum_variant));
         predicate_state.insert(permission_kind, place)?;
@@ -347,7 +336,7 @@ fn ensure_permission_in_state(
             // `_2.*` is both `Owned` and `MemoryBlock`.
             let target_type = *place.get_type().clone().unwrap_reference().target_type;
             let deref_place =
-                vir_high::Expression::deref(place.clone(), target_type, place.position());
+                vir_typed::Expression::deref(place.clone(), target_type, place.position());
             let to_drop = ensure_permission_in_state(
                 context,
                 predicate_state,
@@ -410,7 +399,10 @@ fn ensure_permission_in_state(
         }
     } else {
         // The requirement cannot be satisfied.
-        unreachable!("{} {:?}", place, permission_kind);
+        unreachable!(
+            "place={} permission_kind={:?} predicate_state={}",
+            place, permission_kind, predicate_state
+        );
     };
     Ok(to_drop)
 }

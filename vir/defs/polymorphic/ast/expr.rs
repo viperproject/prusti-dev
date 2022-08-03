@@ -14,7 +14,9 @@ use std::{
     mem::discriminant,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, PartialOrd, Ord,
+)]
 pub enum Expr {
     /// A local var
     Local(Local),
@@ -926,7 +928,7 @@ impl Expr {
     /// Returns the type of the expression.
     /// For function applications, the return type is provided.
     pub fn get_type(&self) -> &Type {
-        lazy_static! {
+        lazy_static::lazy_static! {
             static ref FN_PTR_TYPE: Type = Type::typed_ref("FnPtr");
         }
         match self {
@@ -1758,13 +1760,17 @@ pub enum PlaceComponent {
     Variant(Field, Position),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
 pub enum UnaryOpKind {
     Not,
     Minus,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
 pub enum BinaryOpKind {
     EqCmp,
     NeCmp,
@@ -1790,14 +1796,18 @@ pub enum BinaryOpKind {
     Max,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
 pub enum ContainerOpKind {
     SeqIndex,
     SeqConcat,
     SeqLen,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
 pub enum FloatConst {
     F32(u32),
     F64(u64),
@@ -1809,7 +1819,9 @@ impl fmt::Display for FloatConst {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
 pub struct BitVectorConst {
     pub value: String,
     pub typ: BitVector,
@@ -1821,7 +1833,9 @@ impl fmt::Display for BitVectorConst {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize, PartialOrd, Ord,
+)]
 pub enum Const {
     Bool(bool),
     Int(i64),
@@ -1834,7 +1848,7 @@ pub enum Const {
 }
 
 /// Individual structs for different cases of Expr
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct Local {
     pub variable: LocalVar,
     pub position: Position,
@@ -1858,7 +1872,7 @@ impl Hash for Local {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct Variant {
     pub base: Box<Expr>,
     pub variant_index: Field,
@@ -1883,7 +1897,7 @@ impl Hash for Variant {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct FieldExpr {
     pub base: Box<Expr>,
     pub field: Field,
@@ -1908,7 +1922,7 @@ impl Hash for FieldExpr {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct AddrOf {
     pub base: Box<Expr>,
     pub addr_type: Type,
@@ -1933,7 +1947,7 @@ impl Hash for AddrOf {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct LabelledOld {
     pub label: String,
     pub base: Box<Expr>,
@@ -1958,7 +1972,7 @@ impl Hash for LabelledOld {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct ConstExpr {
     pub value: Const,
     pub position: Position,
@@ -1982,7 +1996,7 @@ impl Hash for ConstExpr {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct MagicWand {
     pub left: Box<Expr>,
     pub right: Box<Expr>,
@@ -2012,7 +2026,7 @@ impl Hash for MagicWand {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct PredicateAccessPredicate {
     pub predicate_type: Type,
     pub argument: Box<Expr>,
@@ -2045,7 +2059,7 @@ impl Hash for PredicateAccessPredicate {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct FieldAccessPredicate {
     pub base: Box<Expr>,
     pub permission: PermAmount,
@@ -2070,7 +2084,7 @@ impl Hash for FieldAccessPredicate {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct UnaryOp {
     pub op_kind: UnaryOpKind,
     pub argument: Box<Expr>,
@@ -2095,7 +2109,7 @@ impl Hash for UnaryOp {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct BinOp {
     pub op_kind: BinaryOpKind,
     pub left: Box<Expr>,
@@ -2121,7 +2135,7 @@ impl Hash for BinOp {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct ContainerOp {
     pub op_kind: ContainerOpKind,
     pub left: Box<Expr>,
@@ -2151,7 +2165,7 @@ impl Hash for ContainerOp {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct Seq {
     pub typ: Type,
     pub elements: Vec<Expr>,
@@ -2189,7 +2203,7 @@ impl Hash for Seq {
 }
 
 /// Corresponding to `ExplicitMap`, the elements are expressions of Maplets, i.e. key-value pairs
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct Map {
     /// *Map* type, not the type of keys or values
     pub typ: Type,
@@ -2231,7 +2245,7 @@ impl fmt::Display for Map {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct Unfolding {
     pub predicate: Type,
     pub arguments: Vec<Expr>,
@@ -2293,7 +2307,7 @@ impl Hash for Unfolding {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct Cond {
     pub guard: Box<Expr>,
     pub then_expr: Box<Expr>,
@@ -2324,7 +2338,7 @@ impl Hash for Cond {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct ForAll {
     pub variables: Vec<LocalVar>,
     pub triggers: Vec<Trigger>,
@@ -2365,7 +2379,7 @@ impl Hash for ForAll {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct Exists {
     pub variables: Vec<LocalVar>,
     pub triggers: Vec<Trigger>,
@@ -2406,7 +2420,7 @@ impl Hash for Exists {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct LetExpr {
     pub variable: LocalVar,
     pub def: Box<Expr>,
@@ -2436,7 +2450,7 @@ impl Hash for LetExpr {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct FuncApp {
     pub function_name: String,
     pub type_arguments: Vec<Type>,
@@ -2475,7 +2489,7 @@ impl Hash for FuncApp {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct DomainFuncApp {
     pub domain_function: DomainFunc,
     pub arguments: Vec<Expr>,
@@ -2506,7 +2520,7 @@ impl Hash for DomainFuncApp {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct InhaleExhale {
     pub inhale_expr: Box<Expr>,
     pub exhale_expr: Box<Expr>,
@@ -2531,7 +2545,7 @@ impl Hash for InhaleExhale {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct DowncastExpr {
     pub base: Box<Expr>,
     pub enum_place: Box<Expr>,
@@ -2561,13 +2575,15 @@ impl Hash for DowncastExpr {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash)]
+#[derive(
+    Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialOrd, Ord, PartialEq, Eq, Hash,
+)]
 pub enum CastKind {
     BVIntoInt(BitVector),
     IntIntoBV(BitVector),
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct Cast {
     pub kind: CastKind,
     pub base: Box<Expr>,
@@ -2592,7 +2608,7 @@ impl Hash for Cast {
     }
 }
 
-#[derive(Debug, Clone, Eq, Serialize, Deserialize, PartialOrd, Ord)]
+#[derive(Debug, Clone, Eq, serde::Serialize, serde::Deserialize, PartialOrd, Ord)]
 pub struct SnapApp {
     pub base: Box<Expr>,
     pub position: Position,

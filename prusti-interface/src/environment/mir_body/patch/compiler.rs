@@ -11,9 +11,11 @@
 // 3. Implement Clone for MirPatch.
 
 use log::debug;
-use rustc_index::vec::{Idx, IndexVec};
-use rustc_middle::{mir::*, ty::Ty};
-use rustc_span::Span;
+use prusti_rustc_interface::{
+    index::vec::{Idx, IndexVec},
+    middle::{mir::*, ty::Ty},
+    span::Span,
+};
 
 /// This struct represents a patch to MIR, which can add
 /// new statements and basic blocks and patch over block
@@ -190,7 +192,7 @@ impl<'tcx> MirPatch<'tcx> {
         }
     }
 
-    pub fn source_info_for_location(&self, body: &Body<'_>, loc: Location) -> SourceInfo {
+    pub fn source_info_for_location(&self, body: &Body<'tcx>, loc: Location) -> SourceInfo {
         let data = match loc.block.index().checked_sub(body.basic_blocks().len()) {
             Some(new) => &self.new_blocks[new],
             None => &body[loc.block],

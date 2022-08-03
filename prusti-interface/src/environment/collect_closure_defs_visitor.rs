@@ -1,9 +1,9 @@
-use rustc_hir::intravisit::{Visitor, walk_expr};
-use rustc_hir as hir;
-use rustc_middle::hir::map::Map;
+use prusti_rustc_interface::hir::intravisit::{Visitor, walk_expr};
+use prusti_rustc_interface::hir;
+use prusti_rustc_interface::middle::hir::map::Map;
 use crate::environment::Environment;
 use log::{trace};
-use rustc_hir::def_id::DefId;
+use prusti_rustc_interface::hir::def_id::DefId;
 
 
 use crate::utils::has_spec_only_attr;
@@ -29,14 +29,14 @@ impl<'env, 'tcx> CollectClosureDefsVisitor<'env, 'tcx> {
 
 impl<'env, 'tcx> Visitor<'tcx> for CollectClosureDefsVisitor<'env, 'tcx> {
     type Map = Map<'tcx>;
-    type NestedFilter = rustc_middle::hir::nested_filter::OnlyBodies;
+    type NestedFilter =prusti_rustc_interface::middle::hir::nested_filter::OnlyBodies;
 
     fn nested_visit_map(&mut self) -> Self::Map {
         self.map
     }
 
     fn visit_expr(&mut self, expr: &'tcx hir::Expr<'tcx>) {
-        if let hir::ExprKind::Closure(_, _, _, _, _) = expr.kind {
+        if let hir::ExprKind::Closure { .. } = expr.kind {
             if !has_spec_only_attr(self.map.attrs(expr.hir_id)) {
                 let _tcx = self.env.tcx();
                 let def_id = self.map.local_def_id(expr.hir_id).to_def_id();

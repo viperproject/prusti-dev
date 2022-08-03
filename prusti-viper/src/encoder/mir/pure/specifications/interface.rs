@@ -23,9 +23,11 @@ use crate::encoder::{
     mir_interpreter::run_backward_interpretation_point_to_point,
     snapshot::interface::SnapshotEncoderInterface,
 };
-use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_middle::{mir, ty::subst::SubstsRef};
-use rustc_span::Span;
+use prusti_rustc_interface::{
+    hir::def_id::{DefId, LocalDefId},
+    middle::{mir, ty::subst::SubstsRef},
+    span::Span,
+};
 use vir_crate::{
     high::{self as vir_high, operations::ty::Typed},
     polymorphic as vir_poly,
@@ -145,7 +147,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression> {
         // identify previous block: there should only be one
-        let predecessors = &mir.predecessors()[invariant_block];
+        let predecessors = &mir.basic_blocks.predecessors()[invariant_block];
         assert_eq!(predecessors.len(), 1);
         let predecessor = predecessors[0];
 
@@ -176,10 +178,11 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
 
         // encode the LHS of closure assign into a VIR expression
         let mir_encoder = MirEncoder::new(self, mir, parent_def_id);
-        let span = mir_encoder.get_span_of_location(rustc_middle::mir::Location {
-            block: invariant_block,
-            statement_index: inv_loc,
-        });
+        let span =
+            mir_encoder.get_span_of_location(prusti_rustc_interface::middle::mir::Location {
+                block: invariant_block,
+                statement_index: inv_loc,
+            });
         let inv_cl_expr_encoded = self
             .encode_place_high(mir, inv_cl_expr, Some(span))
             .with_span(span)?;
@@ -294,7 +297,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr> {
         // identify previous block: there should only be one
-        let predecessors = &mir.predecessors()[invariant_block];
+        let predecessors = &mir.basic_blocks.predecessors()[invariant_block];
         assert_eq!(predecessors.len(), 1);
         let predecessor = predecessors[0];
 
@@ -325,11 +328,12 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
 
         // encode the LHS of closure assign into a VIR expression
         let mir_encoder = MirEncoder::new(self, mir, parent_def_id);
-        let span = mir_encoder.get_span_of_location(rustc_middle::mir::Location {
-            block: invariant_block,
-            statement_index: inv_loc,
-        });
-        let (inv_cl_expr_encoded, _, _) = mir_encoder.encode_place(&inv_cl_expr).with_span(span)?;
+        let span =
+            mir_encoder.get_span_of_location(prusti_rustc_interface::middle::mir::Location {
+                block: invariant_block,
+                statement_index: inv_loc,
+            });
+        let (inv_cl_expr_encoded, _, _) = mir_encoder.encode_place(inv_cl_expr).with_span(span)?;
 
         // inline invariant body
         let encoded_invariant = inline_closure(

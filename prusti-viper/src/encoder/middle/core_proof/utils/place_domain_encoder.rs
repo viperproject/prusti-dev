@@ -23,6 +23,11 @@ pub(in super::super) trait PlaceExpressionDomainEncoder {
         lowerer: &mut Lowerer,
         arg: vir_low::Expression,
     ) -> SpannedEncodingResult<vir_low::Expression>;
+    fn encode_array_index_axioms(
+        &mut self,
+        base_type: &vir_mid::Type,
+        lowerer: &mut Lowerer,
+    ) -> SpannedEncodingResult<()>;
     fn encode_expression(
         &mut self,
         place: &vir_mid::Expression,
@@ -65,6 +70,7 @@ pub(in super::super) trait PlaceExpressionDomainEncoder {
                 ..
             }) => {
                 assert_eq!(arguments.len(), 2);
+                self.encode_array_index_axioms(arguments[0].get_type(), lowerer)?;
                 let array = self.encode_expression(&arguments[0], lowerer)?;
                 let index = arguments[1].to_procedure_snapshot(lowerer)?;
                 let domain_name = self.domain_name(lowerer);

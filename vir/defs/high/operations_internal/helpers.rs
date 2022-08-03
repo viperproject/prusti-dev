@@ -108,3 +108,24 @@ impl ConstantHelpers for Expression {
         value.into()
     }
 }
+
+impl SyntacticEvaluation for Expression {
+    fn is_true(&self) -> bool {
+        matches!(
+            self,
+            Self::Constant(Constant {
+                value: ConstantValue::Bool(true),
+                ..
+            })
+        )
+    }
+    fn is_false(&self) -> bool {
+        matches!(
+            self,
+            Self::Constant(Constant {
+                value: ConstantValue::Bool(false),
+                ..
+            })
+        )
+    }
+}
