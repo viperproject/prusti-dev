@@ -1,12 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.28/src/dispatcher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatcher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tracing_core/index.html">
-                        <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.29/src/dispatcher.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dispatcher.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tracing_core/index.html">
+                        <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -904,6 +898,17 @@
 <span id="896">896</span>
 <span id="897">897</span>
 <span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Dispatches trace events to [`Subscriber`]s.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The _dispatcher_ is the component of the tracing system which is responsible</span>
@@ -1032,7 +1037,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <a class="ident" href="../../src/tracing_core/lib.rs.html#271">callsite</a>, <a class="ident" href="../../src/tracing_core/lib.rs.html#277">span</a>,
     <span class="ident">subscriber</span>::{<a class="self" href="../../src/tracing_core/lib.rs.html#279">self</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#654">NoSubscriber</a>, <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a>},
-    <a class="ident" href="../../src/tracing_core/event.rs.html#23">Event</a>, <a class="ident" href="../../src/tracing_core/metadata.rs.html#243">LevelFilter</a>, <a class="ident" href="../../src/tracing_core/metadata.rs.html#60">Metadata</a>,
+    <a class="ident" href="../../src/tracing_core/event.rs.html#23">Event</a>, <a class="ident" href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a>, <a class="ident" href="../../src/tracing_core/metadata.rs.html#57">Metadata</a>,
 };
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stdlib</span>::{
@@ -1165,7 +1170,7 @@
 <span class="doccomment">/// [span]: super::span</span>
 <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
 <span class="doccomment">/// [`Event`]: super::event::Event</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_global_default</span>(<span class="ident">dispatcher</span>: <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#297">SetGlobalDefaultError</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_global_default</span>(<span class="ident">dispatcher</span>: <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a><span class="op">&gt;</span> {
     <span class="comment">// if `compare_exchange` returns Result::Ok(_), then `new` has been set and</span>
     <span class="comment">// `current`—now the prior value—has been returned in the `Ok()` branch.</span>
     <span class="kw">if</span> <span class="ident">GLOBAL_INIT</span>
@@ -1184,7 +1189,7 @@
         <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#163">EXISTS</a>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::Release</span>);
         <span class="prelude-val">Ok</span>(())
     } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#297">SetGlobalDefaultError</a> { <span class="ident">_no_construct</span>: () })
+        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a> { <span class="ident">_no_construct</span>: () })
     }
 }
 
@@ -1199,20 +1204,31 @@
 }
 
 <span class="doccomment">/// Returned if setting the global dispatcher fails.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SetGlobalDefaultError</span> {
     <span class="ident">_no_construct</span>: (),
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#297">SetGlobalDefaultError</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#302">f</a>.<span class="ident">pad</span>(<span class="string">&quot;a global default trace dispatcher has already been set&quot;</span>)
+        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#301">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;SetGlobalDefaultError&quot;</span>)
+            .<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::MESSAGE</span>)
+            .<span class="ident">finish</span>()
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Display.html">fmt::Display</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
+        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#309">f</a>.<span class="ident">pad</span>(<span class="ident"><span class="self">Self</span>::MESSAGE</span>)
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)))]</span>
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#297">SetGlobalDefaultError</a> {}
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/error/trait.Error.html">error::Error</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a> {}
+
+<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#296">SetGlobalDefaultError</a> {
+    <span class="kw">const</span> <span class="ident">MESSAGE</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <span class="string">&quot;a global default trace dispatcher has already been set&quot;</span>;
+}
 
 <span class="doccomment">/// Executes a closure with a reference to this thread&#39;s current [dispatcher].</span>
 <span class="doccomment">///</span>
@@ -1228,13 +1244,13 @@
 {
     <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#156-161">CURRENT_STATE</a>
         .<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">entered</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#324">state</a>.<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#689">enter</a>() {
-                <span class="kw">return</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#319">f</a>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#325">entered</a>.<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#703">current</a>());
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">entered</span>) <span class="op">=</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#335">state</a>.<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#700">enter</a>() {
+                <span class="kw">return</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#330">f</a>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#336">entered</a>.<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#714">current</a>());
             }
 
-            <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#319">f</a>(<span class="kw-2">&amp;</span><span class="ident">Dispatch::none</span>())
+            <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#330">f</a>(<span class="kw-2">&amp;</span><span class="ident">Dispatch::none</span>())
         })
-        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#319">f</a>(<span class="kw-2">&amp;</span><span class="ident">Dispatch::none</span>()))
+        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#330">f</a>(<span class="kw-2">&amp;</span><span class="ident">Dispatch::none</span>()))
 }
 
 <span class="doccomment">/// Executes a closure with a reference to this thread&#39;s current [dispatcher].</span>
@@ -1314,15 +1330,15 @@
         <span class="ident">S</span>: <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> {
-            <span class="ident">subscriber</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#406">subscriber</a>),
+            <span class="ident">subscriber</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#417">subscriber</a>),
         };
-        <a class="ident" href="../../src/tracing_core/callsite.rs.html#479">callsite::register_dispatch</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#410">me</a>);
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#410">me</a>
+        <a class="ident" href="../../src/tracing_core/callsite.rs.html#488">callsite::register_dispatch</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#421">me</a>);
+        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#421">me</a>
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">registrar</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#392">Registrar</a> {
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#392">Registrar</a>(<span class="ident">Arc::downgrade</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/dispatcher.rs.html#418">self</a>.<span class="ident">subscriber</span>))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">registrar</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#403">Registrar</a> {
+        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#403">Registrar</a>(<span class="ident">Arc::downgrade</span>(<span class="kw-2">&amp;</span><a class="self" href="../../src/tracing_core/dispatcher.rs.html#429">self</a>.<span class="ident">subscriber</span>))
     }
 
     <span class="doccomment">/// Registers a new callsite with this subscriber, returning whether or not</span>
@@ -1335,7 +1351,7 @@
     <span class="doccomment">/// [`register_callsite`]: super::subscriber::Subscriber::register_callsite</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_callsite</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/subscriber.rs.html#571">subscriber::Interest</a> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#431">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#157">register_callsite</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#431">metadata</a>)
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#442">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#157">register_callsite</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#442">metadata</a>)
     }
 
     <span class="doccomment">/// Returns the highest [verbosity level][level] that this [`Subscriber`] will</span>
@@ -1350,8 +1366,8 @@
     <span class="doccomment">/// [`register_callsite`]: super::subscriber::Subscriber::max_level_hint</span>
     <span class="comment">// TODO(eliza): consider making this a public API?</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">max_level_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/metadata.rs.html#243">LevelFilter</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#447">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#209">max_level_hint</a>()
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">max_level_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/metadata.rs.html#240">LevelFilter</a><span class="op">&gt;</span> {
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#458">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#209">max_level_hint</a>()
     }
 
     <span class="doccomment">/// Record the construction of a new span, returning a new [ID] for the</span>
@@ -1365,7 +1381,7 @@
     <span class="doccomment">/// [`new_span`]: super::subscriber::Subscriber::new_span</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><span class="ident">span::Attributes</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#461">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#237">new_span</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#461">span</a>)
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#472">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#237">new_span</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#472">span</a>)
     }
 
     <span class="doccomment">/// Record a set of values on a span.</span>
@@ -1377,7 +1393,7 @@
     <span class="doccomment">/// [`record`]: super::subscriber::Subscriber::record</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">values</span>: <span class="kw-2">&amp;</span><span class="ident">span::Record</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#473">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#277">record</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#473">span</a>, <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#473">values</a>)
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#484">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#277">record</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#484">span</a>, <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#484">values</a>)
     }
 
     <span class="doccomment">/// Adds an indication that `span` follows from the span with the id</span>
@@ -1390,7 +1406,7 @@
     <span class="doccomment">/// [`record_follows_from`]: super::subscriber::Subscriber::record_follows_from</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record_follows_from</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>, <span class="ident">follows</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#486">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#297">record_follows_from</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#486">span</a>, <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#486">follows</a>)
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#497">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#297">record_follows_from</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#497">span</a>, <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#497">follows</a>)
     }
 
     <span class="doccomment">/// Returns true if a span with the specified [metadata] would be</span>
@@ -1404,7 +1420,7 @@
     <span class="doccomment">/// [`enabled`]: super::subscriber::Subscriber::enabled</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enabled</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">metadata</span>: <span class="kw-2">&amp;</span><span class="ident">Metadata</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#500">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#185">enabled</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#500">metadata</a>)
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#511">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#185">enabled</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#511">metadata</a>)
     }
 
     <span class="doccomment">/// Records that an [`Event`] has occurred.</span>
@@ -1418,7 +1434,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">event</span>: <span class="kw-2">&amp;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">subscriber</span>.<span class="ident">event_enabled</span>(<span class="ident">event</span>) {
-            <a class="self" href="../../src/tracing_core/dispatcher.rs.html#513">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#328">event</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#513">event</a>);
+            <a class="self" href="../../src/tracing_core/dispatcher.rs.html#524">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#328">event</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#524">event</a>);
         }
     }
 
@@ -1430,7 +1446,7 @@
     <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
     <span class="doccomment">/// [`enter`]: super::subscriber::Subscriber::enter</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#526">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#338">enter</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#526">span</a>);
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#537">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#338">enter</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#537">span</a>);
     }
 
     <span class="doccomment">/// Records that a span has been exited.</span>
@@ -1441,7 +1457,7 @@
     <span class="doccomment">/// [`Subscriber`]: super::subscriber::Subscriber</span>
     <span class="doccomment">/// [`exit`]: super::subscriber::Subscriber::exit</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">span</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#537">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#350">exit</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#537">span</a>);
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#548">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#350">exit</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#548">span</a>);
     }
 
     <span class="doccomment">/// Notifies the subscriber that a [span ID] has been cloned.</span>
@@ -1460,7 +1476,7 @@
     <span class="doccomment">/// [`new_span`]: super::subscriber::Subscriber::new_span</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clone_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#556">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#372">clone_span</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#556">id</a>)
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#567">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#372">clone_span</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#567">id</a>)
     }
 
     <span class="doccomment">/// Notifies the subscriber that a [span ID] has been dropped.</span>
@@ -1489,7 +1505,7 @@
     <span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.1.2&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;use `Dispatch::try_close` instead&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">drop_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) {
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#584">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#386">drop_span</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#584">id</a>);
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#595">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#386">drop_span</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#595">id</a>);
     }
 
     <span class="doccomment">/// Notifies the subscriber that a [span ID] has been dropped, and returns</span>
@@ -1508,7 +1524,7 @@
     <span class="doccomment">/// [`try_close`]: super::subscriber::Subscriber::try_close</span>
     <span class="doccomment">/// [`new_span`]: super::subscriber::Subscriber::new_span</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <a class="ident" href="../../src/tracing_core/span.rs.html#16">span::Id</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#604">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#424">try_close</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#604">id</a>)
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#615">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#424">try_close</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#615">id</a>)
     }
 
     <span class="doccomment">/// Returns a type representing this subscriber&#39;s view of the current span.</span>
@@ -1519,34 +1535,34 @@
     <span class="doccomment">/// [`current`]: super::subscriber::Subscriber::current_span</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">current_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/tracing_core/span.rs.html#44">span::Current</a> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#615">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#443">current_span</a>()
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#626">self</a>.<span class="ident">subscriber</span>.<a class="ident" href="../../src/tracing_core/subscriber.rs.html#443">current_span</a>()
     }
 
     <span class="doccomment">/// Returns `true` if this `Dispatch` forwards to a `Subscriber` of type</span>
     <span class="doccomment">/// `T`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a><span class="op">&gt;</span><span class="ident">::is</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/tracing_core/dispatcher.rs.html#622">self</a>.<span class="ident">subscriber</span>)
+        <span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a><span class="op">&gt;</span><span class="ident">::is</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/tracing_core/dispatcher.rs.html#633">self</a>.<span class="ident">subscriber</span>)
     }
 
     <span class="doccomment">/// Returns some reference to the `Subscriber` this `Dispatch` forwards to</span>
     <span class="doccomment">/// if it is of type `T`, or `None` if it isn&#39;t.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">downcast_ref</span><span class="op">&lt;</span><span class="ident">T</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/any/trait.Any.html">Any</a><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
-        <span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a><span class="op">&gt;</span><span class="ident">::downcast_ref</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/tracing_core/dispatcher.rs.html#629">self</a>.<span class="ident">subscriber</span>)
+        <span class="op">&lt;</span><span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/subscriber.rs.html#83">Subscriber</a><span class="op">&gt;</span><span class="ident">::downcast_ref</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/tracing_core/dispatcher.rs.html#640">self</a>.<span class="ident">subscriber</span>)
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> {
     <span class="doccomment">/// Returns the current default dispatcher</span>
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#319-321">get_default</a>(<span class="op">|</span><span class="ident">default</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#637">default</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#330-332">get_default</a>(<span class="op">|</span><span class="ident">default</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#648">default</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#642">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Dispatch&quot;</span>)
+        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#653">f</a>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Dispatch&quot;</span>)
             .<span class="ident">field</span>(<span class="kw-2">&amp;</span><a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.format_args.html">format_args!</a>(<span class="string">&quot;{:p}&quot;</span>, <span class="self">self</span>.<span class="ident">subscriber</span>))
             .<span class="ident">finish</span>()
     }
@@ -1558,14 +1574,14 @@
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">subscriber</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">Dispatch::new</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#654">subscriber</a>)
+        <span class="ident">Dispatch::new</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#665">subscriber</a>)
     }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#392">Registrar</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#403">Registrar</a> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a><span class="op">&gt;</span> {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#661">self</a>.<span class="number">0</span>.<span class="ident">upgrade</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">subscriber</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> { <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#662">subscriber</a> })
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#672">self</a>.<span class="number">0</span>.<span class="ident">upgrade</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">subscriber</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a> { <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#673">subscriber</a> })
     }
 }
 
@@ -1582,19 +1598,19 @@
     <span class="kw">fn</span> <span class="ident">set_default</span>(<span class="ident">new_dispatch</span>: <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a>) -&gt; <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#198">DefaultGuard</a> {
         <span class="kw">let</span> <span class="ident">prior</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#156-161">CURRENT_STATE</a>
             .<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
-                <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#678">state</a>.<span class="ident">can_enter</span>.<span class="ident">set</span>(<span class="bool-val">true</span>);
-                <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#678">state</a>.<span class="ident">default</span>.<span class="ident">replace</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#676">new_dispatch</a>))
+                <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#689">state</a>.<span class="ident">can_enter</span>.<span class="ident">set</span>(<span class="bool-val">true</span>);
+                <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#689">state</a>.<span class="ident">default</span>.<span class="ident">replace</span>(<span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#687">new_dispatch</a>))
             })
             .<span class="ident">ok</span>()
             .<span class="ident">flatten</span>();
         <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#163">EXISTS</a>.<span class="ident">store</span>(<span class="bool-val">true</span>, <span class="ident">Ordering::Release</span>);
-        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#198">DefaultGuard</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#677">prior</a>)
+        <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#198">DefaultGuard</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#688">prior</a>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">enter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Entered</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">can_enter</span>.<span class="ident">replace</span>(<span class="bool-val">false</span>) {
-            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#191">Entered</a>(<a class="self" href="../../src/tracing_core/dispatcher.rs.html#689">self</a>))
+            <span class="prelude-val">Some</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#191">Entered</a>(<a class="self" href="../../src/tracing_core/dispatcher.rs.html#700">self</a>))
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         }
@@ -1607,9 +1623,9 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Entered</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">current</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">RefMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#151">Dispatch</a><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">default</span> <span class="op">=</span> <a class="self" href="../../src/tracing_core/dispatcher.rs.html#703">self</a>.<span class="number">0</span>.<span class="ident">default</span>.<span class="ident">borrow_mut</span>();
-        <span class="ident">RefMut::map</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#704">default</a>, <span class="op">|</span><span class="ident">default</span><span class="op">|</span> {
-            <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#705">default</a>.<span class="ident">get_or_insert_with</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#378">get_global</a>().<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Dispatch::none</span>))
+        <span class="kw">let</span> <span class="ident">default</span> <span class="op">=</span> <a class="self" href="../../src/tracing_core/dispatcher.rs.html#714">self</a>.<span class="number">0</span>.<span class="ident">default</span>.<span class="ident">borrow_mut</span>();
+        <span class="ident">RefMut::map</span>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#715">default</a>, <span class="op">|</span><span class="ident">default</span><span class="op">|</span> {
+            <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#716">default</a>.<span class="ident">get_or_insert_with</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#389">get_global</a>().<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">Dispatch::none</span>))
         })
     }
 }
@@ -1618,7 +1634,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Entered</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#714">self</a>.<span class="number">0</span>.<span class="ident">can_enter</span>.<span class="ident">set</span>(<span class="bool-val">true</span>);
+        <a class="self" href="../../src/tracing_core/dispatcher.rs.html#725">self</a>.<span class="number">0</span>.<span class="ident">can_enter</span>.<span class="ident">set</span>(<span class="bool-val">true</span>);
     }
 }
 
@@ -1633,8 +1649,8 @@
         <span class="comment">// lead to the drop of a subscriber which, in the process,</span>
         <span class="comment">// could then also attempt to access the same thread local</span>
         <span class="comment">// state -- causing a clash.</span>
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#156-161">CURRENT_STATE</a>.<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#730">state</a>.<span class="ident">default</span>.<span class="ident">replace</span>(<a class="self" href="../../src/tracing_core/dispatcher.rs.html#724">self</a>.<span class="number">0</span>.<span class="ident">take</span>()));
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#730">prev</a>)
+        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#156-161">CURRENT_STATE</a>.<span class="ident">try_with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> <a class="ident" href="../../src/tracing_core/dispatcher.rs.html#741">state</a>.<span class="ident">default</span>.<span class="ident">replace</span>(<a class="self" href="../../src/tracing_core/dispatcher.rs.html#735">self</a>.<span class="number">0</span>.<span class="ident">take</span>()));
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="ident" href="../../src/tracing_core/dispatcher.rs.html#741">prev</a>)
     }
 }
 
@@ -1803,5 +1819,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

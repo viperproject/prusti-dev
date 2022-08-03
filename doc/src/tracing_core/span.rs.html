@@ -1,12 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.28/src/span.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>span.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
-                    <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tracing_core/index.html">
-                        <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tracing-core-0.1.29/src/span.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>span.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../tracing_core/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../tracing_core/index.html">
+                        <img src="https://raw.githubusercontent.com/tokio-rs/tracing/master/assets/logo-type.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -348,10 +342,10 @@
 <span id="340">340</span>
 <span id="341">341</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Spans represent periods of time in the execution of a program.</span>
-<span class="kw">use</span> <a class="ident" href="../../src/tracing_core/field.rs.html#148"><span class="kw">crate</span>::field::FieldSet</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/tracing_core/field.rs.html#158"><span class="kw">crate</span>::field::FieldSet</a>;
 <span class="kw">use</span> <a class="ident" href="../../src/tracing_core/parent.rs.html#4"><span class="kw">crate</span>::parent::Parent</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/num/nonzero/struct.NonZeroU64.html"><span class="kw">crate</span>::stdlib::num::NonZeroU64</a>;
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/tracing_core/lib.rs.html#274">field</a>, <a class="ident" href="../../src/tracing_core/metadata.rs.html#60">Metadata</a>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/tracing_core/lib.rs.html#274">field</a>, <a class="ident" href="../../src/tracing_core/metadata.rs.html#57">Metadata</a>};
 
 <span class="doccomment">/// Identifies a span within the context of a subscriber.</span>
 <span class="doccomment">///</span>
@@ -528,19 +522,19 @@
     <span class="doccomment">/// [Visitor].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [visitor]: super::field::Visit</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#256">field::Visit</a>) {
-        <a class="self" href="../../src/tracing_core/span.rs.html#182">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#946">record</a>(<a class="ident" href="../../src/tracing_core/span.rs.html#182">visitor</a>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#266">field::Visit</a>) {
+        <a class="self" href="../../src/tracing_core/span.rs.html#182">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#990">record</a>(<a class="ident" href="../../src/tracing_core/span.rs.html#182">visitor</a>)
     }
 
     <span class="doccomment">/// Returns `true` if this set of `Attributes` contains a value for the</span>
     <span class="doccomment">/// given `Field`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#133">field::Field</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#188">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#972">contains</a>(<a class="ident" href="../../src/tracing_core/span.rs.html#188">field</a>)
+        <a class="self" href="../../src/tracing_core/span.rs.html#188">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#1016">contains</a>(<a class="ident" href="../../src/tracing_core/span.rs.html#188">field</a>)
     }
 
     <span class="doccomment">/// Returns true if this set of `Attributes` contains _no_ values.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#193">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#981">is_empty</a>()
+        <a class="self" href="../../src/tracing_core/span.rs.html#193">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#1025">is_empty</a>()
     }
 
     <span class="doccomment">/// Returns the set of all [fields] defined by this span&#39;s [`Metadata`].</span>
@@ -554,8 +548,8 @@
     <span class="doccomment">/// [record]: Attributes::record()</span>
     <span class="doccomment">/// [`Metadata`]: crate::metadata::Metadata</span>
     <span class="doccomment">/// [`FieldSet`]: crate::field::FieldSet</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fields</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#148">FieldSet</a> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#208">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#988">field_set</a>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fields</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#158">FieldSet</a> {
+        <a class="self" href="../../src/tracing_core/span.rs.html#208">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#1032">field_set</a>()
     }
 }
 
@@ -570,8 +564,8 @@
     <span class="doccomment">/// Records all the fields in this `Record` with the provided [Visitor].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [visitor]: super::field::Visit</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#256">field::Visit</a>) {
-        <a class="self" href="../../src/tracing_core/span.rs.html#224">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#946">record</a>(<a class="ident" href="../../src/tracing_core/span.rs.html#224">visitor</a>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">record</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <a class="ident" href="../../src/tracing_core/field.rs.html#266">field::Visit</a>) {
+        <a class="self" href="../../src/tracing_core/span.rs.html#224">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#990">record</a>(<a class="ident" href="../../src/tracing_core/span.rs.html#224">visitor</a>)
     }
 
     <span class="doccomment">/// Returns the number of fields that would be visited from this `Record`</span>
@@ -579,17 +573,17 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`Record::record()`]: Record::record()</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#232">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#963">len</a>()
+        <a class="self" href="../../src/tracing_core/span.rs.html#232">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#1007">len</a>()
     }
 
     <span class="doccomment">/// Returns `true` if this `Record` contains a value for the given `Field`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">field</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/tracing_core/field.rs.html#133">field::Field</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#237">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#972">contains</a>(<a class="ident" href="../../src/tracing_core/span.rs.html#237">field</a>)
+        <a class="self" href="../../src/tracing_core/span.rs.html#237">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#1016">contains</a>(<a class="ident" href="../../src/tracing_core/span.rs.html#237">field</a>)
     }
 
     <span class="doccomment">/// Returns true if this `Record` contains _no_ values.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/tracing_core/span.rs.html#242">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#981">is_empty</a>()
+        <a class="self" href="../../src/tracing_core/span.rs.html#242">self</a>.<span class="ident">values</span>.<a class="ident" href="../../src/tracing_core/field.rs.html#1025">is_empty</a>()
     }
 }
 
@@ -689,5 +683,4 @@
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tracing_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.98/src/buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.99/src/buffer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buffer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -417,6 +411,36 @@
 <span id="411">411</span>
 <span id="412">412</span>
 <span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A stably addressed token buffer supporting efficient traversal based on a</span>
 <span class="doccomment">//! cheaply copyable cursor.</span>
 <span class="doccomment">//!</span>
@@ -433,7 +457,9 @@
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/proc_macro/index.html"><span class="kw">crate</span>::proc_macro</a> <span class="kw">as</span> <span class="ident">pm</span>;
 <span class="kw">use</span> <a class="ident" href="../../src/syn/lifetime.rs.html#118"><span class="kw">crate</span>::Lifetime</a>;
 <span class="kw">use</span> <span class="ident">proc_macro2</span>::{<a class="ident" href="../../proc_macro2/enum.Delimiter.html">Delimiter</a>, <a class="ident" href="../../proc_macro2/struct.Group.html">Group</a>, <a class="ident" href="../../syn/struct.Ident.html">Ident</a>, <a class="ident" href="../../proc_macro2/struct.Literal.html">Literal</a>, <a class="ident" href="../../proc_macro2/struct.Punct.html">Punct</a>, <a class="ident" href="../../proc_macro2/enum.Spacing.html">Spacing</a>, <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a>, <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <a class="ident" href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>};
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/hint/index.html">std::hint</a>;
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/index.html">std::mem</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ptr/index.html">std::ptr</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/slice/index.html">std::slice</a>;
 
@@ -441,13 +467,13 @@
 <span class="doccomment">/// within a `TokenBuffer`.</span>
 <span class="kw">enum</span> <span class="ident">Entry</span> {
     <span class="comment">// Mimicking types from proc-macro.</span>
-    <span class="ident">Group</span>(<a class="ident" href="../../proc_macro2/struct.Group.html">Group</a>, <a class="ident" href="../../src/syn/buffer.rs.html#39">TokenBuffer</a>),
+    <span class="ident">Group</span>(<a class="ident" href="../../proc_macro2/struct.Group.html">Group</a>, <a class="ident" href="../../src/syn/buffer.rs.html#41">TokenBuffer</a>),
     <span class="ident">Ident</span>(<a class="ident" href="../../syn/struct.Ident.html">Ident</a>),
     <span class="ident">Punct</span>(<a class="ident" href="../../proc_macro2/struct.Punct.html">Punct</a>),
     <span class="ident">Literal</span>(<a class="ident" href="../../proc_macro2/struct.Literal.html">Literal</a>),
     <span class="comment">// End entries contain a raw pointer to the entry from the containing</span>
     <span class="comment">// token tree, or null if this is the outermost level.</span>
-    <span class="ident">End</span>(<span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#23">Entry</a>),
+    <span class="ident">End</span>(<span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry</a>),
 }
 
 <span class="doccomment">/// A buffer that can be efficiently traversed multiple times, unlike</span>
@@ -459,73 +485,99 @@
     <span class="comment">// NOTE: Do not implement clone on this - there are raw pointers inside</span>
     <span class="comment">// these entries which will be messed up. Moving the `TokenBuffer` itself is</span>
     <span class="comment">// safe as the data pointed to won&#39;t be moved.</span>
-    <span class="ident">ptr</span>: <span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#23">Entry</a>,
+    <span class="ident">ptr</span>: <span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry</a>,
     <span class="ident">len</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/buffer.rs.html#39">TokenBuffer</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/buffer.rs.html#41">TokenBuffer</a> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts_mut</span>(<a class="self" href="../../src/syn/buffer.rs.html#48">self</a>.<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../src/syn/buffer.rs.html#23">Entry</a>, <a class="self" href="../../src/syn/buffer.rs.html#48">self</a>.<span class="ident">len</span>);
-            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">Box::from_raw</span>(<a class="ident" href="../../src/syn/buffer.rs.html#50">slice</a>);
+            <span class="kw">let</span> <span class="ident">slice</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts_mut</span>(<a class="self" href="../../src/syn/buffer.rs.html#50">self</a>.<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry</a>, <a class="self" href="../../src/syn/buffer.rs.html#50">self</a>.<span class="ident">len</span>);
+            <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">Box::from_raw</span>(<a class="ident" href="../../src/syn/buffer.rs.html#52">slice</a>);
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../src/syn/buffer.rs.html#39">TokenBuffer</a> {
+<span class="kw">impl</span> <a class="ident" href="../../src/syn/buffer.rs.html#41">TokenBuffer</a> {
     <span class="comment">// NOTE: Do not mutate the Vec returned from this function once it returns;</span>
     <span class="comment">// the address of its backing memory must remain stable.</span>
-    <span class="kw">fn</span> <span class="ident">inner_new</span>(<span class="ident">stream</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">up</span>: <span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#23">Entry</a>) -&gt; <a class="ident" href="../../src/syn/buffer.rs.html#39">TokenBuffer</a> {
-        <span class="comment">// Build up the entries list, recording the locations of any Groups</span>
-        <span class="comment">// in the list to be processed later.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">entries</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">groups</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">for</span> <span class="ident">tt</span> <span class="kw">in</span> <span class="ident">stream</span> {
+    <span class="kw">fn</span> <span class="ident">inner_new</span>(<span class="ident">stream</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>, <span class="ident">up</span>: <span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry</a>) -&gt; <a class="ident" href="../../src/syn/buffer.rs.html#41">TokenBuffer</a> {
+        <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <a class="ident" href="../../src/syn/buffer.rs.html#61">stream</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">entries</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../src/syn/buffer.rs.html#62">iterator</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">size_hint</a>().<span class="number">0</span> <span class="op">+</span> <span class="number">1</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_index_after_last_group</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">for</span> <span class="ident">tt</span> <span class="kw">in</span> <span class="ident">iterator</span> {
             <span class="kw">match</span> <span class="ident">tt</span> {
-                <span class="ident">TokenTree::Ident</span>(<span class="ident">sym</span>) =&gt; {
-                    <span class="ident">entries</span>.<span class="ident">push</span>(<span class="ident">Entry::Ident</span>(<span class="ident">sym</span>));
+                <span class="ident">TokenTree::Ident</span>(<span class="ident">ident</span>) =&gt; {
+                    <span class="ident">entries</span>.<span class="ident">push</span>(<span class="ident">Entry::Ident</span>(<span class="ident">ident</span>));
                 }
-                <span class="ident">TokenTree::Punct</span>(<span class="ident">op</span>) =&gt; {
-                    <span class="ident">entries</span>.<span class="ident">push</span>(<span class="ident">Entry::Punct</span>(<span class="ident">op</span>));
+                <span class="ident">TokenTree::Punct</span>(<span class="ident">punct</span>) =&gt; {
+                    <span class="ident">entries</span>.<span class="ident">push</span>(<span class="ident">Entry::Punct</span>(<span class="ident">punct</span>));
                 }
-                <span class="ident">TokenTree::Literal</span>(<span class="ident">l</span>) =&gt; {
-                    <span class="ident">entries</span>.<span class="ident">push</span>(<span class="ident">Entry::Literal</span>(<span class="ident">l</span>));
+                <span class="ident">TokenTree::Literal</span>(<span class="ident">literal</span>) =&gt; {
+                    <span class="ident">entries</span>.<span class="ident">push</span>(<span class="ident">Entry::Literal</span>(<span class="ident">literal</span>));
                 }
-                <span class="ident">TokenTree::Group</span>(<span class="ident">g</span>) =&gt; {
-                    <span class="comment">// Record the index of the interesting entry, and store an</span>
-                    <span class="comment">// `End(null)` there temporarily.</span>
-                    <span class="ident">groups</span>.<span class="ident">push</span>((<span class="ident">entries</span>.<span class="ident">len</span>(), <span class="ident">g</span>));
-                    <span class="ident">entries</span>.<span class="ident">push</span>(<span class="ident">Entry::End</span>(<span class="ident">ptr::null</span>()));
+                <span class="ident">TokenTree::Group</span>(<span class="ident">group</span>) =&gt; {
+                    <span class="comment">// We cannot fill in a real `End` pointer until `entries` is</span>
+                    <span class="comment">// finished growing and getting potentially reallocated.</span>
+                    <span class="comment">// Instead, we temporarily coopt the spot where the end</span>
+                    <span class="comment">// pointer would go, and use it to string together an</span>
+                    <span class="comment">// intrusive linked list of all the Entry::Group entries in</span>
+                    <span class="comment">// the vector. Later after `entries` is done growing, we&#39;ll</span>
+                    <span class="comment">// traverse the linked list and fill in all the end</span>
+                    <span class="comment">// pointers with a correct value.</span>
+                    <span class="kw">let</span> <span class="ident">group_up</span> <span class="op">=</span>
+                        <span class="ident">ptr::null</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>().<span class="ident">wrapping_add</span>(<span class="ident">next_index_after_last_group</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">Entry</span>;
+
+                    <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::inner_new</span>(<span class="ident">group</span>.<span class="ident">stream</span>(), <span class="ident">group_up</span>);
+                    <span class="ident">entries</span>.<span class="ident">push</span>(<span class="ident">Entry::Group</span>(<span class="ident">group</span>, <span class="ident">inner</span>));
+                    <span class="ident">next_index_after_last_group</span> <span class="op">=</span> <span class="ident">entries</span>.<span class="ident">len</span>();
                 }
             }
         }
+
         <span class="comment">// Add an `End` entry to the end with a reference to the enclosing token</span>
         <span class="comment">// stream which was passed in.</span>
-        <a class="ident" href="../../src/syn/buffer.rs.html#62">entries</a>.<span class="ident">push</span>(<a class="ident" href="../../src/syn/buffer.rs.html#31">Entry::End</a>(<a class="ident" href="../../src/syn/buffer.rs.html#59">up</a>));
+        <a class="ident" href="../../src/syn/buffer.rs.html#63">entries</a>.<span class="ident">push</span>(<a class="ident" href="../../src/syn/buffer.rs.html#33">Entry::End</a>(<a class="ident" href="../../src/syn/buffer.rs.html#61">up</a>));
 
         <span class="comment">// NOTE: This is done to ensure that we don&#39;t accidentally modify the</span>
         <span class="comment">// length of the backing buffer. The backing buffer must remain at a</span>
         <span class="comment">// constant address after this point, as we are going to store a raw</span>
         <span class="comment">// pointer into it.</span>
-        <span class="kw">let</span> <span class="ident">entries</span> <span class="op">=</span> <a class="ident" href="../../src/syn/buffer.rs.html#62">entries</a>.<span class="ident">into_boxed_slice</span>();
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/syn/buffer.rs.html#91">entries</a>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="ident">entries</span> <span class="op">=</span> <a class="ident" href="../../src/syn/buffer.rs.html#63">entries</a>.<span class="ident">into_boxed_slice</span>();
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../src/syn/buffer.rs.html#103">entries</a>.<span class="ident">len</span>();
+
         <span class="comment">// Convert boxed slice into a pointer to the first element early, to</span>
         <span class="comment">// avoid invalidating pointers into this slice when we move the Box.</span>
         <span class="comment">// See https://github.com/rust-lang/unsafe-code-guidelines/issues/326</span>
-        <span class="kw">let</span> <span class="ident">entries</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<a class="ident" href="../../src/syn/buffer.rs.html#91">entries</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../src/syn/buffer.rs.html#23">Entry</a>;
-        <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">group</span>) <span class="kw">in</span> <span class="ident">groups</span> {
-            <span class="comment">// We know that this index refers to one of the temporary</span>
-            <span class="comment">// `End(null)` entries, and we know that the last entry is</span>
-            <span class="comment">// `End(up)`, so the next index is also valid.</span>
-            <span class="kw">let</span> <span class="ident">group_up</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">entries</span>.<span class="ident">add</span>(<span class="ident">idx</span> <span class="op">+</span> <span class="number">1</span>) };
+        <span class="kw">let</span> <span class="ident">entries</span> <span class="op">=</span> <span class="ident">Box::into_raw</span>(<a class="ident" href="../../src/syn/buffer.rs.html#103">entries</a>) <span class="kw">as</span> <span class="kw-2">*mut</span> <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry</a>;
 
-            <span class="comment">// The end entry stored at the end of this Entry::Group should</span>
-            <span class="comment">// point to the Entry which follows the Group in the list.</span>
-            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::inner_new</span>(<span class="ident">group</span>.<span class="ident">stream</span>(), <span class="ident">group_up</span>);
-            <span class="kw">unsafe</span> { <span class="kw-2">*</span><span class="ident">entries</span>.<span class="ident">add</span>(<span class="ident">idx</span>) <span class="op">=</span> <span class="ident">Entry::Group</span>(<span class="ident">group</span>, <span class="ident">inner</span>) };
+        <span class="comment">// Traverse intrusive linked list of Entry::Group entries and fill in</span>
+        <span class="comment">// correct End pointers.</span>
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">idx</span>) <span class="op">=</span> <span class="ident">next_index_after_last_group</span>.<span class="ident">checked_sub</span>(<span class="number">1</span>) {
+            <span class="comment">// We know that idx refers to one of the Entry::Group entries, and</span>
+            <span class="comment">// that the very last entry is an Entry::End, so the next index</span>
+            <span class="comment">// after any group entry is a valid index.</span>
+            <span class="kw">let</span> <span class="ident">group_up</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">entries</span>.<span class="ident">add</span>(<span class="ident">next_index_after_last_group</span>) };
+
+            <span class="comment">// Linked list only takes us to entries which are of type Group.</span>
+            <span class="kw">let</span> <span class="ident">token_buffer</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">entries</span>.<span class="ident">add</span>(<span class="ident">idx</span>) } {
+                <span class="ident">Entry::Group</span>(<span class="ident">_group</span>, <span class="ident">token_buffer</span>) =&gt; <span class="ident">token_buffer</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">unsafe</span> { <span class="ident">hint::unreachable_unchecked</span>() },
+            };
+
+            <span class="comment">// Last entry in any TokenBuffer is of type End.</span>
+            <span class="kw">let</span> <span class="ident">buffer_ptr</span> <span class="op">=</span> <span class="ident">token_buffer</span>.<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">Entry</span>;
+            <span class="kw">let</span> <span class="ident">last_entry</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">buffer_ptr</span>.<span class="ident">add</span>(<span class="ident">token_buffer</span>.<span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>) };
+            <span class="kw">let</span> <span class="ident">end_ptr_slot</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">last_entry</span> {
+                <span class="ident">Entry::End</span>(<span class="ident">end_ptr_slot</span>) =&gt; <span class="ident">end_ptr_slot</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">unsafe</span> { <span class="ident">hint::unreachable_unchecked</span>() },
+            };
+
+            <span class="comment">// Step to next element in linked list.</span>
+            <span class="ident">next_index_after_last_group</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<span class="ident">end_ptr_slot</span>, <span class="ident">group_up</span>) <span class="kw">as</span> <span class="ident">usize</span>;
         }
 
-        <a class="ident" href="../../src/syn/buffer.rs.html#39">TokenBuffer</a> { <span class="ident">ptr</span>: <a class="ident" href="../../src/syn/buffer.rs.html#96">entries</a>, <a class="ident" href="../../src/syn/buffer.rs.html#92">len</a> }
+        <a class="ident" href="../../src/syn/buffer.rs.html#41">TokenBuffer</a> { <span class="ident">ptr</span>: <a class="ident" href="../../src/syn/buffer.rs.html#109">entries</a>, <a class="ident" href="../../src/syn/buffer.rs.html#104">len</a> }
     }
 
     <span class="doccomment">/// Creates a `TokenBuffer` containing all the tokens from the input</span>
@@ -538,19 +590,19 @@
         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;proc-macro&quot;</span>
     ))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">stream</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/proc_macro/struct.TokenStream.html">pm::TokenStream</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::new2</span>(<a class="ident" href="../../src/syn/buffer.rs.html#121">stream</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        <span class="ident"><span class="self">Self</span>::new2</span>(<a class="ident" href="../../src/syn/buffer.rs.html#149">stream</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
     }
 
     <span class="doccomment">/// Creates a `TokenBuffer` containing all the tokens from the input</span>
     <span class="doccomment">/// `proc_macro2::TokenStream`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new2</span>(<span class="ident">stream</span>: <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::inner_new</span>(<a class="ident" href="../../src/syn/buffer.rs.html#127">stream</a>, <span class="ident">ptr::null</span>())
+        <span class="ident"><span class="self">Self</span>::inner_new</span>(<a class="ident" href="../../src/syn/buffer.rs.html#155">stream</a>, <span class="ident">ptr::null</span>())
     }
 
     <span class="doccomment">/// Creates a cursor referencing the first token in the buffer and able to</span>
     <span class="doccomment">/// traverse until the end of the buffer.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">begin</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/syn/buffer.rs.html#151">Cursor</a> {
-        <span class="kw">unsafe</span> { <span class="ident">Cursor::create</span>(<a class="self" href="../../src/syn/buffer.rs.html#133">self</a>.<span class="ident">ptr</span>, <a class="self" href="../../src/syn/buffer.rs.html#133">self</a>.<span class="ident">ptr</span>.<span class="ident">add</span>(<a class="self" href="../../src/syn/buffer.rs.html#133">self</a>.<span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>)) }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">begin</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/syn/buffer.rs.html#179">Cursor</a> {
+        <span class="kw">unsafe</span> { <span class="ident">Cursor::create</span>(<a class="self" href="../../src/syn/buffer.rs.html#161">self</a>.<span class="ident">ptr</span>, <a class="self" href="../../src/syn/buffer.rs.html#161">self</a>.<span class="ident">ptr</span>.<span class="ident">add</span>(<a class="self" href="../../src/syn/buffer.rs.html#161">self</a>.<span class="ident">len</span> <span class="op">-</span> <span class="number">1</span>)) }
     }
 }
 
@@ -569,13 +621,13 @@
 <span class="doccomment">/// *This type is available only if Syn is built with the `&quot;parsing&quot;` feature.*</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="comment">// The current entry which the `Cursor` is pointing at.</span>
-    <span class="ident">ptr</span>: <span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#23">Entry</a>,
+    <span class="ident">ptr</span>: <span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry</a>,
     <span class="comment">// This is the only `Entry::End(..)` object which this cursor is allowed to</span>
     <span class="comment">// point at. All other `End` objects are skipped over in `Cursor::create`.</span>
-    <span class="ident">scope</span>: <span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#23">Entry</a>,
+    <span class="ident">scope</span>: <span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry</a>,
     <span class="comment">// Cursor is covariant in &#39;a. This field ensures that our pointers are still</span>
     <span class="comment">// valid.</span>
-    <span class="ident">marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/syn/buffer.rs.html#23">Entry</a><span class="op">&gt;</span>,
+    <span class="ident">marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry</a><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -588,13 +640,13 @@
         <span class="comment">//</span>
         <span class="comment">// This wrapper struct allows us to break the rules and put a `Sync`</span>
         <span class="comment">// object in global storage.</span>
-        <span class="kw">struct</span> <span class="ident">UnsafeSyncEntry</span>(<a class="ident" href="../../src/syn/buffer.rs.html#23">Entry</a>);
-        <span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/buffer.rs.html#172">UnsafeSyncEntry</a> {}
-        <span class="kw">static</span> <span class="ident">EMPTY_ENTRY</span>: <a class="ident" href="../../src/syn/buffer.rs.html#172">UnsafeSyncEntry</a> <span class="op">=</span> <a class="ident" href="../../src/syn/buffer.rs.html#172">UnsafeSyncEntry</a>(<a class="ident" href="../../src/syn/buffer.rs.html#31">Entry::End</a>(<span class="number">0</span> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#23">Entry</a>));
+        <span class="kw">struct</span> <span class="ident">UnsafeSyncEntry</span>(<a class="ident" href="../../src/syn/buffer.rs.html#25">Entry</a>);
+        <span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../src/syn/buffer.rs.html#200">UnsafeSyncEntry</a> {}
+        <span class="kw">static</span> <span class="ident">EMPTY_ENTRY</span>: <a class="ident" href="../../src/syn/buffer.rs.html#200">UnsafeSyncEntry</a> <span class="op">=</span> <a class="ident" href="../../src/syn/buffer.rs.html#200">UnsafeSyncEntry</a>(<a class="ident" href="../../src/syn/buffer.rs.html#33">Entry::End</a>(<span class="number">0</span> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry</a>));
 
-        <a class="ident" href="../../src/syn/buffer.rs.html#151">Cursor</a> {
-            <span class="ident">ptr</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/buffer.rs.html#174">EMPTY_ENTRY</a>.<span class="number">0</span>,
-            <span class="ident">scope</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/buffer.rs.html#174">EMPTY_ENTRY</a>.<span class="number">0</span>,
+        <a class="ident" href="../../src/syn/buffer.rs.html#179">Cursor</a> {
+            <span class="ident">ptr</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/buffer.rs.html#202">EMPTY_ENTRY</a>.<span class="number">0</span>,
+            <span class="ident">scope</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/syn/buffer.rs.html#202">EMPTY_ENTRY</a>.<span class="number">0</span>,
             <span class="ident">marker</span>: <span class="ident">PhantomData</span>,
         }
     }
@@ -602,7 +654,7 @@
     <span class="doccomment">/// This create method intelligently exits non-explicitly-entered</span>
     <span class="doccomment">/// `None`-delimited scopes when the cursor reaches the end of them,</span>
     <span class="doccomment">/// allowing for them to be treated transparently.</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="kw-2">mut</span> <span class="ident">ptr</span>: <span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#23">Entry</a>, <span class="ident">scope</span>: <span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#23">Entry</a>) -&gt; <span class="self">Self</span> {
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">create</span>(<span class="kw-2">mut</span> <span class="ident">ptr</span>: <span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry</a>, <span class="ident">scope</span>: <span class="kw-2">*const</span> <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry</a>) -&gt; <span class="self">Self</span> {
         <span class="comment">// NOTE: If we&#39;re looking at a `End(..)`, we want to advance the cursor</span>
         <span class="comment">// past it, unless `ptr == scope`, which means that we&#39;re at the edge of</span>
         <span class="comment">// our cursor&#39;s scope. We should only have `ptr != scope` at the exit</span>
@@ -614,23 +666,23 @@
             <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">exit</span>;
         }
 
-        <a class="ident" href="../../src/syn/buffer.rs.html#151">Cursor</a> {
-            <a class="ident" href="../../src/syn/buffer.rs.html#186">ptr</a>,
-            <a class="ident" href="../../src/syn/buffer.rs.html#186">scope</a>,
+        <a class="ident" href="../../src/syn/buffer.rs.html#179">Cursor</a> {
+            <a class="ident" href="../../src/syn/buffer.rs.html#214">ptr</a>,
+            <a class="ident" href="../../src/syn/buffer.rs.html#214">scope</a>,
             <span class="ident">marker</span>: <span class="ident">PhantomData</span>,
         }
     }
 
     <span class="doccomment">/// Get the current entry.</span>
-    <span class="kw">fn</span> <span class="ident">entry</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/syn/buffer.rs.html#23">Entry</a> {
-        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/syn/buffer.rs.html#206">self</a>.<span class="ident">ptr</span> }
+    <span class="kw">fn</span> <span class="ident">entry</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry</a> {
+        <span class="kw">unsafe</span> { <span class="kw-2">&amp;</span><span class="kw-2">*</span><a class="self" href="../../src/syn/buffer.rs.html#234">self</a>.<span class="ident">ptr</span> }
     }
 
     <span class="doccomment">/// Bump the cursor to point at the next token after the current one. This</span>
     <span class="doccomment">/// is undefined behavior if the cursor is currently looking at an</span>
     <span class="doccomment">/// `Entry::End`.</span>
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">bump</span>(<span class="self">self</span>) -&gt; <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="ident">Cursor::create</span>(<a class="self" href="../../src/syn/buffer.rs.html#213">self</a>.<span class="ident">ptr</span>.<span class="ident">offset</span>(<span class="number">1</span>), <a class="self" href="../../src/syn/buffer.rs.html#213">self</a>.<span class="ident">scope</span>)
+        <span class="ident">Cursor::create</span>(<a class="self" href="../../src/syn/buffer.rs.html#241">self</a>.<span class="ident">ptr</span>.<span class="ident">offset</span>(<span class="number">1</span>), <a class="self" href="../../src/syn/buffer.rs.html#241">self</a>.<span class="ident">scope</span>)
     }
 
     <span class="doccomment">/// While the cursor is looking at a `None`-delimited group, move it to look</span>
@@ -657,7 +709,7 @@
     <span class="doccomment">/// scope.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">eof</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
         <span class="comment">// We&#39;re at eof if we&#39;re at the end of our scope.</span>
-        <a class="self" href="../../src/syn/buffer.rs.html#239">self</a>.<span class="ident">ptr</span> <span class="op">==</span> <a class="self" href="../../src/syn/buffer.rs.html#239">self</a>.<span class="ident">scope</span>
+        <a class="self" href="../../src/syn/buffer.rs.html#267">self</a>.<span class="ident">ptr</span> <span class="op">==</span> <a class="self" href="../../src/syn/buffer.rs.html#267">self</a>.<span class="ident">scope</span>
     }
 
     <span class="doccomment">/// If the cursor is pointing at a `Group` with the given delimiter, returns</span>
@@ -667,12 +719,12 @@
         <span class="comment">// ignore them. We have to make sure to _not_ ignore them when we want</span>
         <span class="comment">// to enter them, of course. For obvious reasons.</span>
         <span class="kw">if</span> <span class="ident">delim</span> <span class="op">!</span><span class="op">=</span> <span class="ident">Delimiter::None</span> {
-            <a class="self" href="../../src/syn/buffer.rs.html#246">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#222">ignore_none</a>();
+            <a class="self" href="../../src/syn/buffer.rs.html#274">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#250">ignore_none</a>();
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry::Group</a>(<span class="ident">group</span>, <span class="ident">buf</span>) <span class="op">=</span> <a class="self" href="../../src/syn/buffer.rs.html#246">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#206">entry</a>() {
+        <span class="kw">if</span> <span class="kw">let</span> <a class="ident" href="../../src/syn/buffer.rs.html#27">Entry::Group</a>(<span class="ident">group</span>, <span class="ident">buf</span>) <span class="op">=</span> <a class="self" href="../../src/syn/buffer.rs.html#274">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#234">entry</a>() {
             <span class="kw">if</span> <span class="ident">group</span>.<span class="ident">delimiter</span>() <span class="op">==</span> <span class="ident">delim</span> {
-                <span class="kw">return</span> <span class="prelude-val">Some</span>((<a class="ident" href="../../src/syn/buffer.rs.html#254">buf</a>.<a class="ident" href="../../src/syn/buffer.rs.html#133">begin</a>(), <a class="ident" href="../../src/syn/buffer.rs.html#254">group</a>.<span class="ident">span</span>(), <span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#246">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#213">bump</a>() }));
+                <span class="kw">return</span> <span class="prelude-val">Some</span>((<a class="ident" href="../../src/syn/buffer.rs.html#282">buf</a>.<a class="ident" href="../../src/syn/buffer.rs.html#161">begin</a>(), <a class="ident" href="../../src/syn/buffer.rs.html#282">group</a>.<span class="ident">span</span>(), <span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#274">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#241">bump</a>() }));
             }
         }
 
@@ -682,9 +734,9 @@
     <span class="doccomment">/// If the cursor is pointing at a `Ident`, returns it along with a cursor</span>
     <span class="doccomment">/// pointing at the next `TokenTree`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ident</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../syn/struct.Ident.html">Ident</a>, <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <a class="self" href="../../src/syn/buffer.rs.html#265">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#222">ignore_none</a>();
-        <span class="kw">match</span> <a class="self" href="../../src/syn/buffer.rs.html#265">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#206">entry</a>() {
-            <a class="ident" href="../../src/syn/buffer.rs.html#26">Entry::Ident</a>(<span class="ident">ident</span>) =&gt; <span class="prelude-val">Some</span>((<a class="ident" href="../../src/syn/buffer.rs.html#268">ident</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#265">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#213">bump</a>() })),
+        <a class="self" href="../../src/syn/buffer.rs.html#293">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#250">ignore_none</a>();
+        <span class="kw">match</span> <a class="self" href="../../src/syn/buffer.rs.html#293">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#234">entry</a>() {
+            <a class="ident" href="../../src/syn/buffer.rs.html#28">Entry::Ident</a>(<span class="ident">ident</span>) =&gt; <span class="prelude-val">Some</span>((<a class="ident" href="../../src/syn/buffer.rs.html#296">ident</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#293">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#241">bump</a>() })),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -692,9 +744,11 @@
     <span class="doccomment">/// If the cursor is pointing at a `Punct`, returns it along with a cursor</span>
     <span class="doccomment">/// pointing at the next `TokenTree`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">punct</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../proc_macro2/struct.Punct.html">Punct</a>, <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <a class="self" href="../../src/syn/buffer.rs.html#275">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#222">ignore_none</a>();
-        <span class="kw">match</span> <a class="self" href="../../src/syn/buffer.rs.html#275">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#206">entry</a>() {
-            <a class="ident" href="../../src/syn/buffer.rs.html#27">Entry::Punct</a>(<span class="ident">op</span>) <span class="kw">if</span> <a class="ident" href="../../src/syn/buffer.rs.html#278">op</a>.<span class="ident">as_char</span>() <span class="op">!</span><span class="op">=</span> <span class="string">&#39;\&#39;&#39;</span> =&gt; <span class="prelude-val">Some</span>((<a class="ident" href="../../src/syn/buffer.rs.html#278">op</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#275">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#213">bump</a>() })),
+        <a class="self" href="../../src/syn/buffer.rs.html#303">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#250">ignore_none</a>();
+        <span class="kw">match</span> <a class="self" href="../../src/syn/buffer.rs.html#303">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#234">entry</a>() {
+            <a class="ident" href="../../src/syn/buffer.rs.html#29">Entry::Punct</a>(<span class="ident">punct</span>) <span class="kw">if</span> <a class="ident" href="../../src/syn/buffer.rs.html#306">punct</a>.<span class="ident">as_char</span>() <span class="op">!</span><span class="op">=</span> <span class="string">&#39;\&#39;&#39;</span> =&gt; {
+                <span class="prelude-val">Some</span>((<a class="ident" href="../../src/syn/buffer.rs.html#306">punct</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#303">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#241">bump</a>() }))
+            }
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -702,9 +756,9 @@
     <span class="doccomment">/// If the cursor is pointing at a `Literal`, return it along with a cursor</span>
     <span class="doccomment">/// pointing at the next `TokenTree`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">literal</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../proc_macro2/struct.Literal.html">Literal</a>, <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <a class="self" href="../../src/syn/buffer.rs.html#285">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#222">ignore_none</a>();
-        <span class="kw">match</span> <a class="self" href="../../src/syn/buffer.rs.html#285">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#206">entry</a>() {
-            <a class="ident" href="../../src/syn/buffer.rs.html#28">Entry::Literal</a>(<span class="ident">lit</span>) =&gt; <span class="prelude-val">Some</span>((<a class="ident" href="../../src/syn/buffer.rs.html#288">lit</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#285">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#213">bump</a>() })),
+        <a class="self" href="../../src/syn/buffer.rs.html#315">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#250">ignore_none</a>();
+        <span class="kw">match</span> <a class="self" href="../../src/syn/buffer.rs.html#315">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#234">entry</a>() {
+            <a class="ident" href="../../src/syn/buffer.rs.html#30">Entry::Literal</a>(<span class="ident">literal</span>) =&gt; <span class="prelude-val">Some</span>((<a class="ident" href="../../src/syn/buffer.rs.html#318">literal</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#315">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#241">bump</a>() })),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -712,17 +766,17 @@
     <span class="doccomment">/// If the cursor is pointing at a `Lifetime`, returns it along with a</span>
     <span class="doccomment">/// cursor pointing at the next `TokenTree`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lifetime</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../src/syn/lifetime.rs.html#19">Lifetime</a>, <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <a class="self" href="../../src/syn/buffer.rs.html#295">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#222">ignore_none</a>();
-        <span class="kw">match</span> <a class="self" href="../../src/syn/buffer.rs.html#295">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#206">entry</a>() {
-            <a class="ident" href="../../src/syn/buffer.rs.html#27">Entry::Punct</a>(<span class="ident">op</span>) <span class="kw">if</span> <a class="ident" href="../../src/syn/buffer.rs.html#298">op</a>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="string">&#39;\&#39;&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/buffer.rs.html#298">op</a>.<span class="ident">spacing</span>() <span class="op">==</span> <span class="ident">Spacing::Joint</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#295">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#213">bump</a>() };
-                <span class="kw">match</span> <a class="ident" href="../../src/syn/buffer.rs.html#299">next</a>.<a class="ident" href="../../src/syn/buffer.rs.html#265">ident</a>() {
+        <a class="self" href="../../src/syn/buffer.rs.html#325">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#250">ignore_none</a>();
+        <span class="kw">match</span> <a class="self" href="../../src/syn/buffer.rs.html#325">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#234">entry</a>() {
+            <a class="ident" href="../../src/syn/buffer.rs.html#29">Entry::Punct</a>(<span class="ident">punct</span>) <span class="kw">if</span> <a class="ident" href="../../src/syn/buffer.rs.html#328">punct</a>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="string">&#39;\&#39;&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/buffer.rs.html#328">punct</a>.<span class="ident">spacing</span>() <span class="op">==</span> <span class="ident">Spacing::Joint</span> =&gt; {
+                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#325">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#241">bump</a>() };
+                <span class="kw">match</span> <a class="ident" href="../../src/syn/buffer.rs.html#329">next</a>.<a class="ident" href="../../src/syn/buffer.rs.html#293">ident</a>() {
                     <span class="prelude-val">Some</span>((<span class="ident">ident</span>, <span class="ident">rest</span>)) =&gt; {
                         <span class="kw">let</span> <span class="ident">lifetime</span> <span class="op">=</span> <a class="ident" href="../../src/syn/lifetime.rs.html#19">Lifetime</a> {
-                            <span class="ident">apostrophe</span>: <a class="ident" href="../../src/syn/buffer.rs.html#298">op</a>.<span class="ident">span</span>(),
-                            <a class="ident" href="../../src/syn/buffer.rs.html#301">ident</a>,
+                            <span class="ident">apostrophe</span>: <a class="ident" href="../../src/syn/buffer.rs.html#328">punct</a>.<span class="ident">span</span>(),
+                            <a class="ident" href="../../src/syn/buffer.rs.html#331">ident</a>,
                         };
-                        <span class="prelude-val">Some</span>((<a class="ident" href="../../src/syn/buffer.rs.html#302">lifetime</a>, <a class="ident" href="../../src/syn/buffer.rs.html#301">rest</a>))
+                        <span class="prelude-val">Some</span>((<a class="ident" href="../../src/syn/buffer.rs.html#332">lifetime</a>, <a class="ident" href="../../src/syn/buffer.rs.html#331">rest</a>))
                     }
                     <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
                 }
@@ -735,12 +789,12 @@
     <span class="doccomment">/// `TokenStream`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">token_stream</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../proc_macro2/struct.TokenStream.html">TokenStream</a> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tts</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cursor</span> <span class="op">=</span> <a class="self" href="../../src/syn/buffer.rs.html#317">self</a>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cursor</span> <span class="op">=</span> <a class="self" href="../../src/syn/buffer.rs.html#347">self</a>;
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">tt</span>, <span class="ident">rest</span>)) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">token_tree</span>() {
             <span class="ident">tts</span>.<span class="ident">push</span>(<span class="ident">tt</span>);
             <span class="ident">cursor</span> <span class="op">=</span> <span class="ident">rest</span>;
         }
-        <a class="ident" href="../../src/syn/buffer.rs.html#318">tts</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        <a class="ident" href="../../src/syn/buffer.rs.html#348">tts</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
     }
 
     <span class="doccomment">/// If the cursor is pointing at a `TokenTree`, returns it along with a</span>
@@ -751,26 +805,26 @@
     <span class="doccomment">/// This method does not treat `None`-delimited groups as transparent, and</span>
     <span class="doccomment">/// will return a `Group(None, ..)` if the cursor is looking at one.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">token_tree</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="../../proc_macro2/enum.TokenTree.html">TokenTree</a>, <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">tree</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/buffer.rs.html#334">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#206">entry</a>() {
-            <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry::Group</a>(<span class="ident">group</span>, <span class="kw">_</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#336">group</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a class="ident" href="../../src/syn/buffer.rs.html#28">Entry::Literal</a>(<span class="ident">lit</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#337">lit</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a class="ident" href="../../src/syn/buffer.rs.html#26">Entry::Ident</a>(<span class="ident">ident</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#338">ident</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a class="ident" href="../../src/syn/buffer.rs.html#27">Entry::Punct</a>(<span class="ident">op</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#339">op</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
-            <a class="ident" href="../../src/syn/buffer.rs.html#31">Entry::End</a>(..) =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+        <span class="kw">let</span> <span class="ident">tree</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../src/syn/buffer.rs.html#364">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#234">entry</a>() {
+            <a class="ident" href="../../src/syn/buffer.rs.html#27">Entry::Group</a>(<span class="ident">group</span>, <span class="kw">_</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#366">group</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a class="ident" href="../../src/syn/buffer.rs.html#30">Entry::Literal</a>(<span class="ident">literal</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#367">literal</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a class="ident" href="../../src/syn/buffer.rs.html#28">Entry::Ident</a>(<span class="ident">ident</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#368">ident</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a class="ident" href="../../src/syn/buffer.rs.html#29">Entry::Punct</a>(<span class="ident">punct</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#369">punct</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a class="ident" href="../../src/syn/buffer.rs.html#33">Entry::End</a>(..) =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
         };
 
-        <span class="prelude-val">Some</span>((<a class="ident" href="../../src/syn/buffer.rs.html#335">tree</a>, <span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#334">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#213">bump</a>() }))
+        <span class="prelude-val">Some</span>((<a class="ident" href="../../src/syn/buffer.rs.html#365">tree</a>, <span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#364">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#241">bump</a>() }))
     }
 
     <span class="doccomment">/// Returns the `Span` of the current token, or `Span::call_site()` if this</span>
     <span class="doccomment">/// cursor points to eof.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">span</span>(<span class="self">self</span>) -&gt; <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a> {
-        <span class="kw">match</span> <a class="self" href="../../src/syn/buffer.rs.html#348">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#206">entry</a>() {
-            <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry::Group</a>(<span class="ident">group</span>, <span class="kw">_</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#350">group</a>.<span class="ident">span</span>(),
-            <a class="ident" href="../../src/syn/buffer.rs.html#28">Entry::Literal</a>(<span class="ident">l</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#351">l</a>.<span class="ident">span</span>(),
-            <a class="ident" href="../../src/syn/buffer.rs.html#26">Entry::Ident</a>(<span class="ident">t</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#352">t</a>.<span class="ident">span</span>(),
-            <a class="ident" href="../../src/syn/buffer.rs.html#27">Entry::Punct</a>(<span class="ident">o</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#353">o</a>.<span class="ident">span</span>(),
-            <a class="ident" href="../../src/syn/buffer.rs.html#31">Entry::End</a>(..) =&gt; <span class="ident">Span::call_site</span>(),
+        <span class="kw">match</span> <a class="self" href="../../src/syn/buffer.rs.html#378">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#234">entry</a>() {
+            <a class="ident" href="../../src/syn/buffer.rs.html#27">Entry::Group</a>(<span class="ident">group</span>, <span class="kw">_</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#380">group</a>.<span class="ident">span</span>(),
+            <a class="ident" href="../../src/syn/buffer.rs.html#30">Entry::Literal</a>(<span class="ident">literal</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#381">literal</a>.<span class="ident">span</span>(),
+            <a class="ident" href="../../src/syn/buffer.rs.html#28">Entry::Ident</a>(<span class="ident">ident</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#382">ident</a>.<span class="ident">span</span>(),
+            <a class="ident" href="../../src/syn/buffer.rs.html#29">Entry::Punct</a>(<span class="ident">punct</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#383">punct</a>.<span class="ident">span</span>(),
+            <a class="ident" href="../../src/syn/buffer.rs.html#33">Entry::End</a>(..) =&gt; <span class="ident">Span::call_site</span>(),
         }
     }
 
@@ -779,18 +833,18 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This method treats `&#39;lifetimes` as a single token.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">skip</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <a class="self" href="../../src/syn/buffer.rs.html#362">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#206">entry</a>() {
-            <a class="ident" href="../../src/syn/buffer.rs.html#31">Entry::End</a>(..) =&gt; <span class="prelude-val">None</span>,
+        <span class="kw">match</span> <a class="self" href="../../src/syn/buffer.rs.html#392">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#234">entry</a>() {
+            <a class="ident" href="../../src/syn/buffer.rs.html#33">Entry::End</a>(..) =&gt; <span class="prelude-val">None</span>,
 
             <span class="comment">// Treat lifetimes as a single tt for the purposes of &#39;skip&#39;.</span>
-            <a class="ident" href="../../src/syn/buffer.rs.html#27">Entry::Punct</a>(<span class="ident">op</span>) <span class="kw">if</span> <a class="ident" href="../../src/syn/buffer.rs.html#367">op</a>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="string">&#39;\&#39;&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/buffer.rs.html#367">op</a>.<span class="ident">spacing</span>() <span class="op">==</span> <span class="ident">Spacing::Joint</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#362">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#213">bump</a>() };
-                <span class="kw">match</span> <a class="ident" href="../../src/syn/buffer.rs.html#368">next</a>.<a class="ident" href="../../src/syn/buffer.rs.html#206">entry</a>() {
-                    <a class="ident" href="../../src/syn/buffer.rs.html#26">Entry::Ident</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <a class="ident" href="../../src/syn/buffer.rs.html#368">next</a>.<a class="ident" href="../../src/syn/buffer.rs.html#213">bump</a>() }),
-                    <span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/buffer.rs.html#368">next</a>),
+            <a class="ident" href="../../src/syn/buffer.rs.html#29">Entry::Punct</a>(<span class="ident">punct</span>) <span class="kw">if</span> <a class="ident" href="../../src/syn/buffer.rs.html#397">punct</a>.<span class="ident">as_char</span>() <span class="op">==</span> <span class="string">&#39;\&#39;&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/syn/buffer.rs.html#397">punct</a>.<span class="ident">spacing</span>() <span class="op">==</span> <span class="ident">Spacing::Joint</span> =&gt; {
+                <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#392">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#241">bump</a>() };
+                <span class="kw">match</span> <a class="ident" href="../../src/syn/buffer.rs.html#398">next</a>.<a class="ident" href="../../src/syn/buffer.rs.html#234">entry</a>() {
+                    <a class="ident" href="../../src/syn/buffer.rs.html#28">Entry::Ident</a>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <a class="ident" href="../../src/syn/buffer.rs.html#398">next</a>.<a class="ident" href="../../src/syn/buffer.rs.html#241">bump</a>() }),
+                    <span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/syn/buffer.rs.html#398">next</a>),
                 }
             }
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#362">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#213">bump</a>() }),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <a class="self" href="../../src/syn/buffer.rs.html#392">self</a>.<a class="ident" href="../../src/syn/buffer.rs.html#241">bump</a>() }),
         }
     }
 }
@@ -799,7 +853,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw-2">*</span><a class="self" href="../../src/syn/buffer.rs.html#382">self</a>
+        <span class="kw-2">*</span><a class="self" href="../../src/syn/buffer.rs.html#412">self</a>
     }
 }
 
@@ -807,29 +861,28 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html">PartialEq</a> <span class="kw">for</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <span class="kw">let</span> <a class="ident" href="../../src/syn/buffer.rs.html#151">Cursor</a> { <span class="ident">ptr</span>, <span class="ident">scope</span>, <span class="ident">marker</span> } <span class="op">=</span> <a class="self" href="../../src/syn/buffer.rs.html#390">self</a>;
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../src/syn/buffer.rs.html#391">marker</a>;
-        <span class="kw-2">*</span><a class="ident" href="../../src/syn/buffer.rs.html#391">ptr</a> <span class="op">==</span> <a class="ident" href="../../src/syn/buffer.rs.html#390">other</a>.<span class="ident">ptr</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><a class="ident" href="../../src/syn/buffer.rs.html#391">scope</a> <span class="op">==</span> <a class="ident" href="../../src/syn/buffer.rs.html#390">other</a>.<span class="ident">scope</span>
+        <span class="kw">let</span> <a class="ident" href="../../src/syn/buffer.rs.html#179">Cursor</a> { <span class="ident">ptr</span>, <span class="ident">scope</span>, <span class="ident">marker</span> } <span class="op">=</span> <a class="self" href="../../src/syn/buffer.rs.html#420">self</a>;
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../src/syn/buffer.rs.html#421">marker</a>;
+        <span class="kw-2">*</span><a class="ident" href="../../src/syn/buffer.rs.html#421">ptr</a> <span class="op">==</span> <a class="ident" href="../../src/syn/buffer.rs.html#420">other</a>.<span class="ident">ptr</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><a class="ident" href="../../src/syn/buffer.rs.html#421">scope</a> <span class="op">==</span> <a class="ident" href="../../src/syn/buffer.rs.html#420">other</a>.<span class="ident">scope</span>
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">same_scope</span>(<span class="ident">a</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151">Cursor</a>, <span class="ident">b</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/syn/buffer.rs.html#397">a</a>.<span class="ident">scope</span> <span class="op">==</span> <a class="ident" href="../../src/syn/buffer.rs.html#397">b</a>.<span class="ident">scope</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">same_scope</span>(<span class="ident">a</span>: <a class="ident" href="../../src/syn/buffer.rs.html#179">Cursor</a>, <span class="ident">b</span>: <a class="ident" href="../../src/syn/buffer.rs.html#179">Cursor</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+    <a class="ident" href="../../src/syn/buffer.rs.html#427">a</a>.<span class="ident">scope</span> <span class="op">==</span> <a class="ident" href="../../src/syn/buffer.rs.html#427">b</a>.<span class="ident">scope</span>
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">open_span_of_group</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151">Cursor</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a> {
-    <span class="kw">match</span> <a class="ident" href="../../src/syn/buffer.rs.html#401">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#206">entry</a>() {
-        <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry::Group</a>(<span class="ident">group</span>, <span class="kw">_</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#403">group</a>.<span class="ident">span_open</span>(),
-        <span class="kw">_</span> =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#401">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#348">span</a>(),
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">open_span_of_group</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#179">Cursor</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a> {
+    <span class="kw">match</span> <a class="ident" href="../../src/syn/buffer.rs.html#431">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#234">entry</a>() {
+        <a class="ident" href="../../src/syn/buffer.rs.html#27">Entry::Group</a>(<span class="ident">group</span>, <span class="kw">_</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#433">group</a>.<span class="ident">span_open</span>(),
+        <span class="kw">_</span> =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#431">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#378">span</a>(),
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">close_span_of_group</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#151">Cursor</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a> {
-    <span class="kw">match</span> <a class="ident" href="../../src/syn/buffer.rs.html#408">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#206">entry</a>() {
-        <a class="ident" href="../../src/syn/buffer.rs.html#25">Entry::Group</a>(<span class="ident">group</span>, <span class="kw">_</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#410">group</a>.<span class="ident">span_close</span>(),
-        <span class="kw">_</span> =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#408">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#348">span</a>(),
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">close_span_of_group</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/syn/buffer.rs.html#179">Cursor</a>) -&gt; <a class="ident" href="../../proc_macro2/struct.Span.html">Span</a> {
+    <span class="kw">match</span> <a class="ident" href="../../src/syn/buffer.rs.html#438">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#234">entry</a>() {
+        <a class="ident" href="../../src/syn/buffer.rs.html#27">Entry::Group</a>(<span class="ident">group</span>, <span class="kw">_</span>) =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#440">group</a>.<span class="ident">span_close</span>(),
+        <span class="kw">_</span> =&gt; <a class="ident" href="../../src/syn/buffer.rs.html#438">cursor</a>.<a class="ident" href="../../src/syn/buffer.rs.html#378">span</a>(),
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

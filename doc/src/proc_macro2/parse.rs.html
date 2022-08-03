@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.40/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../proc_macro2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../proc_macro2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../proc_macro2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.43/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../proc_macro2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../proc_macro2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../proc_macro2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -869,12 +863,19 @@
 <span id="863">863</span>
 <span id="864">864</span>
 <span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::fallback</span>::{
-    <a class="ident" href="../../src/proc_macro2/fallback.rs.html#671">is_ident_continue</a>, <a class="ident" href="../../src/proc_macro2/fallback.rs.html#667">is_ident_start</a>, <a class="ident" href="../../src/proc_macro2/fallback.rs.html#555">Group</a>, <a class="ident" href="../../src/proc_macro2/fallback.rs.html#37">LexError</a>, <a class="ident" href="../../src/proc_macro2/fallback.rs.html#764">Literal</a>, <a class="ident" href="../../src/proc_macro2/fallback.rs.html#416">Span</a>, <a class="ident" href="../../src/proc_macro2/fallback.rs.html#32">TokenStream</a>,
+    <a class="ident" href="../../src/proc_macro2/fallback.rs.html#702">is_ident_continue</a>, <a class="ident" href="../../src/proc_macro2/fallback.rs.html#698">is_ident_start</a>, <a class="ident" href="../../src/proc_macro2/fallback.rs.html#586">Group</a>, <a class="ident" href="../../src/proc_macro2/fallback.rs.html#38">LexError</a>, <a class="ident" href="../../src/proc_macro2/fallback.rs.html#795">Literal</a>, <a class="ident" href="../../src/proc_macro2/fallback.rs.html#447">Span</a>, <a class="ident" href="../../src/proc_macro2/fallback.rs.html#33">TokenStream</a>,
+    <a class="ident" href="../../src/proc_macro2/fallback.rs.html#133">TokenStreamBuilder</a>,
 };
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/proc_macro2/lib.rs.html#650">Delimiter</a>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#764">Punct</a>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#773">Spacing</a>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#543">TokenTree</a>};
-<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/char/index.html">std::char</a>;
-<span class="kw">use</span> <span class="ident">std::str</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/str/iter/struct.Bytes.html">Bytes</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/iter/struct.CharIndices.html">CharIndices</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/iter/struct.Chars.html">Chars</a>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/proc_macro2/lib.rs.html#651">Delimiter</a>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#765">Punct</a>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#774">Spacing</a>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#544">TokenTree</a>};
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/char/index.html">core::char</a>;
+<span class="kw">use</span> <span class="ident">core::str</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/str/iter/struct.Bytes.html">Bytes</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/iter/struct.CharIndices.html">CharIndices</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/str/iter/struct.Chars.html">Chars</a>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -885,56 +886,56 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">advance</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bytes</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">_front</span>, <span class="ident">rest</span>) <span class="op">=</span> <a class="self" href="../../src/proc_macro2/parse.rs.html#16">self</a>.<span class="ident">rest</span>.<span class="ident">split_at</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">bytes</a>);
-        <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a> {
-            <a class="ident" href="../../src/proc_macro2/parse.rs.html#17">rest</a>,
+        <span class="kw">let</span> (<span class="ident">_front</span>, <span class="ident">rest</span>) <span class="op">=</span> <a class="self" href="../../src/proc_macro2/parse.rs.html#17">self</a>.<span class="ident">rest</span>.<span class="ident">split_at</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">bytes</a>);
+        <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a> {
+            <a class="ident" href="../../src/proc_macro2/parse.rs.html#18">rest</a>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
-            <span class="ident">off</span>: <a class="self" href="../../src/proc_macro2/parse.rs.html#16">self</a>.<span class="ident">off</span> <span class="op">+</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#17">_front</a>.<span class="ident">chars</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
+            <span class="ident">off</span>: <a class="self" href="../../src/proc_macro2/parse.rs.html#17">self</a>.<span class="ident">off</span> <span class="op">+</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#18">_front</a>.<span class="ident">chars</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">count</a>() <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>,
         }
     }
 
     <span class="kw">fn</span> <span class="ident">starts_with</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/proc_macro2/parse.rs.html#25">self</a>.<span class="ident">rest</span>.<span class="ident">starts_with</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#25">s</a>)
+        <a class="self" href="../../src/proc_macro2/parse.rs.html#26">self</a>.<span class="ident">rest</span>.<span class="ident">starts_with</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#26">s</a>)
     }
 
     <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../src/proc_macro2/parse.rs.html#29">self</a>.<span class="ident">rest</span>.<span class="ident">is_empty</span>()
+        <a class="self" href="../../src/proc_macro2/parse.rs.html#30">self</a>.<span class="ident">rest</span>.<span class="ident">is_empty</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
-        <a class="self" href="../../src/proc_macro2/parse.rs.html#33">self</a>.<span class="ident">rest</span>.<span class="ident">len</span>()
+        <a class="self" href="../../src/proc_macro2/parse.rs.html#34">self</a>.<span class="ident">rest</span>.<span class="ident">len</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">as_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>] {
-        <a class="self" href="../../src/proc_macro2/parse.rs.html#37">self</a>.<span class="ident">rest</span>.<span class="ident">as_bytes</span>()
+        <a class="self" href="../../src/proc_macro2/parse.rs.html#38">self</a>.<span class="ident">rest</span>.<span class="ident">as_bytes</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/proc_macro2/parse.rs.html#41">self</a>.<span class="ident">rest</span>.<span class="ident">bytes</span>()
+        <a class="self" href="../../src/proc_macro2/parse.rs.html#42">self</a>.<span class="ident">rest</span>.<span class="ident">bytes</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">chars</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/proc_macro2/parse.rs.html#45">self</a>.<span class="ident">rest</span>.<span class="ident">chars</span>()
+        <a class="self" href="../../src/proc_macro2/parse.rs.html#46">self</a>.<span class="ident">rest</span>.<span class="ident">chars</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">char_indices</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">CharIndices</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-        <a class="self" href="../../src/proc_macro2/parse.rs.html#49">self</a>.<span class="ident">rest</span>.<span class="ident">char_indices</span>()
+        <a class="self" href="../../src/proc_macro2/parse.rs.html#50">self</a>.<span class="ident">rest</span>.<span class="ident">char_indices</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tag</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tag</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">starts_with</span>(<span class="ident">tag</span>) {
-            <span class="prelude-val">Ok</span>(<a class="self" href="../../src/proc_macro2/parse.rs.html#53">self</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">advance</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#53">tag</a>.<span class="ident">len</span>()))
+            <span class="prelude-val">Ok</span>(<a class="self" href="../../src/proc_macro2/parse.rs.html#54">self</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">advance</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#54">tag</a>.<span class="ident">len</span>()))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>)
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>)
         }
     }
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Reject</span>;
-<span class="kw">type</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">O</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">O</span>), <a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a><span class="op">&gt;</span>;
+<span class="kw">type</span> <span class="ident">PResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">O</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">O</span>), <a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a><span class="op">&gt;</span>;
 
-<span class="kw">fn</span> <span class="ident">skip_whitespace</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#65">input</a>;
+<span class="kw">fn</span> <span class="ident">skip_whitespace</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#66">input</a>;
 
     <span class="kw">while</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">is_empty</span>() {
         <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">as_bytes</span>()[<span class="number">0</span>];
@@ -978,18 +979,18 @@
         }
         <span class="kw">return</span> <span class="ident">s</span>;
     }
-    <a class="ident" href="../../src/proc_macro2/parse.rs.html#66">s</a>
+    <a class="ident" href="../../src/proc_macro2/parse.rs.html#67">s</a>
 }
 
-<span class="kw">fn</span> <span class="ident">block_comment</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">block_comment</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;/*&quot;</span>) {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>);
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>);
     }
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">depth</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#113">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#37">as_bytes</a>();
+    <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#114">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#38">as_bytes</a>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#119">bytes</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
+    <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#120">bytes</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
 
     <span class="kw">while</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">upper</span> {
         <span class="kw">if</span> <span class="ident">bytes</span>[<span class="ident">i</span>] <span class="op">==</span> <span class="string">b&#39;/&#39;</span> <span class="op">&amp;&amp;</span> <span class="ident">bytes</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">==</span> <span class="string">b&#39;*&#39;</span> {
@@ -1005,45 +1006,44 @@
         <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
     }
 
-    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>)
+    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>)
 }
 
 <span class="kw">fn</span> <span class="ident">is_whitespace</span>(<span class="ident">ch</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
     <span class="comment">// Rust treats left-to-right mark and right-to-left mark as whitespace</span>
-    <a class="ident" href="../../src/proc_macro2/parse.rs.html#140">ch</a>.<span class="ident">is_whitespace</span>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#140">ch</a> <span class="op">==</span> <span class="string">&#39;\u{200e}&#39;</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#140">ch</a> <span class="op">==</span> <span class="string">&#39;\u{200f}&#39;</span>
+    <a class="ident" href="../../src/proc_macro2/parse.rs.html#141">ch</a>.<span class="ident">is_whitespace</span>() <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#141">ch</a> <span class="op">==</span> <span class="string">&#39;\u{200e}&#39;</span> <span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#141">ch</a> <span class="op">==</span> <span class="string">&#39;\u{200f}&#39;</span>
 }
 
-<span class="kw">fn</span> <span class="ident">word_break</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a><span class="op">&gt;</span> {
-    <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#145">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#45">chars</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-        <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="kw">if</span> <a class="ident" href="../../src/proc_macro2/fallback.rs.html#671">is_ident_continue</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#147">ch</a>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>),
-        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#145">input</a>),
+<span class="kw">fn</span> <span class="ident">word_break</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a><span class="op">&gt;</span> {
+    <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#146">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#46">chars</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+        <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="kw">if</span> <a class="ident" href="../../src/proc_macro2/fallback.rs.html#702">is_ident_continue</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#148">ch</a>) =&gt; <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>),
+        <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#146">input</a>),
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">token_stream</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/fallback.rs.html#32">TokenStream</a>, <a class="ident" href="../../src/proc_macro2/fallback.rs.html#37">LexError</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trees</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">token_stream</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/fallback.rs.html#33">TokenStream</a>, <a class="ident" href="../../src/proc_macro2/fallback.rs.html#38">LexError</a><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trees</span> <span class="op">=</span> <span class="ident">TokenStreamBuilder::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stack</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
     <span class="kw">loop</span> {
-        <a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#65">skip_whitespace</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a>);
+        <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#66">skip_whitespace</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a>);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="ident">tt</span>)) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#789">doc_comment</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a>) {
-            <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">trees</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#159">tt</a>);
-            <a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#159">rest</a>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, ())) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#789">doc_comment</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#154">trees</a>) {
+            <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#160">rest</a>;
             <span class="kw">continue</span>;
         }
 
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
-        <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a>.<span class="ident">off</span>;
+        <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a>.<span class="ident">off</span>;
 
-        <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#41">bytes</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+        <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#42">bytes</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
             <span class="prelude-val">Some</span>(<span class="ident">first</span>) =&gt; <a class="ident" href="../../src/proc_macro2/parse.rs.html#169">first</a>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#154">stack</a>.<span class="ident">last</span>() {
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">TokenStream::from</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#153">trees</a>)),
+            <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#155">stack</a>.<span class="ident">last</span>() {
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#154">trees</a>.<a class="ident" href="../../src/proc_macro2/fallback.rs.html#154">build</a>()),
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
                 <span class="prelude-val">Some</span>((<span class="ident">lo</span>, <span class="ident">_frame</span>)) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/fallback.rs.html#37">LexError</a> {
-                        <span class="ident">span</span>: <a class="ident" href="../../src/proc_macro2/fallback.rs.html#416">Span</a> { <span class="ident">lo</span>: <span class="kw-2">*</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#173">lo</a>, <span class="ident">hi</span>: <span class="kw-2">*</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#173">lo</a> },
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/fallback.rs.html#38">LexError</a> {
+                        <span class="ident">span</span>: <a class="ident" href="../../src/proc_macro2/fallback.rs.html#447">Span</a> { <span class="ident">lo</span>: <span class="kw-2">*</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#173">lo</a>, <span class="ident">hi</span>: <span class="kw-2">*</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#173">lo</a> },
                     })
                 }
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">span_locations</span>))]</span>
@@ -1052,65 +1052,65 @@
         };
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">open_delimiter</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#168">first</a> {
-            <span class="string">b&#39;(&#39;</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#652">Delimiter::Parenthesis</a>),
-            <span class="string">b&#39;[&#39;</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#656">Delimiter::Bracket</a>),
-            <span class="string">b&#39;{&#39;</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#654">Delimiter::Brace</a>),
+            <span class="string">b&#39;(&#39;</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#653">Delimiter::Parenthesis</a>),
+            <span class="string">b&#39;[&#39;</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#657">Delimiter::Bracket</a>),
+            <span class="string">b&#39;{&#39;</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#655">Delimiter::Brace</a>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         } {
-            <a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">advance</a>(<span class="number">1</span>);
-            <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> (<a class="ident" href="../../src/proc_macro2/parse.rs.html#183">open_delimiter</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">trees</a>);
+            <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">advance</a>(<span class="number">1</span>);
+            <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> (<a class="ident" href="../../src/proc_macro2/parse.rs.html#183">open_delimiter</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#154">trees</a>);
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
             <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> (<a class="ident" href="../../src/proc_macro2/parse.rs.html#166">lo</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#190">frame</a>);
-            <a class="ident" href="../../src/proc_macro2/parse.rs.html#154">stack</a>.<span class="ident">push</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#192">frame</a>);
-            <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">trees</a> <span class="op">=</span> <span class="ident">Vec::new</span>();
+            <a class="ident" href="../../src/proc_macro2/parse.rs.html#155">stack</a>.<span class="ident">push</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#192">frame</a>);
+            <a class="ident" href="../../src/proc_macro2/parse.rs.html#154">trees</a> <span class="op">=</span> <span class="ident">TokenStreamBuilder::new</span>();
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">close_delimiter</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#168">first</a> {
-            <span class="string">b&#39;)&#39;</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#652">Delimiter::Parenthesis</a>),
-            <span class="string">b&#39;]&#39;</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#656">Delimiter::Bracket</a>),
-            <span class="string">b&#39;}&#39;</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#654">Delimiter::Brace</a>),
+            <span class="string">b&#39;)&#39;</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#653">Delimiter::Parenthesis</a>),
+            <span class="string">b&#39;]&#39;</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#657">Delimiter::Bracket</a>),
+            <span class="string">b&#39;}&#39;</span> =&gt; <span class="prelude-val">Some</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#655">Delimiter::Brace</a>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         } {
-            <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#154">stack</a>.<span class="ident">pop</span>() {
+            <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#155">stack</a>.<span class="ident">pop</span>() {
                 <span class="prelude-val">Some</span>(<span class="ident">frame</span>) =&gt; <a class="ident" href="../../src/proc_macro2/parse.rs.html#202">frame</a>,
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#238">lex_error</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a>)),
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#238">lex_error</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a>)),
             };
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
             <span class="kw">let</span> (<span class="ident">lo</span>, <span class="ident">frame</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#201">frame</a>;
             <span class="kw">let</span> (<span class="ident">open_delimiter</span>, <span class="ident">outer</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#206">frame</a>;
             <span class="kw">if</span> <span class="ident">open_delimiter</span> <span class="op">!</span><span class="op">=</span> <span class="ident">close_delimiter</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#238">lex_error</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a>));
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#238">lex_error</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a>));
             }
-            <a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">advance</a>(<span class="number">1</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">g</span> <span class="op">=</span> <span class="ident">Group::new</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#207">open_delimiter</a>, <span class="ident">TokenStream::from</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#153">trees</a>));
-            <a class="ident" href="../../src/proc_macro2/parse.rs.html#212">g</a>.<a class="ident" href="../../src/proc_macro2/fallback.rs.html#590">set_span</a>(<a class="ident" href="../../src/proc_macro2/fallback.rs.html#416">Span</a> {
+            <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">advance</a>(<span class="number">1</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">g</span> <span class="op">=</span> <span class="ident">Group::new</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#207">open_delimiter</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#154">trees</a>.<a class="ident" href="../../src/proc_macro2/fallback.rs.html#154">build</a>());
+            <a class="ident" href="../../src/proc_macro2/parse.rs.html#212">g</a>.<a class="ident" href="../../src/proc_macro2/fallback.rs.html#621">set_span</a>(<a class="ident" href="../../src/proc_macro2/fallback.rs.html#447">Span</a> {
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
                 <a class="ident" href="../../src/proc_macro2/parse.rs.html#206">lo</a>,
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
-                <span class="ident">hi</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a>.<span class="ident">off</span>,
+                <span class="ident">hi</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a>.<span class="ident">off</span>,
             });
-            <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">trees</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#207">outer</a>;
-            <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">trees</a>.<span class="ident">push</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#545">TokenTree::Group</a>(<span class="ident"><span class="kw">crate</span>::Group::_new_stable</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#212">g</a>)));
+            <a class="ident" href="../../src/proc_macro2/parse.rs.html#154">trees</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#207">outer</a>;
+            <a class="ident" href="../../src/proc_macro2/parse.rs.html#154">trees</a>.<a class="ident" href="../../src/proc_macro2/fallback.rs.html#150">push_token_from_parser</a>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#546">TokenTree::Group</a>(<span class="ident"><span class="kw">crate</span>::Group::_new_stable</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#212">g</a>)));
         } <span class="kw">else</span> {
-            <span class="kw">let</span> (<span class="ident">rest</span>, <span class="kw-2">mut</span> <span class="ident">tt</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#251">leaf_token</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a>) {
+            <span class="kw">let</span> (<span class="ident">rest</span>, <span class="kw-2">mut</span> <span class="ident">tt</span>) <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#251">leaf_token</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a>) {
                 <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="ident">tt</span>)) =&gt; (<a class="ident" href="../../src/proc_macro2/parse.rs.html#223">rest</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#223">tt</a>),
-                <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#238">lex_error</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a>)),
+                <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#238">lex_error</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a>)),
             };
-            <a class="ident" href="../../src/proc_macro2/parse.rs.html#222">tt</a>.<a class="ident" href="../../src/proc_macro2/lib.rs.html#571">set_span</a>(<span class="ident"><span class="kw">crate</span>::Span::_new_stable</span>(<a class="ident" href="../../src/proc_macro2/fallback.rs.html#416">Span</a> {
+            <a class="ident" href="../../src/proc_macro2/parse.rs.html#222">tt</a>.<a class="ident" href="../../src/proc_macro2/lib.rs.html#572">set_span</a>(<span class="ident"><span class="kw">crate</span>::Span::_new_stable</span>(<a class="ident" href="../../src/proc_macro2/fallback.rs.html#447">Span</a> {
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
                 <a class="ident" href="../../src/proc_macro2/parse.rs.html#166">lo</a>,
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
                 <span class="ident">hi</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#222">rest</a>.<span class="ident">off</span>,
             }));
-            <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">trees</a>.<span class="ident">push</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#222">tt</a>);
-            <a class="ident" href="../../src/proc_macro2/parse.rs.html#152">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#222">rest</a>;
+            <a class="ident" href="../../src/proc_macro2/parse.rs.html#154">trees</a>.<a class="ident" href="../../src/proc_macro2/fallback.rs.html#150">push_token_from_parser</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#222">tt</a>);
+            <a class="ident" href="../../src/proc_macro2/parse.rs.html#153">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#222">rest</a>;
         }
     }
 }
 
-<span class="kw">fn</span> <span class="ident">lex_error</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <a class="ident" href="../../src/proc_macro2/fallback.rs.html#37">LexError</a> {
+<span class="kw">fn</span> <span class="ident">lex_error</span>(<span class="ident">cursor</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <a class="ident" href="../../src/proc_macro2/fallback.rs.html#38">LexError</a> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">span_locations</span>))]</span>
     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>;
-    <a class="ident" href="../../src/proc_macro2/fallback.rs.html#37">LexError</a> {
-        <span class="ident">span</span>: <a class="ident" href="../../src/proc_macro2/fallback.rs.html#416">Span</a> {
+    <a class="ident" href="../../src/proc_macro2/fallback.rs.html#38">LexError</a> {
+        <span class="ident">span</span>: <a class="ident" href="../../src/proc_macro2/fallback.rs.html#447">Span</a> {
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
             <span class="ident">lo</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#238">cursor</a>.<span class="ident">off</span>,
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
@@ -1119,33 +1119,33 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">leaf_token</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/lib.rs.html#543">TokenTree</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">leaf_token</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/lib.rs.html#544">TokenTree</a><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">l</span>)) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#313">literal</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#251">input</a>) {
         <span class="comment">// must be parsed before ident</span>
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#252">input</a>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#551">TokenTree::Literal</a>(<span class="ident"><span class="kw">crate</span>::Literal::_new_stable</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#252">l</a>))))
+        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#252">input</a>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#552">TokenTree::Literal</a>(<span class="ident"><span class="kw">crate</span>::Literal::_new_stable</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#252">l</a>))))
     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">p</span>)) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#751">punct</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#251">input</a>) {
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#255">input</a>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#549">TokenTree::Punct</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#255">p</a>)))
+        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#255">input</a>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#550">TokenTree::Punct</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#255">p</a>)))
     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="ident">i</span>)) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#264">ident</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#251">input</a>) {
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#257">input</a>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#547">TokenTree::Ident</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#257">i</a>)))
+        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#257">input</a>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#548">TokenTree::Ident</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#257">i</a>)))
     } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>)
+        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">ident</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/lib.rs.html#907"><span class="kw">crate</span>::Ident</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">ident</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/lib.rs.html#908"><span class="kw">crate</span>::Ident</a><span class="op">&gt;</span> {
     <span class="kw">if</span> [<span class="string">&quot;r\&quot;&quot;</span>, <span class="string">&quot;r#\&quot;&quot;</span>, <span class="string">&quot;r##&quot;</span>, <span class="string">&quot;b\&quot;&quot;</span>, <span class="string">&quot;b\&#39;&quot;</span>, <span class="string">&quot;br\&quot;&quot;</span>, <span class="string">&quot;br#&quot;</span>]
         .<span class="ident">iter</span>()
         .<span class="ident">any</span>(<span class="op">|</span><span class="ident">prefix</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="ident">prefix</span>))
     {
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>)
+        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>)
     } <span class="kw">else</span> {
         <a class="ident" href="../../src/proc_macro2/parse.rs.html#275">ident_any</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#264">input</a>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">ident_any</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/lib.rs.html#907"><span class="kw">crate</span>::Ident</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#275">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#25">starts_with</a>(<span class="string">&quot;r#&quot;</span>);
-    <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#275">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">advance</a>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#276">raw</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>);
+<span class="kw">fn</span> <span class="ident">ident_any</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/lib.rs.html#908"><span class="kw">crate</span>::Ident</a><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#275">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#26">starts_with</a>(<span class="string">&quot;r#&quot;</span>);
+    <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#275">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">advance</a>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#276">raw</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">1</span>);
 
     <span class="kw">let</span> (<span class="ident">rest</span>, <span class="ident">sym</span>) <span class="op">=</span> <span class="ident">ident_not_raw</span>(<span class="ident">rest</span>)<span class="question-mark">?</span>;
 
@@ -1155,22 +1155,22 @@
     }
 
     <span class="kw">if</span> <span class="ident">sym</span> <span class="op">==</span> <span class="string">&quot;_&quot;</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>);
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>);
     }
 
     <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Ident::_new_raw</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#279">sym</a>, <span class="ident"><span class="kw">crate</span>::Span::call_site</span>());
     <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#279">rest</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#290">ident</a>))
 }
 
-<span class="kw">fn</span> <span class="ident">ident_not_raw</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#294">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#49">char_indices</a>();
+<span class="kw">fn</span> <span class="ident">ident_not_raw</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#294">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#50">char_indices</a>();
 
     <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#295">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
-        <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">ch</span>)) <span class="kw">if</span> <a class="ident" href="../../src/proc_macro2/fallback.rs.html#667">is_ident_start</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#298">ch</a>) =&gt; {}
-        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>),
+        <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">ch</span>)) <span class="kw">if</span> <a class="ident" href="../../src/proc_macro2/fallback.rs.html#698">is_ident_start</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#298">ch</a>) =&gt; {}
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>),
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">end</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#294">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#33">len</a>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">end</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#294">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#34">len</a>();
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ch</span>) <span class="kw">in</span> <span class="ident">chars</span> {
         <span class="kw">if</span> <span class="op">!</span><span class="ident">is_ident_continue</span>(<span class="ident">ch</span>) {
             <span class="ident">end</span> <span class="op">=</span> <span class="ident">i</span>;
@@ -1178,16 +1178,16 @@
         }
     }
 
-    <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#294">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">advance</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#302">end</a>), <span class="kw-2">&amp;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#294">input</a>.<span class="ident">rest</span>[..<a class="ident" href="../../src/proc_macro2/parse.rs.html#302">end</a>]))
+    <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#294">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">advance</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#302">end</a>), <span class="kw-2">&amp;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#294">input</a>.<span class="ident">rest</span>[..<a class="ident" href="../../src/proc_macro2/parse.rs.html#302">end</a>]))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">literal</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/fallback.rs.html#764">Literal</a><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">literal</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/fallback.rs.html#795">Literal</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">literal_nocapture</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#313">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#33">len</a>() <span class="op">-</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#314">rest</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#33">len</a>();
+    <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#313">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#34">len</a>() <span class="op">-</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#314">rest</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#34">len</a>();
     <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#314">rest</a>, <span class="ident">Literal::_new</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#313">input</a>.<span class="ident">rest</span>[..<a class="ident" href="../../src/proc_macro2/parse.rs.html#315">end</a>].<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>())))
 }
 
-<span class="kw">fn</span> <span class="ident">literal_nocapture</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">literal_nocapture</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">ok</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#344">string</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#319">input</a>) {
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#320">ok</a>)
     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">ok</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#403">byte_string</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#319">input</a>) {
@@ -1201,29 +1201,29 @@
     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">ok</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#686">int</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#319">input</a>) {
         <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#330">ok</a>)
     } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>)
+        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">literal_suffix</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a> {
+<span class="kw">fn</span> <span class="ident">literal_suffix</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a> {
     <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#294">ident_not_raw</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#337">input</a>) {
         <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="kw">_</span>)) =&gt; <a class="ident" href="../../src/proc_macro2/parse.rs.html#339">input</a>,
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>) =&gt; <a class="ident" href="../../src/proc_macro2/parse.rs.html#337">input</a>,
+        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>) =&gt; <a class="ident" href="../../src/proc_macro2/parse.rs.html#337">input</a>,
     }
 }
 
-<span class="kw">fn</span> <span class="ident">string</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#344">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#53">parse</a>(<span class="string">&quot;\&quot;&quot;</span>) {
+<span class="kw">fn</span> <span class="ident">string</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a><span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#344">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#54">parse</a>(<span class="string">&quot;\&quot;&quot;</span>) {
         <a class="ident" href="../../src/proc_macro2/parse.rs.html#354">cooked_string</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#345">input</a>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#344">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#53">parse</a>(<span class="string">&quot;r&quot;</span>) {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#344">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#54">parse</a>(<span class="string">&quot;r&quot;</span>) {
         <a class="ident" href="../../src/proc_macro2/parse.rs.html#461">raw_string</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#347">input</a>)
     } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>)
+        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">cooked_string</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#354">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#49">char_indices</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>();
+<span class="kw">fn</span> <span class="ident">cooked_string</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#354">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#50">char_indices</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>();
 
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">i</span>, <span class="ident">ch</span>)) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
         <span class="kw">match</span> <span class="ident">ch</span> {
@@ -1268,21 +1268,21 @@
             <span class="ident">_ch</span> =&gt; {}
         }
     }
-    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>)
+    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">byte_string</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a><span class="op">&gt;</span> {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#403">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#53">parse</a>(<span class="string">&quot;b\&quot;&quot;</span>) {
+<span class="kw">fn</span> <span class="ident">byte_string</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a><span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#403">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#54">parse</a>(<span class="string">&quot;b\&quot;&quot;</span>) {
         <a class="ident" href="../../src/proc_macro2/parse.rs.html#413">cooked_byte_string</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#404">input</a>)
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#403">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#53">parse</a>(<span class="string">&quot;br&quot;</span>) {
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">input</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#403">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#54">parse</a>(<span class="string">&quot;br&quot;</span>) {
         <a class="ident" href="../../src/proc_macro2/parse.rs.html#461">raw_string</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#406">input</a>)
     } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>)
+        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">cooked_byte_string</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#413">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#41">bytes</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>();
+<span class="kw">fn</span> <span class="ident">cooked_byte_string</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#413">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#42">bytes</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>();
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">offset</span>, <span class="ident">b</span>)) <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">next</span>() {
         <span class="kw">match</span> <span class="ident">b</span> {
             <span class="string">b&#39;&quot;&#39;</span> =&gt; {
@@ -1326,11 +1326,11 @@
             <span class="kw">_</span> =&gt; <span class="kw">break</span>,
         }
     }
-    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>)
+    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">raw_string</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#461">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#49">char_indices</a>();
+<span class="kw">fn</span> <span class="ident">raw_string</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#461">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#50">char_indices</a>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ch</span>) <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">chars</span> {
         <span class="kw">match</span> <span class="ident">ch</span> {
@@ -1355,12 +1355,12 @@
             <span class="kw">_</span> =&gt; {}
         }
     }
-    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>)
+    <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">byte</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">byte</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>(<span class="string">&quot;b&#39;&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#491">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#41">bytes</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#491">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#42">bytes</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">enumerate</a>();
     <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#492">bytes</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">b</span>)<span class="op">|</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#493">b</a>) {
         <span class="prelude-val">Some</span>(<span class="string">b&#39;\\&#39;</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#492">bytes</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">b</span>)<span class="op">|</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#494">b</a>) {
             <span class="prelude-val">Some</span>(<span class="string">b&#39;x&#39;</span>) =&gt; <a class="ident" href="../../src/proc_macro2/parse.rs.html#556-558">backslash_x_byte</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#492">bytes</a>),
@@ -1371,19 +1371,19 @@
         <span class="ident">b</span> =&gt; <a class="ident" href="../../src/proc_macro2/parse.rs.html#500">b</a>.<span class="ident">is_some</span>(),
     };
     <span class="kw">if</span> <span class="op">!</span><span class="ident">ok</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>);
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>);
     }
     <span class="kw">let</span> (<span class="ident">offset</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">next</span>().<span class="ident">ok_or</span>(<span class="ident">Reject</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">chars</span>().<span class="ident">as_str</span>().<span class="ident">is_char_boundary</span>(<span class="ident">offset</span>) {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>);
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>);
     }
     <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">advance</span>(<span class="ident">offset</span>).<span class="ident">parse</span>(<span class="string">&quot;&#39;&quot;</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#337">literal_suffix</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#509">input</a>))
 }
 
-<span class="kw">fn</span> <span class="ident">character</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">character</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>(<span class="string">&quot;&#39;&quot;</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#514">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#49">char_indices</a>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#514">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#50">char_indices</a>();
     <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#515">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">ch</span>)<span class="op">|</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#516">ch</a>) {
         <span class="prelude-val">Some</span>(<span class="string">&#39;\\&#39;</span>) =&gt; <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#515">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>().<span class="ident">map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="ident">ch</span>)<span class="op">|</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#517">ch</a>) {
             <span class="prelude-val">Some</span>(<span class="string">&#39;x&#39;</span>) =&gt; <a class="ident" href="../../src/proc_macro2/parse.rs.html#547-549">backslash_x_char</a>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#515">chars</a>),
@@ -1396,7 +1396,7 @@
         <span class="ident">ch</span> =&gt; <a class="ident" href="../../src/proc_macro2/parse.rs.html#525">ch</a>.<span class="ident">is_some</span>(),
     };
     <span class="kw">if</span> <span class="op">!</span><span class="ident">ok</span> {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>);
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>);
     }
     <span class="kw">let</span> (<span class="ident">idx</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>().<span class="ident">ok_or</span>(<span class="ident">Reject</span>)<span class="question-mark">?</span>;
     <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">advance</span>(<span class="ident">idx</span>).<span class="ident">parse</span>(<span class="string">&quot;&#39;&quot;</span>)<span class="question-mark">?</span>;
@@ -1459,21 +1459,21 @@
     <span class="bool-val">false</span>
 }
 
-<span class="kw">fn</span> <span class="ident">float</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">float</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">float_digits</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#592">rest</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#45">chars</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#592">rest</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#46">chars</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
         <span class="kw">if</span> <span class="ident">is_ident_start</span>(<span class="ident">ch</span>) {
             <a class="ident" href="../../src/proc_macro2/parse.rs.html#592">rest</a> <span class="op">=</span> <span class="ident">ident_not_raw</span>(<span class="ident">rest</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
         }
     }
-    <a class="ident" href="../../src/proc_macro2/parse.rs.html#145">word_break</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#592">rest</a>)
+    <a class="ident" href="../../src/proc_macro2/parse.rs.html#146">word_break</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#592">rest</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">float_digits</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#601">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#45">chars</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>();
+<span class="kw">fn</span> <span class="ident">float_digits</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#601">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#46">chars</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">peekable</a>();
     <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#602">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
         <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="kw">if</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#604">ch</a> <span class="op">&gt;</span><span class="op">=</span> <span class="string">&#39;0&#39;</span> <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#604">ch</a> <span class="op">&lt;</span><span class="op">=</span> <span class="string">&#39;9&#39;</span> =&gt; {}
-        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>),
+        <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>),
     }
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="number">1</span>;
@@ -1510,14 +1510,14 @@
     }
 
     <span class="kw">if</span> <span class="op">!</span>(<span class="ident">has_dot</span> <span class="op">|</span><span class="op">|</span> <span class="ident">has_exp</span>) {
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>);
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>);
     }
 
     <span class="kw">if</span> <span class="ident">has_exp</span> {
         <span class="kw">let</span> <span class="ident">token_before_exp</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">has_dot</span> {
-            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#601">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">advance</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#608">len</a> <span class="op">-</span> <span class="number">1</span>))
+            <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#601">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">advance</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#608">len</a> <span class="op">-</span> <span class="number">1</span>))
         } <span class="kw">else</span> {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>)
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>)
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_sign</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_exp_value</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -1551,28 +1551,28 @@
         }
     }
 
-    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#601">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">advance</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#608">len</a>))
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#601">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">advance</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#608">len</a>))
 }
 
-<span class="kw">fn</span> <span class="ident">int</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">int</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest</span> <span class="op">=</span> <span class="ident">digits</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#687">rest</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#45">chars</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#687">rest</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#46">chars</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
         <span class="kw">if</span> <span class="ident">is_ident_start</span>(<span class="ident">ch</span>) {
             <a class="ident" href="../../src/proc_macro2/parse.rs.html#687">rest</a> <span class="op">=</span> <span class="ident">ident_not_raw</span>(<span class="ident">rest</span>)<span class="question-mark">?</span>.<span class="number">0</span>;
         }
     }
-    <a class="ident" href="../../src/proc_macro2/parse.rs.html#145">word_break</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#687">rest</a>)
+    <a class="ident" href="../../src/proc_macro2/parse.rs.html#146">word_break</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#687">rest</a>)
 }
 
-<span class="kw">fn</span> <span class="ident">digits</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">digits</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0x&quot;</span>) {
-        <a class="ident" href="../../src/proc_macro2/parse.rs.html#696">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#696">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">advance</a>(<span class="number">2</span>);
+        <a class="ident" href="../../src/proc_macro2/parse.rs.html#696">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#696">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">advance</a>(<span class="number">2</span>);
         <span class="number">16</span>
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0o&quot;</span>) {
-        <a class="ident" href="../../src/proc_macro2/parse.rs.html#696">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#696">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">advance</a>(<span class="number">2</span>);
+        <a class="ident" href="../../src/proc_macro2/parse.rs.html#696">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#696">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">advance</a>(<span class="number">2</span>);
         <span class="number">8</span>
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0b&quot;</span>) {
-        <a class="ident" href="../../src/proc_macro2/parse.rs.html#696">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#696">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">advance</a>(<span class="number">2</span>);
+        <a class="ident" href="../../src/proc_macro2/parse.rs.html#696">input</a> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#696">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">advance</a>(<span class="number">2</span>);
         <span class="number">2</span>
     } <span class="kw">else</span> {
         <span class="number">10</span>
@@ -1613,55 +1613,55 @@
         <span class="ident">empty</span> <span class="op">=</span> <span class="bool-val">false</span>;
     }
     <span class="kw">if</span> <span class="ident">empty</span> {
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>)
+        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>)
     } <span class="kw">else</span> {
-        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#696">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">advance</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#710">len</a>))
+        <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#696">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">advance</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#710">len</a>))
     }
 }
 
-<span class="kw">fn</span> <span class="ident">punct</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/lib.rs.html#764">Punct</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">punct</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/lib.rs.html#765">Punct</a><span class="op">&gt;</span> {
     <span class="kw">let</span> (<span class="ident">rest</span>, <span class="ident">ch</span>) <span class="op">=</span> <span class="ident">punct_char</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;\&#39;&#39;</span> {
         <span class="kw">if</span> <span class="ident">ident_any</span>(<span class="ident">rest</span>)<span class="question-mark">?</span>.<span class="number">0</span>.<span class="ident">starts_with</span>(<span class="string">&quot;&#39;&quot;</span>) {
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>)
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>)
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#752">rest</a>, <span class="ident">Punct::new</span>(<span class="string">&#39;\&#39;&#39;</span>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#780">Spacing::Joint</a>)))
+            <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#752">rest</a>, <span class="ident">Punct::new</span>(<span class="string">&#39;\&#39;&#39;</span>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#781">Spacing::Joint</a>)))
         }
     } <span class="kw">else</span> {
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#768">punct_char</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#752">rest</a>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../src/proc_macro2/lib.rs.html#780">Spacing::Joint</a>,
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>) =&gt; <a class="ident" href="../../src/proc_macro2/lib.rs.html#775">Spacing::Alone</a>,
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../src/proc_macro2/lib.rs.html#781">Spacing::Joint</a>,
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>) =&gt; <a class="ident" href="../../src/proc_macro2/lib.rs.html#776">Spacing::Alone</a>,
         };
         <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#752">rest</a>, <span class="ident">Punct::new</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#752">ch</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#760">kind</a>)))
     }
 }
 
-<span class="kw">fn</span> <span class="ident">punct_char</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">punct_char</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.char.html">char</a><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;//&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;/*&quot;</span>) {
         <span class="comment">// Do not accept `/` of a comment as a punct.</span>
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>);
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>);
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#768">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#45">chars</a>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#768">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#46">chars</a>();
     <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#774">chars</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>() {
         <span class="prelude-val">Some</span>(<span class="ident">ch</span>) =&gt; <a class="ident" href="../../src/proc_macro2/parse.rs.html#776">ch</a>,
         <span class="prelude-val">None</span> =&gt; {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>);
         }
     };
     <span class="kw">let</span> <span class="ident">recognized</span> <span class="op">=</span> <span class="string">&quot;~!@#$%^&amp;*-=+|;:,&lt;.&gt;/?&#39;&quot;</span>;
     <span class="kw">if</span> <span class="ident">recognized</span>.<span class="ident">contains</span>(<span class="ident">first</span>) {
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#768">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">advance</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#775">first</a>.<span class="ident">len_utf8</span>()), <a class="ident" href="../../src/proc_macro2/parse.rs.html#775">first</a>))
+        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#768">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">advance</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#775">first</a>.<span class="ident">len_utf8</span>()), <a class="ident" href="../../src/proc_macro2/parse.rs.html#775">first</a>))
     } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>)
+        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">doc_comment</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../src/proc_macro2/lib.rs.html#543">TokenTree</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">doc_comment</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">trees</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/proc_macro2/fallback.rs.html#133">TokenStreamBuilder</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, ()<span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
     <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#789">input</a>.<span class="ident">off</span>;
     <span class="kw">let</span> (<span class="ident">rest</span>, (<span class="ident">comment</span>, <span class="ident">inner</span>)) <span class="op">=</span> <span class="ident">doc_comment_contents</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Span::_new_stable</span>(<a class="ident" href="../../src/proc_macro2/fallback.rs.html#416">Span</a> {
+    <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Span::_new_stable</span>(<a class="ident" href="../../src/proc_macro2/fallback.rs.html#447">Span</a> {
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
         <a class="ident" href="../../src/proc_macro2/parse.rs.html#791">lo</a>,
         <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
@@ -1677,52 +1677,58 @@
         <span class="ident">scan_for_bare_cr</span> <span class="op">=</span> <span class="ident">rest</span>;
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trees</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <a class="ident" href="../../src/proc_macro2/parse.rs.html#809">trees</a>.<span class="ident">push</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#549">TokenTree::Punct</a>(<span class="ident">Punct::new</span>(<span class="string">&#39;#&#39;</span>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#775">Spacing::Alone</a>)));
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pound</span> <span class="op">=</span> <span class="ident">Punct::new</span>(<span class="string">&#39;#&#39;</span>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#776">Spacing::Alone</a>);
+    <a class="ident" href="../../src/proc_macro2/parse.rs.html#809">pound</a>.<a class="ident" href="../../src/proc_macro2/lib.rs.html#820">set_span</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#793">span</a>);
+    <a class="ident" href="../../src/proc_macro2/parse.rs.html#789">trees</a>.<a class="ident" href="../../src/proc_macro2/fallback.rs.html#150">push_token_from_parser</a>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#550">TokenTree::Punct</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#809">pound</a>));
+
     <span class="kw">if</span> <span class="ident">inner</span> {
-        <a class="ident" href="../../src/proc_macro2/parse.rs.html#809">trees</a>.<span class="ident">push</span>(<span class="ident">Punct::new</span>(<span class="string">&#39;!&#39;</span>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#775">Spacing::Alone</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bang</span> <span class="op">=</span> <span class="ident">Punct::new</span>(<span class="string">&#39;!&#39;</span>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#776">Spacing::Alone</a>);
+        <a class="ident" href="../../src/proc_macro2/parse.rs.html#814">bang</a>.<a class="ident" href="../../src/proc_macro2/lib.rs.html#820">set_span</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#793">span</a>);
+        <a class="ident" href="../../src/proc_macro2/parse.rs.html#789">trees</a>.<a class="ident" href="../../src/proc_macro2/fallback.rs.html#150">push_token_from_parser</a>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#550">TokenTree::Punct</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#814">bang</a>));
     }
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
-        <span class="ident">TokenTree::Ident</span>(<span class="ident"><span class="kw">crate</span>::Ident::new</span>(<span class="string">&quot;doc&quot;</span>, <span class="ident">span</span>)),
-        <span class="ident">TokenTree::Punct</span>(<span class="ident">Punct::new</span>(<span class="string">&#39;=&#39;</span>, <span class="ident">Spacing::Alone</span>)),
-        <span class="ident">TokenTree::Literal</span>(<span class="ident"><span class="kw">crate</span>::Literal::string</span>(<span class="ident">comment</span>)),
-    ];
-    <span class="kw">for</span> <span class="ident">tt</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">stream</span> {
-        <span class="ident">tt</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
-    }
-    <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">Group::new</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#656">Delimiter::Bracket</a>, <span class="ident">TokenStream::from</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#814">stream</a>));
-    <a class="ident" href="../../src/proc_macro2/parse.rs.html#809">trees</a>.<span class="ident">push</span>(<span class="ident"><span class="kw">crate</span>::Group::_new_stable</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#822">group</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
-    <span class="kw">for</span> <span class="ident">tt</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">trees</span> {
-        <span class="ident">tt</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
-    }
-    <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#792">rest</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#809">trees</a>))
+
+    <span class="kw">let</span> <span class="ident">doc_ident</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Ident::new</span>(<span class="string">&quot;doc&quot;</span>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#793">span</a>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">equal</span> <span class="op">=</span> <span class="ident">Punct::new</span>(<span class="string">&#39;=&#39;</span>, <a class="ident" href="../../src/proc_macro2/lib.rs.html#776">Spacing::Alone</a>);
+    <a class="ident" href="../../src/proc_macro2/parse.rs.html#820">equal</a>.<a class="ident" href="../../src/proc_macro2/lib.rs.html#820">set_span</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#793">span</a>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">literal</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Literal::string</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#792">comment</a>);
+    <a class="ident" href="../../src/proc_macro2/parse.rs.html#822">literal</a>.<a class="ident" href="../../src/proc_macro2/lib.rs.html#1220">set_span</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#793">span</a>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bracketed</span> <span class="op">=</span> <span class="ident">TokenStreamBuilder::with_capacity</span>(<span class="number">3</span>);
+    <a class="ident" href="../../src/proc_macro2/parse.rs.html#824">bracketed</a>.<a class="ident" href="../../src/proc_macro2/fallback.rs.html#150">push_token_from_parser</a>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#548">TokenTree::Ident</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#819">doc_ident</a>));
+    <a class="ident" href="../../src/proc_macro2/parse.rs.html#824">bracketed</a>.<a class="ident" href="../../src/proc_macro2/fallback.rs.html#150">push_token_from_parser</a>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#550">TokenTree::Punct</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#820">equal</a>));
+    <a class="ident" href="../../src/proc_macro2/parse.rs.html#824">bracketed</a>.<a class="ident" href="../../src/proc_macro2/fallback.rs.html#150">push_token_from_parser</a>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#552">TokenTree::Literal</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#822">literal</a>));
+    <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">Group::new</span>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#657">Delimiter::Bracket</a>, <a class="ident" href="../../src/proc_macro2/parse.rs.html#824">bracketed</a>.<a class="ident" href="../../src/proc_macro2/fallback.rs.html#154">build</a>());
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Group::_new_stable</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#828">group</a>);
+    <a class="ident" href="../../src/proc_macro2/parse.rs.html#829">group</a>.<a class="ident" href="../../src/proc_macro2/lib.rs.html#740">set_span</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#793">span</a>);
+    <a class="ident" href="../../src/proc_macro2/parse.rs.html#789">trees</a>.<a class="ident" href="../../src/proc_macro2/fallback.rs.html#150">push_token_from_parser</a>(<a class="ident" href="../../src/proc_macro2/lib.rs.html#546">TokenTree::Group</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#829">group</a>));
+
+    <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#792">rest</a>, ()))
 }
 
-<span class="kw">fn</span> <span class="ident">doc_comment_contents</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)<span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">doc_comment_contents</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>)<span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;//!&quot;</span>) {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#830">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">advance</a>(<span class="number">3</span>);
-        <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">s</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#853">take_until_newline_or_eof</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#832">input</a>);
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#833">input</a>, (<a class="ident" href="../../src/proc_macro2/parse.rs.html#833">s</a>, <span class="bool-val">true</span>)))
+        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#836">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">advance</a>(<span class="number">3</span>);
+        <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">s</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#859">take_until_newline_or_eof</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#838">input</a>);
+        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#839">input</a>, (<a class="ident" href="../../src/proc_macro2/parse.rs.html#839">s</a>, <span class="bool-val">true</span>)))
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;/*!&quot;</span>) {
         <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">s</span>) <span class="op">=</span> <span class="ident">block_comment</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#836">input</a>, (<span class="kw-2">&amp;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#836">s</a>[<span class="number">3</span>..<a class="ident" href="../../src/proc_macro2/parse.rs.html#836">s</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">2</span>], <span class="bool-val">true</span>)))
+        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#842">input</a>, (<span class="kw-2">&amp;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#842">s</a>[<span class="number">3</span>..<a class="ident" href="../../src/proc_macro2/parse.rs.html#842">s</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">2</span>], <span class="bool-val">true</span>)))
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;///&quot;</span>) {
-        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#830">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">advance</a>(<span class="number">3</span>);
+        <span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#836">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">advance</a>(<span class="number">3</span>);
         <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;/&quot;</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>);
         }
-        <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">s</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#853">take_until_newline_or_eof</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#839">input</a>);
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#843">input</a>, (<a class="ident" href="../../src/proc_macro2/parse.rs.html#843">s</a>, <span class="bool-val">false</span>)))
+        <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">s</span>) <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#859">take_until_newline_or_eof</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#845">input</a>);
+        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#849">input</a>, (<a class="ident" href="../../src/proc_macro2/parse.rs.html#849">s</a>, <span class="bool-val">false</span>)))
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">starts_with</span>(<span class="string">&quot;/**&quot;</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">rest</span>[<span class="number">3</span>..].<span class="ident">starts_with</span>(<span class="string">&#39;*&#39;</span>) {
         <span class="kw">let</span> (<span class="ident">input</span>, <span class="ident">s</span>) <span class="op">=</span> <span class="ident">block_comment</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#846">input</a>, (<span class="kw-2">&amp;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#846">s</a>[<span class="number">3</span>..<a class="ident" href="../../src/proc_macro2/parse.rs.html#846">s</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">2</span>], <span class="bool-val">false</span>)))
+        <span class="prelude-val">Ok</span>((<a class="ident" href="../../src/proc_macro2/parse.rs.html#852">input</a>, (<span class="kw-2">&amp;</span><a class="ident" href="../../src/proc_macro2/parse.rs.html#852">s</a>[<span class="number">3</span>..<a class="ident" href="../../src/proc_macro2/parse.rs.html#852">s</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">2</span>], <span class="bool-val">false</span>)))
     } <span class="kw">else</span> {
-        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#62">Reject</a>)
+        <span class="prelude-val">Err</span>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#63">Reject</a>)
     }
 }
 
-<span class="kw">fn</span> <span class="ident">take_until_newline_or_eof</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>) -&gt; (<a class="ident" href="../../src/proc_macro2/parse.rs.html#9">Cursor</a>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
-    <span class="kw">let</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#853">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#49">char_indices</a>();
+<span class="kw">fn</span> <span class="ident">take_until_newline_or_eof</span>(<span class="ident">input</span>: <a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>) -&gt; (<a class="ident" href="../../src/proc_macro2/parse.rs.html#10">Cursor</a>, <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+    <span class="kw">let</span> <span class="ident">chars</span> <span class="op">=</span> <a class="ident" href="../../src/proc_macro2/parse.rs.html#859">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#50">char_indices</a>();
 
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">ch</span>) <span class="kw">in</span> <span class="ident">chars</span> {
         <span class="kw">if</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;\n&#39;</span> {
@@ -1732,8 +1738,7 @@
         }
     }
 
-    (<a class="ident" href="../../src/proc_macro2/parse.rs.html#853">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#16">advance</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#853">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#33">len</a>()), <a class="ident" href="../../src/proc_macro2/parse.rs.html#853">input</a>.<span class="ident">rest</span>)
+    (<a class="ident" href="../../src/proc_macro2/parse.rs.html#859">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#17">advance</a>(<a class="ident" href="../../src/proc_macro2/parse.rs.html#859">input</a>.<a class="ident" href="../../src/proc_macro2/parse.rs.html#34">len</a>()), <a class="ident" href="../../src/proc_macro2/parse.rs.html#859">input</a>.<span class="ident">rest</span>)
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="proc_macro2" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

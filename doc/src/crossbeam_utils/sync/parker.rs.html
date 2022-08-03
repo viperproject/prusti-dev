@@ -1,10 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crossbeam-utils-0.8.10/src/sync/parker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../crossbeam_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../crossbeam_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../crossbeam_utils/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1">
-                                <a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div>
-                        </div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crossbeam-utils-0.8.11/src/sync/parker.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parker.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../crossbeam_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../crossbeam_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../crossbeam_utils/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -415,6 +409,8 @@
 <span id="409">409</span>
 <span id="410">410</span>
 <span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html"><span class="kw">crate</span>::primitive::sync::atomic::AtomicUsize</a>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::primitive::sync</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>};
 <span class="kw">use</span> <span class="ident">core::sync::atomic::Ordering::SeqCst</span>;
@@ -461,6 +457,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// // Wakes up when `u.unpark()` provides the token.</span>
 <span class="doccomment">/// p.park();</span>
+<span class="doccomment">/// # std::thread::sleep(std::time::Duration::from_millis(500)); // wait for background threads closed: https://github.com/rust-lang/miri/issues/1371</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`park`]: Parker::park</span>
@@ -468,18 +465,18 @@
 <span class="doccomment">/// [`park_deadline`]: Parker::park_deadline</span>
 <span class="doccomment">/// [`unpark`]: Unparker::unpark</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Parker</span> {
-    <span class="ident">unparker</span>: <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#214">Unparker</a>,
+    <span class="ident">unparker</span>: <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#215">Unparker</a>,
     <span class="ident">_marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">*const</span> ()<span class="op">&gt;</span>,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#53">Parker</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#54">Parker</a> {}
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#53">Parker</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#54">Parker</a> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">unparker</span>: <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#214">Unparker</a> {
-                <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#310">Inner</a> {
-                    <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#306">EMPTY</a>),
+            <span class="ident">unparker</span>: <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#215">Unparker</a> {
+                <span class="ident">inner</span>: <span class="ident">Arc::new</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#312">Inner</a> {
+                    <span class="ident">state</span>: <span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#308">EMPTY</a>),
                     <span class="ident">lock</span>: <span class="ident">Mutex::new</span>(()),
                     <span class="ident">cvar</span>: <span class="ident">Condvar::new</span>(),
                 }),
@@ -489,7 +486,7 @@
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#53">Parker</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#54">Parker</a> {
     <span class="doccomment">/// Creates a new `Parker`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
@@ -500,7 +497,7 @@
     <span class="doccomment">/// let p = Parker::new();</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#53">Parker</a> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#54">Parker</a> {
         <span class="ident"><span class="self">Self</span>::default</span>()
     }
 
@@ -521,7 +518,7 @@
     <span class="doccomment">/// p.park();</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">park</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#106">self</a>.<span class="ident">unparker</span>.<span class="ident">inner</span>.<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#317">park</a>(<span class="prelude-val">None</span>);
+        <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#107">self</a>.<span class="ident">unparker</span>.<span class="ident">inner</span>.<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#319">park</a>(<span class="prelude-val">None</span>);
     }
 
     <span class="doccomment">/// Blocks the current thread until the token is made available, but only for a limited time.</span>
@@ -538,7 +535,7 @@
     <span class="doccomment">/// p.park_timeout(Duration::from_millis(500));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">park_timeout</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">timeout</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/time/struct.Duration.html">Duration</a>) {
-        <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#123">self</a>.<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#141">park_deadline</a>(<span class="ident">Instant::now</span>() <span class="op">+</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#123">timeout</a>)
+        <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#124">self</a>.<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#142">park_deadline</a>(<span class="ident">Instant::now</span>() <span class="op">+</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#124">timeout</a>)
     }
 
     <span class="doccomment">/// Blocks the current thread until the token is made available, or until a certain deadline.</span>
@@ -556,7 +553,7 @@
     <span class="doccomment">/// p.park_deadline(deadline);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">park_deadline</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">deadline</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a>) {
-        <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#141">self</a>.<span class="ident">unparker</span>.<span class="ident">inner</span>.<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#317">park</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#141">deadline</a>))
+        <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#142">self</a>.<span class="ident">unparker</span>.<span class="ident">inner</span>.<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#319">park</a>(<span class="prelude-val">Some</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#142">deadline</a>))
     }
 
     <span class="doccomment">/// Returns a reference to an associated [`Unparker`].</span>
@@ -579,8 +576,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`park`]: Parker::park</span>
     <span class="doccomment">/// [`park_timeout`]: Parker::park_timeout</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unparker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#214">Unparker</a> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#165">self</a>.<span class="ident">unparker</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unparker</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#215">Unparker</a> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#166">self</a>.<span class="ident">unparker</span>
     }
 
     <span class="doccomment">/// Converts a `Parker` into a raw pointer.</span>
@@ -594,8 +591,8 @@
     <span class="doccomment">/// let raw = Parker::into_raw(p);</span>
     <span class="doccomment">/// # let _ = unsafe { Parker::from_raw(raw) };</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="ident">this</span>: <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#53">Parker</a>) -&gt; <span class="kw-2">*const</span> () {
-        <span class="ident">Unparker::into_raw</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#180">this</a>.<span class="ident">unparker</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="ident">this</span>: <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#54">Parker</a>) -&gt; <span class="kw-2">*const</span> () {
+        <span class="ident">Unparker::into_raw</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#181">this</a>.<span class="ident">unparker</span>)
     }
 
     <span class="doccomment">/// Converts a raw pointer into a `Parker`.</span>
@@ -613,29 +610,29 @@
     <span class="doccomment">/// let raw = Parker::into_raw(p);</span>
     <span class="doccomment">/// let p = unsafe { Parker::from_raw(raw) };</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="kw-2">*const</span> ()) -&gt; <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#53">Parker</a> {
-        <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#53">Parker</a> {
-            <span class="ident">unparker</span>: <span class="ident">Unparker::from_raw</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#199">ptr</a>),
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="kw-2">*const</span> ()) -&gt; <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#54">Parker</a> {
+        <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#54">Parker</a> {
+            <span class="ident">unparker</span>: <span class="ident">Unparker::from_raw</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#200">ptr</a>),
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#53">Parker</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#54">Parker</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#208">f</a>.<span class="ident">pad</span>(<span class="string">&quot;Parker { .. }&quot;</span>)
+        <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#209">f</a>.<span class="ident">pad</span>(<span class="string">&quot;Parker { .. }&quot;</span>)
     }
 }
 
 <span class="doccomment">/// Unparks a thread parked by the associated [`Parker`].</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Unparker</span> {
-    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#310">Inner</a><span class="op">&gt;</span>,
+    <span class="ident">inner</span>: <span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#312">Inner</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#214">Unparker</a> {}
-<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#214">Unparker</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#215">Unparker</a> {}
+<span class="kw">unsafe</span> <span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#215">Unparker</a> {}
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#214">Unparker</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#215">Unparker</a> {
     <span class="doccomment">/// Atomically makes the token available if it is not already.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This method will wake up the thread blocked on [`park`] or [`park_timeout`], if there is</span>
@@ -658,12 +655,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// // Wakes up when `u.unpark()` provides the token.</span>
     <span class="doccomment">/// p.park();</span>
+    <span class="doccomment">/// # std::thread::sleep(std::time::Duration::from_millis(500)); // wait for background threads closed: https://github.com/rust-lang/miri/issues/1371</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`park`]: Parker::park</span>
     <span class="doccomment">/// [`park_timeout`]: Parker::park_timeout</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">unpark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#248">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#388">unpark</a>()
+        <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#250">self</a>.<span class="ident">inner</span>.<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#390">unpark</a>()
     }
 
     <span class="doccomment">/// Converts an `Unparker` into a raw pointer.</span>
@@ -678,8 +676,8 @@
     <span class="doccomment">/// let raw = Unparker::into_raw(u);</span>
     <span class="doccomment">/// # let _ = unsafe { Unparker::from_raw(raw) };</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="ident">this</span>: <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#214">Unparker</a>) -&gt; <span class="kw-2">*const</span> () {
-        <span class="ident">Arc::into_raw</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#264">this</a>.<span class="ident">inner</span>) <span class="kw">as</span> <span class="kw-2">*const</span> ()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="ident">this</span>: <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#215">Unparker</a>) -&gt; <span class="kw-2">*const</span> () {
+        <span class="ident">Arc::into_raw</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#266">this</a>.<span class="ident">inner</span>).<span class="ident">cast</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span>()
     }
 
     <span class="doccomment">/// Converts a raw pointer into an `Unparker`.</span>
@@ -699,23 +697,23 @@
     <span class="doccomment">/// let raw = Unparker::into_raw(u);</span>
     <span class="doccomment">/// let u = unsafe { Unparker::from_raw(raw) };</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="kw-2">*const</span> ()) -&gt; <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#214">Unparker</a> {
-        <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#214">Unparker</a> {
-            <span class="ident">inner</span>: <span class="ident">Arc::from_raw</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#285">ptr</a> <span class="kw">as</span> <span class="kw-2">*const</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#310">Inner</a>),
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">ptr</span>: <span class="kw-2">*const</span> ()) -&gt; <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#215">Unparker</a> {
+        <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#215">Unparker</a> {
+            <span class="ident">inner</span>: <span class="ident">Arc::from_raw</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#287">ptr</a>.<span class="ident">cast</span>::<span class="op">&lt;</span><a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#312">Inner</a><span class="op">&gt;</span>()),
         }
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#214">Unparker</a> {
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#215">Unparker</a> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">fmt::Result</a> {
-        <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#293">f</a>.<span class="ident">pad</span>(<span class="string">&quot;Unparker { .. }&quot;</span>)
+        <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#295">f</a>.<span class="ident">pad</span>(<span class="string">&quot;Unparker { .. }&quot;</span>)
     }
 }
 
-<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#214">Unparker</a> {
-    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#214">Unparker</a> {
-        <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#214">Unparker</a> {
-            <span class="ident">inner</span>: <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#299">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="kw">for</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#215">Unparker</a> {
+    <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#215">Unparker</a> {
+        <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#215">Unparker</a> {
+            <span class="ident">inner</span>: <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#301">self</a>.<span class="ident">inner</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
         }
     }
 }
@@ -730,7 +728,7 @@
     <span class="ident">cvar</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/condvar/struct.Condvar.html">Condvar</a>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#310">Inner</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#312">Inner</a> {
     <span class="kw">fn</span> <span class="ident">park</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">deadline</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/time/struct.Instant.html">Instant</a><span class="op">&gt;</span>) {
         <span class="comment">// If we were previously notified then we consume this notification and return quickly.</span>
         <span class="kw">if</span> <span class="self">self</span>
@@ -742,25 +740,25 @@
         }
 
         <span class="comment">// If the timeout is zero, then there is no need to actually block.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">deadline</span>) <span class="op">=</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#317">deadline</a> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">deadline</span>) <span class="op">=</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#319">deadline</a> {
             <span class="kw">if</span> <span class="ident">deadline</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">Instant::now</span>() {
                 <span class="kw">return</span>;
             }
         }
 
         <span class="comment">// Otherwise we need to coordinate going to sleep.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span> <span class="op">=</span> <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#317">self</a>.<span class="ident">lock</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span> <span class="op">=</span> <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#319">self</a>.<span class="ident">lock</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
 
-        <span class="kw">match</span> <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#317">self</a>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#306">EMPTY</a>, <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#307">PARKED</a>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>) {
+        <span class="kw">match</span> <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#319">self</a>.<span class="ident">state</span>.<span class="ident">compare_exchange</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#308">EMPTY</a>, <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#309">PARKED</a>, <span class="ident">SeqCst</span>, <span class="ident">SeqCst</span>) {
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
             <span class="comment">// Consume this notification to avoid spurious wakeups in the next park.</span>
-            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#308">NOTIFIED</a>) =&gt; {
+            <span class="prelude-val">Err</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#310">NOTIFIED</a>) =&gt; {
                 <span class="comment">// We must read `state` here, even though we know it will be `NOTIFIED`. This is</span>
                 <span class="comment">// because `unpark` may have been called again since we read `NOTIFIED` in the</span>
                 <span class="comment">// `compare_exchange` above. We must perform an acquire operation that synchronizes</span>
                 <span class="comment">// with that `unpark` to observe any writes it made before the call to `unpark`. To</span>
                 <span class="comment">// do that we must read from the write it made to `state`.</span>
-                <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#317">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#306">EMPTY</a>, <span class="ident">SeqCst</span>);
+                <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#319">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#308">EMPTY</a>, <span class="ident">SeqCst</span>);
                 <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">old</span>, <span class="ident">NOTIFIED</span>, <span class="string">&quot;park state changed unexpectedly&quot;</span>);
                 <span class="kw">return</span>;
             }
@@ -769,19 +767,19 @@
 
         <span class="kw">loop</span> {
             <span class="comment">// Block the current thread on the conditional variable.</span>
-            <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#335">m</a> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#317">deadline</a> {
-                <span class="prelude-val">None</span> =&gt; <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#317">self</a>.<span class="ident">cvar</span>.<span class="ident">wait</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#335">m</a>).<span class="ident">unwrap</span>(),
+            <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#337">m</a> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#319">deadline</a> {
+                <span class="prelude-val">None</span> =&gt; <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#319">self</a>.<span class="ident">cvar</span>.<span class="ident">wait</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#337">m</a>).<span class="ident">unwrap</span>(),
                 <span class="prelude-val">Some</span>(<span class="ident">deadline</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">now</span> <span class="op">=</span> <span class="ident">Instant::now</span>();
                     <span class="kw">if</span> <span class="ident">now</span> <span class="op">&lt;</span> <span class="ident">deadline</span> {
                         <span class="comment">// We could check for a timeout here, in the return value of wait_timeout,</span>
                         <span class="comment">// but in the case that a timeout and an unpark arrive simultaneously, we</span>
                         <span class="comment">// prefer to report the former.</span>
-                        <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#317">self</a>.<span class="ident">cvar</span>.<span class="ident">wait_timeout</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#335">m</a>, <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#357">deadline</a> <span class="op">-</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#358">now</a>).<span class="ident">unwrap</span>().<span class="number">0</span>
+                        <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#319">self</a>.<span class="ident">cvar</span>.<span class="ident">wait_timeout</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#337">m</a>, <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#359">deadline</a> <span class="op">-</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#360">now</a>).<span class="ident">unwrap</span>().<span class="number">0</span>
                     } <span class="kw">else</span> {
                         <span class="comment">// We&#39;ve timed out; swap out the state back to empty on our way out</span>
-                        <span class="kw">match</span> <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#317">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#306">EMPTY</a>, <span class="ident">SeqCst</span>) {
-                            <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#308">NOTIFIED</a> <span class="op">|</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#307">PARKED</a> =&gt; <span class="kw">return</span>,
+                        <span class="kw">match</span> <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#319">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#308">EMPTY</a>, <span class="ident">SeqCst</span>) {
+                            <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#310">NOTIFIED</a> <span class="op">|</span> <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#309">PARKED</a> =&gt; <span class="kw">return</span>,
                             <span class="ident">n</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent park_timeout state: {}&quot;</span>, <span class="ident">n</span>),
                         };
                     }
@@ -807,10 +805,10 @@
         <span class="comment">// perform a release operation that `park` can synchronize with. To do that we must write</span>
         <span class="comment">// `NOTIFIED` even if `state` is already `NOTIFIED`. That is why this must be a swap rather</span>
         <span class="comment">// than a compare-and-swap that returns if it reads `NOTIFIED` on failure.</span>
-        <span class="kw">match</span> <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#388">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#308">NOTIFIED</a>, <span class="ident">SeqCst</span>) {
-            <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#306">EMPTY</a> =&gt; <span class="kw">return</span>,    <span class="comment">// no one was waiting</span>
-            <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#308">NOTIFIED</a> =&gt; <span class="kw">return</span>, <span class="comment">// already unparked</span>
-            <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#307">PARKED</a> =&gt; {}        <span class="comment">// gotta go wake someone up</span>
+        <span class="kw">match</span> <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#390">self</a>.<span class="ident">state</span>.<span class="ident">swap</span>(<a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#310">NOTIFIED</a>, <span class="ident">SeqCst</span>) {
+            <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#308">EMPTY</a> =&gt; <span class="kw">return</span>,    <span class="comment">// no one was waiting</span>
+            <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#310">NOTIFIED</a> =&gt; <span class="kw">return</span>, <span class="comment">// already unparked</span>
+            <a class="ident" href="../../../src/crossbeam_utils/sync/parker.rs.html#309">PARKED</a> =&gt; {}        <span class="comment">// gotta go wake someone up</span>
             <span class="kw">_</span> =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(<span class="string">&quot;inconsistent state in unpark&quot;</span>),
         }
 
@@ -822,10 +820,9 @@
         <span class="comment">//</span>
         <span class="comment">// Releasing `lock` before the call to `notify_one` means that when the parked thread wakes</span>
         <span class="comment">// it doesn&#39;t get woken only to have to wait for us to release `lock`.</span>
-        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#388">self</a>.<span class="ident">lock</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>());
-        <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#388">self</a>.<span class="ident">cvar</span>.<span class="ident">notify_one</span>();
+        <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/fn.drop.html">drop</a>(<a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#390">self</a>.<span class="ident">lock</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>());
+        <a class="self" href="../../../src/crossbeam_utils/sync/parker.rs.html#390">self</a>.<span class="ident">cvar</span>.<span class="ident">notify_one</span>();
     }
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (c2f428d2f 2022-07-14)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>
