@@ -227,7 +227,7 @@ pub struct ProcedureLoops {
 
 impl ProcedureLoops {
     pub fn new<'a, 'tcx: 'a>(mir: &'a mir::Body<'tcx>, real_edges: &RealEdges) -> ProcedureLoops {
-        let dominators = mir.dominators();
+        let dominators = mir.basic_blocks.dominators();
 
         let mut back_edges: FxHashSet<(_, _)> = FxHashSet::default();
         for bb in mir.basic_blocks().indices() {
@@ -496,9 +496,7 @@ impl ProcedureLoops {
         debug!("accesses_pairs = {:?}", accesses_pairs);
         if let Some(paths) = definitely_initalised_paths {
             debug!("definitely_initalised_paths = {:?}", paths);
-            accesses_pairs = accesses_pairs
-                .into_iter()
-                .filter(|(place, kind)| {
+            accesses_pairs.retain(|(place, kind)| {
                     paths.iter().any(|initialised_place|
                         // If the prefix is definitely initialised, then this place is a potential
                         // loop invariant.
@@ -512,8 +510,7 @@ impl ProcedureLoops {
                             *kind == PlaceAccessKind::Store &&
                             utils::is_prefix(*initialised_place, *place)
                         ))
-                })
-                .collect();
+                });
         }
         debug!("accesses_pairs = {:?}", accesses_pairs);
         // Paths to whose leaves we need write permissions.

@@ -195,47 +195,34 @@ pub fn expand_struct_place<'tcx, P: PlaceImpl<'tcx> + std::marker::Copy>(
 /// Expand `current_place` one level down by following the `guide_place`.
 /// Returns the new `current_place` and a vector containing other places that
 /// could have resulted from the expansion.
-pub(crate) fn expand_one_level<'tcx>(
+pub fn expand_one_level<'tcx>(
     mir: &mir::Body<'tcx>,
     tcx: TyCtxt<'tcx>,
     current_place: Place<'tcx>,
     guide_place: Place<'tcx>,
 ) -> (Place<'tcx>, Vec<Place<'tcx>>) {
     let index = current_place.projection.len();
-    match guide_place.projection[index] {
-        mir::ProjectionElem::Field(projected_field, field_ty) => {
-            let places =
-                expand_struct_place(current_place, mir, tcx, Some(projected_field.index()));
-            let new_current_place = tcx
-                .mk_place_field(*current_place, projected_field, field_ty)
-                .into();
-            debug_assert!(
-                !places.contains(&new_current_place),
-                "{:?} unexpectedly contains {:?}",
-                places,
-                new_current_place
-            );
-            (new_current_place, places)
+    let new_projection = tcx.mk_place_elems(
+        current_place
+            .projection
+            .iter()
+            .chain([guide_place.projection[index]]),
+    );
+    let new_current_place = Place(mir::Place {
+        local: current_place.local,
+        projection: new_projection,
+    });
+    let other_places = match guide_place.projection[index] {
+        mir::ProjectionElem::Field(projected_field, _field_ty) => {
+            expand_struct_place(current_place, mir, tcx, Some(projected_field.index()))
         }
-        mir::ProjectionElem::Downcast(_symbol, variant) => {
-            let kind = &current_place.ty(mir, tcx).ty.kind();
-            if let ty::TyKind::Adt(adt, _) = kind {
-                (
-                    tcx.mk_place_downcast(*current_place, *adt, variant).into(),
-                    Vec::new(),
-                )
-            } else {
-                unreachable!();
-            }
-        }
-        mir::ProjectionElem::Deref => (tcx.mk_place_deref(*current_place).into(), Vec::new()),
-        mir::ProjectionElem::Index(idx) => {
-            (tcx.mk_place_index(*current_place, idx).into(), Vec::new())
-        }
-        elem => {
-            unimplemented!("elem = {:?}", elem);
-        }
-    }
+        mir::ProjectionElem::Deref
+        | mir::ProjectionElem::Index(..)
+        | mir::ProjectionElem::ConstantIndex { .. }
+        | mir::ProjectionElem::Subslice { .. }
+        | mir::ProjectionElem::Downcast(..) => vec![],
+    };
+    (new_current_place, other_places)
 }
 
 /// Subtract the `subtrahend` place from the `minuend` place. The

@@ -1,8 +1,14 @@
 use super::{expression::Expression, ty::Type, variable::VariableDecl};
 use crate::common::display;
 
+pub enum FunctionKind {
+    MemoryBlockBytes,
+    CallerFor,
+}
+
 #[display(
-    fmt = "function {}({}): {}\n{}{}{}\n",
+    fmt = "function<{}> {}({}): {}\n{}{}{}\n",
+    kind,
     name,
     "display::cjoin(parameters)",
     return_type,
@@ -12,6 +18,7 @@ use crate::common::display;
 )]
 pub struct FunctionDecl {
     pub name: String,
+    pub kind: FunctionKind,
     pub parameters: Vec<VariableDecl>,
     pub return_type: Type,
     pub pres: Vec<Expression>,

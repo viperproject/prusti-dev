@@ -54,6 +54,13 @@ impl Lifetimes {
             .collect()
     }
 
+    pub fn get_loan_live_at_mid(&self, location: mir::Location) -> BTreeSet<String> {
+        let info = self.get_loan_live_at(RichLocation::Mid(location));
+        info.into_iter()
+            .map(|x| opaque_lifetime_string(x.index()))
+            .collect()
+    }
+
     pub fn get_origin_contains_loan_at_start(
         &self,
         location: mir::Location,

@@ -3,6 +3,7 @@ use crate::low::ast::expression::{
     visitors::{default_fold_expression, ExpressionFolder},
     *,
 };
+use rustc_hash::FxHashMap;
 
 impl From<VariableDecl> for Expression {
     fn from(variable: VariableDecl) -> Self {
@@ -121,6 +122,25 @@ impl Expression {
             replacement,
         };
         replacer.fold_expression(self)
+    }
+    #[must_use]
+    pub fn substitute_variables(
+        self,
+        replacements: &FxHashMap<&VariableDecl, &Expression>,
+    ) -> Self {
+        struct PlaceReplacer<'a> {
+            replacements: &'a FxHashMap<&'a VariableDecl, &'a Expression>,
+        }
+        impl<'a> ExpressionFolder for PlaceReplacer<'a> {
+            fn fold_local_enum(&mut self, local: Local) -> Expression {
+                if let Some(&expression) = self.replacements.get(&local.variable) {
+                    expression.clone()
+                } else {
+                    Expression::Local(local)
+                }
+            }
+        }
+        PlaceReplacer { replacements }.fold_expression(self)
     }
     #[must_use]
     pub fn replace_discriminant(self, new_discriminant: &Expression) -> Self {

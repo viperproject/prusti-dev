@@ -20,4 +20,4 @@ pub mod legacy;
 pub mod low;
 pub mod middle;
 pub mod polymorphic;
-pub mod snapshot;
+pub mod typed;

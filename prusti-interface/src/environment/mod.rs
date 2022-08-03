@@ -9,9 +9,10 @@
 use prusti_rustc_interface::middle::mir;
 use prusti_rustc_interface::hir::hir_id::HirId;
 use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
-use prusti_rustc_interface::middle::ty::{self, TyCtxt};
+use prusti_rustc_interface::middle::ty::{self, Binder, BoundConstness, ImplPolarity, TraitPredicate, TraitRef, TyCtxt};
 use prusti_rustc_interface::middle::ty::subst::{Subst, SubstsRef};
 use prusti_rustc_interface::trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
+use prusti_rustc_interface::trait_selection::traits::{ImplSource, Obligation, ObligationCause, SelectionContext};
 use std::path::PathBuf;
 use prusti_rustc_interface::errors::{DiagnosticBuilder, EmissionGuarantee, MultiSpan};
 use prusti_rustc_interface::span::{Span, symbol::Symbol};
@@ -203,7 +204,6 @@ impl<'tcx> Environment<'tcx> {
     pub fn has_errors(&self) -> bool {
         self.tcx.sess.has_errors().is_some()
     }
-
     /// Get ids of Rust procedures that are annotated with a Prusti specification
     pub fn get_annotated_procedures(&self) -> Vec<ProcedureDefId> {
         let tcx = self.tcx;
@@ -211,7 +211,7 @@ impl<'tcx> Environment<'tcx> {
         visitor.visit_all_item_likes();
 
         let mut cl_visitor = CollectClosureDefsVisitor::new(self);
-        tcx.hir().deep_visit_all_item_likes(&mut cl_visitor);
+        tcx.hir().visit_all_item_likes_in_crate(&mut cl_visitor);
 
         let mut result: Vec<_> = visitor.get_annotated_procedures();
         result.extend(cl_visitor.get_closure_defs());
@@ -379,6 +379,11 @@ impl<'tcx> Environment<'tcx> {
             .is_some()
     }
 
+    /// Returns true iff `def_id` is an unsafe function.
+    pub fn is_unsafe_function(&self, def_id: ProcedureDefId) -> bool {
+        self.tcx.fn_sig(def_id).unsafety() == prusti_rustc_interface::hir::Unsafety::Unsafe
+    }
+
     /// Returns the `DefId` of the corresponding trait method, if any.
     /// This should not be used to resolve calls (where substs are known): use
     /// `find_trait_method_substs` instead!
@@ -464,21 +469,37 @@ impl<'tcx> Environment<'tcx> {
         // TODO(tymap): remove this method?
         if let Some(trait_id) = self.tcx().trait_of_item(proc_def_id) {
             debug!("Fetching implementations of method '{:?}' defined in trait '{}' with substs '{:?}'", proc_def_id, self.tcx().def_path_str(trait_id), substs);
-
-            // TODO(tymap): don't use reveal_all
-            let param_env = ty::ParamEnv::reveal_all();
-            let key = ty::ParamEnvAnd { param_env, value: (proc_def_id, substs) };
-            let resolved_instance = traits::resolve_instance(self.tcx(), key);
-            match resolved_instance {
-                Ok(method_impl_instance) => {
-                    let impl_method_def_id = method_impl_instance.map(|instance| instance.def_id());
-                    debug!("Resolved to-be called method: {:?}", impl_method_def_id);
-                    impl_method_def_id
+            let result = self.tcx.infer_ctxt().enter(|infcx| {
+                let mut sc = SelectionContext::new(&infcx);
+                let obligation = Obligation::new(
+                    ObligationCause::dummy(),
+                    // TODO(tymap): don't use reveal_all
+                    ty::ParamEnv::reveal_all(),
+                    Binder::dummy(TraitPredicate {
+                        trait_ref: TraitRef {
+                            def_id: trait_id,
+                            substs
+                        },
+                        constness: BoundConstness::NotConst,
+                        polarity: ImplPolarity::Positive,
+                    })
+                );
+                sc.select(
+                    &obligation
+                )
+            });
+            match result {
+                Ok(Some(ImplSource::UserDefined(data))) => {
+                    for item in self.tcx().associated_items(data.impl_def_id).in_definition_order() {
+                        if let Some(id) = item.trait_item_def_id {
+                            if id == proc_def_id {
+                                return Some(item.def_id);
+                            }
+                        }
+                    }
+                    unreachable!()
                 },
-                Err(err) => {
-                    debug!("Error while resolving the to-be called method: {:?}", err);
-                    None
-                }
+                _ => None
             }
         } else {
             None
@@ -496,7 +517,7 @@ impl<'tcx> Environment<'tcx> {
         called_def_id: ProcedureDefId, // what are we calling?
         call_substs: SubstsRef<'tcx>,
     ) -> (ProcedureDefId, SubstsRef<'tcx>) {
-        use prusti_rustc_interface::middle::ty::TypeFoldable;
+        use prusti_rustc_interface::middle::ty::TypeVisitable;
 
         // avoids a compiler-internal panic
         if call_substs.needs_infer() {
@@ -547,11 +568,10 @@ impl<'tcx> Environment<'tcx> {
     /// Returns false if the predicate is not fulfilled or it could not be evaluated.
     pub fn evaluate_predicate(&self, predicate: ty::Predicate<'tcx>, param_env: ty::ParamEnv<'tcx>) -> bool{
         debug!("Evaluating predicate {:?}", predicate);
-        use prusti_rustc_interface::trait_selection::traits;
         use prusti_rustc_interface::trait_selection::traits::query::evaluate_obligation::InferCtxtExt;
 
-        let obligation = traits::Obligation::new(
-            traits::ObligationCause::dummy(),
+        let obligation = Obligation::new(
+            ObligationCause::dummy(),
             param_env,
             predicate,
         );
