@@ -7,7 +7,7 @@
 use crate::vir::{program::Program, Position};
 use viper::VerificationResult;
 use fxhash::{FxHashSet, FxHashMap};
-use log::trace;
+use log::{debug, trace};
 
 pub enum NormalizationInfo {
     LegacyProgram { original_position_ids: Vec<u64> },
