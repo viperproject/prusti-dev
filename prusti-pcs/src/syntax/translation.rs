@@ -211,6 +211,18 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
             // TODO: This is wrong, but is a patch until I get DFS/BFS translation
             Resume => Ok(MicroMirTerminator::FailVerif),
 
+            Assert {
+                cond,
+                expected: _,
+                msg: _,
+                target,
+                cleanup: _,
+            } => {
+                let temp_1 = TemporaryPlace { id: 1 };
+                let _ = Self::encode_operand(ctx, cond, temp_1)?;
+                Ok(MicroMirTerminator::Jump(*target))
+            }
+
             us => Err(PrustiError::unsupported(
                 format!("untranslated terminator {:#?}", us),
                 MultiSpan::new(),
