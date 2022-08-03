@@ -719,7 +719,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::BinaryOp(op, box (left, right)) => {
                 let encoded_left = self.encode_statement_operand(location, left)?;
                 let encoded_right = self.encode_statement_operand(location, right)?;
-                let kind = self.encode_binary_op_kind(*op)?;
+                let kind = self.encode_binary_op_kind(*op, encoded_target.get_type())?;
                 let encoded_rvalue = vir_high::Rvalue::binary_op(kind, encoded_left, encoded_right);
                 block_builder.add_statement(self.set_statement_error(
                     location,
@@ -730,7 +730,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::Rvalue::CheckedBinaryOp(op, box (left, right)) => {
                 let encoded_left = self.encode_statement_operand(location, left)?;
                 let encoded_right = self.encode_statement_operand(location, right)?;
-                let kind = self.encode_binary_op_kind(*op)?;
+                let kind = self.encode_binary_op_kind(*op, encoded_target.get_type())?;
                 let encoded_rvalue =
                     vir_high::Rvalue::checked_binary_op(kind, encoded_left, encoded_right);
                 block_builder.add_statement(self.set_statement_error(
@@ -1076,6 +1076,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode_binary_op_kind(
         &self,
         op: mir::BinOp,
+        result_type: &vir_high::Type,
     ) -> SpannedEncodingResult<vir_high::BinaryOpKind> {
         let kind = match op {
             mir::BinOp::Add => vir_high::BinaryOpKind::Add,
@@ -1084,7 +1085,11 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             mir::BinOp::Div => vir_high::BinaryOpKind::Div,
             mir::BinOp::Rem => vir_high::BinaryOpKind::Mod,
             // mir::BinOp::BitXor => vir_high::BinaryOpKind::BitXor,
+            mir::BinOp::BitAnd if result_type == &vir_high::Type::Bool => {
+                vir_high::BinaryOpKind::And
+            }
             // mir::BinOp::BitAnd => vir_high::BinaryOpKind::BitAnd,
+            mir::BinOp::BitOr if result_type == &vir_high::Type::Bool => vir_high::BinaryOpKind::Or,
             // mir::BinOp::BitOr => vir_high::BinaryOpKind::BitOr,
             // mir::BinOp::Shl => vir_high::BinaryOpKind::Shl,
             // mir::BinOp::Shr => vir_high::BinaryOpKind::Shr,
