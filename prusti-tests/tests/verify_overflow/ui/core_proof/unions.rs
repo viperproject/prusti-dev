@@ -1,4 +1,4 @@
-// compile-flags: -Punsafe_core_proof=true -Ponly_memory_safety=true
+// compile-flags: -Punsafe_core_proof=true
 
 use prusti_contracts::*;
 

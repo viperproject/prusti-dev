@@ -1,9 +1,8 @@
-pub(crate) use super::super::{
+pub(crate) use super::{
     expression::{BinaryOpKind, Expression, UnaryOpKind, VariableDecl},
     ty::{LifetimeConst, Type},
-    Position,
 };
-use crate::common::display;
+use crate::common::{display, position::Position};
 
 #[derive_helpers]
 #[derive_visitors]
@@ -34,20 +33,32 @@ pub struct Repeat {
     pub count: u64,
 }
 
-#[display(fmt = "&{} {}", lifetime, place)]
+#[display(
+    fmt = "&{} {}<{}>",
+    operand_lifetime,
+    place,
+    "display::cjoin(place_lifetimes)"
+)]
 pub struct Ref {
     pub place: Expression,
-    pub lifetime: LifetimeConst,
+    pub operand_lifetime: LifetimeConst,
+    pub place_lifetimes: Vec<LifetimeConst>,
     pub is_mut: bool,
     pub lifetime_token_permission: Expression,
     pub target: Expression,
 }
 
-#[display(fmt = "{} := &'{} (*{})", target, operand_lifetime, place)]
+#[display(
+    fmt = "{} := &'{} (*{}<{}>)",
+    target,
+    operand_lifetime,
+    place,
+    "display::cjoin(place_lifetimes)"
+)]
 pub struct Reborrow {
     pub place: Expression,
     pub operand_lifetime: LifetimeConst,
-    pub place_lifetime: LifetimeConst,
+    pub place_lifetimes: Vec<LifetimeConst>,
     pub is_mut: bool,
     pub lifetime_token_permission: Expression,
     pub target: Expression,

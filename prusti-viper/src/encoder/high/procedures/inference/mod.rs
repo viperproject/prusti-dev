@@ -4,8 +4,8 @@ use prusti_common::config;
 use prusti_rustc_interface::hir::def_id::DefId;
 use vir_crate::{
     common::graphviz::ToGraphviz,
-    high::{self as vir_high},
     middle::{self as vir_mid},
+    typed::{self as vir_typed},
 };
 
 mod action;
@@ -18,7 +18,7 @@ mod visitor;
 pub(super) fn infer_shape_operations<'v, 'tcx: 'v>(
     encoder: &mut Encoder<'v, 'tcx>,
     proc_def_id: DefId,
-    procedure: vir_high::ProcedureDecl,
+    procedure: vir_typed::ProcedureDecl,
 ) -> SpannedEncodingResult<vir_mid::ProcedureDecl> {
     if config::dump_debug_info() {
         let source_filename = encoder.env().source_file_name();

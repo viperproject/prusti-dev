@@ -1,11 +1,12 @@
 use super::super::{
     ast::{
-        expression::Expression, predicate::visitors::PredicateWalker,
-        statement::visitors::StatementWalker,
+        expression::{visitors::ExpressionWalker, Expression, Quantifier},
+        predicate::{visitors::PredicateWalker, Predicate},
+        statement::{visitors::StatementWalker, Statement},
+        ty::Type,
+        variable::VariableDecl,
     },
     cfg::procedure::{BasicBlock, BasicBlockId, ProcedureDecl, Successor},
-    visitors::ExpressionWalker,
-    Predicate, Quantifier, Statement, Type, VariableDecl,
 };
 use crate::common::cfg::Cfg;
 use std::collections::{BTreeMap, BTreeSet};

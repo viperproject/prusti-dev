@@ -8,6 +8,7 @@ use prusti_common::vir::{optimizations::optimize_program};
 use prusti_common::{
     config, report::log, Stopwatch, vir::program::Program,
 };
+use vir_crate::common::check_mode::CheckMode;
 use crate::encoder::Encoder;
 use crate::encoder::counterexample_translation;
 use crate::encoder::counterexample_snapshot::counterexample_translation_snapshot;
@@ -24,7 +25,7 @@ use viper::{self, PersistentCache, Viper};
 
 use prusti_interface::specs::typed;
 use ::log::{info, debug, error};
-use prusti_server::{VerificationRequest, PrustiClient, process_verification_request, spawn_server_thread};
+use prusti_server::{VerificationRequest, PrustiClient, process_verification_request, spawn_server_thread, ViperBackendConfig};
 use prusti_rustc_interface::span::DUMMY_SP;
 use prusti_server::tokio::runtime::Builder;
 
@@ -397,11 +398,17 @@ fn verify_programs(env: &Environment, programs: Vec<Program>)
         .to_owned();
     let verification_requests = programs.into_iter().map(|mut program| {
         let program_name = program.get_name().to_string();
+        let check_mode = program.get_check_mode();
         // Prepend the Rust file name to the program.
         program.set_name(format!("{}_{}", rust_program_name, program_name));
+        let backend = if check_mode == CheckMode::Specifications {
+            config::verify_specifications_backend()
+        } else {
+            config::viper_backend()
+        };
         let request = VerificationRequest {
             program,
-            backend_config: Default::default(),
+            backend_config: ViperBackendConfig::new(backend),
         };
         (program_name, request)
     });
