@@ -5110,7 +5110,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     _,
                     mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
                 )) = stmt.kind {
-                    if let Some(spec) = self.encoder.get_loop_specs(cl_def_id) {
+                    if let Some(spec) = self.encoder.get_loop_specs(cl_def_id.to_def_id()) {
                         encoded_specs.push(self.encoder.encode_invariant(
                             self.mir,
                             bbi,
@@ -6560,7 +6560,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             mir::AggregateKind::Closure(def_id, substs) => {
                 // TODO: might need to assert history invariants?
-                assert!(!self.encoder.is_spec_closure(def_id), "spec closure: {:?}", def_id);
+                assert!(!self.encoder.is_spec_closure(def_id.to_def_id()), "spec closure: {:?}", def_id);
                 let cl_substs = substs.as_closure();
                 for (field_index, field_ty) in cl_substs.upvar_tys().enumerate() {
                     let operand = &operands[field_index];
