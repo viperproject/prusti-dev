@@ -172,7 +172,7 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
         }
 
         match full_called_function_name.as_str() {
-            "core::panicking::panic" => {
+            "std::rt::begin_panic" | "core::panicking::panic" | "core::panicking::panic_fmt" => {
                 let panic_message = format!("{:?}", args[0]);
                 let panic_cause = self.encoder.encode_panic_cause(span)?;
                 if self.check_panics {

@@ -124,6 +124,7 @@ fn derive_lowerer(
         target_path,
         target_type_module,
         encoded_methods: Vec::new(),
+        encoded_functions: Vec::new(),
         encoded_trait_impls: Vec::new(),
     };
     while let Some(work_item) = deriver.queue.pop() {
@@ -150,7 +151,7 @@ fn derive_lowerer(
     let methods = deriver.encoded_methods;
     let mut items = Vec::new();
     let final_trait = parse_quote! {
-        pub trait #deriver_trait_ident {
+        pub trait #deriver_trait_ident: Sized {
             type Error;
             #(#methods)*
         }
@@ -168,6 +169,7 @@ fn derive_lowerer(
     };
     items.push(user_trait);
     items.extend(deriver.encoded_trait_impls);
+    items.extend(deriver.encoded_functions);
     Ok(items)
 }
 
@@ -199,6 +201,7 @@ struct Deriver<'a> {
     target_path: syn::Path,
     target_type_module: &'a [syn::Item],
     encoded_methods: Vec<syn::Item>,
+    encoded_functions: Vec<syn::Item>,
     encoded_trait_impls: Vec<syn::Item>,
 }
 
@@ -220,6 +223,10 @@ impl<'a> Deriver<'a> {
     }
     fn encode_name(&self, ident: &syn::Ident) -> syn::Ident {
         prefixed_method_name_from_camel(&self.prefix, ident)
+    }
+    fn encode_default_name(&self, ident: &syn::Ident) -> syn::Ident {
+        let prefix = format!("default_{}", self.prefix);
+        prefixed_method_name_from_camel(&prefix, ident)
     }
     fn encode_name_nested(&self, outer_ident: &syn::Ident, inner_ident: &syn::Ident) -> syn::Ident {
         let mut prefix = prefixed_method_name_from_camel_raw(&self.prefix, outer_ident);
@@ -299,12 +306,12 @@ impl<'a> Deriver<'a> {
             let arg_type = if let Some(source_type) = extract_variant_type(source_variant)? {
                 let arg = method_name_from_camel(source_type);
                 arms.push(parse_quote! {
-                    #source_enum_type :: #source_ident (#arg) => { self.#called_method_name(#arg) }
+                    #source_enum_type :: #source_ident (#arg) => { lowerer.#called_method_name(#arg) }
                 });
                 Some(source_type.clone())
             } else {
                 arms.push(parse_quote! {
-                    #source_enum_type :: #source_ident => { self.#called_method_name() }
+                    #source_enum_type :: #source_ident => { lowerer.#called_method_name() }
                 });
                 None
             };
@@ -333,9 +340,21 @@ impl<'a> Deriver<'a> {
         let return_type = self.encode_return_type(enum_ident);
         let method = if target_enum.is_some() {
             let body = self.encode_enum_body(&parameter_type, source_enum)?;
+            let default_name = self.encode_default_name(&source_enum.ident);
+            let lowerer_parameter = self.encode_lowerer_parameter();
+            let deriver_trait_ident = &self.deriver_trait_ident;
+            let default_function = parse_quote! {
+                pub fn #default_name<L: #deriver_trait_ident>(
+                    ty: #parameter_type,
+                    #lowerer_parameter
+                ) -> Result<#return_type, <L as #deriver_trait_ident>::Error> {
+                    #body
+                }
+            };
+            self.encoded_functions.push(default_function);
             parse_quote! {
                 fn #name(#self_parameter, ty: #parameter_type) -> Result<#return_type, Self::Error> {
-                    #body
+                    #default_name(ty, self)
                 }
             }
         } else {
@@ -389,8 +408,13 @@ impl<'a> Deriver<'a> {
                     #field_name: self.#called_method_name(ty.#field_name)?
                 });
             }
+            let ident: syn::Ident = if fields.is_empty() {
+                parse_quote! { _ty }
+            } else {
+                parse_quote! { ty }
+            };
             parse_quote! {
-                fn #name(#self_parameter, ty: #parameter_type) -> Result<#return_type, Self::Error> {
+                fn #name(#self_parameter, #ident: #parameter_type) -> Result<#return_type, Self::Error> {
                     Ok(#return_type {
                         #(#fields),*
                     })

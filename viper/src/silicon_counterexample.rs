@@ -297,13 +297,9 @@ fn unwrap_model_entry<'a>(
         }
         "viper.silicon.reporting.LitPermEntry" => {
             let lit_perm_wrapper = silicon::reporting::LitPermEntry::with(env);
-            //let rational_wrapper = silicon::state::terms::Rational::with(env);
-            let value = jni.to_string(jni.unwrap_result(lit_perm_wrapper.call_value(entry))); //not very elegant
-            debug!("LitPermEntry: {:?}", value);
-            //let numerator = jni.to_string(jni.unwrap_result(rational_wrapper.call_numerator(jvalue))).parse();
-            //let denominator = jni.unwrap_result(rational_wrapper.call_denominator(jvalue));
-            //let value = numerator/denominator;
-            Some(ModelEntry::LitPerm(value)) 
+            let value_scala = jni.unwrap_result(lit_perm_wrapper.call_value(entry));
+            let value = jni.to_string(value_scala);
+            Some(ModelEntry::LitPerm(value))
         }
         "viper.silicon.reporting.RefEntry" => {
             let ref_wrapper = silicon::reporting::RefEntry::with(env);
