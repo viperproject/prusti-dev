@@ -34,7 +34,7 @@ pub struct CfgMethod {
     pub basic_blocks_labels: Vec<String>,
 }
 
-#[derive(Debug, Clone, Eq, serde::PartialEq, serde::Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, Eq, PartialEq, serde::Serialize, serde::Deserialize, Hash)]
 pub struct CfgBlock {
     pub stmts: Vec<Stmt>,
     pub successor: Successor,
