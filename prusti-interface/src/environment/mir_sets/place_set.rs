@@ -32,6 +32,11 @@ impl<'tcx> PlaceSet<'tcx> {
             .iter()
             .any(|potential_prefix| is_prefix(place, *potential_prefix))
     }
+    pub fn contains_subplace_of(&self, place: mir::Place<'tcx>) -> bool {
+        self.places
+            .iter()
+            .any(|potential_subplace| is_prefix(*potential_subplace, place))
+    }
     pub fn check_invariant(&self) {
         for place1 in self.places.iter() {
             for place2 in self.places.iter() {

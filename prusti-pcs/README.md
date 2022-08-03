@@ -33,8 +33,14 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
             - [ ] kills in terms of before_statement of parent MIR place
         - [x] eager dependent repacks (to maximal, identical, point)
         - [x] runtime checks of packing invariants
+    - [ ] reread our init and alloc rules, make sure hoare semantics is coherent with them
+        - [x] fix unconditional drop incoherence
+        - [ ] pack uninits?
     - [ ] loops?
     - [ ] check: analysis_as_permission might not be granular enough
+    - [ ] refactor joins out from conditional mod
+        - [ ] add single packer and single unpacker
+        - [ ] add weakeners
  - [ ] Borrows 
     - [ ] add type dependency to hoare semantics
     - [ ] ? 
@@ -53,3 +59,5 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
         - [x] unsoundness in postconditions
     - [ ] traversal during translation which ignores unwind paths
         - [ ] remove ``resume`` translation hack
+    - [ ] refactor to use placeSet
+        - [ ] singleton_permission_set

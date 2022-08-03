@@ -8,17 +8,19 @@ use crate::{
     joins::{RepackPackup, RepackUnify},
     syntax::{
         hoare_semantics::HoareSemantics, LinearResource, MicroMirData, MicroMirEncoder,
-        MicroMirEncoding, MicroMirStatement, MicroMirTerminator, PCSPermission,
+        MicroMirEncoding, MicroMirStatement, MicroMirTerminator, PCSPermission, PCSPermissionKind,
         PCSPermissionKind::*, PCS,
     },
     util::EncodingResult,
 };
+use analysis::mir_utils::expand_struct_place;
 use prusti_interface::{
     environment::{
         mir_analyses::{
             allocation::DefinitelyAllocatedAnalysisResult,
             initialization::DefinitelyInitializedAnalysisResult,
         },
+        mir_sets::{LocalSet, PlaceSet},
         Environment,
     },
     utils::is_prefix,
@@ -27,7 +29,7 @@ use prusti_interface::{
 use prusti_rustc_interface::{
     data_structures::fx::{FxHashMap, FxHashSet},
     errors::MultiSpan,
-    middle::mir::{BasicBlock, Body, Location, Mutability, Place},
+    middle::mir::{BasicBlock, Body, Location, Mutability, Mutability::*, Place},
 };
 use std::{
     cmp::min,
@@ -192,12 +194,13 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                     &dependent_postcondition,
                 )?;
 
+                let mut this_op_mir = StraightOperationalMir::default();
+
                 // Trim the PCS by way of eager drops (we are now the same mod repacks)
-                this_pcs = self.trim_pcs(this_pcs, next_block)?;
+                this_pcs = self.trim_pcs(next_block, &mut this_pcs, &mut this_op_mir)?;
 
                 // Pack to the most packed state possible (we are now identical)
                 // (any unique state works)
-                let mut this_op_mir = StraightOperationalMir::default();
                 this_pcs = self.packup(this_pcs, &mut this_op_mir)?;
 
                 // If the next block is not already done, add it as a dirty block (to do)
@@ -205,6 +208,12 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                     // Check that the final PCS is the same as the
                     // intial PCS in the block
                     if this_pcs != done_block.body.pcs_before[0] {
+                        println!("init {:?}", self.init_analysis.get_before_block(next_block));
+
+                        println!(
+                            "alloc {:?}",
+                            self.alloc_analysis.get_before_block(next_block)
+                        );
                         return Err(PrustiError::internal(
                             format!("trimmed+packed pcs ({:?}) does not match existing block ({:?}) exiting a join", this_pcs, done_block.body.pcs_before[0]),
                             MultiSpan::new(),
@@ -266,6 +275,8 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         op_mir: &mut StraightOperationalMir<'tcx>,
         mut pcs: PCS<'tcx>,
     ) -> EncodingResult<PCS<'tcx>> {
+        println!("Encoding {:?}", block_data.mir_block);
+
         for (statement_index, statement) in block_data.statements.iter().enumerate() {
             // 1. Elaborate the state-dependent conditions
             let location = Location {
@@ -281,6 +292,9 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             // 3. Statement is coherent: push
             op_mir.statements.push(statement.clone());
             op_mir.pcs_before.push(pcs.clone());
+
+            println!("\t{:?}", statement);
+            println!("\t{:?}", pcs);
 
             // 4. Apply statement's semantics to state.
             pcs = transform_pcs(pcs, &statement_precondition, &statement_postcondition)?;
@@ -304,83 +318,170 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
     }
 
     /// Modifies a PCS to be coherent with the initialization state
-    fn trim_pcs(&self, pcs: PCS<'tcx>, next_bb: BasicBlock) -> EncodingResult<PCS<'tcx>> {
-        // Weaken accoring to this table (top row = current perms, left column = after join)
-        //              e p     u p     exit
-        //         +-------------------------
-        //         |    e p    error   error
-        //    e p  |
-        //         |
-        //    u p  |    u p     u p     ?       (I think this is an error- as in we can't strengthen the PCS)
-        //         |
-        //    exit |   error    exit    exit
-        //
-        // Also: Compare to only base place (for now). I think this is sound but might have a
-        //  permission leak in the case of conditionally open drops (not unsound though)
-
+    fn trim_pcs(
+        &self,
+        next_bb: BasicBlock,
+        pcs: &mut PCS<'tcx>,
+        op_mir: &mut StraightOperationalMir<'tcx>,
+    ) -> EncodingResult<PCS<'tcx>> {
         let mut ret_pcs = PCS {
             set: FxHashSet::default(),
         };
 
-        for perm in pcs.set.iter() {
-            match (perm.target, perm.kind) {
-                (LinearResource::Tmp(_), _) => {
+        let init_set = self.init_analysis.get_before_block(next_bb);
+        let alloc_set = self.alloc_analysis.get_before_block(next_bb);
+
+        // 1. Iterate over all the permissions, weakening the exclusive permissions
+        let work_set = pcs.set.clone();
+
+        for perm in work_set.iter() {
+            match perm.target {
+                LinearResource::Tmp(_) => {
+                    // 1.1. Temporaries cannot be joined, ever.
                     return Err(PrustiError::internal(
-                        "temporaries should not be joined",
+                        "temporaries cannot be joined",
                         MultiSpan::new(),
-                    ))
+                    ));
                 }
-                (LinearResource::Mir(p), Exclusive) => {
-                    if self
-                        .init_analysis
-                        .get_before_block(next_bb)
-                        .contains_prefix_of(p)
-                    {
-                        ret_pcs.set.insert(perm.clone());
-                    } else if self
-                        .alloc_analysis
-                        .get_before_block(next_bb)
-                        .contains_prefix_of(p)
-                    {
-                        // Add in weakened permission
-                        // this is the "eager drop"
-                        ret_pcs.set.insert(PCSPermission {
-                            target: LinearResource::Mir(p),
-                            kind: Uninit,
-                        });
+
+                LinearResource::Mir(p) => {
+                    let to_add = if perm.kind == Exclusive {
+                        self.weaken_exclusive(p, init_set, alloc_set, op_mir, pcs)?
                     } else {
+                        self.singleton_permission_set(perm.kind, p)
+                    };
+
+                    for t in to_add {
+                        if !ret_pcs.set.insert(t) {
+                            return Err(PrustiError::internal(
+                                "unexpected incoherence in trimming",
+                                MultiSpan::new(),
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+
+        // Check that the uninit permissions in ret_pcs are OK
+
+        for ret_perm in ret_pcs.set.iter() {
+            match ret_perm.target {
+                LinearResource::Tmp(_) => {
+                    // Impossible.
+                    panic!()
+                }
+                LinearResource::Mir(p) => {
+                    if (ret_perm.kind == Uninit) && !alloc_set.contains_prefix_of(p) {
                         return Err(PrustiError::internal(
-                            "cannot weaken an exclusive place out of the PCS",
+                            "cannot weaken uninit permission to no permission",
                             MultiSpan::new(),
                         ));
                     }
-                }
-                (LinearResource::Mir(p), Uninit) => {
-                    // Even if conditionally allocated, have to be deallocated
-                    if self
-                        .alloc_analysis
-                        .get_before_block(next_bb)
-                        .contains_prefix_of(p)
+
+                    if (ret_perm.kind == Uninit)
+                        && (init_set.contains(p) || init_set.contains_subplace_of(p))
                     {
-                        ret_pcs.set.insert(perm.clone());
-                    } else {
-                        // todo! I don't know if this should be an error.
-                        // return Err(PrustiError::internal(
-                        //     format!("cannot weaken an uninit place {:?} out of the PCS", p),
-                        //     MultiSpan::new(),
-                        // ));
+                        return Err(PrustiError::internal(
+                            "uninit permission's footprint supposed to contain an init permission",
+                            MultiSpan::new(),
+                        ));
                     }
-                }
-                _ => {
-                    return Err(PrustiError::unsupported(
-                        "unsupported trim kind",
-                        MultiSpan::new(),
-                    ))
                 }
             }
         }
 
         return Ok(ret_pcs);
+    }
+
+    // TODO: Either refactor somewhere else
+    fn singleton_permission_set(
+        &self,
+        kind: PCSPermissionKind,
+        p: Place<'tcx>,
+    ) -> FxHashSet<PCSPermission<'tcx>> {
+        [PCSPermission {
+            kind,
+            target: p.into(),
+        }]
+        .iter()
+        .cloned()
+        .collect()
+    }
+
+    // TODO: Refactor all weakenings into src/joins
+    fn weaken_exclusive(
+        &self,
+        p: Place<'tcx>,
+        init_set: &PlaceSet<'tcx>,
+        alloc_set: &LocalSet,
+        op_mir: &mut StraightOperationalMir<'tcx>,
+        pcs: &mut PCS<'tcx>,
+    ) -> EncodingResult<FxHashSet<PCSPermission<'tcx>>> {
+        if init_set.contains(p) {
+            // p is immediately in the init set... done
+            Ok(self.singleton_permission_set(Exclusive, p))
+        } else if init_set.contains_prefix_of(p) {
+            // This is tentatively OK.
+            // If all other (transitve) subplaces are init, the PCS can be repacked to match.
+            // If even one other subplace is uninit, it will be detected by an uninit->exclusive weakening
+            Ok(self.singleton_permission_set(Exclusive, p))
+        } else if init_set.contains_subplace_of(p) {
+            // Either all subplaces of the init_set are contained in the init_set
+            //  and it is OK that p is init, or it only contains some init subplaces which is not OK
+            let to_gain = expand_struct_place(p, self.mir, self.env.tcx(), None);
+            op_mir.pcs_before.push(pcs.clone());
+            op_mir
+                .statements
+                .push(MicroMirStatement::Unpack(p.clone(), to_gain.clone()));
+
+            if !pcs
+                .set
+                .remove(&PCSPermission::new_initialized(Mut, p.into()))
+            {
+                return Err(PrustiError::internal(
+                    "incoherent unpack preconidtion in trimming",
+                    MultiSpan::new(),
+                ));
+            }
+
+            for p1 in to_gain.iter() {
+                if !pcs
+                    .set
+                    .insert(PCSPermission::new_initialized(Mut, (*p1).into()))
+                {
+                    return Err(PrustiError::internal(
+                        "incoherent unpack postcondition in trimming",
+                        MultiSpan::new(),
+                    ));
+                }
+            }
+
+            // Recursively check the initialilization of the new subplaces and collect the result
+            // Must not just return to_gain, since there may be transitive unpacks
+            // It is OK to do these one at a time, since their footprints are disjoint.
+            let mut return_perms: FxHashSet<PCSPermission<'tcx>> = FxHashSet::default();
+            for p1 in to_gain.iter() {
+                let rec_ret = self.weaken_exclusive(*p1, init_set, alloc_set, op_mir, pcs)?;
+                for rp in rec_ret {
+                    return_perms.insert(rp);
+                }
+            }
+
+            Ok(return_perms)
+        }
+        // Our place is initialized, but it's footprint overlaps nothing in the init set.
+        // This means we genuinely have to weaken it to uninit if we are allowed to.
+        else if alloc_set.contains_prefix_of(p) {
+            // TODO: Log this eager drop somewhere
+            Ok(self.singleton_permission_set(Uninit, p))
+        } else {
+            // We are not allowed to weaken the permission at all.
+            Err(PrustiError::internal(
+                "exclusive permission weakening failed",
+                MultiSpan::new(),
+            ))
+        }
     }
 
     /// Elaborate the precondition of a statement

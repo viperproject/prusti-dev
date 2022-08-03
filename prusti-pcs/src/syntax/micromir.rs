@@ -178,6 +178,7 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
             }
             MicroMirStatement::Allocate(_) => Some(PCS::empty()),
             MicroMirStatement::Deallocate(p) => {
+                // For move-only code, deallocation requires that the whole place be uninit
                 Some(PCS::from_vec(vec![PCSPermission::new_uninit((*p).into())]))
             }
             // Assumption: All places are mutably owned

@@ -393,8 +393,10 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
     }
 
     // Appends the encoding for a StorageDead
-    fn encode_storagedead(_ctx: &mut BBCtx<'mir, 'tcx>, _l: Local) -> EncodingResult<()> {
-        // current.push(MicroMirStatement::Deallocate(l.into()));
+    fn encode_storagedead(ctx: &mut BBCtx<'mir, 'tcx>, l: Local) -> EncodingResult<()> {
+        let p: Place<'tcx> = (l.clone()).into();
+        ctx.push_stmt(MicroMirStatement::Kill(None, LinearResource::Mir(p)));
+        ctx.push_stmt(MicroMirStatement::Deallocate(l.into()));
         Ok(())
     }
 
