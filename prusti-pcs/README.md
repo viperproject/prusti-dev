@@ -45,6 +45,12 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
     - [ ] add type dependency to hoare semantics
     - [ ] ? 
 
+- Issues
+ - [ ] When more than one field of a struct 
+    - [ ] implement footprint computation
+        - [ ] should uninits be packable? packable but not unpackable?
+ - [ ] Inside loops kill elaboration fails
+    - [ ] should a place be accessible in a loop before it's first loop use?
 
 - Maintainence
     - [ ] refactor out common data structures
