@@ -4,6 +4,7 @@ pub mod function;
 pub mod graphviz;
 pub mod helpers;
 pub mod identifier;
+pub mod lifetimes;
 pub mod position;
 pub mod predicate;
 pub mod procedure;

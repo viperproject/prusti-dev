@@ -1,16 +1,10 @@
-extern crate env_logger;
-extern crate error_chain;
-#[macro_use]
-extern crate lazy_static;
-extern crate viper;
-
 use std::sync::Once;
 use viper::*;
 
 static INIT: Once = Once::new();
 
-lazy_static! {
-    static ref VIPER: Viper = Viper::new();
+lazy_static::lazy_static! {
+    static ref VIPER: Viper = Viper::new_for_tests();
 }
 
 /// Setup function that is only run once, even if called multiple times.
@@ -32,7 +26,8 @@ fn runtime_error() {
     let method = ast.method("foo", &[], &[], &[], &[], Some(method_body));
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
+    let mut verifier =
+        verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
     let verification_result = verifier.verify(program);
 
     assert!(matches!(
@@ -99,7 +94,8 @@ where
 
     let program = ast.program(&[], &[], &[], &[], &[method]);
 
-    let verifier = verification_context.new_verifier(viper::VerificationBackend::Silicon, None);
+    let mut verifier =
+        verification_context.new_verifier_with_default_smt(viper::VerificationBackend::Silicon);
 
     let verification_result = verifier.verify(program);
     match verification_result {

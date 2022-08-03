@@ -5,10 +5,12 @@
 | [`ALLOW_UNREACHABLE_UNSUPPORTED_CODE`](#allow_unreachable_unsupported_code) | `bool` | `false` |
 | [`ASSERT_TIMEOUT`](#assert_timeout) | `u64` | `10_000` |
 | [`BE_RUSTC`](#be_rustc) | `bool` | `false` |
+| [`BOOGIE_PATH`](#boogie_path) | `Option<String>` | `env::var("BOOGIE_EXE")` |
 | [`CACHE_PATH`](#cache_path) | `String` | `""` |
 | [`CHECK_FOLDUNFOLD_STATE`](#check_foldunfold_state) | `bool` | `false` |
 | [`CHECK_OVERFLOWS`](#check_overflows) | `bool` | `true` |
 | [`CHECK_PANICS`](#check_panics) | `bool` | `true` |
+| [`CHECK_TIMEOUT`](#check_timeout) | `Option<u32>` | `None` |
 | [`CONTRACTS_LIB`](#contracts_lib) | `String` | `""` |
 | [`COUNTEREXAMPLE`](#counterexample) | `bool` | `false` |
 | [`DELETE_BASIC_BLOCKS`](#delete_basic_blocks) | `Vec<String>` | `vec![]` |
@@ -32,16 +34,19 @@
 | [`FULL_COMPILATION`](#full_compilation) | `bool` | `false` |
 | [`HIDE_UUIDS`](#hide_uuids) | `bool` | `false` |
 | [`IGNORE_REGIONS`](#ignore_regions) | `bool` | `false` |
+| [`INTERNAL_ERRORS_AS_WARNINGS`](#internal_errors_as_warnings) | `bool` | `false` |
 | [`INTERN_NAMES`](#intern_names) | `bool` | `true` |
+| [`JAVA_HOME`](#java_home) | `Option<String>` | `None` |
 | [`JSON_COMMUNICATION`](#json_communication) | `bool` | `false` |
 | [`LOG`](#log) | `Option<String>` | `None` |
 | [`LOG_DIR`](#log_dir) | `String` | `"log"` |
 | [`LOG_STYLE`](#log_style) | `String` | `"auto"` |
+| [`LOG_SMT_WRAPPER_INTERACTION`](#log_smt_wrapper_interaction) | `bool` | `false` |
 | [`MAX_LOG_FILE_NAME_LENGTH`](#max_log_file_name_length) | `usize` | `60` |
 | [`NO_VERIFY`](#no_verify) | `bool` | `false` |
 | [`NO_VERIFY_DEPS`](#no_verify_deps) | `bool` | `false` |
-| [`ONLY_MEMORY_SAFETY`](#only_memory_safety) | `bool` | `false` |
 | [`OPTIMIZATIONS`](#optimizations) | `Vec<String>` | "all" |
+| [`PRESERVE_SMT_TRACE_FILES`](#preserve_smt_trace_files) | `bool` | `false` |
 | [`PRINT_COLLECTED_VERIFICATION_ITEMS`](#print_collected_verification_items) | `bool` | `false` |
 | [`PRINT_DESUGARED_SPECS`](#print_desugared_specs) | `bool` | `false` |
 | [`PRINT_HASH`](#print_hash) | `bool` | `false` |
@@ -52,12 +57,25 @@
 | [`SERVER_MAX_STORED_VERIFIERS`](#server_max_stored_verifiers) | `Option<usize>` | `None` |
 | [`SIMPLIFY_ENCODING`](#simplify_encoding) | `bool` | `true` |
 | [`SKIP_UNSUPPORTED_FEATURES`](#skip_unsupported_features) | `bool` | `false` |
+| [`SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL`](#smt_quantifier_instantiations_bound_global) | `Option<u64>` | `None` |
+| [`SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL_KIND`](#smt_quantifier_instantiations_bound_global_kind) | `Option<u64>` | `None` |
+| [`SMT_QUANTIFIER_INSTANTIATIONS_BOUND_TRACE`](#smt_quantifier_instantiations_bound_trace) | `Option<u64>` | `None` |
+| [`SMT_QUANTIFIER_INSTANTIATIONS_BOUND_TRACE_KIND`](#smt_quantifier_instantiations_bound_trace_kind) | `Option<u64>` | `None` |
+| [`SMT_QUANTIFIER_INSTANTIATIONS_IGNORE_BUILTIN`](#smt_quantifier_instantiations_ignore_builtin) | `bool` | `true` |
+| [`SMT_QI_EAGER_THRESHOLD`](#smt_qi_eager_threshold) | `u64` | `1000` |
+| [`SMT_SOLVER_PATH`](#smt_solver_path) | `Option<String>` | `env::var("Z3_EXE")` |
+| [`SMT_SOLVER_WRAPPER_PATH`](#smt_solver_wrapper_path) | `Option<String>` | `None` |
+| [`SMT_UNIQUE_TRIGGERS_BOUND`](#smt_unique_triggers_bound) | `Option<u64>` | `None` |
+| [`SMT_UNIQUE_TRIGGERS_BOUND_TOTAL`](#smt_unique_triggers_bound_total) | `Option<u64>` | `None` |
 | [`UNSAFE_CORE_PROOF`](#unsafe_core_proof) | `bool` | `false` |
 | [`USE_MORE_COMPLETE_EXHALE`](#use_more_complete_exhale) | `bool` | `true` |
+| [`USE_SMT_WRAPPER`](#use_smt_wrapper) | `bool` | `false` |
 | [`VERIFICATION_DEADLINE`](#verification_deadline) | `Option<u64>` | `None` |
 | [`VERIFY_ONLY_BASIC_BLOCK_PATH`](#verify_only_basic_block_path) | `Vec<String>` | `vec![]` |
 | [`VERIFY_ONLY_PREAMBLE`](#verify_only_preamble) | `bool` | `false` |
 | [`VIPER_BACKEND`](#viper_backend) | `String` | `"Silicon"` |
+| [`VIPER_HOME`](#viper_home) | `Option<String>` | `None` |
+| [`WRITE_SMT_STATISTICS`](#write_smt_statistics) | `bool` | `false` |
 
 ## `ALLOW_UNREACHABLE_UNSUPPORTED_CODE`
 
@@ -70,6 +88,12 @@ Maximum time (in milliseconds) for the verifier to spend on a single assertion. 
 ## `BE_RUSTC`
 
 When enabled, Prusti will behave like `rustc`.
+
+## `BOOGIE_PATH`
+
+A path to Boogie.
+
+**Note:** `prusti-rustc` sets this option.
 
 ## `CACHE_PATH`
 
@@ -86,6 +110,14 @@ When enabled, binary operations and numeric casts will be checked for overflows.
 ## `CHECK_PANICS`
 
 When enabled, Prusti will check for an absence of `panic!`s.
+
+## `CHECK_TIMEOUT`
+
+Maximum time (in milliseconds) for the verifier to spend on checks.
+Set to None uses the verifier's default value. Maps to the verifier command-line
+argument `--checkTimeout`.
+For more information see [here]( https://github.com/viperproject/silicon/blob/4c70514379f89e7ec6f96588290ade32518f0527/src/main/scala/Config.scala#L203).
+
 
 ## `CONTRACTS_LIB`
 
@@ -192,9 +224,22 @@ When enabled, UUIDs of expressions and specifications printed with [`PRINT_TYPEC
 
 When enabled, debug files dumped by `rustc` will not contain lifetime regions.
 
+## `INTERNAL_ERRORS_AS_WARNINGS`
+
+When enabled, internal errors are presented as warnings.
+
+**Note**: This should only be used for debugging, as enabling this setting could
+hide actual verification errors.
+
 ## `INTERN_NAMES`
 
 When enabled, Viper identifiers are interned to shorten them when possible.
+
+## `JAVA_HOME`
+
+The path the directory containing Java.
+
+**Note:** `prusti-rustc` sets this option.
 
 ## `JSON_COMMUNICATION`
 
@@ -211,6 +256,12 @@ Path to directory in which log files and dumped output will be stored.
 ## `LOG_STYLE`
 
 Log style. See [`env_logger` documentation](https://docs.rs/env_logger/0.7.1/env_logger/index.html#disabling-colors).
+
+## `LOG_SMT_WRAPPER_INTERACTION`
+
+When enabled, logs all SMT wrapper interaction to a file.
+
+**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
 
 ## `MAX_LOG_FILE_NAME_LENGTH`
 
@@ -244,6 +295,12 @@ Comma-separated list of optimizations to enable, or `"all"` to enable all. Possi
 - `"remove_unused_vars"`
 - `"remove_trivial_assertions"`
 - `"clean_cfg"`
+
+## `PRESERVE_SMT_TRACE_FILES`
+
+When enabled, does not delete Z3 trace files.
+
+**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
 
 ## `PRINT_COLLECTED_VERIFICATION_ITEMS`
 
@@ -289,6 +346,65 @@ When enabled, the encoded program is simplified before it is passed to the Viper
 
 When enabled, features not supported by Prusti will be reported as warnings rather than errors.
 
+## `SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL`
+
+If not `None`, checks that the number of global quantifier instantiations reported by the SMT wrapper is smaller than the specified bound.
+
+**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+
+## `SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL_KIND`
+
+If not `None`, checks that the number of global quantifier instantiations for each quantifier reported by the SMT wrapper is smaller than the specified bound.
+
+**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+
+## `SMT_QUANTIFIER_INSTANTIATIONS_BOUND_TRACE`
+
+If not `None`, checks that the number of quantifier instantiations in each trace reported by the SMT wrapper is smaller than the specified bound.
+
+**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+
+## `SMT_QUANTIFIER_INSTANTIATIONS_BOUND_TRACE_KIND`
+
+If not `None`, checks that the number of quantifier instantiations in each trace for each quantifier reported by the SMT wrapper is smaller than the specified bound.
+
+**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+
+## `SMT_QUANTIFIER_INSTANTIATIONS_IGNORE_BUILTIN`
+
+When enabled, ignores the built-in quantifiers in SMT quantifier instantiation bounds checking.
+
+## `SMT_QI_EAGER_THRESHOLD`
+
+A threshold controlling how many times Z3 should instantiate a single quantifier. This option controls a tradeoff between performance and completeness:
+
+* Setting it to a too small value, may lead to spurious verification errors and unstable verification.
++ Setting it to a too large value, may significantly impact performance.
+
+## `SMT_SOLVER_PATH`
+
+Path to Z3.
+
+**Note:** `prusti-rustc` sets this option.
+
+## `SMT_SOLVER_WRAPPER_PATH`
+
+A path to `prusti-smt-solver`.
+
+**Note:** `prusti-rustc` sets this option.
+
+## `SMT_UNIQUE_TRIGGERS_BOUND`
+
+If not `None`, checks that the number of unique triggers used for each quantifier reported by the SMT wrapper is smaller than the specified bound.
+
+**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+
+## `SMT_UNIQUE_TRIGGERS_BOUND_TOTAL`
+
+If not `None`, checks that the total number of unique triggers reported by the SMT wrapper is smaller than the specified bound.
+
+**Note:** Requires `USE_SMT_WRAPPER` to be `true`.
+
 ## `UNSAFE_CORE_PROOF`
 
 When enabled, the new core proof is used, suitable for unsafe code
@@ -298,6 +414,12 @@ When enabled, the new core proof is used, suitable for unsafe code
 ## `USE_MORE_COMPLETE_EXHALE`
 
 When enabled, a more complete `exhale` version is used in the verifier. See [`consolidate`](https://github.com/viperproject/silicon/blob/f48de7f6e2d90d9020812869c713a5d3e2035995/src/main/scala/rules/StateConsolidator.scala#L29-L46). Equivalent to the verifier command-line argument `--enableMoreCompleteExhale`.
+
+## `USE_SMT_WRAPPER`
+
+Whether to use the SMT solver wrapper. Enabling this is required to be able to use quantifier instantiation bounds checking.
+
+This flag is intended to be used in tests only.
 
 ## `VERIFICATION_DEADLINE`
 
@@ -323,3 +445,15 @@ Verification backend to use. Possible values:
 
  - `Carbon` - verification-condition-generation-based backend [Carbon](https://github.com/viperproject/carbon).
  - `Silicon` - symbolic-execution-based backend [Silicon](https://github.com/viperproject/silicon/).
+
+## `VIPER_HOME`
+
+The path the directory containing the Viper JARs.
+
+**Note:** `prusti-rustc` sets this option.
+
+## `WRITE_SMT_STATISTICS`
+
+When enabled, dumps the statistics collected by the SMT wrapper into files next to the Z3 trace files.
+
+**Note:** Requires `USE_SMT_WRAPPER` to be `true`.

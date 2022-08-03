@@ -7,7 +7,7 @@ pub use super::common::{SpecType, SpecificationId};
 pub use super::preparser::Arg;
 
 /// An abstraction over all kinds of function items.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum AnyFnItem {
     Fn(syn::ItemFn),
     TraitMethod(syn::TraitItemMethod),

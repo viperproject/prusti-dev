@@ -1,13 +1,17 @@
 use super::{Context, ToViper, ToViperDecl};
+use prusti_utils::force_matches;
 use viper::{self, AstFactory};
-use vir::low::ast::{
-    expression::{self, Expression},
-    function::FunctionDecl,
-    position::Position,
-    predicate::PredicateDecl,
-    statement::{self, Statement},
-    ty::{BitVector, BitVectorSize, Float, Map, Type},
-    variable::VariableDecl,
+use vir::low::{
+    ast::{
+        expression::{self, Expression},
+        function::FunctionDecl,
+        position::Position,
+        predicate::PredicateDecl,
+        statement::{self, Statement},
+        ty::{BitVector, BitVectorSize, Float, Map, Type},
+        variable::VariableDecl,
+    },
+    ty::Seq,
 };
 
 impl<'a, 'v> ToViper<'v, viper::Predicate<'v>> for &'a PredicateDecl {
@@ -46,6 +50,7 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Statement {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         match self {
             Statement::Comment(statement) => statement.to_viper(context, ast),
+            Statement::LogEvent(statement) => statement.to_viper(context, ast),
             Statement::Assume(statement) => statement.to_viper(context, ast),
             Statement::Assert(statement) => statement.to_viper(context, ast),
             Statement::Inhale(statement) => statement.to_viper(context, ast),
@@ -63,6 +68,17 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Statement {
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Comment {
     fn to_viper(&self, _context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
         ast.comment(&self.comment)
+    }
+}
+
+impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::LogEvent {
+    fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
+        assert!(
+            self.expression.is_domain_func_app(),
+            "The log event has to be a domain function application: {}",
+            self
+        );
+        ast.inhale(self.expression.to_viper(context, ast), ast.no_position())
     }
 }
 
@@ -181,10 +197,16 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::Conditional {
 
 impl<'v> ToViper<'v, viper::Stmt<'v>> for statement::MethodCall {
     fn to_viper(&self, context: Context, ast: &AstFactory<'v>) -> viper::Stmt<'v> {
-        ast.method_call(
+        assert!(
+            !self.position.is_default(),
+            "Statement with default position: {}",
+            self
+        );
+        ast.method_call_with_pos(
             &self.method_name,
             &self.arguments.to_viper(context, ast),
             &self.targets.to_viper(context, ast),
+            self.position.to_viper(context, ast),
         )
     }
 }
@@ -532,7 +554,8 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::Seq {
             .map(|e| e.to_viper(context, ast))
             .collect::<Vec<_>>();
         if elems.is_empty() {
-            ast.empty_seq(self.ty.to_viper(context, ast))
+            let elem_ty = force_matches!(&self.ty, Type::Seq(Seq { element_type }) => element_type);
+            ast.empty_seq(elem_ty.to_viper(context, ast))
         } else {
             ast.explicit_seq(&elems)
         }
@@ -565,6 +588,7 @@ impl<'v> ToViper<'v, viper::Expr<'v>> for expression::MapOp {
         match self.kind {
             expression::MapOpKind::Empty => ast.empty_map(key_ty, val_ty),
             expression::MapOpKind::Update => ast.update_map(arg(0), arg(1), arg(2)),
+            expression::MapOpKind::Contains => ast.map_contains(arg(0), arg(1)),
             expression::MapOpKind::Lookup => ast.lookup_map(arg(0), arg(1)),
             expression::MapOpKind::Len => ast.map_len(arg(0)),
         }

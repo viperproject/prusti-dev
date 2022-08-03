@@ -1,12 +1,14 @@
 use super::super::{
     ast::{
-        expression::Expression, predicate::visitors::PredicateWalker,
-        statement::visitors::StatementWalker,
+        expression::{visitors::ExpressionWalker, Expression, Quantifier},
+        predicate::{visitors::PredicateWalker, Predicate},
+        statement::{visitors::StatementWalker, Statement},
+        ty::Type,
+        variable::VariableDecl,
     },
     cfg::procedure::{BasicBlock, BasicBlockId, ProcedureDecl, Successor},
-    visitors::ExpressionWalker,
-    Predicate, Quantifier, Type, VariableDecl,
 };
+use crate::common::cfg::Cfg;
 use std::collections::{BTreeMap, BTreeSet};
 
 impl ProcedureDecl {
@@ -90,34 +92,6 @@ impl ProcedureDecl {
             .map(|(name, ty)| VariableDecl { name, ty })
             .collect()
     }
-    pub fn get_predecessors(&self) -> BTreeMap<BasicBlockId, Vec<BasicBlockId>> {
-        let mut predecessors = BTreeMap::<_, Vec<_>>::new();
-        for (label, block) in &self.basic_blocks {
-            let mut add_target = |target: &BasicBlockId| {
-                let entry = predecessors.entry(target.clone()).or_default();
-                entry.push(label.clone());
-            };
-            match &block.successor {
-                Successor::Exit => {}
-                Successor::Goto(target) => {
-                    add_target(target);
-                }
-                Successor::GotoSwitch(targets) => {
-                    for (_, target) in targets {
-                        add_target(target);
-                    }
-                }
-                Successor::NonDetChoice(first, second) => {
-                    add_target(first);
-                    add_target(second);
-                }
-            }
-        }
-        assert!(predecessors
-            .insert(self.entry.clone(), Vec::new())
-            .is_none());
-        predecessors
-    }
     pub fn get_topological_sort(&self) -> Vec<BasicBlockId> {
         if self.basic_blocks.is_empty() {
             Vec::new()
@@ -192,11 +166,11 @@ impl ProcedureDecl {
             }
         }
 
-        let predecessors = self.get_predecessors();
+        let predecessors = self.predecessors();
         let mut result: BTreeMap<_, Vec<_>> = BTreeMap::new();
         for to in traversal_order {
-            for from in &predecessors[&to] {
-                for potentially_ambiguous_from in &predecessors[&to] {
+            for &from in &predecessors[&to] {
+                for &potentially_ambiguous_from in &predecessors[&to] {
                     if let Some(visited_blocks) = visited_block_map.get(potentially_ambiguous_from)
                     {
                         if visited_blocks.contains(from) {
@@ -209,5 +183,33 @@ impl ProcedureDecl {
         }
 
         result
+    }
+}
+
+impl Cfg for ProcedureDecl {
+    type BasicBlockId = BasicBlockId;
+    type BasicBlock = BasicBlock;
+    type Statement = Statement;
+    type BasicBlockIdIterator<'a> =
+        std::collections::btree_map::Keys<'a, Self::BasicBlockId, Self::BasicBlock>;
+
+    fn get_basic_block(&self, bb: &Self::BasicBlockId) -> Option<&Self::BasicBlock> {
+        self.basic_blocks.get(bb)
+    }
+
+    fn get_basic_block_statement<'a>(
+        &'a self,
+        block: &'a Self::BasicBlock,
+        statement_index: usize,
+    ) -> Option<&'a Self::Statement> {
+        block.statements.get(statement_index)
+    }
+
+    fn iter_basic_block_ids(&self) -> Self::BasicBlockIdIterator<'_> {
+        self.basic_blocks.keys()
+    }
+
+    fn successors(&self, bb: &Self::BasicBlockId) -> Vec<&Self::BasicBlockId> {
+        self.basic_blocks[bb].successor.get_following()
     }
 }

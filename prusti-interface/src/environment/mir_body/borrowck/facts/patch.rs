@@ -1,7 +1,7 @@
 use super::{AllInputFacts, LocationTable, Point, RichLocation};
 use crate::environment::mir_body::patch::MirPatch;
+use prusti_rustc_interface::middle::mir;
 use rustc_hash::FxHashMap;
-use rustc_middle::mir;
 
 /// FIXME: Currently, this function patches only `borrowck_input_facts.cfg_edge`.
 /// It probably should also patch other facts. For example, added drop flag
@@ -24,7 +24,7 @@ pub fn apply_patch_to_borrowck<'tcx>(
     location_table: &mut LocationTable,
     patch: &MirPatch<'tcx>,
     old_body: &mir::Body<'tcx>,
-    patched_body: &mir::Body<'tcx>,
+    patched_body: &mut mir::Body<'tcx>,
 ) {
     let mut lt_patcher = LocationTablePatcher::new(location_table);
 
@@ -74,7 +74,7 @@ pub fn apply_patch_to_borrowck<'tcx>(
     }
 
     // Patch cfg_edge facts for the inserted statements.
-    let predecessors = patched_body.predecessors();
+    let predecessors = patched_body.basic_blocks.predecessors();
     let mut new_statements: Vec<_> = patch
         .new_statements
         .iter()
@@ -122,7 +122,6 @@ pub fn apply_patch_to_borrowck<'tcx>(
     }
     for (loc, old_statement_start_point, statement_start_point) in predecessors_to_patch {
         for predecessor in &predecessors[loc.block] {
-            eprintln!("predecessor: {:?} loc: {:?}", predecessor, loc);
             let terminator_mid_point = lt_patcher.mid_point(
                 predecessor.index(),
                 patched_body[*predecessor].statements.len(),
@@ -178,10 +177,70 @@ pub fn apply_patch_to_borrowck<'tcx>(
         }
     }
 
+    // Patch cfg_edge facts to account for removed basic blocks.
+    let reachable = mir::traversal::reachable_as_bitset(patched_body);
+    if patched_body.basic_blocks().len() > reachable.count() {
+        // Delete cfg_edges of removed blocks.
+        for (src, block) in patched_body.basic_blocks().iter_enumerated() {
+            if !reachable.contains(src) {
+                for statement_index in 0..block.statements.len() + 1 {
+                    assert!(cfg_edges
+                        .remove(&lt_patcher.start_point(src.into(), statement_index))
+                        .is_some());
+                    lt_patcher.delete_start_point(src.into(), statement_index);
+                    assert!(cfg_edges
+                        .remove(&lt_patcher.mid_point(src.into(), statement_index))
+                        .is_some());
+                    lt_patcher.delete_mid_point(src.into(), statement_index);
+                }
+            }
+        }
+        let basic_block_inverse_replacements =
+            super::super::super::dead_blocks::remove_dead_blocks(patched_body, &reachable);
+        // Update the location table to reflect moved blocks.
+        for (&new_index, &old_index) in &basic_block_inverse_replacements {
+            if new_index != old_index {
+                for statement_index in 0..patched_body[new_index].statements.len() + 1 {
+                    lt_patcher.move_start_point(
+                        old_index,
+                        statement_index,
+                        new_index,
+                        statement_index,
+                    );
+                    lt_patcher.move_mid_point(
+                        old_index,
+                        statement_index,
+                        new_index,
+                        statement_index,
+                    );
+                }
+            }
+        }
+        // Remap cfg_edges of moved blocks.
+        for (src, block) in patched_body.basic_blocks().iter_enumerated() {
+            let mut target_points = Vec::new();
+            for target in block.terminator().successors() {
+                target_points.push(lt_patcher.start_point(target.index(), 0));
+            }
+            let terminator_mid_point = lt_patcher.mid_point(src.index(), block.statements.len());
+            assert!(
+                cfg_edges
+                    .insert(terminator_mid_point, target_points)
+                    .is_some()
+                    || !reachable.contains(src),
+                "block: {:?} statement_index: {}",
+                src,
+                block.statements.len()
+            );
+        }
+    }
+
     borrowck_input_facts.cfg_edge = cfg_edges
         .into_iter()
         .flat_map(|(from, targets)| targets.into_iter().map(move |target| (from, target)))
         .collect();
+
+    borrowck_input_facts.cfg_edge.sort();
 }
 
 struct LocationTablePatcher<'a> {
@@ -220,6 +279,87 @@ impl<'a> LocationTablePatcher<'a> {
             block: block.into(),
             statement_index,
         }))
+    }
+
+    fn delete_point(&mut self, location: RichLocation, point: Point) {
+        assert_eq!(self.location_table.points.remove(&location), Some(point));
+        assert_eq!(self.location_table.locations.remove(&point), Some(location));
+    }
+
+    fn delete_start_point(&mut self, block: usize, statement_index: usize) {
+        let location = RichLocation::Start(mir::Location {
+            block: block.into(),
+            statement_index,
+        });
+        let point = self.point(location);
+        self.delete_point(location, point);
+    }
+
+    fn delete_mid_point(&mut self, block: usize, statement_index: usize) {
+        let location = RichLocation::Mid(mir::Location {
+            block: block.into(),
+            statement_index,
+        });
+        let point = self.point(location);
+        self.delete_point(location, point);
+    }
+
+    fn move_start_point(
+        &mut self,
+        old_index: mir::BasicBlock,
+        old_statement_index: usize,
+        new_index: mir::BasicBlock,
+        new_statement_index: usize,
+    ) {
+        let old_location = RichLocation::Start(mir::Location {
+            block: old_index,
+            statement_index: old_statement_index,
+        });
+        let old_point = self.point(old_location);
+        let new_location = RichLocation::Start(mir::Location {
+            block: new_index,
+            statement_index: new_statement_index,
+        });
+        self.delete_point(old_location, old_point);
+        self.set_point(new_location, old_point);
+    }
+
+    fn move_mid_point(
+        &mut self,
+        old_index: mir::BasicBlock,
+        old_statement_index: usize,
+        new_index: mir::BasicBlock,
+        new_statement_index: usize,
+    ) {
+        let old_location = RichLocation::Mid(mir::Location {
+            block: old_index,
+            statement_index: old_statement_index,
+        });
+        let old_point = self.point(old_location);
+        let new_location = RichLocation::Mid(mir::Location {
+            block: new_index,
+            statement_index: new_statement_index,
+        });
+        self.delete_point(old_location, old_point);
+        self.set_point(new_location, old_point);
+    }
+
+    fn set_point(&mut self, location: RichLocation, point: Point) {
+        assert!(
+            self.location_table
+                .locations
+                .insert(point, location)
+                .is_none(),
+            "location: {:?} point: {:?}",
+            location,
+            point
+        );
+        assert!(
+            self.location_table.points.insert(location, point).is_none(),
+            "location: {:?} point: {:?}",
+            location,
+            point
+        );
     }
 
     fn fresh_point(&mut self) -> Point {

@@ -1,5 +1,5 @@
 use log::{debug, trace};
-use rustc_middle::ty;
+use prusti_rustc_interface::middle::ty;
 use vir_crate::high::{self as vir_high};
 
 use crate::encoder::errors::{EncodingError, EncodingResult};
@@ -70,7 +70,10 @@ impl<'v, 'tcx: 'v> CastsEncoderInterface<'tcx> for super::super::super::Encoder<
                 let number = value as usize;
                 number.into()
             }
-            ty::TyKind::Char => value.into(),
+            ty::TyKind::Char => {
+                let number = char::from_u32(value.try_into().unwrap()).unwrap();
+                number.into()
+            }
             kind => {
                 return Err(EncodingError::unsupported(format!(
                     "unsupported integer cast: {:?}",

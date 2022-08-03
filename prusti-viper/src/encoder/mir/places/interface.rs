@@ -8,9 +8,11 @@ use crate::encoder::{
 };
 use log::debug;
 use prusti_common::config;
-use rustc_hir::def_id::DefId;
-use rustc_middle::{mir, ty};
-use rustc_span::Span;
+use prusti_rustc_interface::{
+    hir::def_id::DefId,
+    middle::{mir, ty},
+    span::Span,
+};
 use vir_crate::{
     common::expression::{BinaryOperationHelpers, UnaryOperationHelpers},
     high::{self as vir_high, operations::ty::Typed},
@@ -184,7 +186,7 @@ impl<'v, 'tcx: 'v> PlacesEncoderInterface<'tcx> for super::super::super::Encoder
                         .with_span(declaration_span)?;
                     if parent_type.is_union() {
                         // We treat union fields as variants.
-                        let union_decl = self.encode_type_def(&parent_type)?.unwrap_union();
+                        let union_decl = self.encode_type_def_high(&parent_type)?.unwrap_union();
                         let variant = &union_decl.variants[field.index()];
                         let variant_index: vir_high::ty::VariantIndex = variant.name.clone().into();
                         let variant_type = parent_type.variant(variant_index.clone());

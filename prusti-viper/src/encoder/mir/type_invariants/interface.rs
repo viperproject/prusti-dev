@@ -1,7 +1,7 @@
 use super::encoder::{encode_invariant_def, encode_invariant_stub, needs_invariant_func};
 use crate::encoder::errors::EncodingResult;
+use prusti_rustc_interface::middle::ty;
 use rustc_hash::FxHashMap;
-use rustc_middle::ty;
 use std::cell::RefCell;
 use vir_crate::polymorphic::{self as vir};
 
@@ -31,6 +31,8 @@ impl<'v, 'tcx: 'v> TypeInvariantEncoderInterface<'tcx> for super::super::super::
 
         // match snapshot ref/box peeling
         let ty = crate::encoder::snapshot::encoder::strip_refs_and_boxes(ty);
+
+        let ty = self.env().tcx().erase_regions_ty(ty);
 
         if !needs_invariant_func(ty) {
             return Ok(true.into());
