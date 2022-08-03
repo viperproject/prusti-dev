@@ -97,7 +97,12 @@ pub enum Entry {
         //that is why no FxHashMap is used
         custom_print_option: Option<Vec<String>>,
     },
+    Union {
+        name: String,
+        field_entry: (String, Box<Entry>),
+    },
     Tuple(Vec<Entry>),
+    Seq(Vec<Entry>),
     Unknown,
 }
 
@@ -203,6 +208,23 @@ impl fmt::Debug for Entry {
                     }
                     f1.finish()
                 }
+            }
+            Entry::Seq(elements) => {
+                if elements.is_empty() {
+                    write!(f, "Seq()")
+                } else {
+                    let mut output = "".to_string();
+                    for elem in elements {
+                        output.push_str(&format!("{:#?}, ", elem));
+                    }
+                    write!(f, "Seq({})", output)
+                }
+            }
+            Entry::Union { name, field_entry } => {
+                //write!(f, "Union {{ {}: {:#?}}}", field_entry.0, field_entry.1)
+                let mut f1 = f.debug_struct(name);
+                f1.field(&field_entry.0, &*(field_entry.1));
+                f1.finish()
             }
             Entry::Unknown => write!(f, "?"),
         }

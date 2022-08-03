@@ -90,7 +90,7 @@ impl FunctionEntry{
                 return &option.1
             }
         } 
-        &self.default
+        &None //&self.default
     }
 }
 
@@ -116,7 +116,7 @@ fn unwrap_counterexample<'a>(
     //let labels = jni.stringmap_to_keyvec(model_scala); 
 
     //get domain independent functions
-    let functions_scala = jni.unwrap_result(converter_wrapper.call_non__domain__functions(converter_original));
+    let functions_scala = jni.unwrap_result(converter_wrapper.call_nonDomainFunctions(converter_original));
     debug!("Print functions: {:?}", jni.to_string(functions_scala));
     let functions = unwrap_functions(env, jni, functions_scala);
     debug!("Print translated functions: {:?}", functions);
@@ -218,7 +218,7 @@ fn unwrap_model_entry<'a>(
             let name = jni.to_string(jni.unwrap_result(seq_wrapper.call_name(entry)));
             let list_scala = jni.unwrap_result(seq_wrapper.call_values(entry));
             let res = jni
-                .list_to_vec(list_scala)
+                .vec_to_vec(list_scala)
                 .into_iter()
                 .filter_map(|el| unwrap_model_entry(env, jni, el, entries))
                 .collect();

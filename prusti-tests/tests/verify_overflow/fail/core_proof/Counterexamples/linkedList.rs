@@ -3,49 +3,73 @@
 use prusti_contracts::*;
 
 
-/*
 #[trusted]
 struct BoxWrapper<T> {
     value: Box<T>,
 }
 
-
-#[model]
-struct BoxWrapper<#[concrete] i32> {
-    value: i32,
+impl<T> BoxWrapper<T> {
+    #[trusted]
+    fn new(value: T) -> Self {
+        Self { value: Box::new(value) }
+    }
+    #[pure]
+    #[trusted]
+    fn deref(&self) -> &T {
+        &self.value
+    }
+    #[trusted]
+    fn deref_mut(&mut self) -> &mut T {
+        &mut self.value
+    }
+    #[trusted]
+    fn into_value(self) -> T {
+        *self.value
+    }
 }
-
-
-#[trusted]
-#[ensures(b.model().value == val )]
-fn set_box(b: &mut BoxWrapper<i32>, val: i32) {
-    b.value = Box::new(val);
-}
-
-#[trusted]
-#[ensures(result == b.model().value)]
-fn get_box(b: BoxWrapper<i32>) -> i32{
-    *b.value
-}
-*/
 
 struct LinkedList {
-    val: i32,
-    next: Box<LinkedList>,
-} 
+    val: i64,
+    next: Option<BoxWrapper<LinkedList>>,
+}
+
+impl LinkedList {
+    fn prepend(self, value: i64) -> Self {
+        Self {
+            val: value,
+            next: Some(BoxWrapper::new(self)),
+        }
+    }
+
+    #[ensures(result >= Int::new(1))]
+    fn len(&self) -> Int {
+        match &self.next {
+            None => Int::new(1),
+            Some(tail) => {
+                tail.deref().len() + Int::new(1)
+            }
+        }
+    }
+}
+
+fn fail1(x: LinkedList, val: i64) {
+    let y = LinkedList{
+        val,
+        next: Some(BoxWrapper::new(x)),
+    };
+    let z = y.prepend(val);
+    assert!(z.val == 3)
+}
+
+
+
+
 
 /*
-#[ensures(x.model().value == 0)]
-fn test_1(x: BoxWrapper<i32>) -> i32 {
-    get_box(x)
+fn fail2(x: LinkedList, val: i64) {
+    if x.len() == Int::new(1) {
+        assert!(false)
+    } 
 }
 */
-
-#[ensures(!result)]
-fn test_2(x: LinkedList) -> bool {
-    x.val == 0
-}
-
-
-
 fn main(){}

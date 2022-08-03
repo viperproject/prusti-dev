@@ -47,8 +47,8 @@ impl Default for ViperBackendConfig {
                 if config::counterexample() {
                     verifier_args.push("--counterexample".to_string());
                     verifier_args.push("mapped".to_string());
-                    verifier_args.push("--z3ConfigArgs".to_string());
-                    verifier_args.push("\"model.partial=true\"".to_string());
+                    //verifier_args.push("--z3ConfigArgs".to_string());
+                    //verifier_args.push("\"model.partial=true\"".to_string());
                 }
                 if let Some(number) = config::number_of_parallel_verifiers() {
                     verifier_args.push("--numberOfParallelVerifiers".to_string());
@@ -60,9 +60,10 @@ impl Default for ViperBackendConfig {
                     config::assert_timeout().to_string(),
                     "--z3ConfigArgs".to_string(),
                     format!(
-                        "smt.qi.eager_threshold={}",
+                        "smt.qi.eager_threshold={} model.partial=true",
                         config::smt_qi_eager_threshold()
-                    ),
+                    ), 
+                    //model.partial changes the default case to unspecified in counterexamples, e.g. else #unspecified
                     "--logLevel".to_string(),
                     "ERROR".to_string(),
                 ]);

@@ -1,5 +1,7 @@
 //use std::default;
 
+use std::convert;
+
 use rustc_hash::FxHashMap;
 
 use crate::jni_utils::JniUtils;
@@ -122,7 +124,7 @@ impl FunctionEntry{
                 return &option.1
             }
         } 
-        &self.default
+        &None //&self.default
     }
 }
 
@@ -161,26 +163,26 @@ fn unwrap_counterexample<'a>(
     */
 
     let model_scala = jni.unwrap_result(converter_wrapper.call_extractedModel(converter_original));
-    let model = unwrap_model(env, jni, model_scala);
+    let model = unwrap_model(env, jni, model_scala, &converter_original, &converter_wrapper);
 
     let old_models_scala =
         jni.unwrap_result(converter_wrapper.call_modelAtLabel(converter_original));
     let old_models = jni
         .stringmap_to_hashmap(old_models_scala)
         .into_iter()
-        .map(|(label, m)| (label, unwrap_model(env, jni, m)))
+        .map(|(label, m)| (label, unwrap_model(env, jni, m, &converter_original, &converter_wrapper)))
         .collect::<FxHashMap<_, _>>();
 
 
-    let functions_scala = jni.unwrap_result(converter_wrapper.call_non__domain__functions(converter_original));
+    let functions_scala = jni.unwrap_result(converter_wrapper.call_nonDomainFunctions(converter_original));
     debug!("Print functions: {:?}", jni.to_string(functions_scala));
-    let functions = unwrap_functions(env, jni, functions_scala);
+    let functions = unwrap_functions(env, jni, functions_scala, &converter_original, &converter_wrapper);
     debug!("Print translated functions: {:?}", functions);
 
 
     let domains_scala = jni.unwrap_result(converter_wrapper.call_domains(converter_original));
     debug!("Print domains: {:?}", jni.to_string(domains_scala));
-    let domains = unwrap_domains(env, jni, domains_scala);
+    let domains = unwrap_domains(env, jni, domains_scala, &converter_original, &converter_wrapper);
     debug!("Print translated domains: {:?}", domains);
 
     debug!("label order: {:?}", jni.stringmap_to_keyvec(old_models_scala));
@@ -259,13 +261,13 @@ fn unwrap_heap_entry<'a>(
 }
 */
 
-fn unwrap_model<'a>(env: &'a JNIEnv<'a>, jni: JniUtils<'a>, model: JObject<'a>) -> Model {
+fn unwrap_model<'a>(env: &'a JNIEnv<'a>, jni: JniUtils<'a>, model: JObject<'a>, converter_obj: &JObject<'a>, converter: &silicon::reporting::Converter<'a>,) -> Model {
     let model_wrapper = silicon::reporting::ExtractedModel::with(env);
     let entries_scala = jni.unwrap_result(model_wrapper.call_entries(model));
     let map_string_scala = jni.stringmap_to_hashmap(entries_scala);
     let mut entries = FxHashMap::default();
     for (name, entry_scala) in map_string_scala {
-        let entry = unwrap_model_entry(env, jni, entry_scala, &mut entries);
+        let entry = unwrap_model_entry(env, jni, entry_scala, &mut entries, converter_obj, converter);
         if let Some(e) = entry {
             entries.insert(name, e);
         }
@@ -278,6 +280,8 @@ fn unwrap_model_entry<'a>(
     jni: JniUtils<'a>,
     entry: JObject<'a>,
     entries: &mut FxHashMap<String, ModelEntry>,
+    converter_obj: &JObject<'a>,
+    converter: &silicon::reporting::Converter<'a>,
 ) -> Option<ModelEntry> {
     match jni.class_name(entry).as_str() {
         "viper.silicon.reporting.LitIntEntry" => {
@@ -315,7 +319,7 @@ fn unwrap_model_entry<'a>(
                 .filter_map(|(field, tuple_scala)| {
                     let element_scala =
                         jni.unwrap_result(product_wrapper.call_productElement(tuple_scala, 0));
-                    Some((field, unwrap_model_entry(env, jni, element_scala, entries)?))
+                    Some((field, unwrap_model_entry(env, jni, element_scala, entries, converter_obj, converter)?))
                 })
                 .collect::<FxHashMap<_, _>>();
             entries.insert(name.clone(), ModelEntry::Ref(name.clone(), result.clone()));
@@ -332,9 +336,12 @@ fn unwrap_model_entry<'a>(
             Some(ModelEntry::RecursiveRef(name))
         }
         "viper.silicon.reporting.VarEntry" => {
-            let var_wrapper = silicon::reporting::VarEntry::with(env);
+            let resolved_entry = jni.unwrap_result(converter.call_extractVal(converter_obj.clone(), entry));
+            let mode_entry = unwrap_model_entry(env, jni, resolved_entry, entries, converter_obj, converter);
+            mode_entry
+            /*let var_wrapper = silicon::reporting::VarEntry::with(env);
             let name = jni.to_string(jni.unwrap_result(var_wrapper.call_name(entry)));
-            Some(ModelEntry::Var(name))
+            Some(ModelEntry::Var(name))*/
         }
         "viper.silicon.reporting.OtherEntry" => {
             let other_wrapper = silicon::reporting::OtherEntry::with(env);
@@ -346,10 +353,11 @@ fn unwrap_model_entry<'a>(
             let seq_wrapper = silicon::reporting::SeqEntry::with(env);
             let name = jni.to_string(jni.unwrap_result(seq_wrapper.call_name(entry)));
             let list_scala = jni.unwrap_result(seq_wrapper.call_values(entry));
+            debug!("list_scala: {:?}", jni.to_string(list_scala));
             let res = jni
-                .list_to_vec(list_scala)
+                .vec_to_vec(list_scala)
                 .into_iter()
-                .filter_map(|el| unwrap_model_entry(env, jni, el, entries))
+                .filter_map(|el| unwrap_model_entry(env, jni, el, entries, converter_obj, converter))
                 .collect();
             Some(ModelEntry::Seq(name, res))
         }
@@ -363,13 +371,13 @@ fn unwrap_model_entry<'a>(
     }
 }
 
-fn unwrap_functions<'a>(env: &'a JNIEnv<'a>, jni: JniUtils<'a>, functions: JObject<'a>) -> Functions {
+fn unwrap_functions<'a>(env: &'a JNIEnv<'a>, jni: JniUtils<'a>, functions: JObject<'a>, converter_obj: &JObject<'a>, converter: &silicon::reporting::Converter<'a>,) -> Functions {
     let functions_wrapper = silicon::reporting::ExtractedFunction::with(env);
     let entries_scala = jni.seq_to_vec(functions);
     let mut entries = FxHashMap::default();
     for entry_scala in entries_scala{
         let fname = jni.to_string(jni.unwrap_result(functions_wrapper.call_fname(entry_scala)));
-        let entry = unwrap_function_entry(env, jni, entry_scala, &functions_wrapper);
+        let entry = unwrap_function_entry(env, jni, entry_scala, &functions_wrapper, converter_obj, converter);
         entries.insert(fname,entry);
     }
     Functions{entries}
@@ -380,41 +388,45 @@ fn unwrap_function_entry<'a>(
     env: &'a JNIEnv<'a>,
     jni: JniUtils<'a>,
     entry: JObject<'a>,
-    functions_wrapper: &silicon::reporting::ExtractedFunction
+    functions_wrapper: &silicon::reporting::ExtractedFunction,
+    converter_obj: &JObject<'a>,
+    converter: &silicon::reporting::Converter<'a>,
 ) -> FunctionEntry {
     let default_scala = jni.unwrap_result(functions_wrapper.call_default(entry));
     debug!("default value: {:?}", jni.to_string(default_scala));
     let mut tmp = FxHashMap::default(); //We don't care about recusivley unwrapped ModelEntries
     //Since default is always a ConstantEntry, tmp is empty anyway
-    let default = unwrap_model_entry(env, jni, default_scala, &mut tmp);
+    let default = unwrap_model_entry(env, jni, default_scala, &mut tmp, converter_obj, converter);
     debug!("default value translated: {:?}", default);
-
     let iter_wrapper = scala::collection::Iterable::with(env);
     let options_scala = jni.unwrap_result(functions_wrapper.call_options(entry));
     let options_scala_seq = jni.unwrap_result(iter_wrapper.call_toSeq(options_scala));
     let mut options = jni.seq_to_vec(options_scala_seq)
             .into_iter()
             .map( | entry | {
-                unwrap_option_entry(env, jni, entry)
+                unwrap_option_entry(env, jni, entry, converter_obj, converter)
             }
         ).collect::<Vec<_>>(); 
-    options.reverse();
-    FunctionEntry { options, default }//reverse is only needed for the old encoding
+    options.reverse(); //reverse is only needed for the old encoding wrong
+    FunctionEntry { options, default }
 }
 fn unwrap_option_entry<'a>(
     env: &'a JNIEnv<'a>,
     jni: JniUtils<'a>,
     entry: JObject<'a>,
+    converter_obj: &JObject<'a>,
+    converter: &silicon::reporting::Converter<'a>,
 ) -> (Vec<Option<ModelEntry>>, Option<ModelEntry>) {
     let product_wrapper = scala::Product::with(env);
     let args_scala = jni.unwrap_result(product_wrapper.call_productElement(entry, 0));
+    
     let result_scala = jni.unwrap_result(product_wrapper.call_productElement(entry, 1));
     //debug!("args: {:?}", jni.to_string(args_scala));
     //debug!("result: {:?}", jni.to_string(result_scala));
     let args = jni.list_to_vec(args_scala).into_iter()
     .filter_map(| arg | { //filter out any snap arg 
         let mut tmp = FxHashMap::default();
-        match unwrap_model_entry(env, jni, arg, &mut tmp){ 
+        match unwrap_model_entry(env, jni, arg, &mut tmp, converter_obj, converter){ 
             Some(arg) => Some(Some(arg)),
             None => None
         }
@@ -422,12 +434,12 @@ fn unwrap_option_entry<'a>(
     //debug!("args translated: {:?}", args);
     let mut tmp = FxHashMap::default(); //We don't care about recusivley unwrapped ModelEntries
     //Since default is always a ConstantEntry, tmp is empty anyway
-    let result = unwrap_model_entry(env, jni, result_scala, &mut tmp);
+    let result = unwrap_model_entry(env, jni, result_scala, &mut tmp, converter_obj, converter);
     //debug!("result translated: {:?}", result);
     (args, result)
 }
 
-fn unwrap_domains<'a>(env: &'a JNIEnv<'a>, jni: JniUtils<'a>, domains: JObject<'a>) -> Domains {
+fn unwrap_domains<'a>(env: &'a JNIEnv<'a>, jni: JniUtils<'a>, domains: JObject<'a>, converter_obj: &JObject<'a>, converter: &silicon::reporting::Converter<'a>,) -> Domains {
     let domains_wrapper = silicon::reporting::DomainEntry::with(env);
     let entries_scala = jni.seq_to_vec(domains);
     let mut entries = FxHashMap::default();
@@ -436,7 +448,7 @@ fn unwrap_domains<'a>(env: &'a JNIEnv<'a>, jni: JniUtils<'a>, domains: JObject<'
 
         //debug!("Domain Name: {:?}", dname);
         let functions_scala = jni.unwrap_result(domains_wrapper.call_functions(entry_scala));
-        let entry = unwrap_functions(env, jni, functions_scala);
+        let entry = unwrap_functions(env, jni, functions_scala, converter_obj, converter);
         //debug!("functions from domain: {:?}", entry);
         entries.insert(dname,DomainEntry{functions: entry});
     }

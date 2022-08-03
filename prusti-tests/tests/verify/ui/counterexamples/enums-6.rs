@@ -12,13 +12,14 @@ fn apply(op: BinOp) -> i32 {
     match op {
         BinOp::Add(a, b) => a + b,
         BinOp::Sub(c, d) => c - d,
-        BinOp::Div(e, f) => {
-            if e == 1 { // force specific counterexample
+        BinOp::Div(e, f) => {f/e
+            /*if e == 1 { // force specific counterexample
                 e / f
             } else {
                 0
-            }
-        }
+            }*/
+        },
+        _ => 0
     }
 }
 

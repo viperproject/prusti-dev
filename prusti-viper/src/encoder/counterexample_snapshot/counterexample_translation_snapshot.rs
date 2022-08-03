@@ -19,7 +19,7 @@ use super::counterexample_snapshot2::*;
 use prusti_rustc_interface::middle::mir::{self, VarDebugInfo};
 use prusti_rustc_interface::errors::MultiSpan;
 use prusti_rustc_interface::middle::ty::{self, Ty, TyCtxt};
-use std::iter;
+use std::{iter, vec};
 use prusti_rustc_interface::hir::def_id::LocalDefId;
 use prusti_rustc_interface::hir::{ExprKind, StmtKind, Expr, Block, QPath, Path};
 use prusti_rustc_interface::ast::LitKind;
@@ -51,6 +51,7 @@ pub fn backtranslate(
 #[derive(Default)]
 struct TranslatedDomains{
     cached_domains: FxHashMap<(String, String), Entry>,
+    //in_progress: Vec<(String, String)>,
 }
 
 pub struct CounterexampleTranslator<'ce, 'tcx, 'v> {
@@ -247,15 +248,27 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
             if let Some(entry) = translated_domains.cached_domains.get(&(domain.clone(), var.clone())){
                 debug!("found in cache");
                 return entry.clone();
-            }
-        }
+            } /*else if translated_domains.in_progress.contains(&(domain.clone(), var.clone())){
+                debug!("rec typ");
+                return Entry::Unknown;
+            } else {
+                translated_domains.in_progress.push((domain.clone(), var.clone()));
+            }*/
+        } 
         /*if let Some(entry) = model_entry.and_then(|x| translated_domains.cached_domains.get(x)){ //check cache
             debug!("found in cache");
             return entry; 
         }*/
         debug!("typ: {:?}", typ.and_then(|x| Some(x.kind())));
         let entry = match (model_entry, typ.and_then(|x| Some(x.kind()))){
-            (Some(ModelEntry::LitInt(string)),_) => Entry::Int(string.clone()),
+            (Some(ModelEntry::LitInt(string)),Some(ty::TyKind::Char)) => {
+                if let Some(value_int) = string.parse::<u32>().ok(){
+                    if let Some(value_char) = char::from_u32(value_int){
+                        Entry::Char(value_char)
+                    } else { Entry::Unknown}
+                } else {Entry::Unknown}
+            }, 
+            (Some(ModelEntry::LitInt(string)),_) => Entry::Int(string.clone()), 
             (Some(ModelEntry::LitFloat(string)),_) => Entry::Float(string.clone()),
             (Some(ModelEntry::LitBool(bool)),_) => Entry::Bool(bool.clone()),
             (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Ref(_, typ, _))) => {
@@ -291,6 +304,16 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                 let entry = self.translate_silicon_entry_with_snapshot(new_typ, snapshot_var, encoded_typ_option, translated_domains).unwrap_or_default();
                 Entry::Box(box entry)
             } ,*/
+            (Some(ModelEntry::DomainValue(domain_name, ..)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_box() => {
+                debug!("typ is box");
+                //this should never fail since a DomainValue can only exist if the corresponding domain exists
+                let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                debug!("domain for box type: {:?}", domain_name);
+                let sil_fn_name = format!("destructor${}$$val_ref", domain_name);
+                let new_typ = subst.type_at(0);
+                debug!("type inside box: {:?}", &new_typ);
+                Entry::Box(box self.extract_field_value(&sil_fn_name, Some(new_typ.clone()), model_entry, sil_domain, translated_domains, wo_model))
+            },
             (Some(ModelEntry::DomainValue(domain_name, ..)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_struct() => {
                 debug!("typ is struct");
                 debug!("typ: {:?}", typ);
@@ -329,6 +352,58 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     custom_print_option,
                 }
                 
+            },
+            (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_union() => {
+                debug!("typ is union");
+                debug!("domain name: {:?}", domain_name);
+                let disc_function_name = format!("discriminant${}", domain_name);//domain_name.strip_prefix("Snap$").unwrap_or_default());
+                //self.lowerer.encode_discriminant_name(domain_name).ok().unwrap();
+                debug!("discriminant function: {:?}", disc_function_name);
+                //this should never fail since a DomainValue can only exist if the corresponding domain exists
+                let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                let sil_fn_param = vec![model_entry.cloned()];
+                if let Some(disc_function) = sil_domain.functions.entries.get(&disc_function_name){
+                    match disc_function.get_function_value_with_default(&sil_fn_param){
+                        Some(ModelEntry::LitInt(disc_value)) => {
+                            let super_name = format!("{:?}", adt_def);
+                            debug!("union name: {:?}", &super_name);
+                            let disc_value_int = disc_value.parse::<usize>().unwrap();
+                            debug!("discriminant: {:?}", &disc_value_int);
+                            debug!("variant found");
+                            let variant = adt_def.variants().iter().next().unwrap();
+                            let variant_name =  variant.fields[disc_value_int].ident(self.tcx).name.to_ident_string();
+                            let field_typ = Some(variant.fields[disc_value_int].ty(self.tcx, subst));
+                            debug!("variant name: {:?}", &variant_name);
+
+                            let destructor_sil_name = format!("destructor${}${}$value", domain_name, &variant_name);
+                            if let Some(value_function) = sil_domain.functions.entries.get(&destructor_sil_name){
+                                debug!("destructor found: {:?}", &value_function);
+                                let new_model_entry = value_function.get_function_value_with_default(&sil_fn_param);
+                                if let Some(ModelEntry::DomainValue(domain_name, _)) = new_model_entry{
+                                    let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                                    let sil_fn_name = format!("destructor${}$$value", domain_name);
+                                    let field_entry = self.extract_field_value(&sil_fn_name, field_typ, new_model_entry.as_ref(), sil_domain, translated_domains, wo_model);
+                                    return Entry::Union { 
+                                        name: super_name, 
+                                        field_entry: (variant_name, box field_entry),
+                                    };
+                                }
+                                return Entry::Union { 
+                                    name: super_name, 
+                                    field_entry: (variant_name, box Entry::Unknown),
+                                };    
+                            }
+                        
+                        },
+                        _ =>  // should not be possible
+                            debug!("discriminant value not int!"),
+                    }
+                    debug!("discriminant value not found");
+                }
+                return Entry::Union { 
+                    name: format!("{:?}", adt_def), 
+                    field_entry: ("?".to_string(), box Entry::Unknown),
+                };
             },
             (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_enum() => {
                 debug!("typ is enum");
@@ -384,18 +459,31 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     custom_print_option: None,
                 }
             },
+            (Some(ModelEntry::Seq(name, model_entries)), Some(ty::TyKind::Adt(adt_def, subst))) => {
+                debug!("typ is Seq");
+                debug!("typ: {:?}", adt_def.adt_kind());
+                debug!("name: {:?}", name);
+                let typ = subst.type_at(0);
+                let entries = model_entries.iter().map(|entry| 
+                {
+                    self.translate_snapshot_entry(Some(entry), Some(typ), translated_domains, wo_model)
+                }).collect();
+
+                Entry::Seq(entries)
+            },
             (Some(ModelEntry::DomainValue(domain_name, _)), _) => { //snapshot typ for primitive typ
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                 debug!("domain for primitive type: {:?}", domain_name);
                 let sil_fn_name = format!("destructor${}$$value", domain_name);
-                self.extract_field_value(&sil_fn_name, None, model_entry, sil_domain, translated_domains, wo_model)
+                self.extract_field_value(&sil_fn_name, typ, model_entry, sil_domain, translated_domains, wo_model)
             }  
             _ => Entry::Unknown,
         };
-        if let Some(ModelEntry::DomainValue(domain, var)) = model_entry{//save in cache
+        if let Some(ModelEntry::DomainValue(domain, var)) = model_entry{//save in cache and (remove from in_progress)
             debug!("save in cache");
             translated_domains.cached_domains.insert((domain.clone(), var.clone()), entry.clone());
+            //translated_domains.in_progress.remove(translated_domains.in_progress.iter().position(|x| *x == (domain.clone(), var.clone())).unwrap());
         }
         entry
     }
