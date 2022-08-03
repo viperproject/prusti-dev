@@ -2,16 +2,18 @@ use super::super::ast::{
     expression::{Expression, Local},
     statement::Statement,
 };
-use crate::common::display;
+use crate::common::{check_mode::CheckMode, display};
 use std::collections::BTreeMap;
 
 #[display(
-    fmt = "procedure {}\n{{\n{}}}",
+    fmt = "procedure({}) {}\n{{\n{}}}",
+    check_mode,
     name,
     "display::foreach2!(\"    label {}\n{}\", basic_blocks.keys(), basic_blocks.values())"
 )]
 pub struct ProcedureDecl {
     pub name: String,
+    pub check_mode: CheckMode,
     pub entry: BasicBlockId,
     pub exit: BasicBlockId,
     pub basic_blocks: BTreeMap<BasicBlockId, BasicBlock>,

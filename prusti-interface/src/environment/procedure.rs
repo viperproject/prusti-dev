@@ -294,7 +294,7 @@ fn blocks_definitely_leading_to(bb_graph: &HashMap<BasicBlock, BasicBlockNode>, 
 }
 
 fn blocks_dominated_by(mir: &Mir, dominator: BasicBlock) -> HashSet<BasicBlock> {
-    let dominators = mir.dominators();
+    let dominators = mir.basic_blocks.dominators();
     let mut blocks = HashSet::new();
     for bb in mir.basic_blocks().indices() {
         if dominators.is_dominated_by(bb, dominator) {
@@ -321,7 +321,7 @@ fn get_nonspec_basic_blocks(bb_graph: HashMap<BasicBlock, BasicBlockNode>, mir: 
 
 /// Returns the set of basic blocks that are not used as part of the typechecking of Prusti specifications
 fn build_nonspec_basic_blocks(mir: &Mir, real_edges: &RealEdges, tcx: &TyCtxt) -> HashSet<BasicBlock> {
-    let dominators = mir.dominators();
+    let dominators = mir.basic_blocks.dominators();
     let mut loop_heads: HashSet<BasicBlock> = HashSet::new();
 
     for source in mir.basic_blocks().indices() {

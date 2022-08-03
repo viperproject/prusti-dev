@@ -1,7 +1,9 @@
 use super::super::ast::{
     expression::Expression,
     position::Position,
-    rvalue::{visitors::RvalueWalker, Rvalue},
+    rvalue::{visitors::RvalueWalker, *},
+    ty::*,
+    variable::*,
 };
 
 impl Rvalue {

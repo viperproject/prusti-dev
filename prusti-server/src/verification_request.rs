@@ -8,7 +8,6 @@ use prusti_common::{config, vir::program::Program};
 use std::{
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
-    str::FromStr,
 };
 use viper::{self, VerificationBackend};
 
@@ -35,9 +34,8 @@ pub struct ViperBackendConfig {
     pub verifier_args: Vec<String>,
 }
 
-impl Default for ViperBackendConfig {
-    fn default() -> Self {
-        let backend = VerificationBackend::from_str(&config::viper_backend()).unwrap();
+impl ViperBackendConfig {
+    pub fn new(backend: VerificationBackend) -> Self {
         let mut verifier_args = config::extra_verifier_args();
         match backend {
             VerificationBackend::Silicon => {

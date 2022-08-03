@@ -55,18 +55,16 @@ impl<'mir, 'tcx: 'mir> PartialEq for ReachingDefsState<'mir, 'tcx> {
         debug_assert_eq!(
             {
                 let mut stable_hasher = StableHasher::new();
-                self.mir.hash_stable(
-                    &mut self.tcx.create_stable_hashing_context(),
-                    &mut stable_hasher,
-                );
+                self.tcx.with_stable_hashing_context(|mut ctx| {
+                    self.mir.hash_stable(&mut ctx, &mut stable_hasher)
+                });
                 stable_hasher.finish::<Fingerprint>()
             },
             {
                 let mut stable_hasher = StableHasher::new();
-                other.mir.hash_stable(
-                    &mut other.tcx.create_stable_hashing_context(),
-                    &mut stable_hasher,
-                );
+                other.tcx.with_stable_hashing_context(|mut ctx| {
+                    other.mir.hash_stable(&mut ctx, &mut stable_hasher)
+                });
                 stable_hasher.finish::<Fingerprint>()
             },
         );

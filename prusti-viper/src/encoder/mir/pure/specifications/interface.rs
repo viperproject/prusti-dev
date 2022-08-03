@@ -147,7 +147,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_high::Expression> {
         // identify previous block: there should only be one
-        let predecessors = &mir.predecessors()[invariant_block];
+        let predecessors = &mir.basic_blocks.predecessors()[invariant_block];
         assert_eq!(predecessors.len(), 1);
         let predecessor = predecessors[0];
 
@@ -297,7 +297,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr> {
         // identify previous block: there should only be one
-        let predecessors = &mir.predecessors()[invariant_block];
+        let predecessors = &mir.basic_blocks.predecessors()[invariant_block];
         assert_eq!(predecessors.len(), 1);
         let predecessor = predecessors[0];
 
