@@ -138,10 +138,10 @@ impl<'tcx> CondPCS<'tcx> {
             for (post_block, post_pcs) in cond_pcs_block.pcs_after.iter() {
                 println!("\t~ {:?} ~>", post_block.next);
                 for (pcs, st) in (&(post_block.body)).into_iter() {
-                    print!("\tPCS: ");
+                    print!("\t\tPCS: ");
                     pcs.pprint_contents();
                     println!();
-                    println!("\t\t{:?}", st);
+                    println!("\t\t\t{:?}", st);
                 }
                 println!("\t\t~> {:?}", post_pcs);
             }
