@@ -19,7 +19,7 @@ impl Box<i32>{
 #[ensures(!result)]
 fn box_test(x: Box<i32>) -> bool {
     //let y = Box::new(x);
-    *x == 0
+    true
 }
 
 

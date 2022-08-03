@@ -115,6 +115,9 @@ fn main() {
             java_class!("scala.collection.immutable.List", vec![
                 method!("toSeq"),
             ]),
+            java_class!("scala.collection.immutable.Vector", vec![
+                method!("toSeq"),
+            ]),
             java_class!("scala.collection.Iterable", vec![
                 method!("toSeq"),
             ]),
@@ -742,7 +745,9 @@ fn main() {
                 method!("extractedModel"),
                 method!("modelAtLabel"),
                 method!("domains"),
-                method!("non_domain_functions"),
+                method!("nonDomainFunctions"),
+                method!("extractVal", "(Lviper/silicon/reporting/VarEntry;)Lviper/silicon/reporting/ExtractedModelEntry;"),
+            
             ]),
             java_class!("viper.silicon.reporting.DomainEntry", vec![
                 method!("name"),

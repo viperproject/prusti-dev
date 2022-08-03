@@ -147,6 +147,12 @@ impl<'a> JniUtils<'a> {
         self.seq_to_vec(seq)
     }
 
+    pub fn vec_to_vec(&self, list: JObject<'a>) -> Vec<JObject<'a>> {
+        let vec_wrapper = scala::collection::immutable::Vector::with(self.env);
+        let seq = self.unwrap_result(vec_wrapper.call_toSeq(list));
+        self.seq_to_vec(seq)
+    }
+
     /// Converts a Scala Map (using strings! JObjects are not hashable) to a Rust HashMap
     pub fn stringmap_to_hashmap(&self, map: JObject<'a>) -> HashMap<String, JObject<'a>> {
         let iter_wrapper = scala::collection::Iterable::with(self.env);

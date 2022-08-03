@@ -1,0 +1,77 @@
+field f : Int
+
+function inc (x:Ref, i:Int): Int
+    requires acc(x.f)
+    ensures true
+{
+    x.f + i
+}
+
+method test(x:Ref, i:Int) returns (res:Int)
+     requires acc(x.f) && i == 1 && x.f == 0
+     ensures res == 1
+{
+        x.f := inc(x, i)
+        res := inc(x, i)
+}
+
+domain MyDomain {
+  function foo(x: Ref): Int
+}
+
+method test2(x: Ref) returns (res:Int)
+     requires true
+     ensures res == 2
+{
+        res := foo(x)
+}
+
+/*
+Postcondition of test might not hold. Assertion res == 1 might not hold. (counterexample_vpr.vpr@12.14--12.22)
+		counterexample:
+model at label old:
+x <- Ref ($Ref!val!0) {
+	f(perm: 1/1) <- 0
+}
+i <- 1
+res <- 2
+on return: 
+x <- Ref ($Ref!val!0) {
+	f(perm: 1/1) <- 1
+}
+i <- 1
+res <- 2 
+Domain: 
+domain MyDomain{
+ foo{
+    #unspecified [default case]
+}
+} 
+Functions: 
+inc(Snap,Ref,Int):Int{
+    $Snap.unit x 1 -> 1
+    ($Snap.combine $Snap.unit $Snap.unit) x 1 -> 2
+    else -> #unspecified [default case]
+}
+
+
+Postcondition of test2 might not hold. Assertion res == 2 might not hold. (counterexample_vpr.vpr@24.14--24.22)
+		counterexample:
+model at label old:
+x <- Null($Ref!val!0)
+res <- 0
+on return: 
+x <- Null($Ref!val!0)
+res <- 0 
+Domain: 
+domain MyDomain{
+ foo(Ref):Int{
+    x -> 0
+    else -> #unspecified [default case]
+}
+} 
+Functions: 
+inc{
+    #unspecified [default case]
+}
+*/

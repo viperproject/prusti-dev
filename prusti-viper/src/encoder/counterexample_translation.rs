@@ -15,20 +15,6 @@ use prusti_rustc_interface::span::Span;
 use std::iter;
 
 
-/*
-1) directly work in entries to process (new function, _to_process) use main model
-2) find hd function
-3) get domain value
-4) recusivly solve domain entries while caching old ones
-5) integrate it into the current counterexample algorithm
-6) 
-
-
-
-
-*/
-
-
 pub fn backtranslate(
     encoder: &Encoder,
     def_id: ProcedureDefId,

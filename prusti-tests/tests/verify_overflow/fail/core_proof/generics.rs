@@ -17,7 +17,7 @@ trait Validity {
     fn valid(&self) -> bool;
 }
 
-#[requires(a.valid())]
+//#[requires(a.valid())]
 #[ensures(result.valid())]
 fn test3<T: Validity>(a: T) -> T {
     a

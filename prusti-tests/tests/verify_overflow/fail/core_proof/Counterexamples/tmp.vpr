@@ -1,0 +1,127 @@
+field f : Int
+field g : Int
+/*
+function inc (i: Int, j: Int) : Int
+{
+    i + j
+}
+
+method inc2 (i: Int, j: Int) returns (res: Bool)
+    requires true
+    ensures res == true
+    {
+        res := i == inc(i, j)
+    }
+*/
+/*
+domain Pair[A, B] {
+    function constructor(x: A, y: B): Pair[A,B]
+    function constructor_ref(x: Ref): Pair[Int,Int]
+    function getFirst(p: Pair[A, B]): A
+    axiom ax_ref {
+    forall r: Ref,  :: getFirst(constructor_ref(r)) == 1
+  }
+}
+
+function first(p: Pair[Int, Int]): Int
+{
+    getFirst(p)
+}
+
+method test (i: Int, j:Int, r: Ref) returns (res : Bool)
+    requires acc(r.f)
+    ensures res == true
+{
+    var p: Pair[Int, Int] := constructor(i, j)
+    var p_ref_1: Pair[Int, Int] := constructor_ref(r)
+    r.f := i
+    var p_ref_2: Pair[Int, Int] := constructor_ref(r)
+    res := first(p_ref_2) == 0
+}*/
+
+
+
+predicate test(this: Ref) {
+  acc(this.f)
+}
+
+function inc2 (x:Ref, i:Int): Int
+    requires test(x)
+    ensures true
+{
+    unfolding test(x) in 
+    x.f + i
+}
+
+/*
+function inc3 (x:Ref, i:Int, j:Int): Bool
+    requires test(x)
+    ensures result == true
+{
+    inc2(x,i) == inc2(x,j)
+}*/
+
+
+
+method fn(x: Ref, i:Int) returns (res: Bool)
+    requires test(x) && i == 1
+    ensures res == true
+{
+    var j: Int
+    j := inc2(x,i)
+    unfold test(x)
+    x.f := j
+    fold test(x)
+    j := inc2(x,i)
+    unfold test(x)
+    x.f := j
+    fold test(x)
+    j := inc2(x,-i)
+    unfold test(x)
+    x.f := j
+    fold test(x)
+    j := inc2(x,-2*i)
+    unfold test(x)
+    x.f := j
+    fold test(x)
+    j := inc2(x,i)
+    unfold test(x)
+    x.f := j
+    fold test(x)
+    j := inc2(x,5)
+    unfold test(x)
+    res := x.f == j
+}
+/*
+function hp_indep(i:Int, j:Int): Bool
+    requires true
+    ensures true
+{
+    i == j
+}
+
+function test2(i: Int, j:Int, k:Int, l:Int): Bool
+    requires true
+    ensures result == true
+{
+    hp_indep(i, j) == hp_indep(l, k)
+}*/
+
+field left: Int
+field right: Int
+
+method simple(x: Ref, y: Ref) returns (n:Int)
+  requires acc(x.left) && acc(x.right)
+  requires acc(y.left) && acc(y.right)
+  requires y.left == 3 && y.right == 4
+  requires x.left == 42 && x.right > 52
+  ensures  acc(x.left) && acc(x.right)
+  ensures  acc(y.left) && acc(y.right)
+  //:: ExpectedCounterexample(postcondition.violated:assertion.false, (x.left == 84))
+  ensures  x.left == 42
+{
+  n := x.left
+  label ret
+  x.left := x.left * 2
+  x.right := 201
+}
