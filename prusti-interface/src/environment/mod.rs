@@ -529,13 +529,9 @@ impl<'tcx> Environment<'tcx> {
                 let mut sc = SelectionContext::new(&infcx);
                 let obligation = Obligation::new(
                     ObligationCause::dummy(),
-                    // TODO(tymap): don't use reveal_all
-                    ty::ParamEnv::reveal_all(),
+                    self.tcx.param_env(caller_def_id),
                     Binder::dummy(TraitPredicate {
-                        trait_ref: TraitRef {
-                            def_id: trait_id,
-                            substs: call_substs
-                        },
+                        trait_ref: ty::TraitRef::from_method(self.tcx, trait_id, call_substs),
                         constness: BoundConstness::NotConst,
                         polarity: ImplPolarity::Positive,
                     })
@@ -555,6 +551,11 @@ impl<'tcx> Environment<'tcx> {
                     }
                     unreachable!()
                 },
+                Ok(Some(ImplSource::Param(_, _))) => {
+                  eprintln!("CS: {:?}", call_substs);
+                  (called_def_id, call_substs)
+                },
+                Ok(Some(other)) => panic!("How do I {:?}", other),
                 _ => (called_def_id, call_substs)
             }
         } else {
