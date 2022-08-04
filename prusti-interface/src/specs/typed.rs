@@ -318,7 +318,16 @@ impl SpecGraph<ProcedureSpecification> {
     ) -> &mut ProcedureSpecification {
         self.specs_with_constraints
             .entry(constraint)
-            .or_insert_with(|| self.base_spec.clone())
+            .or_insert_with(|| {
+                let mut base = self.base_spec.clone();
+
+                // Preconditions of the base spec do not appear in the constrained spec
+                // Any preconditions that exist on the base spec are thus pruned
+                // (see comment on impl block)
+                base.pres = SpecificationItem::Empty;
+
+                base
+            })
     }
 
     /// Gets the constraint of a spec function `spec`.
@@ -462,24 +471,6 @@ pub enum ProcedureSpecificationKindError {
 }
 
 impl SpecificationItem<ProcedureSpecificationKind> {
-    pub fn is_pure(&self) -> Result<bool, ProcedureSpecificationKindError> {
-        self.validate()?;
-
-        Ok(matches!(
-            self.extract_with_selective_replacement(),
-            Some(ProcedureSpecificationKind::Pure) | Some(ProcedureSpecificationKind::Predicate(_))
-        ))
-    }
-
-    pub fn is_impure(&self) -> Result<bool, ProcedureSpecificationKindError> {
-        self.validate()?;
-
-        Ok(match self.extract_with_selective_replacement() {
-            Some(refined) => matches!(refined, ProcedureSpecificationKind::Impure),
-            _ => true,
-        })
-    }
-
     pub fn get_predicate_body(
         &self,
     ) -> Result<Option<&LocalDefId>, ProcedureSpecificationKindError> {
@@ -805,70 +796,6 @@ mod tests {
                     ProcedureSpecificationKindError::InvalidSpecKindRefinement(_, _)
                 ));
             }
-        }
-
-        mod is_impure {
-            use super::*;
-
-            macro_rules! impure_checks {
-                    ($($name:ident: $value:expr,)*) => {
-                        $(
-                            #[test]
-                            fn $name() {
-                                let (item, expected) = $value;
-                                let item: SpecificationItem<ProcedureSpecificationKind> = item;
-                                let result = item.is_impure().expect("Expected impure");
-                                assert_eq!(result, expected);
-                            }
-                        )*
-                    }
-                }
-
-            impure_checks!(
-                    empty: (Empty, true),
-                    inherent_impure: (Inherent(Impure), true),
-                    inherent_pure: (Inherent(Pure), false),
-                    inherent_predicate: (Inherent(Predicate(None)), false),
-                    inherited_impure: (Inherited(Impure), true),
-                    inherited_pure: (Inherited(Pure), false),
-                    inherited_predicate: (Inherited(Predicate(None)), false),
-                    refined_impure_parent_impure_child: (Refined(Impure, Impure), true),
-                    refined_impure_parent_pure_child: (Refined(Impure, Pure), false),
-                    refined_pure_parent_with_pure_child: (Refined(Pure, Pure), false),
-                    refined_predicate_parent_with_predicate_child: (Refined(Predicate(None), Predicate(None)), false),
-            );
-        }
-
-        mod is_pure {
-            use super::*;
-
-            macro_rules! pure_checks {
-                    ($($name:ident: $value:expr,)*) => {
-                        $(
-                            #[test]
-                            fn $name() {
-                                let (item, expected) = $value;
-                                let item: SpecificationItem<ProcedureSpecificationKind> = item;
-                                let result = item.is_pure().expect("Expected pure");
-                                assert_eq!(result, expected);
-                            }
-                        )*
-                    }
-                }
-
-            pure_checks!(
-                    empty: (Empty, false),
-                    inherent_impure: (Inherent(Impure), false),
-                    inherent_pure: (Inherent(Pure), true),
-                    inherent_predicate: (Inherent(Predicate(None)), true),
-                    inherited_impure: (Inherited(Impure), false),
-                    inherited_pure: (Inherited(Pure), true),
-                    inherited_predicate: (Inherited(Predicate(None)), true),
-                    refined_impure_parent_impure_child: (Refined(Impure, Impure), false),
-                    refined_impure_parent_pure_child: (Refined(Impure, Pure), true),
-                    refined_pure_parent_with_pure: (Refined(Pure, Pure), true),
-                    refined_predicate_parent_with_predicate_child: (Refined(Predicate(None), Predicate(None)), true),
-            );
         }
     }
 }

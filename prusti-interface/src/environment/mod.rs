@@ -12,10 +12,12 @@ use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
 use prusti_rustc_interface::middle::ty::{self, Binder, BoundConstness, ImplPolarity, TraitPredicate, TraitRef, TyCtxt};
 use prusti_rustc_interface::middle::ty::subst::{Subst, SubstsRef};
 use prusti_rustc_interface::trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
+use prusti_rustc_interface::middle::ty::TypeSuperFoldable;
 use prusti_rustc_interface::trait_selection::traits::{ImplSource, Obligation, ObligationCause, SelectionContext};
 use std::path::PathBuf;
 use prusti_rustc_interface::errors::{DiagnosticBuilder, EmissionGuarantee, MultiSpan};
 use prusti_rustc_interface::span::{Span, symbol::Symbol};
+use prusti_common::config;
 use std::collections::HashSet;
 use log::{debug, trace};
 use std::rc::Rc;
@@ -308,7 +310,11 @@ impl<'tcx> Environment<'tcx> {
         body
             .monomorphised_bodies
             .entry(substs)
-            .or_insert_with(|| ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs))
+            .or_insert_with(|| {
+                let param_env = self.tcx.param_env(def_id);
+                let substituted = ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs);
+                self.resolve_assoc_types(substituted.clone(), param_env)
+            })
             .clone()
     }
 
@@ -519,14 +525,31 @@ impl<'tcx> Environment<'tcx> {
     ) -> (ProcedureDefId, SubstsRef<'tcx>) {
         use prusti_rustc_interface::middle::ty::TypeVisitable;
 
-        // avoids a compiler-internal panic
-        if call_substs.needs_infer() {
+        // Avoids a compiler-internal panic
+        // this check ignores any lifetimes/regions, which at this point would
+        // need inference. They are thus ignored.
+        // TODO: different behaviour used for unsafe core proof
+        let needs_infer = if config::unsafe_core_proof() {
+            call_substs.needs_infer()
+        } else {
+            self.any_type_needs_infer(call_substs)
+        };
+        if needs_infer {
             return (called_def_id, call_substs);
         }
 
         let param_env = self.tcx.param_env(caller_def_id);
-        traits::resolve_instance(self.tcx, param_env.and((called_def_id, call_substs)))
+
+        // `resolve_instance` below requires normalized substs.
+        let normalized_call_substs = self.tcx.normalize_erasing_regions(param_env, call_substs);
+
+        traits::resolve_instance(self.tcx, param_env.and((called_def_id, normalized_call_substs)))
             .map(|opt_instance| opt_instance
+                // if the resolved instance is the same as what we queried for
+                // anyway, ignore it: this way we keep the regions in substs
+                // at least for non-trait-impl method calls
+                // TODO: different behaviour used for unsafe core proof
+                .filter(|instance| !config::unsafe_core_proof() || instance.def_id() != called_def_id)
                 .map(|instance| (instance.def_id(), instance.substs))
                 .unwrap_or((called_def_id, call_substs)))
             .unwrap_or((called_def_id, call_substs))
@@ -538,6 +561,7 @@ impl<'tcx> Environment<'tcx> {
         // Normalize the type to account for associated types
         let ty = self.resolve_assoc_types(ty, param_env);
         let ty = self.tcx.erase_late_bound_regions(ty);
+        let ty = self.tcx.erase_regions(ty);
         ty.is_copy_modulo_regions(self.tcx.at(prusti_rustc_interface::span::DUMMY_SP), param_env)
     }
 
@@ -577,28 +601,86 @@ impl<'tcx> Environment<'tcx> {
         );
 
         self.tcx.infer_ctxt().enter(|infcx| {
-            infcx.predicate_must_hold_considering_regions(&obligation)
+            infcx.predicate_must_hold_modulo_regions(&obligation)
         })
     }
 
     /// Normalizes associated types in foldable types,
     /// i.e. this resolves projection types ([ty::TyKind::Projection]s)
-    /// **Important:** Regions while be erased during this process
-    pub fn resolve_assoc_types<T: ty::TypeFoldable<'tcx> + std::fmt::Debug + Copy>(&self, normalizable: T, param_env: ty::ParamEnv<'tcx>) -> T {
-        let norm_res = self.tcx.try_normalize_erasing_regions(
-            param_env,
-            normalizable
-        );
+    pub fn resolve_assoc_types<T: ty::TypeFoldable<'tcx> + std::fmt::Debug>(&self, normalizable: T, param_env: ty::ParamEnv<'tcx>) -> T {
+        struct Normalizer<'a, 'tcx> {
+            tcx: &'a ty::TyCtxt<'tcx>,
+            param_env: ty::ParamEnv<'tcx>,
+        }
+        impl<'a, 'tcx> ty::fold::TypeFolder<'tcx> for Normalizer<'a, 'tcx> {
+            fn tcx(&self) -> ty::TyCtxt<'tcx> {
+                *self.tcx
+            }
 
-        match norm_res {
-            Ok(normalized) => {
-                debug!("Normalized {:?}: {:?}", normalizable, normalized);
-                normalized
-            },
-            Err(err) => {
-                debug!("Error while resolving associated types for {:?}: {:?}", normalizable, err);
-                normalizable
+            fn fold_mir_const(&mut self, c: mir::ConstantKind<'tcx>) -> mir::ConstantKind<'tcx> {
+                // rustc by default panics when we execute this TypeFolder on a mir::* type,
+                // but we want to resolve associated types when we retrieve a local mir::Body
+                c
+            }
+
+            fn fold_ty(&mut self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
+                match ty.kind() {
+                    ty::TyKind::Projection(_) => {
+                        let normalized = self.tcx.infer_ctxt().enter(|infcx| {
+                            use prusti_rustc_interface::trait_selection::traits::{fully_normalize, FulfillmentContext};
+
+                            let normalization_result = fully_normalize(
+                                &infcx,
+                                FulfillmentContext::new(),
+                                ObligationCause::dummy(),
+                                self.param_env,
+                                ty
+                            );
+
+                            match normalization_result {
+                                Ok(res) => res,
+                                Err(errors) => {
+                                    debug!("Error while resolving associated types: {:?}", errors);
+                                    ty
+                                }
+                            }
+                        });
+                        normalized.super_fold_with(self)
+                    }
+                    _ => ty.super_fold_with(self)
+                }
             }
         }
+
+        normalizable.fold_with(&mut Normalizer {tcx: &self.tcx, param_env})
+    }
+
+    fn any_type_needs_infer<T: ty::TypeFoldable<'tcx>>(&self, t: T) -> bool {
+        // Helper
+        fn is_nested_ty(ty: ty::Ty<'_>) -> bool {
+            let mut walker = ty.walk();
+            let first = walker.next().unwrap().expect_ty();
+            assert!(ty == first);
+            walker.next().is_some()
+        }
+
+        // Visitor
+        struct NeedsInfer;
+        impl<'tcx> ty::TypeVisitor<'tcx> for NeedsInfer {
+            type BreakTy = ();
+
+            fn visit_ty(&mut self, ty: ty::Ty<'tcx>) -> std::ops::ControlFlow<Self::BreakTy> {
+                use prusti_rustc_interface::middle::ty::{TypeVisitable, TypeSuperVisitable};
+                if is_nested_ty(ty) {
+                    ty.super_visit_with(self)
+                } else if ty.needs_infer() {
+                    std::ops::ControlFlow::BREAK
+                } else {
+                    std::ops::ControlFlow::CONTINUE
+                }
+            }
+        }
+
+        t.visit_with(&mut NeedsInfer).is_break()
     }
 }

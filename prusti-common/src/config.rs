@@ -131,6 +131,7 @@ lazy_static::lazy_static! {
         settings.set_default("print_hash", false).unwrap();
         settings.set_default("enable_cache", true).unwrap();
         settings.set_default("enable_ghost_constraints", false).unwrap();
+        settings.set_default("enable_iterators", false).unwrap();
 
         // Flags for testing.
         settings.set_default::<Option<i64>>("verification_deadline", None).unwrap();
@@ -883,4 +884,10 @@ pub fn enable_ghost_constraints() -> bool {
 /// `#[invariant(...)]` attribute.
 pub fn enable_type_invariants() -> bool {
     read_setting("enable_type_invariants")
+}
+
+/// When enabled, calls to `Iterator::next` will be encoded in the Viper program.
+/// Otherwise, an error is thrown during the encoding.
+pub fn enable_iterators() -> bool {
+    read_setting("enable_iterators")
 }

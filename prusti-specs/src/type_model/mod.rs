@@ -21,10 +21,11 @@ use crate::{
         UserAnnotatedTypeParam, UserAnnotatedTypeParamParser, UserAnnotatedTypeParamParserError,
     },
 };
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::ToTokens;
-use syn::{parse_quote, punctuated::Punctuated, spanned::Spanned};
+use syn::{parse_quote, spanned::Spanned};
 use uuid::Uuid;
+use crate::common::{HasGenerics, HasIdent};
 
 /// See module level documentation
 pub fn rewrite(item_struct: syn::ItemStruct) -> syn::Result<TokenStream> {
@@ -45,15 +46,16 @@ fn rewrite_internal(item_struct: syn::ItemStruct) -> TypeModelGenerationResult<T
     let model_impl = create_model_impl(&item_struct, &model_struct, &to_model_trait)?;
 
     Ok(TypeModel {
-        model_struct: model_struct.item,
-        to_model_trait: to_model_trait.item,
+        model_struct,
+        to_model_trait,
         model_impl,
     })
 }
 
+#[derive(Clone)]
 struct ModelStruct {
+    input_span: Span,
     item: syn::ItemStruct,
-
     /// The path to the generated struct, e.g. to be used as a return type
     path: syn::Path,
 }
@@ -71,11 +73,18 @@ impl ModelStruct {
 
         let model_struct_ident = &idents.model_struct_ident;
         let mut model_struct: syn::ItemStruct = parse_quote_spanned! {item_struct.span()=>
-            #[derive(Copy, Clone)]
             #[allow(non_camel_case_types)]
             struct #model_struct_ident {}
         };
 
+        // Attach lifetimes
+        for param in item_struct.generics.params.iter() {
+            if let syn::GenericParam::Lifetime(lt) = param {
+                model_struct.generics.params.push(syn::GenericParam::Lifetime(lt.clone()));
+            }
+        }
+
+        // Attach type params
         let params = item_struct
             .parse_user_annotated_type_params()
             .map_err(TypeModelGenerationError::NonParsableTypeParam)?;
@@ -90,25 +99,34 @@ impl ModelStruct {
         model_struct.fields = item_struct.fields.clone();
         add_phantom_data_for_generic_params(&mut model_struct);
 
-        let generic_idents = model_struct
-            .generics
-            .params
-            .iter()
-            .filter_map(|generic_param| match generic_param {
-                syn::GenericParam::Type(type_param) => Some(&type_param.ident),
-                _ => None,
-            });
-        let model_path: syn::Path = parse_quote!(
-            #model_struct_ident < #(#generic_idents),* >
-        );
+        let path = create_path(&model_struct);
 
-        Ok(Self {
-            item: model_struct,
-            path: model_path,
-        })
+        Ok(Self { input_span: item_struct.span(), item: model_struct, path, })
+    }
+
+    fn create_copy_impl(&self) -> syn::ItemImpl {
+        let path = &self.path;
+        let generics = self.item.generics.params.iter();
+        parse_quote_spanned! {self.input_span=>
+            impl<#(#generics),*> Copy for #path {}
+        }
+    }
+
+    fn create_clone_impl(&self) -> syn::ItemImpl {
+        let path = &self.path;
+        let generics = self.item.generics.params.iter();
+        parse_quote_spanned! {self.input_span=>
+            impl<#(#generics),*> Clone for #path {
+                #[trusted]
+                fn clone(&self) -> Self {
+                    unimplemented!()
+                }
+            }
+        }
     }
 }
 
+#[derive(Clone)]
 struct ToModelTrait {
     item: syn::ItemTrait,
 
@@ -124,18 +142,10 @@ impl ToModelTrait {
     ) -> Self {
         let generic_params: Vec<syn::GenericParam> =
             model_struct.item.generics.params.iter().cloned().collect();
-        let generic_params_idents: Vec<Ident> = generic_params
-            .iter()
-            .filter_map(|generic_param| match generic_param {
-                syn::GenericParam::Type(type_param) => Some(type_param.ident.clone()),
-                _ => None,
-            })
-            .collect();
 
         let model_path = &model_struct.path;
-
         let to_model_trait_ident = &idents.to_model_trait_ident;
-        let item = parse_quote_spanned! {item_struct.span()=>
+        let item: syn::ItemTrait = parse_quote_spanned! {item_struct.span()=>
             #[allow(non_camel_case_types)]
             trait #to_model_trait_ident<#(#generic_params),*> {
                 #[pure]
@@ -145,9 +155,7 @@ impl ToModelTrait {
             }
         };
 
-        let path: syn::Path = parse_quote!(
-            #to_model_trait_ident<#(#generic_params_idents),*>
-        );
+        let path = create_path(&item);
 
         Self { item, path }
     }
@@ -158,32 +166,18 @@ fn create_model_impl(
     model_struct: &ModelStruct,
     to_model_trait: &ToModelTrait,
 ) -> TypeModelGenerationResult<syn::ItemImpl> {
-    let ident = &item_struct.ident;
-
-    let mut rewritten_generics: Vec<syn::GenericParam> = Vec::new();
     for param in &item_struct.generics.params {
-        match param {
-            syn::GenericParam::Lifetime(_) => rewritten_generics.push(parse_quote!('_)),
-            syn::GenericParam::Type(type_param) => {
-                let mut cloned = type_param.clone();
-                cloned.attrs.clear();
-                cloned.bounds = Punctuated::default();
-                rewritten_generics.push(syn::GenericParam::Type(cloned))
-            }
-            syn::GenericParam::Const(const_param) => {
-                return Err(TypeModelGenerationError::ConstParamDisallowed(
-                    const_param.span(),
-                ))
-            }
+        if let syn::GenericParam::Const(const_param) = param {
+            return Err(TypeModelGenerationError::ConstParamDisallowed(
+                const_param.span(),
+            ))
         }
     }
 
     let generic_params: Vec<syn::GenericParam> =
         model_struct.item.generics.params.iter().cloned().collect();
 
-    let impl_path: syn::Path = parse_quote!(
-        #ident < #(#rewritten_generics),* >
-    );
+    let impl_path = create_path(item_struct);
 
     let to_model_trait_path = &to_model_trait.path;
     let model_struct_path = &model_struct.path;
@@ -262,11 +256,11 @@ impl std::convert::From<TypeModelGenerationError> for syn::Error {
 /// Type to represent generated code during expansion of the `#[model]` macro
 struct TypeModel {
     /// The struct which represents the model
-    model_struct: syn::ItemStruct,
+    model_struct: ModelStruct,
 
     /// A trait which will be implemented on the modelled type
     /// to return the [TypeModel::model_struct]
-    to_model_trait: syn::ItemTrait,
+    to_model_trait: ToModelTrait,
 
     /// The implementation of the [TypeModel::model_trait] on the modelled type.
     model_impl: syn::ItemImpl,
@@ -274,9 +268,27 @@ struct TypeModel {
 
 impl ToTokens for TypeModel {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.to_model_trait.to_tokens(tokens);
-        self.model_struct.to_tokens(tokens);
+        self.to_model_trait.item.to_tokens(tokens);
+        self.model_struct.item.to_tokens(tokens);
+        self.model_struct.create_copy_impl().to_tokens(tokens);
+        self.model_struct.create_clone_impl().to_tokens(tokens);
         self.model_impl.to_tokens(tokens);
+    }
+}
+
+fn create_path<T: HasIdent + HasGenerics>(pathable: &T) -> syn::Path {
+    let ident = &pathable.ident();
+
+    let generic_idents = pathable.generics().params.iter()
+        .filter_map(|generic_param| match generic_param {
+            syn::GenericParam::Lifetime(lt_def) =>
+                Some(lt_def.lifetime.to_token_stream()),
+            syn::GenericParam::Type(type_param) =>
+                Some(type_param.ident.to_token_stream()),
+            _ => None,
+        });
+    parse_quote! {
+        #ident < #(#generic_idents),* >
     }
 }
 
@@ -286,12 +298,21 @@ mod tests {
 
     #[test]
     fn rewritten_model_to_tokens() {
-        let to_model_trait: syn::ItemTrait = parse_quote!(
-            trait PrustiFooToModel {}
-        );
-        let model_struct: syn::ItemStruct = parse_quote!(
-            struct Foo {}
-        );
+        let to_model_trait = ToModelTrait {
+            path: parse_quote!(PrustiFooToModel),
+            item: parse_quote!(
+                trait PrustiFooToModel {}
+            )
+        };
+
+        let model_struct = ModelStruct {
+            path: parse_quote!(Foo),
+            item: parse_quote!(
+                struct Foo {}
+            ),
+            input_span: Span::call_site(),
+        };
+
         let trait_impl: syn::ItemImpl = parse_quote!(impl ToModel for Foo {});
 
         let rewritten_model = TypeModel {
@@ -302,8 +323,10 @@ mod tests {
         let actual_ts = rewritten_model.into_token_stream();
 
         let mut expected_ts = TokenStream::new();
-        to_model_trait.to_tokens(&mut expected_ts);
-        model_struct.to_tokens(&mut expected_ts);
+        to_model_trait.item.to_tokens(&mut expected_ts);
+        model_struct.item.to_tokens(&mut expected_ts);
+        model_struct.create_copy_impl().to_tokens(&mut expected_ts);
+        model_struct.create_clone_impl().to_tokens(&mut expected_ts);
         trait_impl.to_tokens(&mut expected_ts);
 
         assert_eq!(expected_ts.to_string(), actual_ts.to_string());
@@ -334,14 +357,13 @@ mod tests {
 
         let model_ident = check_model_ident(&model, "PrustiFooModel");
         let expected: syn::ItemStruct = syn::parse_quote!(
-            #[derive(Copy, Clone)]
             #[allow(non_camel_case_types)]
             struct #model_ident {
                 fld1: usize,
                 fld2: i32,
             }
         );
-        assert_eq_tokenizable(model.model_struct, expected);
+        assert_eq_tokenizable(model.model_struct.item, expected);
     }
 
     #[test]
@@ -355,11 +377,10 @@ mod tests {
         let model_ident = check_model_ident(&model, "PrustiFooModel");
 
         let expected: syn::ItemStruct = parse_quote!(
-            #[derive(Copy, Clone)]
             #[allow(non_camel_case_types)]
             struct #model_ident(i32, u32, usize);
         );
-        assert_eq_tokenizable(model.model_struct, expected);
+        assert_eq_tokenizable(model.model_struct.item, expected);
     }
 
     #[test]
@@ -386,7 +407,7 @@ mod tests {
     }
 
     #[test]
-    fn ok_uses_inferred_lifetime() {
+    fn ok_uses_defined_lifetime() {
         let input: syn::ItemStruct = parse_quote!(
             struct Foo<'a, 'b>(i32, u32, usize);
         );
@@ -396,22 +417,27 @@ mod tests {
         let trait_ident = check_trait_ident(&model, "PrustiFooToModel");
 
         let expected_struct: syn::ItemStruct = parse_quote!(
-            #[derive(Copy, Clone)]
             #[allow(non_camel_case_types)]
-            struct #model_ident(i32, u32, usize);
+            struct #model_ident<'a, 'b>(
+                i32,
+                u32,
+                usize,
+                ::core::marker::PhantomData<&'a()>,
+                ::core::marker::PhantomData<&'b()>
+            );
         );
         let expected_impl: syn::ItemImpl = parse_quote!(
             #[prusti::type_models_to_model_impl]
-            impl #trait_ident<> for Foo<'_, '_> {
+            impl<'a, 'b> #trait_ident<'a, 'b> for Foo<'a, 'b> {
                 #[trusted]
                 #[pure]
-                fn model(&self) -> #model_ident<> {
+                fn model(&self) -> #model_ident<'a, 'b> {
                     unimplemented!("Models can only be used in specifications")
                 }
             }
         );
 
-        assert_eq_tokenizable(model.model_struct, expected_struct);
+        assert_eq_tokenizable(model.model_struct.item, expected_struct);
         assert_eq_tokenizable(model.model_impl, expected_impl);
     }
 
@@ -426,7 +452,6 @@ mod tests {
         let trait_ident = check_trait_ident(&model, "PrustiFooi32TusizeUToModel");
 
         let expected_struct: syn::ItemStruct = parse_quote!(
-            #[derive(Copy, Clone)]
             #[allow(non_camel_case_types)]
             struct #model_ident<T, U> (i32,::core::marker::PhantomData<T> , ::core::marker::PhantomData<U>);
         );
@@ -452,8 +477,8 @@ mod tests {
             }
         );
 
-        assert_eq_tokenizable(model.model_struct, expected_struct);
-        assert_eq_tokenizable(model.to_model_trait, expected_trait);
+        assert_eq_tokenizable(model.model_struct.item, expected_struct);
+        assert_eq_tokenizable(model.to_model_trait.item, expected_trait);
         assert_eq_tokenizable(model.model_impl, expected_impl);
     }
 
@@ -468,7 +493,7 @@ mod tests {
         let model_ident = check_model_ident(&model, "PrustiFooModel");
         let trait_ident = check_trait_ident(&model, "PrustiFooToModel");
 
-        let actual = model.to_model_trait;
+        let actual = model.to_model_trait.item;
         let expected: syn::ItemTrait = parse_quote!(
             #[allow(non_camel_case_types)]
             trait #trait_ident {
@@ -520,13 +545,13 @@ mod tests {
     }
 
     fn check_model_ident(model: &TypeModel, expected_prefix: &str) -> Ident {
-        let ident = &model.model_struct.ident;
+        let ident = &model.model_struct.item.ident;
         assert!(ident.to_string().starts_with(expected_prefix));
         ident.clone()
     }
 
     fn check_trait_ident(model: &TypeModel, expected_prefix: &str) -> Ident {
-        let ident = &model.to_model_trait.ident;
+        let ident = &model.to_model_trait.item.ident;
         assert!(ident.to_string().starts_with(expected_prefix));
         ident.clone()
     }

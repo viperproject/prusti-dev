@@ -46,8 +46,17 @@ pub(super) fn inline_closure<'tcx>(
         let local_ty = mir.local_decls[arg_local].ty;
         body_replacements.push((
             encoder
-                .encode_value_expr(vir_crate::polymorphic::Expr::local(local), local_ty)
+                .encode_value_expr(vir_crate::polymorphic::Expr::local(local.clone()), local_ty)
                 .with_span(local_span)?,
+            if arg_idx == 0 {
+                cl_expr.clone()
+            } else {
+                vir_crate::polymorphic::Expr::local(args[arg_idx - 1].clone())
+            },
+        ));
+
+        body_replacements.push((
+            vir_crate::polymorphic::Expr::local(local),
             if arg_idx == 0 {
                 cl_expr.clone()
             } else {
@@ -121,6 +130,7 @@ pub(super) fn encode_quantifier<'tcx>(
     substs: ty::subst::SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
     let tcx = encoder.env().tcx();
+    let param_env = encoder.env().tcx().param_env(parent_def_id);
 
     // Quantifiers are encoded as:
     //   forall(
@@ -133,13 +143,14 @@ pub(super) fn encode_quantifier<'tcx>(
     //     ),
     //     |qvars...| -> bool { <body expr> },
     //   )
-
     let cl_type_body = substs.type_at(1);
     let (body_def_id, body_substs, body_span, args, _) = extract_closure_from_ty(tcx, cl_type_body);
 
     let mut encoded_qvars = vec![];
     let mut bounds = vec![];
     for (arg_idx, arg_ty) in args.into_iter().enumerate() {
+        let arg_ty = encoder.env().resolve_assoc_types(arg_ty, param_env);
+
         let qvar_ty = encoder.encode_snapshot_type(arg_ty).with_span(body_span)?;
         let qvar_name = format!(
             "_{}_quant_{}",

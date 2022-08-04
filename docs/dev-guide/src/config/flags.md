@@ -23,6 +23,7 @@
 | [`DUMP_VIPER_PROGRAM`](#dump_viper_program) | `bool` | `false` |
 | [`ENABLE_CACHE`](#enable_cache) | `bool` | `true` |
 | [`ENABLE_GHOST_CONSTRAINTS`](#enable_ghost_constraints) | `bool` | `false` |
+| [`ENABLE_ITERATORS`](#enable_iterators) | `bool` | `false` |
 | [`ENABLE_PURIFICATION_OPTIMIZATION`](#enable_purification_optimization) | `bool` | `false` |
 | [`ENABLE_TYPE_INVARIANTS`](#enable_type_invariants) | `bool` | `false` |
 | [`ENABLE_VERIFY_ONLY_BASIC_BLOCK_PATH`](#enable_verify_only_basic_block_path) | `bool` | `false` |
@@ -173,6 +174,13 @@ Ghost constraints allow for specifications which are only active if a certain "c
 on a generic type parameter) is satisfied.
 
 **This is an experimental feature**, because it is currently possible to introduce unsound verification behavior.
+
+## `ENABLE_ITERATORS`
+
+When enabled, calls to `Iterator::next` will be encoded in the Viper program.
+Otherwise, an error is thrown during the encoding.
+
+**This is an experimental feature**, iterator support is still experimental.
 
 ## `ENABLE_PURIFICATION_OPTIMIZATION`
 

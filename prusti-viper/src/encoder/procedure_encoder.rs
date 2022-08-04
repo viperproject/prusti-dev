@@ -2283,7 +2283,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ..
             } => {
                 let ty = literal.ty();
-                let func_const_val = literal.try_to_value(self.encoder.env().tcx());
                 if let ty::TyKind::FnDef(called_def_id, call_substs) = ty.kind() {
                     let called_def_id = *called_def_id;
                     debug!("Encode function call {:?} with substs {:?}", called_def_id, call_substs);
@@ -2406,32 +2405,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             );
                         }
 
-                        "std::ops::Fn::call"
-                        | "core::ops::Fn::call" => {
-                            let cl_type: ty::Ty = call_substs[0].expect_ty();
-                            match cl_type.kind() {
-                                ty::TyKind::Closure(cl_def_id, _) => {
-                                    debug!("Encoding call to closure {:?} with func {:?}", cl_def_id, func_const_val);
-                                    stmts.extend(self.encode_impure_function_call(
-                                        location,
-                                        term.source_info.span,
-                                        args,
-                                        destination,
-                                        target,
-                                        *cl_def_id,
-                                        call_substs,
-                                    )?);
-                                }
-
-                                _ => {
-                                    return Err(SpannedEncodingError::unsupported(
-                                        format!("only calls to closures are supported. The term is a {:?}, not a closure.", cl_type.kind()),
-                                        term.source_info.span,
-                                    ));
-                                }
-                            }
-                        }
-
                         "core::slice::<impl [T]>::len" => {
                             debug!("Encoding call of slice::len");
                             stmts.extend(
@@ -2445,9 +2418,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         }
 
                         "std::iter::Iterator::next" |
-                        "core::iter::Iterator::next" => {
+                        "core::iter::Iterator::next" if !config::enable_iterators() => {
                             return Err(SpannedEncodingError::unsupported(
-                                "iterators are not fully supported yet",
+                                "iterators are not fully supported yet, enable them with a feature flag",
                                 term.source_info.span,
                             ));
                         }
@@ -2988,7 +2961,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         destination: mir::Place<'tcx>,
         target: Option<BasicBlockIndex>,
         called_def_id: ProcedureDefId,
-        mut substs: ty::subst::SubstsRef<'tcx>,
+        substs: ty::subst::SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let full_func_proc_name = &self
             .encoder
@@ -2998,66 +2971,22 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             // .absolute_item_path_str(called_def_id);
         debug!("Encoding non-pure function call '{}' with args {:?} and substs {:?}", full_func_proc_name, mir_args, substs);
 
-        // Spans for fake exprs that cannot be encoded in viper
-        let mut fake_expr_spans: FxHashMap<Local, Span> = FxHashMap::default();
-
-        // First we construct the "operands" vector. This construction differs
-        // for closure calls, where we need to unpack a tuple into the actual
-        // call arguments. The components of the operands tuples are:
+        // First we construct the "operands" vector. The components of the
+        // operands tuples are:
         // - the original MIR Operand
         // - the VIR Local that will hold hold the argument before the call
         // - the type of the argument
         // - if not constant, the VIR expression for the argument
-        let mut operands: Vec<(&mir::Operand<'tcx>, Local, ty::Ty<'tcx>, Option<vir::Expr>)> = vec![];
         let mut encoded_operands = mir_args.iter()
             .map(|arg| self.mir_encoder.encode_operand_place(arg))
             .collect::<Result<Vec<Option<vir::Expr>>, _>>()
             .with_span(call_site_span)?;
-        if self.encoder.env().tcx().is_closure(called_def_id) {
-            // Closure calls are wrapped around std::ops::Fn::call(), which receives
-            // two arguments: The closure instance, and the tupled-up arguments
-            assert_eq!(mir_args.len(), 2);
-
-            let cl_ty = self.mir_encoder.get_operand_ty(&mir_args[0]);
-            operands.push((
-                &mir_args[0],
-                mir_args[0].place()
-                    .and_then(|place| place.as_local())
-                    .map_or_else(
-                        || self.locals.get_fresh(cl_ty),
-                        |local| local.into()
-                    ),
-                cl_ty,
-                encoded_operands[0].take(),
-            ));
-
-            let arg_tuple_ty = self.mir_encoder.get_operand_ty(&mir_args[1]);
-            if let ty::TyKind::Tuple(arg_types) = arg_tuple_ty.kind() {
-                for (field_num, arg_ty) in arg_types.into_iter().enumerate() {
-                    let arg = self.locals.get_fresh(arg_ty);
-                    fake_expr_spans.insert(arg, call_site_span);
-                    let value_field = self
-                        .encoder
-                        .encode_raw_ref_field(format!("tuple_{}", field_num), arg_ty)
-                        .with_span(call_site_span)?;
-                    operands.push((
-                        &mir_args[1], // not actually used ...
-                        arg,
-                        arg_ty,
-                        Some(encoded_operands[1].take().unwrap().field(value_field)),
-                    ));
-                }
-            } else {
-                unimplemented!();
-            }
-
-            // TODO: weird fix for closure call substitutions, we need to
-            // prepend the identity substs of the containing method ...
-            substs = self.encoder.env().tcx().mk_substs(self.substs.iter().chain(substs));
-        } else {
-            for (arg, encoded_operand) in mir_args.iter().zip(encoded_operands.iter_mut()) {
+        let operands: Vec<(&mir::Operand<'tcx>, Local, ty::Ty<'tcx>, Option<vir::Expr>)> = mir_args
+            .iter()
+            .zip(encoded_operands.iter_mut())
+            .map(|(arg, encoded_operand)| {
                 let arg_ty = self.mir_encoder.get_operand_ty(arg);
-                operands.push((
+                (
                     arg,
                     arg.place()
                         .and_then(|place| place.as_local())
@@ -3067,9 +2996,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         ),
                     arg_ty,
                     encoded_operand.take(),
-                ));
-            }
-        };
+                )
+            })
+            .collect();
+
+        // Spans for fake exprs that cannot be encoded in viper
+        let mut fake_expr_spans: FxHashMap<Local, Span> = FxHashMap::default();
 
         // Arguments can be places or constants. For constants, we pretend they're places by
         // creating a new local variable of the same type. For arguments that are not just local
