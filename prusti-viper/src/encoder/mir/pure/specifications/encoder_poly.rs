@@ -44,16 +44,19 @@ pub(super) fn inline_closure<'tcx>(
         let local_span = mir_encoder.get_local_span(arg_local);
         let local = mir_encoder.encode_local(arg_local).unwrap();
         let local_ty = mir.local_decls[arg_local].ty;
-        body_replacements.push((
-            encoder
-                .encode_value_expr(vir_crate::polymorphic::Expr::local(local), local_ty)
-                .with_span(local_span)?,
-            if arg_idx == 0 {
-                cl_expr.clone()
-            } else {
-                vir_crate::polymorphic::Expr::local(args[arg_idx - 1].clone())
-            },
-        ));
+        body_replacements.push(if arg_idx == 0 {
+            (
+                encoder
+                    .encode_value_expr(vir_crate::polymorphic::Expr::local(local), local_ty)
+                    .with_span(local_span)?,
+                cl_expr.clone(),
+            )
+        } else {
+            (
+                vir_crate::polymorphic::Expr::local(local),
+                vir_crate::polymorphic::Expr::local(args[arg_idx - 1].clone()),
+            )
+        });
     }
     Ok(encoder
         .encode_pure_expression(def_id, parent_def_id, substs)?
