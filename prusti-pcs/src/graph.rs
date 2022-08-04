@@ -33,6 +33,10 @@ pub trait CoreOps<'tcx> {
     fn unwind(&mut self, killed_loans: &FxHashSet<facts::Loan>) -> GraphResult<'tcx>;
 }
 
+pub trait ToGraphviz {
+    fn to_graphviz(&self, writer: &mut dyn io::Write) -> io::Result<()>;
+}
+
 #[derive(Debug, Clone)]
 pub enum ReborrowingGraph<'tcx> {
     Single(Graph<'tcx>),
@@ -105,10 +109,10 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
             ReborrowingGraph::Single(graph) => graph.r#move(new, old),
             ReborrowingGraph::Branch { graph, .. } => graph.r#move(new, old),
             ReborrowingGraph::Conditional { shared, graphs, .. } => {
-                if shared.any_edge(|edge| edge.comes_from(&old)) {
+                if shared.any_edge_comes_from(&old) {
                     shared.r#move(new, old);
                 } else {
-                    for (_, graph) in graphs {
+                    for graph in graphs.values_mut() {
                         graph.r#move(new, old);
                     }
                 }
@@ -130,10 +134,10 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
                 graph.mutable_borrow(from, loan, to, mir, tcx)
             }
             ReborrowingGraph::Conditional { shared, graphs, .. } => {
-                if shared.any_edge(|edge| edge.to() == &to) {
+                if shared.any_edge_goes_to(&to) {
                     shared.mutable_borrow(from, loan, to, mir, tcx)
                 } else {
-                    for (_, graph) in graphs {
+                    for graph in graphs.values_mut() {
                         graph.mutable_borrow(from, loan, to, mir, tcx)
                     }
                 }
@@ -152,7 +156,7 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
                 start,
                 graphs,
             } => {
-                if shared.any_edge(|edge| edge.to() == &to) {
+                if shared.any_edge_goes_to(&to) {
                     shared.package(from, to)
                 } else {
                     graphs
@@ -188,22 +192,22 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
                 start,
                 graphs,
             } => {
-                // TODO: unwind out of order because of shared part?
-                graphs.into_iter().fold(
+                graphs.iter_mut().fold(
                     shared.unwind(killed_loans),
-                    |mut acc, (condition_value, graph)| {
-                        let result = graph.unwind(killed_loans);
+                    |acc, (condition_value, graph)| {
+                        let mut result = graph.unwind(killed_loans);
                         let condition = ConditionId {
                             value: *condition_value,
                             start: *start,
                         };
 
-                        acc.annotations
-                            .append(&mut condition.apply_to(result.annotations));
-                        acc.removed.extend(result.removed);
-                        acc.added.extend(result.added);
+                        result
+                            .annotations
+                            .append(&mut condition.apply_to(acc.annotations));
+                        result.removed.extend(acc.removed); // TODO: under condition too?
+                        result.added.extend(acc.added);
 
-                        acc
+                        result
                     },
                 )
             }
@@ -242,39 +246,92 @@ impl<'tcx> ReborrowingGraph<'tcx> {
                 condition: *condition,
                 graph: Box::new(self_graph.intersection(other_graph)),
             },
-            (
-                ReborrowingGraph::Conditional {
-                    shared: self_shared,
-                    graphs: self_graphs,
-                    ..
-                },
-                ReborrowingGraph::Conditional {
-                    shared: other_shared,
-                    start,
-                    graphs: other_graphs,
-                },
-            ) => {
-                ReborrowingGraph::Conditional {
-                    shared: Box::new(self_shared.intersection(other_shared)),
-                    start: *start,
-                    graphs: todo!(),
-                };
-            }
             _ => Self::Single(Graph::new()),
         }
     }
 
-    fn any_edge<F>(&self, pred: F) -> bool
-    where
-        F: Fn(&GraphEdge<'tcx>) -> bool,
-    {
+    // TODO: can these two be abstracted by taking a closure?
+    fn any_edge_comes_from(&self, node: &GraphNode<'tcx>) -> bool {
         match self {
-            ReborrowingGraph::Single(graph) => graph.edges.iter().any(pred),
-            ReborrowingGraph::Branch { graph, .. } => graph.any_edge(pred),
+            ReborrowingGraph::Single(graph) => graph.edges.iter().any(|edge| edge.comes_from(node)),
+            ReborrowingGraph::Branch { graph, .. } => graph.any_edge_comes_from(node),
             ReborrowingGraph::Conditional { shared, graphs, .. } => {
-                shared.any_edge(&pred) || graphs.values().any(|graph| graph.any_edge(&pred))
+                shared.any_edge_comes_from(node)
+                    || graphs.values().any(|graph| graph.any_edge_comes_from(node))
             }
         }
+    }
+
+    fn any_edge_goes_to(&self, node: &GraphNode<'tcx>) -> bool {
+        match self {
+            ReborrowingGraph::Single(graph) => graph.edges.iter().any(|edge| edge.to() == node),
+            ReborrowingGraph::Branch { graph, .. } => graph.any_edge_goes_to(node),
+            ReborrowingGraph::Conditional { shared, graphs, .. } => {
+                shared.any_edge_goes_to(node)
+                    || graphs.values().any(|graph| graph.any_edge_goes_to(node))
+            }
+        }
+    }
+}
+
+impl<'tcx> ToGraphviz for ReborrowingGraph<'tcx> {
+    fn to_graphviz(&self, writer: &mut dyn io::Write) -> io::Result<()> {
+        writeln!(writer, "digraph ReborrowingGraph {{")?;
+        writeln!(writer, "rankdir=LR;")?;
+        writeln!(writer, "graph [fontname=monospace];")?;
+        writeln!(writer, "node [fontname=monospace];")?;
+        writeln!(writer, "edge [fontname=monospace];")?;
+
+        match self {
+            ReborrowingGraph::Single(graph) => graph.edges_to_graphviz(writer)?,
+            ReborrowingGraph::Branch { condition, graph } => {
+                writeln!(writer, "subgraph \"cluster_{:?}\" {{", condition)?;
+                writeln!(writer, "style=filled;")?;
+                writeln!(writer, "color=lightgrey;")?;
+                writeln!(writer, "node [style=filled,color=white];")?;
+                graph.to_graphviz(writer)?;
+                writeln!(
+                    writer,
+                    "label={:?};",
+                    format!("condition value: {:?}", condition.value)
+                )?;
+                writeln!(writer, "}}")?;
+            }
+            ReborrowingGraph::Conditional {
+                shared,
+                start,
+                graphs,
+            } => {
+                shared.to_graphviz(writer)?;
+
+                writeln!(writer, "subgraph \"cluster_{:?}\" {{", start)?;
+                writeln!(writer, "label={:?};", format!("condition at {:?}", start))?;
+                writeln!(writer, "graph [style=dotted];")?;
+
+                // TODO: duplicated with branch case
+                for (condition_value, graph) in graphs {
+                    let condition = ConditionId {
+                        value: *condition_value,
+                        start: *start,
+                    };
+                    writeln!(writer, "subgraph \"cluster_{:?}\" {{", condition)?;
+                    writeln!(writer, "style=filled;")?;
+                    writeln!(writer, "color=lightgrey;")?;
+                    writeln!(writer, "node [style=filled,color=white];")?;
+                    graph.to_graphviz(writer)?;
+                    writeln!(
+                        writer,
+                        "label={:?};",
+                        format!("condition value: {:?}", condition.value)
+                    )?;
+                    writeln!(writer, "}}")?;
+                }
+
+                writeln!(writer, "}}")?;
+            }
+        }
+
+        writeln!(writer, "}}")
     }
 }
 
@@ -581,14 +638,7 @@ impl<'tcx> Graph<'tcx> {
         self.edges.drain_filter(pred).next()
     }
 
-    // TODO: update for ReborrowingGraph
-    pub fn to_graphviz(&self, writer: &mut dyn io::Write) -> io::Result<()> {
-        writeln!(writer, "digraph ReborrowingGraph {{")?;
-        writeln!(writer, "rankdir=LR;")?;
-        writeln!(writer, "graph [fontname=monospace];")?;
-        writeln!(writer, "node [fontname=monospace];")?;
-        writeln!(writer, "edge [fontname=monospace];")?;
-
+    fn edges_to_graphviz(&self, writer: &mut dyn io::Write) -> io::Result<()> {
         for edge in &self.edges {
             match edge {
                 GraphEdge::Borrow { from, loans, to } => writeln!(
@@ -624,6 +674,20 @@ impl<'tcx> Graph<'tcx> {
                 )?,
             }
         }
+
+        Ok(())
+    }
+}
+
+impl<'tcx> ToGraphviz for Graph<'tcx> {
+    fn to_graphviz(&self, writer: &mut dyn io::Write) -> io::Result<()> {
+        writeln!(writer, "digraph ReborrowingGraph {{")?;
+        writeln!(writer, "rankdir=LR;")?;
+        writeln!(writer, "graph [fontname=monospace];")?;
+        writeln!(writer, "node [fontname=monospace];")?;
+        writeln!(writer, "edge [fontname=monospace];")?;
+
+        self.edges_to_graphviz(writer)?;
 
         writeln!(writer, "}}")
     }
