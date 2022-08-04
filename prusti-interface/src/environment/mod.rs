@@ -552,10 +552,9 @@ impl<'tcx> Environment<'tcx> {
                     unreachable!()
                 },
                 Ok(Some(ImplSource::Param(_, _))) => {
-                  eprintln!("CS: {:?}", call_substs);
                   (called_def_id, call_substs)
                 },
-                Ok(Some(other)) => panic!("How do I {:?}", other),
+                Ok(Some(other)) => panic!("Unexpected {:?}", other),
                 _ => (called_def_id, call_substs)
             }
         } else {
