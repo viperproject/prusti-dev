@@ -101,6 +101,7 @@ pub enum Entry {
         name: String,
         field_entry: (String, Box<Entry>),
     },
+    Array(Vec<Entry>), 
     Tuple(Vec<Entry>),
     Seq(Vec<Entry>),
     Unknown,
@@ -225,6 +226,17 @@ impl fmt::Debug for Entry {
                 let mut f1 = f.debug_struct(name);
                 f1.field(&field_entry.0, &*(field_entry.1));
                 f1.finish()
+            }
+            Entry::Array(elements) => {
+                if elements.is_empty() {
+                    write!(f, "[]")
+                } else {
+                    let mut output = "".to_string();
+                    for elem in elements {
+                        output.push_str(&format!("{:#?}, ", elem));
+                    }
+                    write!(f, "[{}]", output)
+                }
             }
             Entry::Unknown => write!(f, "?"),
         }

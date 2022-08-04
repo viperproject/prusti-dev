@@ -314,9 +314,18 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                 debug!("type inside box: {:?}", &new_typ);
                 Entry::Box(box self.extract_field_value(&sil_fn_name, Some(new_typ.clone()), model_entry, sil_domain, translated_domains, wo_model))
             },
+                
             (Some(ModelEntry::DomainValue(domain_name, ..)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_struct() => {
                 debug!("typ is struct");
                 debug!("typ: {:?}", typ);
+                if domain_name == "Snap$Unbounded" {
+                    let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                    debug!("domain for Int type: {:?}", domain_name);
+                    let sil_fn_name = format!("destructor${}$$value", domain_name);
+                    let variant = adt_def.variants().iter().next().unwrap();
+                    let int_typ = Some(variant.fields[0].ty(self.tcx, subst));
+                    return self.extract_field_value(&sil_fn_name, int_typ, model_entry, sil_domain, translated_domains, wo_model);
+                }
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
                 //let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name);
                 //debug!("Domain entry: {:?}", sil_domain);
@@ -360,8 +369,12 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                 //self.lowerer.encode_discriminant_name(domain_name).ok().unwrap();
                 debug!("discriminant function: {:?}", disc_function_name);
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
+                
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
-                let sil_fn_param = vec![model_entry.cloned()];
+                //FIXME: sort of a hack and has to be remove as soon as Unions can change their field!
+                //Problem: only the first snapshot variable has a dicriminant entry in Silicon's counterexample
+                //let sil_fn_param = vec![model_entry.cloned()];
+                let sil_fn_param = vec![Some(ModelEntry::DomainValue(domain_name.clone(), "0".to_string()))];
                 if let Some(disc_function) = sil_domain.functions.entries.get(&disc_function_name){
                     match disc_function.get_function_value_with_default(&sil_fn_param){
                         Some(ModelEntry::LitInt(disc_value)) => {
@@ -371,14 +384,15 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                             debug!("discriminant: {:?}", &disc_value_int);
                             debug!("variant found");
                             let variant = adt_def.variants().iter().next().unwrap();
-                            let variant_name =  variant.fields[disc_value_int].ident(self.tcx).name.to_ident_string();
+                            let variant_name = variant.fields[disc_value_int].ident(self.tcx).name.to_ident_string();
                             let field_typ = Some(variant.fields[disc_value_int].ty(self.tcx, subst));
                             debug!("variant name: {:?}", &variant_name);
 
                             let destructor_sil_name = format!("destructor${}${}$value", domain_name, &variant_name);
+                            
                             if let Some(value_function) = sil_domain.functions.entries.get(&destructor_sil_name){
                                 debug!("destructor found: {:?}", &value_function);
-                                let new_model_entry = value_function.get_function_value_with_default(&sil_fn_param);
+                                let new_model_entry = value_function.get_function_value_with_default(&sil_fn_param); 
                                 if let Some(ModelEntry::DomainValue(domain_name, _)) = new_model_entry{
                                     let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                                     let sil_fn_name = format!("destructor${}$$value", domain_name);
@@ -470,6 +484,18 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                 }).collect();
 
                 Entry::Seq(entries)
+            },
+            (Some(ModelEntry::Seq(name, model_entries)), Some(ty::TyKind::Array(typ, _))) => {
+                debug!("typ is array");
+                debug!("typ: {:?}", typ);
+                debug!("name: {:?}", name);
+                
+                let entries = model_entries.iter().map(|entry| 
+                {
+                    self.translate_snapshot_entry(Some(entry), Some(typ.clone()), translated_domains, wo_model)
+                }).collect();
+
+                Entry::Array(entries)
             },
             (Some(ModelEntry::DomainValue(domain_name, _)), _) => { //snapshot typ for primitive typ
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists

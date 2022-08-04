@@ -297,9 +297,13 @@ fn unwrap_model_entry<'a>(
         }
         "viper.silicon.reporting.LitPermEntry" => {
             let lit_perm_wrapper = silicon::reporting::LitPermEntry::with(env);
-            let value_scala = jni.unwrap_result(lit_perm_wrapper.call_value(entry));
-            let value = jni.to_string(value_scala);
-            Some(ModelEntry::LitPerm(value))
+            //let rational_wrapper = silicon::state::terms::Rational::with(env);
+            let value = jni.to_string(jni.unwrap_result(lit_perm_wrapper.call_value(entry))); //not very elegant
+            debug!("LitPermEntry: {:?}", value);
+            //let numerator = jni.to_string(jni.unwrap_result(rational_wrapper.call_numerator(jvalue))).parse();
+            //let denominator = jni.unwrap_result(rational_wrapper.call_denominator(jvalue));
+            //let value = numerator/denominator;
+            Some(ModelEntry::LitPerm(value)) 
         }
         "viper.silicon.reporting.RefEntry" => {
             let ref_wrapper = silicon::reporting::RefEntry::with(env);
@@ -332,12 +336,9 @@ fn unwrap_model_entry<'a>(
             Some(ModelEntry::RecursiveRef(name))
         }
         "viper.silicon.reporting.VarEntry" => {
-            let resolved_entry = jni.unwrap_result(converter.call_extractVal(converter_obj.clone(), entry));
-            let mode_entry = unwrap_model_entry(env, jni, resolved_entry, entries, converter_obj, converter);
-            mode_entry
-            /*let var_wrapper = silicon::reporting::VarEntry::with(env);
+            let var_wrapper = silicon::reporting::VarEntry::with(env);
             let name = jni.to_string(jni.unwrap_result(var_wrapper.call_name(entry)));
-            Some(ModelEntry::Var(name))*/
+            Some(ModelEntry::Var(name))
         }
         "viper.silicon.reporting.OtherEntry" => {
             let other_wrapper = silicon::reporting::OtherEntry::with(env);
@@ -431,8 +432,15 @@ fn unwrap_option_entry<'a>(
     let mut tmp = FxHashMap::default(); //We don't care about recusivley unwrapped ModelEntries
     //Since default is always a ConstantEntry, tmp is empty anyway
     let result = unwrap_model_entry(env, jni, result_scala, &mut tmp, converter_obj, converter);
+    let result_eval = if let Some(ModelEntry::Var(_)) = result { //if the result is VarEntry we need to resolve it to a value
+        let resolved_entry = jni.unwrap_result(converter.call_extractVal(converter_obj.clone(), entry));
+        let mode_entry = unwrap_model_entry(env, jni, resolved_entry, &mut tmp, converter_obj, converter);
+        mode_entry
+    } else {
+        result
+    };
     //debug!("result translated: {:?}", result);
-    (args, result)
+    (args, result_eval)
 }
 
 fn unwrap_domains<'a>(env: &'a JNIEnv<'a>, jni: JniUtils<'a>, domains: JObject<'a>, converter_obj: &JObject<'a>, converter: &silicon::reporting::Converter<'a>,) -> Domains {

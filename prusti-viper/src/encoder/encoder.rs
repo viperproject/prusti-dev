@@ -227,7 +227,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn get_core_proof_programs(&mut self) -> Vec<prusti_common::vir::program::Program> {
-        if config::counterexample()&& config::unsafe_core_proof(){
+        if config::counterexample() && config::unsafe_core_proof(){
             self.take_core_proof_programs().into_iter().map(
                 | program | {
                     self.add_mapping(&program);

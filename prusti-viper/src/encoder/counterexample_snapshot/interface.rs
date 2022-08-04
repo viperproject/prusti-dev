@@ -62,7 +62,7 @@ impl MirProcedureMapping{
                     successor,
                     stmts,
                 };
-                info!("New block: {:?}", new_block);
+                info!("New block of label {:?}: {:?}", &new_block.label, &new_block.stmts.len());
                 new_block
             }
         ).collect::<Vec<BasicBlock>>()
@@ -98,8 +98,11 @@ impl<'v, 'tcx: 'v> MirProcedureMappingInterface for super::super::Encoder<'v, 't
     fn add_mapping(&mut self, program: &vir_low::Program) {
         //let mut mapping = FxHashMap::default();
         if let Some(vir_low_procedure) = program.procedures.first(){
-            let procedure_new = self.mir_procedure_mapping.translate_procedure_decl(vir_low_procedure);
-            self.mir_procedure_mapping.mapping.insert(program.name.clone(), procedure_new);
+            info!("program name: {}", program.name.clone());
+            if !self.mir_procedure_mapping.mapping.contains_key(&program.name) {
+                let procedure_new = self.mir_procedure_mapping.translate_procedure_decl(vir_low_procedure);
+                self.mir_procedure_mapping.mapping.insert(program.name.clone(), procedure_new);
+            }
         }
     }
     fn get_mapping(&self, proc_name: String) -> Option<&Vec<BasicBlock>>{
