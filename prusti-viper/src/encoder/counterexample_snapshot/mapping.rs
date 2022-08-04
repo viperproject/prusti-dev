@@ -39,12 +39,17 @@ pub(crate) trait VarMappingInterface {
 impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_snapshot::CounterexampleTranslator<'ce, 'tcx, 'v> {
     fn create_mapping(&mut self, proc_def_id: ProcedureDefId, encoder: &Encoder){
         let name = encoder.env().get_absolute_item_name(proc_def_id);
+        info!("proc name: {:?}", &name);
         //let mut mapping:FxHashMap<String, FxHashMap<String, Vec<SnapshotVar>>> = FxHashMap::default();
         if let Some(mir_procedure_mapping) = encoder.get_mapping(name){
             for basic_block in mir_procedure_mapping{
                 let label = &basic_block.label;
+                info!("label of block: {:?}", label);
+                info!("stmts of block: {:?}", &basic_block.stmts.len());
+
                 self.var_mapping.labels_successor_mapping.insert(label.clone(), basic_block.successor.clone());
                 for statement in &basic_block.stmts{
+                    info!("statement: {:?}", statement);
                     let snapshot_var_option = match statement{
                         vir_low::Statement::Assume(assume ) => self.extract_var_from_assume(assume),
                         _ => None,
