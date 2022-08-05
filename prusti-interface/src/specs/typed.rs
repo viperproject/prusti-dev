@@ -1,10 +1,12 @@
 use crate::{environment::Environment, utils::has_trait_bounds_ghost_constraint};
 pub use common::{SpecIdRef, SpecType, SpecificationId};
 use log::trace;
+use prusti_rustc_interface::{
+    hir::def_id::{DefId, LocalDefId},
+    span::Span,
+};
 use prusti_specs::specifications::common;
 use rustc_hash::FxHashMap;
-use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
-use prusti_rustc_interface::span::Span;
 use std::{
     collections::HashMap,
     fmt::{Debug, Display, Formatter},
@@ -553,37 +555,20 @@ impl<T: Debug + Clone + PartialEq> Refinable for SpecificationItem<T> {
     {
         use SpecificationItem::*;
 
-        if self.is_empty() && other.is_empty() {
-            return Empty;
-        }
-
         trace!("Refining {:?} with {:?}", self, other);
 
-        if let Refined(from, _) = &self {
-            match other {
-                Refined(_, _) => panic!("Can not refine this refined item"),
-                Inherent(with) if from != with => panic!("Can not refine this refined item"),
-                Inherited(with) if from != with => panic!("Can not refine this refined item"),
-                _ => {}
-            }
-        }
+        let other_val = match other {
+            Empty => unreachable!("Trait spec should never be empty"),
+            Inherent(val) => val,
+            Inherited(val) => val,
+            Refined(_, _) => panic!("Can not refine with a refined item"),
+        };
 
-        if matches!(other, Refined(_, _)) {
-            panic!("Can not refine with a refined item");
-        }
-
-        let refined = if self.is_empty() && !other.is_empty() {
-            match other.clone() {
-                Inherent(val) => Inherited(val),
-                Inherited(val) => Inherited(val),
-                Empty | Refined(_, _) => unreachable!(),
-            }
-        } else if !self.is_empty() && !other.is_empty() {
-            let (_, self_val) = self.get().unwrap();
-            let (_, other_val) = other.get().unwrap();
-            Refined(other_val.clone(), self_val.clone())
-        } else {
-            self
+        let refined = match self {
+            Empty => Inherited(other_val.clone()),
+            Inherent(val) | Inherited(val) => Refined(other_val.clone(), val),
+            Refined(from, val) if &from == other_val => Refined(from, val),
+            Refined(_, _) => panic!("Can not refine this refined item")
         };
 
         trace!("\t -> {:?}", refined);
@@ -593,11 +578,22 @@ impl<T: Debug + Clone + PartialEq> Refinable for SpecificationItem<T> {
 
 impl Refinable for ProcedureSpecification {
     fn refine(self, other: &Self) -> Self {
+        // Unspecified trait specs should be treated as a default value instead of nothing
+        // See issue-1022
+        type SpecVec<T> = SpecificationItem<Vec<T>>;
+        static EMPTYL: SpecVec<LocalDefId> = SpecificationItem::Inherent(vec![]);
+        static EMPTYP: SpecVec<Pledge> = SpecificationItem::Inherent(vec![]);
+        fn replace_empty<'a, T>(empty: &'a SpecVec<T>, spec: &'a SpecVec<T>) -> &'a SpecVec<T> {
+            match spec {
+                SpecificationItem::Empty => empty,
+                other => other
+            }
+        }
         ProcedureSpecification {
             span: self.span.or(other.span),
-            pres: self.pres.refine(&other.pres),
-            posts: self.posts.refine(&other.posts),
-            pledges: self.pledges.refine(&other.pledges),
+            pres: self.pres.refine(replace_empty(&EMPTYL, &other.pres)),
+            posts: self.posts.refine(replace_empty(&EMPTYL, &other.posts)),
+            pledges: self.pledges.refine(replace_empty(&EMPTYP, &other.pledges)),
             kind: self.kind.refine(&other.kind),
             trusted: self.trusted.refine(&other.trusted),
         }
@@ -639,7 +635,6 @@ mod tests {
         }
 
         refine_success_tests!(
-            refine_from_empty_with_empty: (Empty::<i32>, Empty::<i32>, Empty::<i32>),
             refine_from_empty_with_inherent: (Empty, Inherent(1), Inherited(1)),
             refine_from_empty_with_inherited: (Empty, Inherited(1), Inherited(1)),
         );
@@ -649,7 +644,6 @@ mod tests {
         );
 
         refine_success_tests!(
-            refine_from_inherent_with_empty: (Inherent(1), Empty, Inherent(1)),
             refine_from_inherent_with_inherent: (Inherent(1), Inherent(2), Refined(2, 1)),
             refine_from_inherent_with_inherited: (Inherent(1), Inherited(2), Refined(2, 1)),
         );
@@ -659,7 +653,6 @@ mod tests {
         );
 
         refine_success_tests!(
-            refine_from_inherited_with_empty: (Inherited(1), Empty, Inherited(1)),
             refine_from_inherited_with_inherent: (Inherited(1), Inherent(2), Refined(2, 1)),
             refine_from_inherited_with_inherited: (Inherited(1), Inherited(2), Refined(2, 1)),
         );
@@ -669,7 +662,6 @@ mod tests {
         );
 
         refine_success_tests!(
-            refine_from_refined_with_empty: (Refined(1, 2), Empty, Refined(1, 2)),
             // Generally, we can not refine a refined item.
             // In this case it is possible, because the refined-from part does not change.
             refine_from_refined_with_inherited_refinable: (Refined(1, 2), Inherited(1), Refined(1, 2)),
