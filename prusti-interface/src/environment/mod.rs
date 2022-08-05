@@ -66,7 +66,7 @@ pub struct Environment<'tcx> {
     /// Cached MIR bodies.
     bodies: RefCell<HashMap<LocalDefId, CachedLocalBody<'tcx>>>,
     /// The spec bodies should be loaded into cache at the start
-    local_spec_bodies: RefCell<HashMap<LocalDefId, CachedBody<'tcx>>>,
+    local_spec_bodies: RefCell<HashMap<LocalDefId, CachedLocalBody<'tcx>>>,
     external_spec_bodies: RefCell<HashMap<DefId, CachedBody<'tcx>>>,
     tcx: TyCtxt<'tcx>,
     warn_buffer: RefCell<Vec<prusti_rustc_interface::errors::Diagnostic>>,
@@ -282,30 +282,44 @@ impl<'tcx> Environment<'tcx> {
     /// Get the MIR body of a local procedure, monomorphised with the given
     /// type substitutions.
     pub fn local_body_mir(&self, def_id: LocalDefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
-        assert!(!self.local_spec_bodies.borrow().contains_key(&def_id));
         let mut bodies = self.bodies.borrow_mut();
         let body = bodies.entry(def_id)
             .or_insert_with(|| {
-                // SAFETY: This is safe because we are feeding in the same `tcx`
-                // that was used to store the data.
-                let body_with_facts = unsafe {
-                    self::mir_storage::retrieve_mir_body(self.tcx, def_id)
-                };
-                let body = body_with_facts.body;
-                let facts = BorrowckFacts {
-                    input_facts: RefCell::new(Some(body_with_facts.input_facts)),
-                    output_facts: body_with_facts.output_facts,
-                    location_table: RefCell::new(Some(body_with_facts.location_table)),
-                };
+                let local_spec_bodies = self.local_spec_bodies.borrow();
 
-                CachedLocalBody {
-                    body: CachedBody {
-                        base_body: Rc::new(body),
-                        monomorphised_bodies: HashMap::new(),
-                    },
-                    borrowck_facts: Rc::new(facts),
+                if let Some(body) = local_spec_bodies.get(&def_id) {
+                    CachedLocalBody {
+                        body: CachedBody {
+                            base_body: Rc::clone(&body.body.base_body),
+                            monomorphised_bodies: HashMap::new(),
+                        },
+                        borrowck_facts: Rc::clone(&body.borrowck_facts),
+                    }
+                } else {
+                    // SAFETY: This is safe because we are feeding in the same `tcx`
+                    // that was used to store the data.
+                    let body_with_facts = unsafe {
+                        self::mir_storage::retrieve_mir_body(self.tcx, def_id)
+                    };
+                    let body = body_with_facts.body;
+                    let facts = BorrowckFacts {
+                        input_facts: RefCell::new(Some(body_with_facts.input_facts)),
+                        output_facts: body_with_facts.output_facts,
+                        location_table: RefCell::new(Some(body_with_facts.location_table)),
+                    };
+
+                    CachedLocalBody {
+                        body: CachedBody {
+                            base_body: Rc::new(body),
+                            monomorphised_bodies: HashMap::new(),
+                        },
+                        borrowck_facts: Rc::new(facts),
+                    }
                 }
             });
+
+
+
         self.subst_into_body(&mut body.body, substs)
     }
 
@@ -316,7 +330,7 @@ impl<'tcx> Environment<'tcx> {
             let mut local_spec_bodies = self.local_spec_bodies.borrow_mut();
             let body = local_spec_bodies.get_mut(&def_id)
                 .expect(&format!("Local body of spec {:?} was not loaded with `load_local_spec_mir`!", def_id));
-            self.subst_into_body(body, substs)
+            self.subst_into_body(&mut body.body, substs)
         } else {
             let mut external_spec_bodies = self.external_spec_bodies.borrow_mut();
             let body = external_spec_bodies.get_mut(&def_id)
@@ -362,11 +376,21 @@ impl<'tcx> Environment<'tcx> {
         let body_with_facts = unsafe {
             self::mir_storage::retrieve_mir_body(self.tcx, def_id)
         };
+
+        let facts = BorrowckFacts {
+            input_facts: RefCell::new(Some(body_with_facts.input_facts)),
+            output_facts: body_with_facts.output_facts,
+            location_table: RefCell::new(Some(body_with_facts.location_table)),
+        };
+
         local_spec_bodies.insert(
             def_id,
-            CachedBody {
-                base_body: Rc::new(body_with_facts.body),
-                monomorphised_bodies: HashMap::new()
+            CachedLocalBody {
+                body: CachedBody {
+                    base_body: Rc::new(body_with_facts.body),
+                    monomorphised_bodies: HashMap::new(),
+                },
+                borrowck_facts: Rc::new(facts),
             }
         );
     }
@@ -374,7 +398,7 @@ impl<'tcx> Environment<'tcx> {
     /// Get all local spec mir bodies to save to file for cross-crate export
     pub fn bodies_for_export(&self) -> CrossCrateBodyMap<'tcx> {
         self.local_spec_bodies.borrow().iter().map(
-            |(id, cb)| (id.to_def_id(), cb.base_body.clone())
+            |(id, cb)| (id.to_def_id(), cb.body.base_body.clone())
         ).collect()
     }
 
