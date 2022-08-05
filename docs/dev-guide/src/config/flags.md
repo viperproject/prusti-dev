@@ -45,7 +45,6 @@
 | [`MAX_LOG_FILE_NAME_LENGTH`](#max_log_file_name_length) | `usize` | `60` |
 | [`NO_VERIFY`](#no_verify) | `bool` | `false` |
 | [`NO_VERIFY_DEPS`](#no_verify_deps) | `bool` | `false` |
-| [`ONLY_MEMORY_SAFETY`](#only_memory_safety) | `bool` | `false` |
 | [`OPTIMIZATIONS`](#optimizations) | `Vec<String>` | "all" |
 | [`PRESERVE_SMT_TRACE_FILES`](#preserve_smt_trace_files) | `bool` | `false` |
 | [`PRINT_COLLECTED_VERIFICATION_ITEMS`](#print_collected_verification_items) | `bool` | `false` |

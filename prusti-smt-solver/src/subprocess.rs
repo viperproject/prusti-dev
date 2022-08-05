@@ -43,18 +43,24 @@ pub(crate) async fn communicate(
     let mut solver_stdout = BufReader::new(solver_stdout);
     let mut response = String::new();
     let mut command = String::new();
-    while read_command(&mut command).await? {
+    let mut not_finished = true;
+    while not_finished && read_command(&mut command).await? {
         context.write_to_log("in ", &command).await?;
         let now = std::time::Instant::now();
         solver_stdin.write_all(command.as_bytes()).await?;
         solver_stdin.flush().await?;
 
-        assert!(
-            read_response(&mut solver_stdout, &mut response)
-                .await
-                .unwrap(),
-            "reached EOF while reading response"
-        );
+        if !read_response(&mut solver_stdout, &mut response)
+            .await
+            .unwrap()
+        {
+            assert!(
+                are_parens_balanced(&response),
+                "unbalanced EOF response: {}",
+                response
+            );
+            not_finished = false;
+        }
         let elapsed = now.elapsed().as_millis();
         context.write_to_log("out", &response).await?;
         context.write_number_to_log("elapsed-time", elapsed).await?;

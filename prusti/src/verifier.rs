@@ -16,6 +16,8 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
         warn!("The compiler reported an error, so the program will not be verified.");
     } else {
         debug!("Prepare verification task...");
+        // TODO: can we replace `get_annotated_procedures` with information
+        // that is already in `def_spec`?
         let annotated_procedures = env.get_annotated_procedures();
         let verification_task = VerificationTask {
             procedures: annotated_procedures,

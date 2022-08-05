@@ -74,7 +74,7 @@ pub fn apply_patch_to_borrowck<'tcx>(
     }
 
     // Patch cfg_edge facts for the inserted statements.
-    let predecessors = patched_body.predecessors();
+    let predecessors = patched_body.basic_blocks.predecessors();
     let mut new_statements: Vec<_> = patch
         .new_statements
         .iter()

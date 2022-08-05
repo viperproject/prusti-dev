@@ -24,18 +24,14 @@ pub(in super::super) trait TypeDeclWalker {
             | vir_mid::Type::Sequence(_)
             | vir_mid::Type::Map(_) => self.before_primitive(ty, parameters, lowerer),
             // vir_mid::Type::TypeVar(TypeVar) => {},
-            vir_mid::Type::Tuple(_)
-            | vir_mid::Type::Struct(_)
-            | vir_mid::Type::Enum(_)
-            | vir_mid::Type::Union(_)
+            vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_) | vir_mid::Type::Union(_)
                 if is_empty && Self::IS_EMPTY_PRIMITIVE =>
             {
                 self.before_primitive(ty, parameters, lowerer)
             }
-            vir_mid::Type::Tuple(_)
-            | vir_mid::Type::Struct(_)
-            | vir_mid::Type::Enum(_)
-            | vir_mid::Type::Union(_) => self.before_composite(ty, parameters, lowerer),
+            vir_mid::Type::Struct(_) | vir_mid::Type::Enum(_) | vir_mid::Type::Union(_) => {
+                self.before_composite(ty, parameters, lowerer)
+            }
             // vir_mid::Type::Array(Array) => {},
             // vir_mid::Type::Never => {},
             // vir_mid::Type::Closure(Closure) => {},
@@ -176,17 +172,14 @@ pub(in super::super) trait TypeDeclWalker {
             | vir_mid::TypeDecl::Map(_) => {
                 self.walk_primitive(ty, &parameters, lowerer)?;
             }
+            // vir_mid::TypeDecl::Trusted(_) => {}
             // vir_mid::TypeDecl::TypeVar(TypeVar) => {},
-            vir_mid::TypeDecl::Tuple(_)
-            | vir_mid::TypeDecl::Struct(_)
+            vir_mid::TypeDecl::Struct(_)
             | vir_mid::TypeDecl::Enum(_)
             | vir_mid::TypeDecl::Union(_)
                 if is_empty && Self::IS_EMPTY_PRIMITIVE =>
             {
                 self.walk_primitive(ty, &parameters, lowerer)?;
-            }
-            vir_mid::TypeDecl::Tuple(tuple_decl) => {
-                self.walk_fields(ty, tuple_decl.iter_fields(), &parameters, lowerer)?;
             }
             vir_mid::TypeDecl::Struct(struct_decl) => {
                 self.walk_fields(ty, struct_decl.iter_fields(), &parameters, lowerer)?;
@@ -222,7 +215,7 @@ pub(in super::super) trait TypeDeclWalker {
             | vir_mid::Type::Sequence(_)
             | vir_mid::Type::Map(_) => self.after_primitive(ty, parameters, lowerer),
             // vir_mid::Type::TypeVar(TypeVar) => {},
-            vir_mid::Type::Tuple(_)
+            vir_mid::Type::Trusted(_)
             | vir_mid::Type::Struct(_)
             | vir_mid::Type::Enum(_)
             | vir_mid::Type::Union(_)
@@ -230,7 +223,7 @@ pub(in super::super) trait TypeDeclWalker {
             {
                 self.after_primitive(ty, parameters, lowerer)
             }
-            vir_mid::Type::Tuple(_)
+            vir_mid::Type::Trusted(_)
             | vir_mid::Type::Struct(_)
             | vir_mid::Type::Enum(_)
             | vir_mid::Type::Union(_) => self.after_composite(ty, parameters, lowerer),
