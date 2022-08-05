@@ -351,6 +351,9 @@
 <span id="351">351</span>
 <span id="352">352</span>
 <span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
 </pre><pre class="rust"><code><span class="comment">// © 2022, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -397,16 +400,19 @@
         <span class="kw">let</span> <span class="ident">local_span</span> <span class="op">=</span> <span class="ident">mir_encoder</span>.<span class="ident">get_local_span</span>(<span class="ident">arg_local</span>);
         <span class="kw">let</span> <span class="ident">local</span> <span class="op">=</span> <span class="ident">mir_encoder</span>.<span class="ident">encode_local</span>(<span class="ident">arg_local</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">local_ty</span> <span class="op">=</span> <span class="ident">mir</span>.<span class="ident">local_decls</span>[<span class="ident">arg_local</span>].<span class="ident">ty</span>;
-        <span class="ident">body_replacements</span>.<span class="ident">push</span>((
-            <span class="ident">encoder</span>
-                .<span class="ident">encode_value_expr</span>(<span class="ident">vir_crate::polymorphic::Expr::local</span>(<span class="ident">local</span>), <span class="ident">local_ty</span>)
-                .<span class="ident">with_span</span>(<span class="ident">local_span</span>)<span class="question-mark">?</span>,
-            <span class="kw">if</span> <span class="ident">arg_idx</span> <span class="op">==</span> <span class="number">0</span> {
-                <span class="ident">cl_expr</span>.<span class="ident">clone</span>()
-            } <span class="kw">else</span> {
-                <span class="ident">vir_crate::polymorphic::Expr::local</span>(<span class="ident">args</span>[<span class="ident">arg_idx</span> <span class="op">-</span> <span class="number">1</span>].<span class="ident">clone</span>())
-            },
-        ));
+        <span class="ident">body_replacements</span>.<span class="ident">push</span>(<span class="kw">if</span> <span class="ident">arg_idx</span> <span class="op">==</span> <span class="number">0</span> {
+            (
+                <span class="ident">encoder</span>
+                    .<span class="ident">encode_value_expr</span>(<span class="ident">vir_crate::polymorphic::Expr::local</span>(<span class="ident">local</span>), <span class="ident">local_ty</span>)
+                    .<span class="ident">with_span</span>(<span class="ident">local_span</span>)<span class="question-mark">?</span>,
+                <span class="ident">cl_expr</span>.<span class="ident">clone</span>(),
+            )
+        } <span class="kw">else</span> {
+            (
+                <span class="ident">vir_crate::polymorphic::Expr::local</span>(<span class="ident">local</span>),
+                <span class="ident">vir_crate::polymorphic::Expr::local</span>(<span class="ident">args</span>[<span class="ident">arg_idx</span> <span class="op">-</span> <span class="number">1</span>].<span class="ident">clone</span>()),
+            )
+        });
     }
     <span class="prelude-val">Ok</span>(<span class="ident">encoder</span>
         .<span class="ident">encode_pure_expression</span>(<span class="ident">def_id</span>, <span class="ident">parent_def_id</span>, <span class="ident">substs</span>)<span class="question-mark">?</span>
@@ -426,12 +432,12 @@
 ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir_crate::polymorphic::Expr</a><span class="op">&gt;</span> {
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">substs</span>.<span class="ident">len</span>(), <span class="ident">encoder</span>.<span class="ident">env</span>().<span class="ident">identity_substs</span>(<span class="ident">def_id</span>).<span class="ident">len</span>());
 
-    <span class="kw">let</span> <span class="ident">mir</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#66">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#208">env</a>().<span class="ident">local_mir</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#67">def_id</a>.<span class="ident">expect_local</span>(), <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#72">substs</a>);
+    <span class="kw">let</span> <span class="ident">mir</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#69">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#208">env</a>().<span class="ident">local_mir</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#70">def_id</a>.<span class="ident">expect_local</span>(), <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#75">substs</a>);
     <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(
         <span class="ident">mir</span>.<span class="ident">arg_count</span>,
         <span class="ident">target_args</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="kw">if</span> <span class="ident">target_return</span>.<span class="ident">is_some</span>() { <span class="number">1</span> } <span class="kw">else</span> { <span class="number">0</span> }
     );
-    <span class="kw">let</span> <span class="ident">mir_encoder</span> <span class="op">=</span> <span class="ident">MirEncoder::new</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#66">encoder</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#76">mir</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#67">def_id</a>);
+    <span class="kw">let</span> <span class="ident">mir_encoder</span> <span class="op">=</span> <span class="ident">MirEncoder::new</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#69">encoder</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#79">mir</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#70">def_id</a>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body_replacements</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
     <span class="kw">for</span> (<span class="ident">arg_idx</span>, <span class="ident">arg_local</span>) <span class="kw">in</span> <span class="ident">mir</span>.<span class="ident">args_iter</span>().<span class="ident">enumerate</span>() {
         <span class="kw">let</span> <span class="ident">local_span</span> <span class="op">=</span> <span class="ident">mir_encoder</span>.<span class="ident">get_local_span</span>(<span class="ident">arg_local</span>);
@@ -462,7 +468,7 @@
     }
     <span class="prelude-val">Ok</span>(<span class="ident">encoder</span>
         .<span class="ident">encode_pure_expression</span>(<span class="ident">def_id</span>, <span class="ident">parent_def_id</span>, <span class="ident">substs</span>)<span class="question-mark">?</span>
-        .<span class="ident">replace_multiple_places</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#82">body_replacements</a>))
+        .<span class="ident">replace_multiple_places</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#85">body_replacements</a>))
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">encode_quantifier</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
@@ -473,7 +479,7 @@
     <span class="ident">parent_def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
     <span class="ident">substs</span>: <span class="ident">ty::subst::SubstsRef</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">SpannedEncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir_crate::polymorphic::Expr</a><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">tcx</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#116">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#208">env</a>().<span class="ident">tcx</span>();
+    <span class="kw">let</span> <span class="ident">tcx</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#119">encoder</a>.<a class="ident" href="../../../../../../src/prusti_viper/encoder/encoder.rs.html#208">env</a>().<span class="ident">tcx</span>();
 
     <span class="comment">// Quantifiers are encoded as:</span>
     <span class="comment">//   forall(</span>
@@ -487,8 +493,8 @@
     <span class="comment">//     |qvars...| -&gt; bool { &lt;body expr&gt; },</span>
     <span class="comment">//   )</span>
 
-    <span class="kw">let</span> <span class="ident">cl_type_body</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#121">substs</a>.<span class="ident">type_at</span>(<span class="number">1</span>);
-    <span class="kw">let</span> (<span class="ident">body_def_id</span>, <span class="ident">body_substs</span>, <span class="ident">body_span</span>, <span class="ident">args</span>, <span class="kw">_</span>) <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#13-22">extract_closure_from_ty</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#123">tcx</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#137">cl_type_body</a>);
+    <span class="kw">let</span> <span class="ident">cl_type_body</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#124">substs</a>.<span class="ident">type_at</span>(<span class="number">1</span>);
+    <span class="kw">let</span> (<span class="ident">body_def_id</span>, <span class="ident">body_substs</span>, <span class="ident">body_span</span>, <span class="ident">args</span>, <span class="kw">_</span>) <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/utils.rs.html#13-22">extract_closure_from_ty</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#126">tcx</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#140">cl_type_body</a>);
 
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoded_qvars</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bounds</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
@@ -576,7 +582,7 @@
 
     <span class="comment">// replace qvars with a nicer name based on quantifier depth to ensure that</span>
     <span class="comment">// quantifiers remain stable for caching</span>
-    <span class="kw">let</span> <span class="ident">quantifier_depth</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#272">find_quantifier_depth</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#215">encoded_body</a>);
+    <span class="kw">let</span> <span class="ident">quantifier_depth</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#275">find_quantifier_depth</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#218">encoded_body</a>);
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">qvar_replacements</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fixed_qvars</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
     <span class="kw">for</span> (<span class="ident">arg_idx</span>, <span class="ident">qvar</span>) <span class="kw">in</span> <span class="ident">encoded_qvars</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
@@ -590,34 +596,34 @@
         ));
         <span class="ident">fixed_qvars</span>.<span class="ident">push</span>(<span class="ident">qvar_rep</span>);
     }
-    <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#141">bounds</a>
+    <span class="kw">let</span> <span class="ident">bounds</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#144">bounds</a>
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">bound</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#242">bound</a>.<span class="ident">replace_multiple_places</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#227">qvar_replacements</a>))
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">bound</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#245">bound</a>.<span class="ident">replace_multiple_places</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#230">qvar_replacements</a>))
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-    <span class="kw">let</span> <span class="ident">encoded_body</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#215">encoded_body</a>.<span class="ident">replace_multiple_places</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#227">qvar_replacements</a>);
-    <span class="kw">let</span> <span class="ident">encoded_trigger_sets</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#162">encoded_trigger_sets</a>
+    <span class="kw">let</span> <span class="ident">encoded_body</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#218">encoded_body</a>.<span class="ident">replace_multiple_places</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#230">qvar_replacements</a>);
+    <span class="kw">let</span> <span class="ident">encoded_trigger_sets</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#165">encoded_trigger_sets</a>
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">set</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#247">set</a>.<span class="ident">replace_multiple_places</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#227">qvar_replacements</a>))
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">set</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#250">set</a>.<span class="ident">replace_multiple_places</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#230">qvar_replacements</a>))
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
     <span class="kw">let</span> <span class="ident">final_body</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">bounds</span>.<span class="ident">is_empty</span>() {
-        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#244">encoded_body</a>
+        <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#247">encoded_body</a>
     } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">is_exists</span> {
-        <span class="ident">vir_crate::polymorphic::Expr::and</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#240">bounds</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>(), <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#244">encoded_body</a>)
+        <span class="ident">vir_crate::polymorphic::Expr::and</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#243">bounds</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>(), <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#247">encoded_body</a>)
     } <span class="kw">else</span> {
-        <span class="ident">vir_crate::polymorphic::Expr::implies</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#240">bounds</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>(), <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#244">encoded_body</a>)
+        <span class="ident">vir_crate::polymorphic::Expr::implies</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#243">bounds</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr/trait.ExprIterator.html">conjoin</a>(), <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#247">encoded_body</a>)
     };
     <span class="kw">if</span> <span class="ident">is_exists</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">vir_crate::polymorphic::Expr::exists</span>(
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#228">fixed_qvars</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#245">encoded_trigger_sets</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#250">final_body</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#231">fixed_qvars</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#248">encoded_trigger_sets</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#253">final_body</a>,
         ))
     } <span class="kw">else</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">vir_crate::polymorphic::Expr::forall</span>(
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#228">fixed_qvars</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#245">encoded_trigger_sets</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#250">final_body</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#231">fixed_qvars</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#248">encoded_trigger_sets</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#253">final_body</a>,
         ))
     }
 }
@@ -628,47 +634,47 @@
         <span class="ident">current_depth</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
         <span class="ident">max_depth</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
     }
-    <span class="kw">impl</span> <a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#274">DepthChecker</a> {
+    <span class="kw">impl</span> <a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">ExprWalker</a> <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#277">DepthChecker</a> {
         <span class="kw">fn</span> <span class="ident">walk_forall</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr/struct.ForAll.html">vir_crate::polymorphic::ForAll</a>) {
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#279">self</a>.<span class="ident">current_depth</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#282">self</a>.<span class="ident">current_depth</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">current_depth</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">max_depth</span> {
-                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#279">self</a>.<span class="ident">max_depth</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#279">self</a>.<span class="ident">current_depth</span>;
+                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#282">self</a>.<span class="ident">max_depth</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#282">self</a>.<span class="ident">current_depth</span>;
             }
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#279">self</a>.<a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#279">statement</a>.<span class="ident">body</span>);
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#279">self</a>.<span class="ident">current_depth</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#282">self</a>.<a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#282">statement</a>.<span class="ident">body</span>);
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#282">self</a>.<span class="ident">current_depth</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
         }
         <span class="kw">fn</span> <span class="ident">walk_exists</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr/struct.Exists.html">vir_crate::polymorphic::Exists</a>) {
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#287">self</a>.<span class="ident">current_depth</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#290">self</a>.<span class="ident">current_depth</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">current_depth</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">max_depth</span> {
-                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#287">self</a>.<span class="ident">max_depth</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#287">self</a>.<span class="ident">current_depth</span>;
+                <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#290">self</a>.<span class="ident">max_depth</span> <span class="op">=</span> <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#290">self</a>.<span class="ident">current_depth</span>;
             }
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#287">self</a>.<a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#287">statement</a>.<span class="ident">body</span>);
-            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#287">self</a>.<span class="ident">current_depth</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#290">self</a>.<a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#290">statement</a>.<span class="ident">body</span>);
+            <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#290">self</a>.<span class="ident">current_depth</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
         }
     }
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">checker</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#274">DepthChecker</a> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">checker</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#277">DepthChecker</a> {
         <span class="ident">current_depth</span>: <span class="number">0</span>,
         <span class="ident">max_depth</span>: <span class="number">0</span>,
     };
-    <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#296">checker</a>.<a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#272">expr</a>);
-    <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#296">checker</a>.<span class="ident">max_depth</span>
+    <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#299">checker</a>.<a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.ExprWalker.html">walk</a>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#275">expr</a>);
+    <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#299">checker</a>.<span class="ident">max_depth</span>
 }
 
 <span class="kw">fn</span> <span class="ident">check_trigger</span>(<span class="ident">trigger</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir_crate::polymorphic::Expr</a>) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">use</span> <a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprFolder.html">vir_crate::polymorphic::FallibleExprFolder</a>;
     <span class="kw">struct</span> <span class="ident">TriggerChecker</span> {}
-    <span class="kw">impl</span> <a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprFolder.html">FallibleExprFolder</a> <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#306">TriggerChecker</a> {
+    <span class="kw">impl</span> <a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr_transformers/trait.FallibleExprFolder.html">FallibleExprFolder</a> <span class="kw">for</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#309">TriggerChecker</a> {
         <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15">EncodingError</a>;
         <span class="kw">fn</span> <span class="ident">fallible_fold</span>(
             <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
             <span class="ident">e</span>: <a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir_crate::polymorphic::Expr</a>,
         ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="../../../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir_crate::polymorphic::Expr</a>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-            <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#311">e</a> {
+            <span class="kw">match</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#314">e</a> {
                 <span class="comment">// legal triggers</span>
                 <span class="ident">vir_crate::polymorphic::Expr::Local</span>(..)
                 <span class="op">|</span> <span class="ident">vir_crate::polymorphic::Expr::Const</span>(..)
                 <span class="op">|</span> <span class="ident">vir_crate::polymorphic::Expr::FuncApp</span>(..)
-                <span class="op">|</span> <span class="ident">vir_crate::polymorphic::Expr::DomainFuncApp</span>(..) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#311">e</a>),
+                <span class="op">|</span> <span class="ident">vir_crate::polymorphic::Expr::DomainFuncApp</span>(..) =&gt; <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#314">e</a>),
                 <span class="comment">// everything else is illegal in triggers</span>
                 <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">EncodingError::incorrect</span>(
                     <span class="string">&quot;only function calls are allowed in triggers&quot;</span>,
@@ -685,9 +691,9 @@
     <span class="ident">bound_vars</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="../../../../../../vir/gen/polymorphic/ast/common/struct.LocalVar.html">vir_crate::polymorphic::LocalVar</a>],
     <span class="ident">trigger_set</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../../../vir/gen/polymorphic/ast/trigger/struct.Trigger.html">vir_crate::polymorphic::Trigger</a>,
 ) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">bound_vars_expr</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#332">bound_vars</a>
+    <span class="kw">let</span> <span class="ident">bound_vars_expr</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#335">bound_vars</a>
         .<span class="ident">iter</span>()
-        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#337">var</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/pure/specifications/encoder_poly.rs.html#340">var</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
         .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found_bounded_vars</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
     <span class="kw">for</span> <span class="ident">term</span> <span class="kw">in</span> <span class="ident">trigger_set</span>.<span class="ident">elements</span>() {
