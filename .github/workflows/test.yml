@@ -20,100 +20,30 @@ jobs:
     # Only run when triggered by a pull request event
     if: github.event_name == 'pull_request'
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0 # deep clone, to allow us to use git merge-base
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '15'
-      - name: Set up the environment
-        run: python x.py setup
-      - name: Cache cargo
-        uses: Swatinem/rust-cache@v1.3.0
-      - name: Build with cargo
-        run: python x.py build --all --verbose
-      - name: Run "quick" cargo tests
-        run: python x.py test --all --verbose quick
+      - name: Do nothing
+        run: true
 
   # Run clippy checks on PRs.
   clippy-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0 # deep clone, to allow us to use git merge-base
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '15'
-      - name: Set up the environment
-        run: python x.py setup
-      - name: Cache cargo
-        uses: Swatinem/rust-cache@v1.3.0
-      - name: Build with cargo
-        run: python x.py build --all --verbose
-      - name: Check and report Clippy errors
-        run: |
-          rustup component add clippy
-
-          python ./x.py clippy -- -D warnings
-
-          cargo install cargo-diff-tools
-          # See https://github.com/pytorch/pytorch/blob/49adac65c4228b9fe7ede4e6f99fe9e1ccdc3e16/.github/workflows/clang_format.yml
-          git remote add upstream https://github.com/viperproject/prusti-dev
-          git fetch upstream "$GITHUB_BASE_REF"
-          python x.py exec cargo-clippy-diff --output=github $BASE_SHA HEAD
+      - name: Do nothing
+        run: true
 
   # Run rustfmt checks on PRs.
   fmt-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0 # deep clone, to allow us to use git merge-base
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '15'
-      - name: Set up the environment
-        run: python x.py setup
-      - name: Cache cargo
-        uses: Swatinem/rust-cache@v1.3.0
-      - name: Build with cargo
-        run: python x.py build --all --verbose
-      - name: Check and report formatting warnings
-        run: |
-          rustup component add rustfmt
-          python ./x.py fmt-check-all
+      - name: Do nothing
+        run: true
 
   # Check that we depend on the compiler only through SMIR.
   smir-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0 # deep clone, to allow us to use git merge-base
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - name: Check and report illegal extern crate.
-        run: |
-          python ./x.py check-smir
+      - name: Do nothing
+        run: true
+
 
   # Run a subset of the tests with the purification optimization enabled
   # to ensure that we do not introduce regressions.
@@ -122,79 +52,8 @@ jobs:
     env:
       PRUSTI_ENABLE_PURIFICATION_OPTIMIZATION: true
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '15'
-      - name: Set up the environment
-        run: python x.py setup
-      - name: Cache cargo
-        uses: Swatinem/rust-cache@v1.3.0
-      - name: Build with cargo
-        run: python x.py build --all --verbose
-      - name: Run "quick" cargo tests
-        run: |
-          python x.py verify-test prusti-tests/tests/verify/pass/rosetta/Knuth_shuffle.rs
-          # python x.py test --all --verbose pass/rosetta/Binary_search_shared.rs
-          # python x.py test --all --verbose pass/demos/account.rs
-          # python x.py test --all --verbose pass/rosetta/Knights_tour.rs
-          # python x.py test --all --verbose pass/quick/fold-unfold.rs
-          # python x.py test --all --verbose pass/quick/moves.rs
-          # python x.py test --all --verbose pass/quick/mut-borrows.rs
-          # python x.py test --all --verbose pass/quick/shared-borrows.rs
-          # python x.py test --all --verbose pass/quick/trait-contracts-refinement.rs
-          # python x.py test --all --verbose pass/quick/fibonacci.rs
-          # python x.py test --all --verbose pass/pure-fn/len-lookup.rs
-          # python x.py test --all --verbose pass/pure-fn/quantifiers.rs
-          # python x.py test --all --verbose pass/pure-fn/recursive-pure-fn.rs
-          # python x.py test --all --verbose pass/pure-fn/ref-mut-arg.rs
-          # python x.py test --all --verbose pass/rosetta/Ackermann_function.rs
-          # python x.py test --all --verbose pass/rosetta/Heapsort.rs
-      - name: Run with purification.
-        env:
-          PRUSTI_VIPER_BACKEND: silicon
-          PRUSTI_VERIFY_SPECIFICATIONS_BACKEND: silicon
-          PRUSTI_VERIFY_CORE_PROOF: true
-          PRUSTI_VERIFY_SPECIFICATIONS: true
-          PRUSTI_VERIFY_SPECIFICATIONS_WITH_CORE_PROOF: false
-          PRUSTI_INLINE_CALLER_FOR: false
-        run: |
-          python x.py test core_proof
-      - name: Run with purification with Carbon.
-        env:
-          PRUSTI_VIPER_BACKEND: silicon
-          PRUSTI_VERIFY_SPECIFICATIONS_BACKEND: carbon
-          PRUSTI_VERIFY_CORE_PROOF: true
-          PRUSTI_VERIFY_SPECIFICATIONS: true
-          PRUSTI_VERIFY_SPECIFICATIONS_WITH_CORE_PROOF: false
-          PRUSTI_INLINE_CALLER_FOR: false
-        run: |
-          python x.py test core_proof
-      - name: Run without purification.
-        env:
-          PRUSTI_VIPER_BACKEND: silicon
-          PRUSTI_VERIFY_SPECIFICATIONS_BACKEND: silicon
-          PRUSTI_VERIFY_CORE_PROOF: true
-          PRUSTI_VERIFY_SPECIFICATIONS: true
-          PRUSTI_VERIFY_SPECIFICATIONS_WITH_CORE_PROOF: true
-          PRUSTI_INLINE_CALLER_FOR: false
-        run: |
-          python x.py test core_proof
-      - name: Inline caller for functions
-        env:
-          PRUSTI_VIPER_BACKEND: silicon
-          PRUSTI_VERIFY_SPECIFICATIONS_BACKEND: silicon
-          PRUSTI_VERIFY_CORE_PROOF: true
-          PRUSTI_VERIFY_SPECIFICATIONS: true
-          PRUSTI_VERIFY_SPECIFICATIONS_WITH_CORE_PROOF: false
-          PRUSTI_INLINE_CALLER_FOR: true
-        run: |
-          python x.py test core_proof
+      - name: Do nothing
+        run: true
 
   # Run all the tests.
   all-tests:
@@ -204,55 +63,13 @@ jobs:
       fail-fast: false
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '15'
-      - name: Set up the environment
-        run: python x.py setup
-      - name: Cache cargo
-        uses: Swatinem/rust-cache@v1.3.0
-      - name: Build with cargo
-        run: python x.py build --all --verbose
-      - name: Run cargo tests
-        run: python x.py test --all --verbose
-      - name: Run a subset of tests with Carbon
-        run: |
-            python x.py test pass/no-annotation --all --verbose
-        env:
-          PRUSTI_VIPER_BACKEND: carbon
-      - name: Check prusti-contracts
-        run: |
-          cd prusti-contracts-test/
-          cargo +stable build
+      - name: Do nothing
+        run: true
 
   # Run Prusti on itself. Currently disabled because of many bugs in Prusti.
   test-on-prusti:
     runs-on: ubuntu-latest
     if: false
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-      - name: Set up Python 3
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '15'
-      - name: Set up the environment
-        run: python x.py setup
-      - name: Build with cargo
-        run: python x.py build --release --all --verbose
-      - name: Run cargo-prusti on Prusti
-        run: python x.py prusti
-        env:
-          LD_LIBRARY_PATH: target/release:${{ env.LD_LIBRARY_PATH }}
-          PRUSTI_SKIP_UNSUPPORTED_FEATURES: true
-          PRUSTI_FULL_COMPILATION: true
-          PRUSTI_CHECK_PANICS: false
+      - name: Do nothing
+        run: true
