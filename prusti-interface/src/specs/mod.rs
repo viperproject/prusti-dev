@@ -107,9 +107,10 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_ghost_begin_ends(&mut def_spec);
         // TODO: remove spec functions (make sure none are duplicated or left over)
 
+        // First, load all local spec MIR bodies
+        self.ensure_local_mirs_fetched(&mut def_spec);
+
         if let Some(build_output_dir) = build_output_dir {
-            // First, load all local spec MIR bodies
-            self.ensure_local_mirs_fetched(&mut def_spec);
             // Then, write those to the export file
             let target_filename = self.get_crate_specs_path(build_output_dir, LOCAL_CRATE);
             Self::write_into_file(&def_spec, self.env, self.tcx, target_filename.as_path()).unwrap();
