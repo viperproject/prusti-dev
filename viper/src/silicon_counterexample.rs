@@ -63,7 +63,7 @@ pub enum ModelEntry {
     LitInt(String),
     LitFloat(String),
     LitBool(bool),
-    LitPerm(f64),
+    LitPerm(String),
     Ref(String, FxHashMap<String, ModelEntry>),
     NullRef(String),
     RecursiveRef(String),
@@ -222,7 +222,8 @@ fn unwrap_model_entry<'a>(
         }
         "viper.silicon.reporting.LitPermEntry" => {
             let lit_perm_wrapper = silicon::reporting::LitPermEntry::with(env);
-            let value = jni.unwrap_result(lit_perm_wrapper.call_value(entry));
+            let value_scala = jni.unwrap_result(lit_perm_wrapper.call_value(entry));
+            let value = jni.to_string(value_scala);
             Some(ModelEntry::LitPerm(value))
         }
         "viper.silicon.reporting.RefEntry" => {

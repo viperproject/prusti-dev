@@ -1,24 +1,28 @@
 // This file was taken from the compiler:
-// https://raw.githubusercontent.com/rust-lang/rust/949b98cab8a186b98bf87e64374b8d0848c55271/compiler/rustc_ty_utils/src/instance.rs
+// https://raw.githubusercontent.com/rust-lang/rust/03d488b48af9f66b91e9400387f781b82411fa82/compiler/rustc_ty_utils/src/instance.rs
 // This file is licensed under Apache 2.0
-// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-APACHE)
+// (https://github.com/rust-lang/rust/blob/03d488b48af9f66b91e9400387f781b82411fa82/LICENSE-APACHE)
 // and MIT
-// (https://github.com/rust-lang/rust/blob/949b98cab8a186b98bf87e64374b8d0848c55271/LICENSE-MIT).
+// (https://github.com/rust-lang/rust/blob/03d488b48af9f66b91e9400387f781b82411fa82/LICENSE-MIT).
 //
 // Changes:
 // + Fix compilation errors.
 // + Use our copy of `codegen_fulfill_obligation` that does not record delayed
 //   span bugs, which is the main motivation for duplication.
-// + `ErrorGuaranteed` changed to `()` (private constructor).
+// + `ErrorGuaranteed` and `CodegenObligationError` changed to `()`.
+// + Replace `crate::*` imports with `prusti_rustc_interface::*` imports.
+// + Remove unused `resolve_instance_of_const_arg`.
 
 use prusti_rustc_interface::hir::def_id::DefId;
 use prusti_rustc_interface::infer::infer::TyCtxtInferExt;
 use prusti_rustc_interface::middle::ty::subst::SubstsRef;
-use prusti_rustc_interface::middle::ty::{self, Binder, Instance, Ty, TyCtxt, TypeFoldable, TypeVisitor, TypeSuperFoldable};
+use prusti_rustc_interface::middle::ty::{
+    self, Binder, Instance, Ty, TyCtxt, TypeSuperVisitable, TypeVisitable, TypeVisitor,
+};
 use prusti_rustc_interface::span::{sym, DUMMY_SP};
-use prusti_rustc_interface::target::spec::abi::Abi;
 use prusti_rustc_interface::trait_selection::traits;
 use traits::{translate_substs, Reveal};
+use prusti_rustc_interface::middle::traits::CodegenObligationError;
 use prusti_rustc_interface::data_structures::sso::SsoHashSet;
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
@@ -64,7 +68,7 @@ impl<'tcx> BoundVarsCollector<'tcx> {
 impl<'tcx> TypeVisitor<'tcx> for BoundVarsCollector<'tcx> {
     type BreakTy = ();
 
-    fn visit_binder<T: TypeFoldable<'tcx>>(
+    fn visit_binder<T: TypeVisitable<'tcx>>(
         &mut self,
         t: &Binder<'tcx, T>,
     ) -> ControlFlow<Self::BreakTy> {
@@ -149,15 +153,10 @@ fn inner_resolve_instance<'tcx>(
         let item_type = tcx.subst_and_normalize_erasing_regions(substs, param_env, ty);
 
         let def = match *item_type.kind() {
-            ty::FnDef(..)
-            if {
-                let f = item_type.fn_sig(tcx);
-                f.abi() == Abi::RustIntrinsic || f.abi() == Abi::PlatformIntrinsic
-            } =>
-                {
-                    debug!(" => intrinsic");
-                    ty::InstanceDef::Intrinsic(def.did)
-                }
+            ty::FnDef(def_id, ..) if tcx.is_intrinsic(def_id) => {
+                debug!(" => intrinsic");
+                ty::InstanceDef::Intrinsic(def.did)
+            }
             ty::FnDef(def_id, substs) if Some(def_id) == tcx.lang_items().drop_in_place_fn() => {
                 let ty = substs.type_at(0);
 
@@ -205,7 +204,22 @@ fn resolve_associated_item<'tcx>(
     let mut bound_vars_collector = BoundVarsCollector::new();
     trait_ref.visit_with(&mut bound_vars_collector);
     let trait_binder = ty::Binder::bind_with_vars(trait_ref, bound_vars_collector.into_vars(tcx));
-    let vtbl = super::rustc_codegen::codegen_fulfill_obligation(tcx, (param_env, trait_binder))?;
+    let vtbl = match super::rustc_codegen::codegen_fulfill_obligation(tcx, (param_env, trait_binder)) {
+        Ok(vtbl) => vtbl,
+        Err(CodegenObligationError::Ambiguity) => {
+            tcx.sess.delay_span_bug(
+                tcx.def_span(trait_item_id),
+                &format!(
+                    "encountered ambiguity selecting `{:?}` during codegen, presuming due to \
+                     overflow or prior type error",
+                    trait_binder
+                ),
+            );
+            return Err(());
+        }
+        Err(CodegenObligationError::Unimplemented) => return Ok(None),
+        Err(CodegenObligationError::FulfillmentError) => return Ok(None),
+    };
 
     // Now that we know which impl is being used, we can dispatch to
     // the actual function:
@@ -315,12 +329,12 @@ fn resolve_associated_item<'tcx>(
         }),
         traits::ImplSource::Closure(closure_data) => {
             let trait_closure_kind = tcx.fn_trait_kind_from_lang_item(trait_id).unwrap();
-            Some(Instance::resolve_closure(
+            Instance::resolve_closure(
                 tcx,
                 closure_data.closure_def_id,
                 closure_data.substs,
                 trait_closure_kind,
-            ))
+            )
         }
         traits::ImplSource::FnPointer(ref data) => match data.fn_ty.kind() {
             ty::FnDef(..) | ty::FnPtr(..) => Some(Instance {
@@ -330,11 +344,10 @@ fn resolve_associated_item<'tcx>(
             _ => None,
         },
         traits::ImplSource::Object(ref data) => {
-            let index = traits::get_vtable_index_of_object_method(tcx, data, trait_item_id);
-            Some(Instance {
-                def: ty::InstanceDef::Virtual(trait_item_id, index.unwrap()),
-                substs: rcvr_substs,
-            })
+            traits::get_vtable_index_of_object_method(tcx, data, trait_item_id).map(|index| Instance {
+                    def: ty::InstanceDef::Virtual(trait_item_id, index),
+                    substs: rcvr_substs,
+                })
         }
         traits::ImplSource::Builtin(..) => {
             if Some(trait_ref.def_id) == tcx.lang_items().clone_trait() {
@@ -374,3 +387,8 @@ fn resolve_associated_item<'tcx>(
         | traits::ImplSource::ConstDestruct(_) => None,
     })
 }
+
+// pub fn provide(providers: &mut ty::query::Providers) {
+//     *providers =
+//         ty::query::Providers { resolve_instance, resolve_instance_of_const_arg, ..*providers };
+// }

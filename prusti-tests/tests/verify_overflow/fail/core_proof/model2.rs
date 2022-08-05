@@ -106,7 +106,6 @@ impl LinkedList {
             }
         }
     }
-    #[ensures(Int::new_usize(result) == self.len())]
     fn len_shared2(&self) -> usize {
         match &self.next {
             None => 1,

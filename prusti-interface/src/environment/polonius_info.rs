@@ -1421,14 +1421,11 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
                 if representative_loan.is_none() {
                     return Err(PoloniusInfoError::MagicWandHasNoRepresentativeLoan(location));
                 }
-                loans = loans
-                    .into_iter()
-                    .filter(|loan| {
+                loans.retain(|loan| {
                         !loan_loops.iter().any(|(loop_loan, _)| {
                             loop_loan == loan && Some(*loan) != representative_loan
                         })
-                    })
-                    .collect();
+                    });
             }
         }
 

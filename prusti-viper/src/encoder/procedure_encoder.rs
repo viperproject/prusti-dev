@@ -589,10 +589,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let left = self.fold_boxed(left);
                 let right = self.fold_boxed(right);
                 match op_kind {
-                    vir::BinaryOpKind::And if is_const_true(&*left) => *right,
-                    vir::BinaryOpKind::And if is_const_true(&*right) => *left,
-                    vir::BinaryOpKind::Or if is_const_true(&*left) => *left,
-                    vir::BinaryOpKind::Or if is_const_true(&*right) => *right,
+                    vir::BinaryOpKind::And if is_const_true(&left) => *right,
+                    vir::BinaryOpKind::And if is_const_true(&right) => *left,
+                    vir::BinaryOpKind::Or if is_const_true(&left) => *left,
+                    vir::BinaryOpKind::Or if is_const_true(&right) => *right,
                     _ => vir::Expr::BinOp(vir::BinOp {
                         op_kind, left, right, position,
                     }),
@@ -1486,6 +1486,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     ty,
                     location,
                 )?
+            }
+            mir::Rvalue::CopyForDeref(ref place) => {
+                self.encode_assign_operand(&encoded_lhs, &mir::Operand::Copy(*place), location)?
             }
         })
     }
@@ -2985,7 +2988,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         destination: mir::Place<'tcx>,
         target: Option<BasicBlockIndex>,
         called_def_id: ProcedureDefId,
-        substs: ty::subst::SubstsRef<'tcx>,
+        mut substs: ty::subst::SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<Vec<vir::Stmt>> {
         let full_func_proc_name = &self
             .encoder
@@ -2994,6 +2997,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .def_path_str(called_def_id);
             // .absolute_item_path_str(called_def_id);
         debug!("Encoding non-pure function call '{}' with args {:?} and substs {:?}", full_func_proc_name, mir_args, substs);
+
+        // Spans for fake exprs that cannot be encoded in viper
+        let mut fake_expr_spans: FxHashMap<Local, Span> = FxHashMap::default();
 
         // First we construct the "operands" vector. This construction differs
         // for closure calls, where we need to unpack a tuple into the actual
@@ -3029,6 +3035,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             if let ty::TyKind::Tuple(arg_types) = arg_tuple_ty.kind() {
                 for (field_num, arg_ty) in arg_types.into_iter().enumerate() {
                     let arg = self.locals.get_fresh(arg_ty);
+                    fake_expr_spans.insert(arg, call_site_span);
                     let value_field = self
                         .encoder
                         .encode_raw_ref_field(format!("tuple_{}", field_num), arg_ty)
@@ -3043,6 +3050,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             } else {
                 unimplemented!();
             }
+
+            // TODO: weird fix for closure call substitutions, we need to
+            // prepend the identity substs of the containing method ...
+            substs = self.encoder.env().tcx().mk_substs(self.substs.iter().chain(substs));
         } else {
             for (arg, encoded_operand) in mir_args.iter().zip(encoded_operands.iter_mut()) {
                 let arg_ty = self.mir_encoder.get_operand_ty(arg);
@@ -3067,9 +3078,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         // This data structure maps the newly created local variables to the expression that was
         // originally passed as an argument.
         let mut fake_exprs: FxHashMap<vir::Expr, vir::Expr> = FxHashMap::default();
-
-        // Spans for fake exprs that cannot be encoded in viper
-        let mut fake_expr_spans: FxHashMap<Local, Span> = FxHashMap::default();
 
         let mut arguments = vec![];
 
@@ -5102,7 +5110,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     _,
                     mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
                 )) = stmt.kind {
-                    if let Some(spec) = self.encoder.get_loop_specs(cl_def_id) {
+                    if let Some(spec) = self.encoder.get_loop_specs(cl_def_id.to_def_id()) {
                         encoded_specs.push(self.encoder.encode_invariant(
                             self.mir,
                             bbi,
@@ -6552,7 +6560,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             mir::AggregateKind::Closure(def_id, substs) => {
                 // TODO: might need to assert history invariants?
-                assert!(!self.encoder.is_spec_closure(def_id), "spec closure: {:?}", def_id);
+                assert!(!self.encoder.is_spec_closure(def_id.to_def_id()), "spec closure: {:?}", def_id);
                 let cl_substs = substs.as_closure();
                 for (field_index, field_ty) in cl_substs.upvar_tys().enumerate() {
                     let operand = &operands[field_index];

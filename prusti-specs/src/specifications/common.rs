@@ -99,7 +99,7 @@ impl SpecificationIdGenerator {
 
 pub(crate) fn generate_struct_name(item: &syn::ItemImpl) -> String {
     let uuid = Uuid::new_v4().simple();
-    let name_ty = generate_name_for_type(&*item.self_ty).unwrap_or_default();
+    let name_ty = generate_name_for_type(&item.self_ty).unwrap_or_default();
     format!("PrustiStruct{}_{}", name_ty, uuid)
 }
 

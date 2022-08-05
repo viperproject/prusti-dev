@@ -6,6 +6,7 @@
 
 use ::log::{info, debug, trace};
 use prusti_common::utils::identifiers::encode_identifier;
+use vir_crate::common::check_mode::CheckMode;
 use crate::encoder::builtin_encoder::BuiltinEncoder;
 use crate::encoder::builtin_encoder::BuiltinMethodKind;
 use crate::encoder::errors::{ErrorManager, SpannedEncodingError, EncodingError};
@@ -47,7 +48,6 @@ use super::mir::{
     contracts::ContractsEncoderState,
     procedures::MirProcedureEncoderState,
     type_invariants::TypeInvariantEncoderState,
-    type_layouts::MirTypeLayoutsEncoderState,
     pure::{
         PureFunctionEncoderState, PureFunctionEncoderInterface,
     },
@@ -60,6 +60,7 @@ use super::mir::{
     }
 };
 use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
+use super::high::to_typed::types::HighToTypedTypeEncoderState;
 
 pub struct Encoder<'v, 'tcx: 'v> {
     env: &'v Environment<'tcx>,
@@ -73,12 +74,12 @@ pub struct Encoder<'v, 'tcx: 'v> {
     pub(super) mir_sequences_encoder_state: MirSequencesEncoderState<'tcx>,
     pub(super) contracts_encoder_state: ContractsEncoderState<'tcx>,
     pub(super) mir_procedure_encoder_state: MirProcedureEncoderState,
-    pub(super) mir_type_layouts_encoder_state: MirTypeLayoutsEncoderState,
     pub(super) mid_core_proof_encoder_state: MidCoreProofEncoderState,
     pub(super) mir_type_encoder_state: MirTypeEncoderState<'tcx>,
     pub(super) type_invariant_encoder_state: TypeInvariantEncoderState<'tcx>,
     pub(super) high_type_encoder_state: HighTypeEncoderState<'tcx>,
     pub(super) pure_function_encoder_state: PureFunctionEncoderState<'v, 'tcx>,
+    pub(super) typed_type_encoder_state: HighToTypedTypeEncoderState,
     pub(super) specifications_state: SpecificationsState<'tcx>,
     spec_functions: RefCell<FxHashMap<ProcedureDefId, Vec<vir::FunctionIdentifier>>>,
     type_discriminant_funcs: RefCell<FxHashMap<String, vir::FunctionIdentifier>>,
@@ -143,7 +144,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             programs: Vec::new(),
             mir_sequences_encoder_state: Default::default(),
             mir_procedure_encoder_state: Default::default(),
-            mir_type_layouts_encoder_state: Default::default(),
             mid_core_proof_encoder_state: Default::default(),
             procedures: RefCell::new(FxHashMap::default()),
             contracts_encoder_state: Default::default(),
@@ -151,6 +151,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             type_invariant_encoder_state: Default::default(),
             high_type_encoder_state: Default::default(),
             pure_function_encoder_state: Default::default(),
+            typed_type_encoder_state: Default::default(),
             spec_functions: RefCell::new(FxHashMap::default()),
             type_discriminant_funcs: RefCell::new(FxHashMap::default()),
             type_cast_functions: RefCell::new(FxHashMap::default()),
@@ -525,7 +526,8 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_spec_funcs(&self, def_id: ProcedureDefId)
         -> SpannedEncodingResult<Vec<vir::FunctionIdentifier>>
     {
-        if !self.env().tcx().is_mir_available(def_id) || self.env().tcx().is_constructor(def_id) {
+        if !self.env().tcx().is_mir_available(def_id) || self.env().tcx().is_constructor(def_id)
+            || !def_id.is_local() {
             return Ok(vec![]);
         }
 
@@ -663,18 +665,39 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
     pub fn process_encoding_queue(&mut self) {
         self.initialize();
-        while !self.encoding_queue.borrow().is_empty() {
-            let (proc_def_id, substs) = self.encoding_queue.borrow_mut().pop().unwrap();
-
+        while let Some((proc_def_id, substs)) = {
+            let mut queue = self.encoding_queue.borrow_mut();
+            queue.pop()
+        } {
             let proc_name = self.env.get_unique_item_name(proc_def_id);
             let proc_def_path = self.env.get_item_def_path(proc_def_id);
             info!("Encoding: {} ({})", proc_name, proc_def_path);
             assert!(substs.is_empty());
 
             if config::unsafe_core_proof() {
-                if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id) {
-                    self.register_encoding_error(error);
-                    debug!("Error encoding function: {:?}", proc_def_id);
+                if self.env.is_unsafe_function(proc_def_id) {
+                    if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::Both) {
+                        self.register_encoding_error(error);
+                        debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::Both);
+                    }
+                } else {
+                    if config::verify_core_proof() {
+                        if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::CoreProof) {
+                            self.register_encoding_error(error);
+                            debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::CoreProof);
+                        }
+                    }
+                    if config::verify_specifications() {
+                        let check_mode = if config::verify_specifications_with_core_proof() {
+                            CheckMode::Both
+                        } else {
+                            CheckMode::Specifications
+                        };
+                        if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, check_mode) {
+                            self.register_encoding_error(error);
+                            debug!("Error encoding function: {:?} {}", proc_def_id, check_mode);
+                        }
+                    }
                 }
                 continue;
             }

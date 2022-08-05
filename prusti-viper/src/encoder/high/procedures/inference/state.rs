@@ -3,20 +3,23 @@ use crate::encoder::errors::SpannedEncodingResult;
 use log::debug;
 use std::collections::{BTreeMap, BTreeSet};
 use vir_crate::{
-    high::{self as vir_high, operations::ty::Typed},
     middle as vir_mid,
+    typed::{
+        self as vir_typed,
+        operations::{lifetimes::WithLifetimes, ty::Typed},
+    },
 };
 
 #[derive(Clone, Default)]
 pub(super) struct PredicateState {
-    owned_non_aliased: BTreeSet<vir_high::Expression>,
-    memory_block_stack: BTreeSet<vir_high::Expression>,
-    mut_borrowed: BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
-    dead_lifetimes: BTreeSet<vir_high::ty::LifetimeConst>,
+    owned_non_aliased: BTreeSet<vir_typed::Expression>,
+    memory_block_stack: BTreeSet<vir_typed::Expression>,
+    mut_borrowed: BTreeMap<vir_typed::Expression, vir_typed::ty::LifetimeConst>,
+    dead_lifetimes: BTreeSet<vir_typed::ty::LifetimeConst>,
 }
 
 pub(super) struct PlaceWithDeadLifetimes {
-    pub(super) place: vir_high::Expression,
+    pub(super) place: vir_typed::Expression,
     pub(super) lifetimes_dead_before: Vec<bool>,
     pub(super) lifetimes_dead_after: Vec<bool>,
 }
@@ -75,7 +78,7 @@ impl PredicateState {
             })
     }
 
-    fn places_mut(&mut self, kind: PermissionKind) -> &mut BTreeSet<vir_high::Expression> {
+    fn places_mut(&mut self, kind: PermissionKind) -> &mut BTreeSet<vir_typed::Expression> {
         self.check_no_default_position();
         match kind {
             PermissionKind::MemoryBlock => &mut self.memory_block_stack,
@@ -83,7 +86,7 @@ impl PredicateState {
         }
     }
 
-    fn places(&self, kind: PermissionKind) -> &BTreeSet<vir_high::Expression> {
+    fn places(&self, kind: PermissionKind) -> &BTreeSet<vir_typed::Expression> {
         self.check_no_default_position();
         match kind {
             PermissionKind::MemoryBlock => &self.memory_block_stack,
@@ -94,7 +97,7 @@ impl PredicateState {
     pub(super) fn remove(
         &mut self,
         kind: PermissionKind,
-        place: &vir_high::Expression,
+        place: &vir_typed::Expression,
     ) -> SpannedEncodingResult<()> {
         assert!(place.is_place());
         assert!(
@@ -108,7 +111,7 @@ impl PredicateState {
 
     pub(super) fn remove_mut_borrowed(
         &mut self,
-        place: &vir_high::Expression,
+        place: &vir_typed::Expression,
     ) -> SpannedEncodingResult<()> {
         assert!(place.is_place());
         assert!(
@@ -122,7 +125,7 @@ impl PredicateState {
     pub(super) fn insert(
         &mut self,
         kind: PermissionKind,
-        place: vir_high::Expression,
+        place: vir_typed::Expression,
     ) -> SpannedEncodingResult<()> {
         place.check_no_default_position();
         assert!(place.is_place());
@@ -133,7 +136,7 @@ impl PredicateState {
         Ok(())
     }
 
-    pub(super) fn contains(&self, kind: PermissionKind, place: &vir_high::Expression) -> bool {
+    pub(super) fn contains(&self, kind: PermissionKind, place: &vir_typed::Expression) -> bool {
         self.check_no_default_position();
         assert!(place.is_place());
         self.places(kind).contains(place)
@@ -146,12 +149,12 @@ impl PredicateState {
     pub(super) fn contains_non_discriminant_with_prefix(
         &self,
         kind: PermissionKind,
-        prefix: &vir_high::Expression,
-    ) -> Option<&vir_high::Expression> {
+        prefix: &vir_typed::Expression,
+    ) -> Option<&vir_typed::Expression> {
         self.check_no_default_position();
         self.places(kind).iter().find(|p| {
             p.has_prefix(prefix) && {
-                if let vir_high::Expression::Field(field) = p {
+                if let vir_typed::Expression::Field(field) = p {
                     !field.field.is_discriminant()
                 } else {
                     true
@@ -160,11 +163,32 @@ impl PredicateState {
         })
     }
 
+    pub(super) fn contains_discriminant_with_prefix(
+        &self,
+        prefix: &vir_typed::Expression,
+    ) -> Option<(PermissionKind, &vir_typed::Expression)> {
+        let owned = self
+            .places(PermissionKind::Owned)
+            .iter()
+            .map(|place| (PermissionKind::Owned, place));
+        let memory_block = self
+            .places(PermissionKind::MemoryBlock)
+            .iter()
+            .map(|place| (PermissionKind::MemoryBlock, place));
+        owned.chain(memory_block).find(|(_, p)| {
+            if let vir_typed::Expression::Field(field) = p {
+                field.field.is_discriminant() && &*field.base == prefix
+            } else {
+                false
+            }
+        })
+    }
+
     pub(super) fn get_all_with_prefix<'a>(
         &'a self,
         kind: PermissionKind,
-        prefix: &'a vir_high::Expression,
-    ) -> impl Iterator<Item = &'a vir_high::Expression> {
+        prefix: &'a vir_typed::Expression,
+    ) -> impl Iterator<Item = &'a vir_typed::Expression> {
         self.check_no_default_position();
         self.places(kind).iter().filter(|p| p.has_prefix(prefix))
     }
@@ -172,7 +196,7 @@ impl PredicateState {
     pub(super) fn contains_prefix_of(
         &self,
         kind: PermissionKind,
-        place: &vir_high::Expression,
+        place: &vir_typed::Expression,
     ) -> bool {
         self.check_no_default_position();
         self.places(kind).iter().any(|p| place.has_prefix(p))
@@ -181,8 +205,8 @@ impl PredicateState {
     pub(super) fn find_prefix(
         &self,
         kind: PermissionKind,
-        place: &vir_high::Expression,
-    ) -> Option<vir_high::Expression> {
+        place: &vir_typed::Expression,
+    ) -> Option<vir_typed::Expression> {
         self.check_no_default_position();
         self.places(kind)
             .iter()
@@ -195,8 +219,8 @@ impl PredicateState {
 
     pub(super) fn collect_owned_with_prefix(
         &self,
-        prefix: &vir_high::Expression,
-    ) -> SpannedEncodingResult<Vec<vir_high::Expression>> {
+        prefix: &vir_typed::Expression,
+    ) -> SpannedEncodingResult<Vec<vir_typed::Expression>> {
         self.check_no_default_position();
         let collected_places = self
             .owned_non_aliased
@@ -209,12 +233,13 @@ impl PredicateState {
 
     pub(super) fn contains_blocked(
         &self,
-        place: &vir_high::Expression,
-    ) -> SpannedEncodingResult<Option<(&vir_high::Expression, &vir_high::ty::LifetimeConst)>> {
+        place: &vir_typed::Expression,
+    ) -> SpannedEncodingResult<Option<(&vir_typed::Expression, &vir_typed::ty::LifetimeConst)>>
+    {
         Ok(self.mut_borrowed.iter().find(|(p, _)| {
             let prefix_expr = match p {
-                vir_high::Expression::BuiltinFuncApp(vir_high::BuiltinFuncApp {
-                    function: vir_high::BuiltinFunc::Index,
+                vir_typed::Expression::BuiltinFuncApp(vir_typed::BuiltinFuncApp {
+                    function: vir_typed::BuiltinFunc::Index,
                     type_arguments: _,
                     arguments,
                     ..
@@ -248,8 +273,8 @@ impl PredicateState {
 
     pub(super) fn mark_lifetime_dead(
         &mut self,
-        lifetime: &vir_high::ty::LifetimeConst,
-    ) -> (Vec<vir_high::Expression>, Vec<PlaceWithDeadLifetimes>) {
+        lifetime: &vir_typed::ty::LifetimeConst,
+    ) -> (Vec<vir_typed::Expression>, Vec<PlaceWithDeadLifetimes>) {
         assert!(
             !self.dead_lifetimes.contains(lifetime),
             "The lifetime {} is already dead.",
@@ -449,10 +474,10 @@ impl FoldUnfoldState {
     }
 
     fn merge_unconditional_mut_borrowed(
-        unconditional: &mut BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
-        incoming_unconditional: BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
-        new_conditional: &mut BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
-        incoming_conditional: &mut BTreeMap<vir_high::Expression, vir_high::ty::LifetimeConst>,
+        unconditional: &mut BTreeMap<vir_typed::Expression, vir_typed::ty::LifetimeConst>,
+        incoming_unconditional: BTreeMap<vir_typed::Expression, vir_typed::ty::LifetimeConst>,
+        new_conditional: &mut BTreeMap<vir_typed::Expression, vir_typed::ty::LifetimeConst>,
+        incoming_conditional: &mut BTreeMap<vir_typed::Expression, vir_typed::ty::LifetimeConst>,
     ) -> SpannedEncodingResult<()> {
         let mut unconditional_predicates = BTreeMap::default();
         // Unconditional: merge incoming into self.
@@ -473,10 +498,10 @@ impl FoldUnfoldState {
     }
 
     fn merge_unconditional(
-        unconditional: &mut BTreeSet<vir_high::Expression>,
-        incoming_unconditional: BTreeSet<vir_high::Expression>,
-        new_conditional: &mut BTreeSet<vir_high::Expression>,
-        incoming_conditional: &mut BTreeSet<vir_high::Expression>,
+        unconditional: &mut BTreeSet<vir_typed::Expression>,
+        incoming_unconditional: BTreeSet<vir_typed::Expression>,
+        new_conditional: &mut BTreeSet<vir_typed::Expression>,
+        incoming_conditional: &mut BTreeSet<vir_typed::Expression>,
     ) -> SpannedEncodingResult<()> {
         let mut unconditional_predicates = BTreeSet::default();
         // Unconditional: merge incoming into self.
@@ -498,7 +523,7 @@ impl FoldUnfoldState {
 
     pub(in super::super) fn insert_memory_block(
         &mut self,
-        place: vir_high::Expression,
+        place: vir_typed::Expression,
     ) -> SpannedEncodingResult<()> {
         assert!(place.is_place());
         assert!(self.unconditional.memory_block_stack.insert(place));
@@ -508,7 +533,7 @@ impl FoldUnfoldState {
 
     pub(in super::super) fn insert_owned(
         &mut self,
-        place: vir_high::Expression,
+        place: vir_typed::Expression,
     ) -> SpannedEncodingResult<()> {
         assert!(place.is_place());
         assert!(self.unconditional.owned_non_aliased.insert(place));
@@ -532,7 +557,7 @@ impl FoldUnfoldState {
 
     pub(in super::super) fn remove_memory_block(
         &mut self,
-        place: &vir_high::Expression,
+        place: &vir_typed::Expression,
     ) -> SpannedEncodingResult<()> {
         assert!(place.is_place());
         assert!(
@@ -546,7 +571,7 @@ impl FoldUnfoldState {
 
     pub(in super::super) fn remove_owned(
         &mut self,
-        place: &vir_high::Expression,
+        place: &vir_typed::Expression,
     ) -> SpannedEncodingResult<()> {
         assert!(place.is_place());
         assert!(
