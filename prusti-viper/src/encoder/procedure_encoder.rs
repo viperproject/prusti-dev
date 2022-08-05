@@ -3888,8 +3888,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             });
         }
 
-        if let SpecificationItem::Refined(_, _) = &procedure_spec.pledges {
-            unimplemented!("Refining specifications with pledges is not supported");
+        if let SpecificationItem::Refined(from, to) = &procedure_spec.pledges {
+            if !from.is_empty() || to.iter().any(|p| p.lhs.is_some()) {
+                unimplemented!("Refining specifications with pledges is not supported");
+            }
+            // If the trait has no pledges and the implementer only makes additional guarantees
+            // then the refinement is safe
         }
 
         Ok((weakening, strengthening))
