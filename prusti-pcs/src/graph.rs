@@ -34,7 +34,19 @@ pub trait CoreOps<'tcx> {
 }
 
 pub trait ToGraphviz {
-    fn to_graphviz(&self, writer: &mut dyn io::Write) -> io::Result<()>;
+    fn to_graphviz(&self, writer: &mut dyn io::Write) -> io::Result<()> {
+        writeln!(writer, "digraph ReborrowingGraph {{")?;
+        writeln!(writer, "rankdir=LR;")?;
+        writeln!(writer, "graph [fontname=monospace];")?;
+        writeln!(writer, "node [fontname=monospace];")?;
+        writeln!(writer, "edge [fontname=monospace];")?;
+
+        self.edges_to_graphviz(writer)?;
+
+        writeln!(writer, "}}")
+    }
+
+    fn edges_to_graphviz(&self, writer: &mut dyn io::Write) -> io::Result<()>;
 }
 
 #[derive(Debug, Clone)]
@@ -63,39 +75,39 @@ impl<'tcx> ConditionalOps<'tcx> for ReborrowingGraph<'tcx> {
     }
 
     fn join(graphs: Vec<Self>) -> Self {
-        let mut graph_iter = graphs.into_iter();
-        let first = graph_iter
-            .next()
-            .expect("join to be on at least two graphs");
-        let start = if let ReborrowingGraph::Branch {
-            condition: ConditionId { start, .. },
-            ..
-        } = first
-        {
-            start
+        let start = if let ReborrowingGraph::Branch { condition, .. } = graphs[0] {
+            condition.start
         } else {
             panic!("join graphs should all be branches");
         };
-
-        let (shared, unshared_graphs) = graph_iter.fold(
-            (first, FxHashMap::default()),
-            |(acc, mut unshared_graphs), item| {
+        // TODO: not the nicest, should be a better way
+        let shared: Graph = graphs
+            .iter()
+            .map(|graph| graph.shared_part())
+            .cloned()
+            .reduce(|acc, item| Graph {
+                edges: &acc.edges & &item.edges,
+                leaves: &acc.leaves & &item.leaves,
+            })
+            .expect("join to be on at least two graphs");
+        let unshared_graphs = graphs
+            .into_iter()
+            .map(|graph| {
                 if let ReborrowingGraph::Branch {
                     condition,
                     mut graph,
-                } = item
+                } = graph
                 {
-                    let shared_graph = graph.intersection(&acc);
-                    unshared_graphs.insert(condition.value, *graph);
-                    (shared_graph, unshared_graphs)
+                    graph.subtract(&shared);
+                    (condition.value, *graph)
                 } else {
-                    panic!("join graphs should all be branches");
+                    panic!("join graphs should all be branches")
                 }
-            },
-        );
+            })
+            .collect::<FxHashMap<_, _>>();
 
         Self::Conditional {
-            shared: Box::new(shared),
+            shared: Box::new(ReborrowingGraph::Single(shared)),
             start,
             graphs: unshared_graphs,
         }
@@ -109,7 +121,7 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
             ReborrowingGraph::Single(graph) => graph.r#move(new, old),
             ReborrowingGraph::Branch { graph, .. } => graph.r#move(new, old),
             ReborrowingGraph::Conditional { shared, graphs, .. } => {
-                if shared.any_edge_comes_from(&old) {
+                if shared.any_edge(&mut |edge| edge.comes_from(&old)) {
                     shared.r#move(new, old);
                 } else {
                     for graph in graphs.values_mut() {
@@ -134,7 +146,7 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
                 graph.mutable_borrow(from, loan, to, mir, tcx)
             }
             ReborrowingGraph::Conditional { shared, graphs, .. } => {
-                if shared.any_edge_goes_to(&to) {
+                if shared.any_edge(&mut |edge| edge.to() == &to) {
                     shared.mutable_borrow(from, loan, to, mir, tcx)
                 } else {
                     for graph in graphs.values_mut() {
@@ -156,7 +168,7 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
                 start,
                 graphs,
             } => {
-                if shared.any_edge_goes_to(&to) {
+                if shared.any_edge(&mut |edge| edge.to() == &to) {
                     shared.package(from, to)
                 } else {
                     graphs
@@ -216,96 +228,66 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
 }
 
 impl<'tcx> ReborrowingGraph<'tcx> {
-    fn intersection(&mut self, other: &ReborrowingGraph<'tcx>) -> ReborrowingGraph<'tcx> {
-        match (self, other) {
-            (ReborrowingGraph::Single(self_graph), ReborrowingGraph::Single(other_graph)) => {
-                let shared_edges = &self_graph.edges & &other_graph.edges;
-                for edge in &shared_edges {
-                    self_graph.edges.remove(edge);
-                }
-
-                let shared_leaves = &self_graph.leaves & &other_graph.leaves;
-                for leaf in &shared_leaves {
-                    self_graph.leaves.remove(leaf);
-                }
-
-                ReborrowingGraph::Single(Graph {
-                    edges: shared_edges,
-                    leaves: shared_leaves,
-                })
-            }
-            (
-                ReborrowingGraph::Branch {
-                    condition,
-                    graph: self_graph,
-                },
-                ReborrowingGraph::Branch {
-                    graph: other_graph, ..
-                },
-            ) => ReborrowingGraph::Branch {
-                condition: *condition,
-                graph: Box::new(self_graph.intersection(other_graph)),
-            },
-            _ => Self::Single(Graph::new()),
-        }
-    }
-
-    // TODO: can these two be abstracted by taking a closure?
-    fn any_edge_comes_from(&self, node: &GraphNode<'tcx>) -> bool {
+    fn subtract(&mut self, other: &Graph<'tcx>) {
         match self {
-            ReborrowingGraph::Single(graph) => graph.edges.iter().any(|edge| edge.comes_from(node)),
-            ReborrowingGraph::Branch { graph, .. } => graph.any_edge_comes_from(node),
+            ReborrowingGraph::Single(graph) => {
+                for edge in &other.edges {
+                    graph.edges.remove(edge);
+                }
+                for leaf in &other.leaves {
+                    graph.leaves.remove(leaf);
+                }
+            }
+            ReborrowingGraph::Branch { graph, .. } => graph.subtract(other),
             ReborrowingGraph::Conditional { shared, graphs, .. } => {
-                shared.any_edge_comes_from(node)
-                    || graphs.values().any(|graph| graph.any_edge_comes_from(node))
+                shared.subtract(other);
+                for graph in graphs.values_mut() {
+                    graph.subtract(other);
+                }
             }
         }
     }
 
-    fn any_edge_goes_to(&self, node: &GraphNode<'tcx>) -> bool {
+    fn any_edge(&self, pred: &mut impl FnMut(&GraphEdge<'tcx>) -> bool) -> bool {
         match self {
-            ReborrowingGraph::Single(graph) => graph.edges.iter().any(|edge| edge.to() == node),
-            ReborrowingGraph::Branch { graph, .. } => graph.any_edge_goes_to(node),
+            ReborrowingGraph::Single(graph) => graph.edges.iter().any(pred),
+            ReborrowingGraph::Branch { graph, .. } => graph.any_edge(pred),
             ReborrowingGraph::Conditional { shared, graphs, .. } => {
-                shared.any_edge_goes_to(node)
-                    || graphs.values().any(|graph| graph.any_edge_goes_to(node))
+                shared.any_edge(pred) || graphs.values().any(|graph| graph.any_edge(pred))
             }
+        }
+    }
+
+    fn shared_part(&self) -> &Graph<'tcx> {
+        match self {
+            ReborrowingGraph::Single(graph) => graph,
+            ReborrowingGraph::Branch { graph, .. } => graph.shared_part(),
+            ReborrowingGraph::Conditional { shared, .. } => shared.shared_part(),
         }
     }
 }
 
 impl<'tcx> ToGraphviz for ReborrowingGraph<'tcx> {
-    fn to_graphviz(&self, writer: &mut dyn io::Write) -> io::Result<()> {
-        writeln!(writer, "digraph ReborrowingGraph {{")?;
-        writeln!(writer, "rankdir=LR;")?;
-        writeln!(writer, "graph [fontname=monospace];")?;
-        writeln!(writer, "node [fontname=monospace];")?;
-        writeln!(writer, "edge [fontname=monospace];")?;
-
+    fn edges_to_graphviz(&self, writer: &mut dyn io::Write) -> io::Result<()> {
         match self {
-            ReborrowingGraph::Single(graph) => graph.edges_to_graphviz(writer)?,
+            ReborrowingGraph::Single(graph) => graph.edges_to_graphviz(writer),
             ReborrowingGraph::Branch { condition, graph } => {
                 writeln!(writer, "subgraph \"cluster_{:?}\" {{", condition)?;
                 writeln!(writer, "style=filled;")?;
                 writeln!(writer, "color=lightgrey;")?;
-                writeln!(writer, "node [style=filled,color=white];")?;
-                graph.to_graphviz(writer)?;
-                writeln!(
-                    writer,
-                    "label={:?};",
-                    format!("condition value: {:?}", condition.value)
-                )?;
-                writeln!(writer, "}}")?;
+                graph.edges_to_graphviz(writer)?;
+                writeln!(writer, "label=\"{:?}\";", condition.value)?;
+                writeln!(writer, "}}")
             }
             ReborrowingGraph::Conditional {
                 shared,
                 start,
                 graphs,
             } => {
-                shared.to_graphviz(writer)?;
+                shared.edges_to_graphviz(writer)?;
 
                 writeln!(writer, "subgraph \"cluster_{:?}\" {{", start)?;
-                writeln!(writer, "label={:?};", format!("condition at {:?}", start))?;
+                writeln!(writer, "label={:?};", format!("conditional at {:?}", start))?;
                 writeln!(writer, "graph [style=dotted];")?;
 
                 // TODO: duplicated with branch case
@@ -317,21 +299,14 @@ impl<'tcx> ToGraphviz for ReborrowingGraph<'tcx> {
                     writeln!(writer, "subgraph \"cluster_{:?}\" {{", condition)?;
                     writeln!(writer, "style=filled;")?;
                     writeln!(writer, "color=lightgrey;")?;
-                    writeln!(writer, "node [style=filled,color=white];")?;
-                    graph.to_graphviz(writer)?;
-                    writeln!(
-                        writer,
-                        "label={:?};",
-                        format!("condition value: {:?}", condition.value)
-                    )?;
+                    graph.edges_to_graphviz(writer)?;
+                    writeln!(writer, "label=\"{:?}\";", condition.value,)?;
                     writeln!(writer, "}}")?;
                 }
 
-                writeln!(writer, "}}")?;
+                writeln!(writer, "}}")
             }
         }
-
-        writeln!(writer, "}}")
     }
 }
 
@@ -354,7 +329,7 @@ impl ConditionId {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct ConditionValue(u128);
+pub struct ConditionValue(pub u128);
 
 #[derive(Debug, Clone)]
 pub struct Graph<'tcx> {
@@ -631,13 +606,12 @@ impl<'tcx> Graph<'tcx> {
         final_annotations
     }
 
-    fn take_edge<F>(&mut self, pred: F) -> Option<GraphEdge<'tcx>>
-    where
-        F: FnMut(&GraphEdge<'tcx>) -> bool,
-    {
+    fn take_edge(&mut self, pred: impl FnMut(&GraphEdge<'tcx>) -> bool) -> Option<GraphEdge<'tcx>> {
         self.edges.drain_filter(pred).next()
     }
+}
 
+impl<'tcx> ToGraphviz for Graph<'tcx> {
     fn edges_to_graphviz(&self, writer: &mut dyn io::Write) -> io::Result<()> {
         for edge in &self.edges {
             match edge {
@@ -676,20 +650,6 @@ impl<'tcx> Graph<'tcx> {
         }
 
         Ok(())
-    }
-}
-
-impl<'tcx> ToGraphviz for Graph<'tcx> {
-    fn to_graphviz(&self, writer: &mut dyn io::Write) -> io::Result<()> {
-        writeln!(writer, "digraph ReborrowingGraph {{")?;
-        writeln!(writer, "rankdir=LR;")?;
-        writeln!(writer, "graph [fontname=monospace];")?;
-        writeln!(writer, "node [fontname=monospace];")?;
-        writeln!(writer, "edge [fontname=monospace];")?;
-
-        self.edges_to_graphviz(writer)?;
-
-        writeln!(writer, "}}")
     }
 }
 
