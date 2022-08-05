@@ -195,7 +195,6 @@ impl<'l, 'p, 'v, 'tcx> PredicateEncoder<'l, 'p, 'v, 'tcx> {
                             lifetimes_variant_type_expr
                         )))
                     };
-                    println!("Push variant predicate");
                     variant_predicates.push(acc);
                 }
                 let discriminant_type = &decl.discriminant_type;
