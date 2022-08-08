@@ -267,29 +267,13 @@
 <span id="267">267</span>
 <span id="268">268</span>
 <span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
 <span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
 <span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../../src/vir/common/identifier.rs.html#1">common::identifier::WithIdentifier</a>, <a class="ident" href="../../../../src/vir/legacy/mod.rs.html#12">legacy::ast</a>::<span class="kw-2">*</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../../src/vir/common/identifier.rs.html#1">common::identifier::WithIdentifier</a>, <a class="ident" href="../../../../src/vir/common/ast/predicate.rs.html#2">enum_predicate</a>, <a class="ident" href="../../../../src/vir/legacy/mod.rs.html#12">legacy::ast</a>::<span class="kw-2">*</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/set/struct.HashSet.html">collections::HashSet</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/fmt/index.html">fmt</a>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)]</span>
@@ -543,29 +527,13 @@
 <span class="kw">impl</span> <a class="ident" href="../../../../src/vir/legacy/ast/predicate.rs.html#205">EnumPredicate</a> {
     <span class="doccomment">/// Construct an expression that represents the body of this predicate.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../../../src/vir/legacy/ast/expr.rs.html#19">Expr</a> {
-        <span class="kw">let</span> <span class="ident">discriminant_loc</span> <span class="op">=</span> <span class="ident">Expr::from</span>(<a class="self" href="../../../../src/vir/legacy/ast/predicate.rs.html#260">self</a>.<span class="ident">this</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<a class="ident" href="../../../../src/vir/legacy/ast/expr.rs.html#764">field</a>(<a class="self" href="../../../../src/vir/legacy/ast/predicate.rs.html#260">self</a>.<span class="ident">discriminant_field</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
-        <span class="kw">let</span> <span class="ident">discriminant_perm</span> <span class="op">=</span> <span class="ident">Expr::acc_permission</span>(<a class="ident" href="../../../../src/vir/legacy/ast/predicate.rs.html#261">discriminant_loc</a>, <a class="ident" href="../../../../src/vir/legacy/ast/common.rs.html#69">PermAmount::Write</a>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parts</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">discriminant_perm</span>, <span class="self">self</span>.<span class="ident">discriminant_bounds</span>.<span class="ident">clone</span>()];
-        <span class="kw">for</span> (<span class="ident">guard</span>, <span class="ident">name</span>, <span class="ident">variant</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">variants</span>.<span class="ident">iter</span>() {
-            <span class="kw">if</span> <span class="ident">variant</span>.<span class="ident">has_empty_body</span>() {
-                <span class="kw">continue</span>;
-            }
-            <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">Field::new</span>(<span class="macro">format!</span>(<span class="string">&quot;enum_{}&quot;</span>, <span class="ident">name</span>), <span class="ident">variant</span>.<span class="ident">this</span>.<span class="ident">typ</span>.<span class="ident">clone</span>());
-            <span class="kw">let</span> <span class="ident">location</span>: <span class="ident">Expr</span> <span class="op">=</span> <span class="ident">Expr::from</span>(<span class="self">self</span>.<span class="ident">this</span>.<span class="ident">clone</span>()).<span class="ident">field</span>(<span class="ident">field</span>);
-            <span class="kw">let</span> <span class="ident">field_perm</span> <span class="op">=</span> <span class="ident">Expr::acc_permission</span>(<span class="ident">location</span>.<span class="ident">clone</span>(), <span class="ident">PermAmount::Write</span>);
-            <span class="kw">let</span> <span class="ident">pred_perm</span> <span class="op">=</span> <span class="ident">variant</span>.<span class="ident">construct_access</span>(<span class="ident">location</span>, <span class="ident">PermAmount::Write</span>);
-            <span class="ident">parts</span>.<span class="ident">push</span>(<span class="ident">Expr::and</span>(
-                <span class="ident">field_perm</span>,
-                <span class="ident">Expr::implies</span>(<span class="ident">guard</span>.<span class="ident">clone</span>(), <span class="ident">pred_perm</span>),
-            ));
-        }
-        <a class="ident" href="../../../../src/vir/legacy/ast/predicate.rs.html#263">parts</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="../../../../src/vir/legacy/ast/expr.rs.html#1884">conjoin</a>()
+        <a class="macro" href="../../../../src/vir/common/ast/predicate.rs.html#2-34">enum_predicate!</a>(<span class="self">self</span>)
     }
 }
 
 <span class="kw">impl</span> <a class="ident" href="../../../../src/vir/common/identifier.rs.html#1">WithIdentifier</a> <span class="kw">for</span> <a class="ident" href="../../../../src/vir/legacy/ast/predicate.rs.html#205">EnumPredicate</a> {
     <span class="kw">fn</span> <span class="ident">get_identifier</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
-        <a class="self" href="../../../../src/vir/legacy/ast/predicate.rs.html#282">self</a>.<span class="ident">name</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
+        <a class="self" href="../../../../src/vir/legacy/ast/predicate.rs.html#266">self</a>.<span class="ident">name</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()
     }
 }
 </code></pre></div>
