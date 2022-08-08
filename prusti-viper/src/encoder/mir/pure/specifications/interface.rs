@@ -247,6 +247,11 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
                 parent_def_id,
                 substs,
             ),
+            "prusti_contracts::snap" => Ok(vir_poly::Expr::snap_app(encoded_args[0].clone())),
+            "prusti_contracts::snapshot_equality" => Ok(vir_poly::Expr::eq_cmp(
+                vir_poly::Expr::snap_app(encoded_args[0].clone()),
+                vir_poly::Expr::snap_app(encoded_args[1].clone()),
+            )),
             _ => unimplemented!(),
         }
     }

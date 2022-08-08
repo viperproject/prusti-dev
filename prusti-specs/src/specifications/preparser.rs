@@ -797,7 +797,7 @@ impl PrustiBinaryOp {
             }
             Self::Or => quote_spanned! { span => #lhs || #rhs },
             Self::And => quote_spanned! { span => #lhs && #rhs },
-            Self::SnapEq => quote_spanned! { span => snapshot_equality(#lhs, #rhs) },
+            Self::SnapEq => quote_spanned! { span => snapshot_equality(&#lhs, &#rhs) },
         }
     }
 }
@@ -894,16 +894,15 @@ mod tests {
         );
         assert_eq!(
             parse_prusti("exists(|x: i32| a === b)".parse().unwrap()).unwrap().to_string(),
-            "exists (() , # [prusti :: spec_only] | x : i32 | -> bool { ((snapshot_equality (a , b)) : bool) })",
+            "exists (() , # [prusti :: spec_only] | x : i32 | -> bool { ((snapshot_equality (& a , & b)) : bool) })",
         );
         assert_eq!(
             parse_prusti("forall(|x: i32| a ==> b, triggers = [(c,), (d, e)])".parse().unwrap()).unwrap().to_string(),
             "forall (((# [prusti :: spec_only] | x : i32 | (c) ,) , (# [prusti :: spec_only] | x : i32 | (d) , # [prusti :: spec_only] | x : i32 | (e) ,) ,) , # [prusti :: spec_only] | x : i32 | -> bool { (((! (a) || (b))) : bool) })",
         );
-        let expr: syn::Expr = syn::parse2("assert!(a === b ==> b)".parse().unwrap()).unwrap();
         assert_eq!(
-            parse_prusti(quote! { #expr }).unwrap().to_string(),
-            "assert ! ((! (snapshot_equality (a , b)) || (b)))",
+            parse_prusti("assert!(a === b ==> b)".parse().unwrap()).unwrap().to_string(),
+            "assert ! ((! (snapshot_equality (& a , & b)) || (b)))",
         );
     }
 
