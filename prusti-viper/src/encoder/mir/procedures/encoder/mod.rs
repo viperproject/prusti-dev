@@ -240,7 +240,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             let mir_type = self.encoder.get_local_type(self.mir, mir_arg)?;
             let size = self.encoder.encode_type_size_expression(mir_type)?;
             let dealloc_statement = vir_high::Statement::exhale_no_pos(
-                vir_high::Predicate::memory_block_stack_no_pos(parameter.clone().into(), size),
+                vir_high::Predicate::memory_block_stack_no_pos(parameter.clone().into(),
+                // size
+            ),
             );
             deallocation.push(self.encoder.set_surrounding_error_context_for_statement(
                 dealloc_statement,
@@ -260,7 +262,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let alloc_statement = self.encoder.set_surrounding_error_context_for_statement(
             vir_high::Statement::inhale_no_pos(vir_high::Predicate::memory_block_stack_no_pos(
                 return_local.clone().into(),
-                size,
+                // size,
             )),
             return_local.position,
             ErrorCtxt::UnexpectedStorageLive,
@@ -414,7 +416,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 let size = self.encoder.encode_type_size_expression(mir_type)?;
                 let predicate = vir_high::Predicate::memory_block_stack_no_pos(
                     encoded_local.clone().into(),
-                    size,
+                    // size,
                 );
                 procedure_builder.add_alloc_statement(
                     self.encoder.set_surrounding_error_context_for_statement(
@@ -1571,7 +1573,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 )?;
                 let target_memory_block = vir_high::Predicate::memory_block_stack_no_pos(
                     encoded_target_place.clone(),
-                    size,
+                    // size,
                 );
                 block_builder.add_statement(self.encoder.set_statement_error_ctxt(
                     vir_high::Statement::exhale_no_pos(target_memory_block.clone()),

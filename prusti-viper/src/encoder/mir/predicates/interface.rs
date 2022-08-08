@@ -30,7 +30,7 @@ impl<'v, 'tcx: 'v> MirPredicateEncoderInterface<'tcx> for super::super::super::E
         let size = self.encode_type_size_expression(mir_type)?;
         Ok(vir_high::Predicate::memory_block_stack(
             variable.into(),
-            size,
+            // size,
             Default::default(), // FIXME: Set proper error reporting.
         ))
     }
