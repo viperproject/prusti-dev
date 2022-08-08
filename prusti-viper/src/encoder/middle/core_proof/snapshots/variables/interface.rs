@@ -122,6 +122,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 }
                 vir_mid::TypeDecl::Union(_) | vir_mid::TypeDecl::Enum(_) => {
                     let place_variant = place.clone().unwrap_variant(); // FIXME: Implement a macro that takes a reference to avoid clonning.
+                    let old_discriminant =
+                        self.obtain_enum_discriminant(old_snapshot.clone(), parent_type, position)?;
+                    let new_discriminant =
+                        self.obtain_enum_discriminant(new_snapshot.clone(), parent_type, position)?;
+                    statements.push(stmtp! {
+                        position => assume ([new_discriminant] == [old_discriminant])
+                    });
                     Ok((
                         self.obtain_enum_variant_snapshot(
                             parent_type,
