@@ -277,6 +277,11 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         mut pcs: PCS<'tcx>,
     ) -> EncodingResult<PCS<'tcx>> {
         for (statement_index, statement) in block_data.statements.iter().enumerate() {
+            // 0. Handle borrows seperately
+            if statement.is_borrow() {
+                todo!();
+            }
+
             // 1. Elaborate the state-dependent conditions
             let location = Location {
                 block: block_data.mir_block,
@@ -504,6 +509,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                     )
                 })
             }
+
             _ => Err(PrustiError::unsupported(
                 "unsupported kill elaboration",
                 MultiSpan::new(),

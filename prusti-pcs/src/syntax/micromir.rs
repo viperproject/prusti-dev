@@ -70,9 +70,22 @@ pub enum MicroMirStatement<'tcx> {
     // These two are probably useless
     Allocate(Place<'tcx>),
     Deallocate(Place<'tcx>),
+    // Borrow of a place, assigned to another place
+    BorrowMut(Place<'tcx>, Place<'tcx>),
     // Places annotated so that we do not need to truck around the mir
     Pack(Vec<Place<'tcx>>, Place<'tcx>),
     Unpack(Place<'tcx>, Vec<Place<'tcx>>),
+}
+
+impl<'tcx> MicroMirStatement<'tcx> {
+    // Does the current MicroMir
+    // For the whole "handle borrows in a completely separate system" thing
+    pub fn is_borrow(&self) -> bool {
+        match self {
+            MicroMirStatement::BorrowMut(_, _) => true,
+            _ => false,
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -206,6 +219,7 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
                 pcs.free.insert(PCSPermission::new_uninit((*dest).into()));
                 Some(pcs)
             }
+            MicroMirStatement::BorrowMut(_, _) => None,
         }
     }
 
@@ -284,6 +298,7 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
                 }
                 Some(pcs)
             }
+            MicroMirStatement::BorrowMut(_, _) => Some(PCS::empty()),
         }
     }
 }
@@ -469,6 +484,7 @@ impl<'tcx> Debug for MicroMirStatement<'tcx> {
                 }
                 write!(f, "-> {:?}", p)
             }
+            MicroMirStatement::BorrowMut(from, to) => write!(f, "borrow {:?} -> {:?}", from, to),
         }
     }
 }
