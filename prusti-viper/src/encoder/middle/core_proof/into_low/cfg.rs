@@ -13,7 +13,7 @@ use crate::encoder::{
         references::ReferencesInterface,
         snapshots::{
             IntoProcedureBoolExpression, IntoProcedureFinalSnapshot, IntoProcedureSnapshot,
-            SnapshotValidityInterface, SnapshotVariablesInterface,
+            SnapshotValidityInterface, SnapshotValuesInterface, SnapshotVariablesInterface,
         },
     },
 };
@@ -533,6 +533,28 @@ impl IntoLow for vir_mid::Statement {
                     statement.value,
                     statement.position,
                 )?;
+                Ok(statements)
+            }
+            Self::SetUnionVariant(statement) => {
+                let variant_place = statement.variant_place.get_parent_ref().unwrap();
+                // FIXME: Implement a macro that takes a reference to avoid clonning.
+                let variant_index = variant_place.clone().unwrap_variant().variant_index;
+                let union_place = variant_place.get_parent_ref().unwrap();
+                assert!(union_place.get_type().is_union());
+                let mut statements = Vec::new();
+                lowerer.encode_snapshot_havoc(&mut statements, union_place, statement.position)?;
+                let snapshot = union_place.to_procedure_snapshot(lowerer)?;
+                let discriminant = lowerer.obtain_enum_discriminant(
+                    snapshot,
+                    union_place.get_type(),
+                    statement.position,
+                )?;
+                let type_decl = lowerer.encoder.get_type_decl_mid(union_place.get_type())?;
+                let union_decl = type_decl.unwrap_union();
+                let discriminant_value =
+                    union_decl.get_discriminant(&variant_index).unwrap().into();
+                statements.push(stmtp! { statement.position =>
+                assume ([discriminant] == [discriminant_value]) });
                 Ok(statements)
             }
             Self::NewLft(statement) => {
