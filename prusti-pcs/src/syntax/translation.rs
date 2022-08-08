@@ -21,7 +21,7 @@ use prusti_rustc_interface::{
     errors::MultiSpan,
     middle::{
         mir::{
-            AggregateKind::Adt, BasicBlock, BinOp, Body, Local, Location, Mutability,
+            AggregateKind::Adt, BasicBlock, BinOp, Body, BorrowKind, Local, Location, Mutability,
             Mutability::*, NullOp, Operand, Operand::*, Place, Rvalue::*, Statement,
             StatementKind::*, Terminator, TerminatorKind::*, UnOp,
         },
@@ -124,6 +124,17 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
 
             // TODO: The "ty" field here isn't used... but I think we'll need it when we lower to Viper.
             Assign(box (p_dest, NullaryOp(nullop, _))) => Self::encode_nullop(ctx, *nullop, p_dest),
+
+            Assign(box (
+                p_dest,
+                Ref(
+                    _,
+                    BorrowKind::Mut {
+                        allow_two_phase_borrow: _,
+                    },
+                    p_from,
+                ),
+            )) => Self::encode_borrow(ctx, *p_from, *p_dest),
 
             // TODO: These need to be discussed
             StorageDead(local) => Self::encode_storagedead(ctx, *local),
@@ -409,6 +420,15 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
         let p: Place<'tcx> = (l.clone()).into();
         ctx.push_stmt(MicroMirStatement::Kill(None, LinearResource::Mir(p)));
         ctx.push_stmt(MicroMirStatement::Deallocate(l.into()));
+        Ok(())
+    }
+
+    fn encode_borrow(
+        ctx: &mut BBCtx<'mir, 'tcx>,
+        p_from: Place<'tcx>,
+        p_to: Place<'tcx>,
+    ) -> EncodingResult<()> {
+        ctx.push_stmt(MicroMirStatement::BorrowMut(p_from, p_to));
         Ok(())
     }
 
