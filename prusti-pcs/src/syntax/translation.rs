@@ -474,14 +474,14 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
 
     fn pprint_pcs(pcs: &Option<PCS<'tcx>>) {
         match pcs {
-            Some(pcs1) => println!("{:?}", pcs1.set),
+            Some(pcs1) => println!("{:?}", pcs1.free),
             None => println!("None"),
         }
     }
 
     fn pprint_term(jumps: &Vec<(BasicBlock, PCS<'tcx>)>) {
         for (bb, pcs) in jumps {
-            println!("\t| => {:?} -> {:?}", bb, pcs.set)
+            println!("\t| => {:?} -> {:?}", bb, pcs.free)
         }
     }
 }

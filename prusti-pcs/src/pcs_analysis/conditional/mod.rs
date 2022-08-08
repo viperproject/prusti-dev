@@ -5,6 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #![allow(unused_imports)]
 use crate::{
+    graph::{ReborrowingGraph::*, *},
     joins::{RepackPackup, RepackUnify},
     syntax::{
         hoare_semantics::HoareSemantics, LinearResource, MicroMirData, MicroMirEncoder,
@@ -275,8 +276,6 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         op_mir: &mut StraightOperationalMir<'tcx>,
         mut pcs: PCS<'tcx>,
     ) -> EncodingResult<PCS<'tcx>> {
-        println!("Encoding {:?}", block_data.mir_block);
-
         for (statement_index, statement) in block_data.statements.iter().enumerate() {
             // 1. Elaborate the state-dependent conditions
             let location = Location {
@@ -292,9 +291,6 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             // 3. Statement is coherent: push
             op_mir.statements.push(statement.clone());
             op_mir.pcs_before.push(pcs.clone());
-
-            println!("\t{:?}", statement);
-            println!("\t{:?}", pcs);
 
             // 4. Apply statement's semantics to state.
             pcs = transform_pcs(pcs, &statement_precondition, &statement_postcondition)?;
@@ -325,14 +321,15 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         op_mir: &mut StraightOperationalMir<'tcx>,
     ) -> EncodingResult<PCS<'tcx>> {
         let mut ret_pcs = PCS {
-            set: FxHashSet::default(),
+            free: FxHashSet::default(),
+            dag: Single(Graph::new()),
         };
 
         let init_set = self.init_analysis.get_before_block(next_bb);
         let alloc_set = self.alloc_analysis.get_before_block(next_bb);
 
         // 1. Iterate over all the permissions, weakening the exclusive permissions
-        let work_set = pcs.set.clone();
+        let work_set = pcs.free.clone();
 
         for perm in work_set.iter() {
             match perm.target {
@@ -352,7 +349,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                     };
 
                     for t in to_add {
-                        if !ret_pcs.set.insert(t) {
+                        if !ret_pcs.free.insert(t) {
                             return Err(PrustiError::internal(
                                 "unexpected incoherence in trimming",
                                 MultiSpan::new(),
@@ -365,7 +362,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
         // Check that the uninit permissions in ret_pcs are OK
 
-        for ret_perm in ret_pcs.set.iter() {
+        for ret_perm in ret_pcs.free.iter() {
             match ret_perm.target {
                 LinearResource::Tmp(_) => {
                     // Impossible.
@@ -436,7 +433,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 .push(MicroMirStatement::Unpack(p.clone(), to_gain.clone()));
 
             if !pcs
-                .set
+                .free
                 .remove(&PCSPermission::new_initialized(Mut, p.into()))
             {
                 return Err(PrustiError::internal(
@@ -447,7 +444,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
             for p1 in to_gain.iter() {
                 if !pcs
-                    .set
+                    .free
                     .insert(PCSPermission::new_initialized(Mut, (*p1).into()))
                 {
                     return Err(PrustiError::internal(
@@ -618,19 +615,19 @@ fn transform_pcs<'tcx>(
     pre: &PCS<'tcx>,
     post: &PCS<'tcx>,
 ) -> EncodingResult<PCS<'tcx>> {
-    for p in pre.set.iter() {
-        if !pcs.set.remove(p) {
+    for p in pre.free.iter() {
+        if !pcs.free.remove(p) {
             return Err(PrustiError::internal(
-                format!("incoherent precondition: {:#?} in {:#?}", p, pcs.set),
+                format!("incoherent precondition: {:#?} in {:#?}", p, pcs.free),
                 MultiSpan::new(),
             ));
         }
     }
 
-    for p in post.set.iter() {
-        if !pcs.set.insert((*p).clone()) {
+    for p in post.free.iter() {
+        if !pcs.free.insert((*p).clone()) {
             return Err(PrustiError::internal(
-                format!("incoherent postcondition: {:#?} in {:#?}", p, pcs.set),
+                format!("incoherent postcondition: {:#?} in {:#?}", p, pcs.free),
                 MultiSpan::new(),
             ));
         }

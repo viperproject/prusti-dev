@@ -38,7 +38,7 @@ impl<'tcx> RepackPackup<'tcx> {
         let mut packs: Vec<(FxHashSet<Place<'tcx>>, Place<'tcx>)> = Vec::default();
 
         // Split the problem into independent parts
-        for pcs_permission in pcs.set.iter() {
+        for pcs_permission in pcs.free.iter() {
             match pcs_permission.target {
                 LinearResource::Mir(place) => {
                     if pcs_permission.kind == PCSPermissionKind::Exclusive {
@@ -116,7 +116,7 @@ impl<'tcx> RepackPackup<'tcx> {
 
             let to_lose: Vec<Place<'tcx>> = pre_p.iter().cloned().collect(); // expand_place(*p, mir, env)?;
             for p1 in to_lose.iter() {
-                if !state.set.remove(&PCSPermission::new_initialized(
+                if !state.free.remove(&PCSPermission::new_initialized(
                     Mutability::Mut,
                     (*p1).into(),
                 )) {
@@ -129,7 +129,7 @@ impl<'tcx> RepackPackup<'tcx> {
 
             let to_regain = p.clone();
 
-            if !state.set.insert(PCSPermission::new_initialized(
+            if !state.free.insert(PCSPermission::new_initialized(
                 Mutability::Mut,
                 to_regain.into(),
             )) {

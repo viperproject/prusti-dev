@@ -43,7 +43,7 @@ impl<'tcx> RepackUnify<'tcx> {
         > = FxHashMap::default();
 
         // Split the problem into independent parts
-        for pcs_permission in a_pcs.set.iter() {
+        for pcs_permission in a_pcs.free.iter() {
             let permissionkind = pcs_permission.kind.clone();
             match pcs_permission.target {
                 LinearResource::Mir(place) => {
@@ -61,7 +61,7 @@ impl<'tcx> RepackUnify<'tcx> {
 
         // TODO: DRY
 
-        for pcs_permission in b_pcs.set.iter() {
+        for pcs_permission in b_pcs.free.iter() {
             let permissionkind = pcs_permission.kind.clone();
             match pcs_permission.target {
                 LinearResource::Mir(place) => {
@@ -131,7 +131,7 @@ impl<'tcx> RepackUnify<'tcx> {
                     return Err(PrustiError::internal(
                         format!(
                             "could not unify pcs's {:#?} and {:#?}",
-                            a_pcs.set, b_pcs.set
+                            a_pcs.free, b_pcs.free
                         ),
                         MultiSpan::new(),
                     ));
@@ -175,7 +175,7 @@ impl<'tcx> RepackUnify<'tcx> {
 
             let to_lose = p.clone();
             // TODO: We're assuming all places are mutably owned right now
-            if !state.set.remove(&PCSPermission::new_initialized(
+            if !state.free.remove(&PCSPermission::new_initialized(
                 Mutability::Mut,
                 to_lose.into(),
             )) {
@@ -186,7 +186,7 @@ impl<'tcx> RepackUnify<'tcx> {
             }
             let to_regain: Vec<Place<'tcx>> = unpacked_p.iter().cloned().collect();
             for p1 in to_regain.iter() {
-                if !state.set.insert(PCSPermission::new_initialized(
+                if !state.free.insert(PCSPermission::new_initialized(
                     Mutability::Mut,
                     (*p1).into(),
                 )) {
@@ -204,7 +204,7 @@ impl<'tcx> RepackUnify<'tcx> {
 
             let to_lose: Vec<Place<'tcx>> = pre_p.iter().cloned().collect(); // expand_place(*p, mir, env)?;
             for p1 in to_lose.iter() {
-                if !state.set.remove(&PCSPermission::new_initialized(
+                if !state.free.remove(&PCSPermission::new_initialized(
                     Mutability::Mut,
                     (*p1).into(),
                 )) {
@@ -217,7 +217,7 @@ impl<'tcx> RepackUnify<'tcx> {
 
             let to_regain = p.clone();
 
-            if !state.set.insert(PCSPermission::new_initialized(
+            if !state.free.insert(PCSPermission::new_initialized(
                 Mutability::Mut,
                 to_regain.into(),
             )) {
