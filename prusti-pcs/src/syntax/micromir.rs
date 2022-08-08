@@ -7,7 +7,12 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
-use crate::{syntax, syntax::hoare_semantics::*, util::*};
+use crate::{
+    graph::{ReborrowingGraph::*, *},
+    syntax,
+    syntax::hoare_semantics::*,
+    util::*,
+};
 use analysis::mir_utils::expand_struct_place;
 use env_logger::Env;
 use itertools::Itertools;
@@ -110,24 +115,27 @@ pub struct PCSPermission<'tcx> {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PCS<'tcx> {
-    pub set: FxHashSet<PCSPermission<'tcx>>,
+    pub free: FxHashSet<PCSPermission<'tcx>>,
+    pub dag: ReborrowingGraph<'tcx>,
 }
 
 impl<'tcx> PCS<'tcx> {
     pub fn from_vec(vec: Vec<PCSPermission<'tcx>>) -> Self {
         PCS {
-            set: FxHashSet::from_iter(vec),
+            free: FxHashSet::from_iter(vec),
+            dag: Single(Graph::new()),
         }
     }
 
     pub fn empty() -> Self {
         PCS {
-            set: FxHashSet::default(),
+            free: FxHashSet::default(),
+            dag: Single(Graph::new()),
         }
     }
 
     pub fn pprint_contents(&self) {
-        for s in self.set.iter() {
+        for s in self.free.iter() {
             print!("{:#?}, ", s)
         }
     }
@@ -195,7 +203,7 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
             }
             MicroMirStatement::Aggregate(dest, subpermissions, _) => {
                 let mut pcs = PCS::from_vec(subpermissions.to_vec());
-                pcs.set.insert(PCSPermission::new_uninit((*dest).into()));
+                pcs.free.insert(PCSPermission::new_uninit((*dest).into()));
                 Some(pcs)
             }
         }
@@ -271,7 +279,7 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
                 let mut pcs = PCS::from_vec(vec![PCSPermission::new_initialized(*m, (*p).into())]);
                 for permission in subpermissions.iter() {
                     if let r @ LinearResource::Mir(_) = permission.target {
-                        pcs.set.insert(PCSPermission::new_uninit(r));
+                        pcs.free.insert(PCSPermission::new_uninit(r));
                     }
                 }
                 Some(pcs)

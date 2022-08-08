@@ -73,12 +73,12 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
             pcs_before.push(current_state.clone());
 
             // 4. Apply statement's hoare semantics
-            for p1 in next_statement_state.set.iter() {
-                if !current_state.set.remove(p1) {
+            for p1 in next_statement_state.free.iter() {
+                if !current_state.free.remove(p1) {
                     return Err(PrustiError::internal(
                         format!(
                             "generated PCS is incoherent (precondition): {:#?}",
-                            next_statement_state.set
+                            next_statement_state.free
                         ),
                         MultiSpan::new(),
                     ));
@@ -95,8 +95,8 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
                 }
             };
 
-            for p1 in post.set.iter() {
-                if !current_state.set.insert((*p1).clone()) {
+            for p1 in post.free.iter() {
+                if !current_state.free.insert((*p1).clone()) {
                     return Err(PrustiError::internal(
                         format!(
                             "generated PCS is incoherent (postcondition) {:?} in {:?}",
@@ -148,28 +148,30 @@ pub fn straight_line_pcs<'mir, 'env: 'mir, 'tcx: 'env>(
 /// { e p } kill p { u p } or
 /// { u p } kill p { u p }
 pub fn naive_elaboration<'tcx>(
-    statement: &MicroMirStatement<'tcx>,
-    current_state: &PCS<'tcx>,
+    _statement: &MicroMirStatement<'tcx>,
+    _current_state: &PCS<'tcx>,
 ) -> EncodingResult<PCS<'tcx>> {
-    match statement.precondition() {
-        Some(s) => Ok(s),
-        None => match statement {
-            MicroMirStatement::Kill(_, LinearResource::Mir(p)) => {
-                // Remove all places which are a prefix of the statement to kill (p).
-                let mut set: FxHashSet<PCSPermission<'tcx>> = FxHashSet::default();
-                for current_permission in current_state.set.iter() {
-                    if let LinearResource::Mir(p0) = current_permission.target {
-                        if is_prefix(p0, (*p).clone()) {
-                            set.insert(current_permission.clone());
-                        }
-                    }
-                }
-                return Ok(PCS { set });
-            }
-            _ => Err(PrustiError::unsupported(
-                format!("unsupported elaboration of {:?} precondition", statement),
-                MultiSpan::new(),
-            )),
-        },
-    }
+    // Depricated
+    todo!();
+    // match statement.precondition() {
+    //     Some(s) => Ok(s),
+    //     None => match statement {
+    //         MicroMirStatement::Kill(_, LinearResource::Mir(p)) => {
+    //             // Remove all places which are a prefix of the statement to kill (p).
+    //             let mut free: FxHashSet<PCSPermission<'tcx>> = FxHashSet::default();
+    //             for current_permission in current_state.free.iter() {
+    //                 if let LinearResource::Mir(p0) = current_permission.target {
+    //                     if is_prefix(p0, (*p).clone()) {
+    //                         free.insert(current_permission.clone());
+    //                     }
+    //                 }
+    //             }
+    //             return Ok(PCS { free });
+    //         }
+    //         _ => Err(PrustiError::unsupported(
+    //             format!("unsupported elaboration of {:?} precondition", statement),
+    //             MultiSpan::new(),
+    //         )),
+    //     },
+    // }
 }

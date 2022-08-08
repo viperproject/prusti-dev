@@ -49,7 +49,7 @@ pub trait ToGraphviz {
     fn edges_to_graphviz(&self, writer: &mut dyn io::Write) -> io::Result<()>;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ReborrowingGraph<'tcx> {
     Single(Graph<'tcx>),
     Branch {
@@ -331,7 +331,7 @@ impl ConditionId {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ConditionValue(pub u128);
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Graph<'tcx> {
     edges: FxHashSet<GraphEdge<'tcx>>,
     pub leaves: FxHashSet<GraphNode<'tcx>>,
