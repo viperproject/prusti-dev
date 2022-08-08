@@ -84,7 +84,6 @@ impl<'tcx> ConditionalOps<'tcx> for ReborrowingGraph<'tcx> {
             .cloned()
             .reduce(|acc, item| Graph {
                 edges: &acc.edges & &item.edges,
-                leaves: &acc.leaves & &item.leaves,
             })
             .expect("join to be on at least two graphs");
         let unshared_graphs = graphs
@@ -200,8 +199,11 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
                         let condition = ConditionId::new(*condition_value, *start);
 
                         result.annotations = condition.apply_to(result.annotations);
+                        result.annotations.extend(acc.annotations);
+                        result.added = &result.added & &acc.added;
+                        result.removed = &result.removed & &acc.removed;
 
-                        acc.combine(result)
+                        result
                     },
                 );
                 let shared_result = shared.unwind(killed_loans);
@@ -218,9 +220,6 @@ impl<'tcx> ReborrowingGraph<'tcx> {
             Self::Single(graph) => {
                 for edge in &other.edges {
                     graph.edges.remove(edge);
-                }
-                for leaf in &other.leaves {
-                    graph.leaves.remove(leaf);
                 }
             }
             Self::Branch { graph, .. } => graph.subtract(other),
@@ -320,7 +319,6 @@ pub struct ConditionValue(pub u128);
 #[derive(Debug, Clone, Default, PartialEq)]
 pub struct Graph<'tcx> {
     edges: FxHashSet<GraphEdge<'tcx>>,
-    pub leaves: FxHashSet<GraphNode<'tcx>>,
 }
 
 impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
@@ -335,9 +333,6 @@ impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
             | GraphEdge::Collapsed { from, .. } => {
                 *from = new;
                 self.edges.insert(edge);
-
-                self.leaves.remove(&old);
-                self.leaves.insert(new);
             }
             GraphEdge::Pack { .. } => panic!("moving a pack edge is unsupported"),
         }
@@ -362,9 +357,6 @@ impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
                 self.unpack(node, mir, tcx);
             }
         }
-
-        self.leaves.remove(&to);
-        self.leaves.insert(from);
 
         self.edges.insert(GraphEdge::Borrow {
             from,
@@ -411,16 +403,17 @@ impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
     fn unwind(&mut self, killed_loans: &FxHashSet<facts::Loan>) -> GraphResult<'tcx> {
         self.collapse_killed(killed_loans);
 
-        let leaves_before = self.leaves.clone();
+        let leaves_before = self.leaves();
         let annotations = leaves_before
             .iter()
             .flat_map(|leaf| self.unwind_path(*leaf))
             .collect();
+        let leaves_after = self.leaves();
 
         GraphResult {
             annotations,
-            removed: &leaves_before - &self.leaves,
-            added: &self.leaves - &leaves_before,
+            removed: &leaves_before - &leaves_after,
+            added: &leaves_after - &leaves_before,
         }
     }
 }
@@ -431,11 +424,6 @@ impl<'tcx> Graph<'tcx> {
             .iter()
             .map(|p| p.to_mir_place())
             .collect::<Vec<_>>();
-
-        self.leaves.remove(&node);
-        for place in places.iter() {
-            self.leaves.insert(*place);
-        }
 
         self.edges.insert(GraphEdge::Pack {
             from: places,
@@ -538,35 +526,18 @@ impl<'tcx> Graph<'tcx> {
             curr = *edge.to();
 
             match edge {
-                GraphEdge::Borrow { from, loans, to } if loans.is_empty() => {
-                    self.leaves.remove(&from);
-                    self.leaves.insert(to);
-                }
+                GraphEdge::Borrow { loans, .. } if loans.is_empty() => {}
                 GraphEdge::Pack { from, to }
                     if !self.edges.iter().any(|edge| from.contains(edge.to())) =>
                 {
-                    self.leaves.insert(to);
-                    for place in from.iter() {
-                        self.leaves.remove(place);
-                    }
-
                     final_annotations.push(Annotation::Pack(to));
                 }
                 GraphEdge::Abstract { from, loans, to } if loans.is_empty() => {
-                    self.leaves.insert(to);
-                    self.leaves.remove(&from);
-
                     final_annotations.push(Annotation::Restore { from, to });
                 }
                 GraphEdge::Collapsed {
-                    from,
-                    loans,
-                    annotations,
-                    to,
+                    loans, annotations, ..
                 } if loans.is_empty() => {
-                    self.leaves.remove(&from);
-                    self.leaves.insert(to);
-
                     final_annotations.extend(annotations);
                 }
                 _ => {
@@ -581,6 +552,36 @@ impl<'tcx> Graph<'tcx> {
 
     fn take_edge(&mut self, pred: impl FnMut(&GraphEdge<'tcx>) -> bool) -> Option<GraphEdge<'tcx>> {
         self.edges.drain_filter(pred).next()
+    }
+
+    // TODO: this could probably be cached in a field
+    pub fn leaves(&self) -> FxHashSet<GraphNode<'tcx>> {
+        self.edges
+            .iter()
+            .fold(
+                FxHashMap::default(),
+                |mut degrees, edge| -> FxHashMap<GraphNode<'tcx>, usize> {
+                    match edge {
+                        GraphEdge::Borrow { from, to, .. }
+                        | GraphEdge::Abstract { from, to, .. }
+                        | GraphEdge::Collapsed { from, to, .. } => {
+                            *degrees.entry(*from).or_default() += 1;
+                            *degrees.entry(*to).or_default() += 1;
+                        }
+                        GraphEdge::Pack { from, to } => {
+                            for field in from {
+                                *degrees.entry(*field).or_default() += 1;
+                            }
+                            *degrees.entry(*to).or_default() += 1;
+                        }
+                    }
+
+                    degrees
+                },
+            )
+            .into_iter()
+            .filter_map(|(node, count)| (count == 1).then_some(node))
+            .collect()
     }
 }
 
