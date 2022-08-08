@@ -72,6 +72,7 @@ pub enum MicroMirStatement<'tcx> {
     Deallocate(Place<'tcx>),
     // Borrow of a place, assigned to another place
     BorrowMut(Place<'tcx>, Place<'tcx>),
+    BorrowMove(Place<'tcx>, Place<'tcx>),
     // Places annotated so that we do not need to truck around the mir
     Pack(Vec<Place<'tcx>>, Place<'tcx>),
     Unpack(Place<'tcx>, Vec<Place<'tcx>>),
@@ -220,6 +221,7 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
                 Some(pcs)
             }
             MicroMirStatement::BorrowMut(_, _) => None,
+            MicroMirStatement::BorrowMove(_, _) => None,
         }
     }
 
@@ -299,6 +301,7 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
                 Some(pcs)
             }
             MicroMirStatement::BorrowMut(_, _) => Some(PCS::empty()),
+            MicroMirStatement::BorrowMove(_, _) => Some(PCS::empty()),
         }
     }
 }
@@ -485,6 +488,7 @@ impl<'tcx> Debug for MicroMirStatement<'tcx> {
                 write!(f, "-> {:?}", p)
             }
             MicroMirStatement::BorrowMut(from, to) => write!(f, "borrow {:?} -> {:?}", from, to),
+            MicroMirStatement::BorrowMove(from, to) => write!(f, "b move {:?} -> {:?}", from, to),
         }
     }
 }

@@ -26,12 +26,14 @@ use prusti_rustc_interface::{
             StatementKind::*, Terminator, TerminatorKind::*, UnOp,
         },
         ty,
+        ty::TyCtxt,
     },
 };
 
 /// Basic block context, intermidiate state of a basic block
 struct BBCtx<'mir, 'tcx: 'mir> {
     mir: &'mir Body<'tcx>,
+    tcx: TyCtxt<'tcx>,
     stmt_idx: usize,
     statements: Vec<MicroMirStatement<'tcx>>,
     parents: Vec<usize>,
@@ -39,9 +41,10 @@ struct BBCtx<'mir, 'tcx: 'mir> {
 }
 
 impl<'mir, 'tcx: 'mir> BBCtx<'mir, 'tcx> {
-    pub fn new(block: BasicBlock, mir: &'mir Body<'tcx>) -> Self {
+    pub fn new(block: BasicBlock, mir: &'mir Body<'tcx>, tcx: TyCtxt<'tcx>) -> Self {
         BBCtx {
             mir,
+            tcx,
             stmt_idx: 0,
             statements: Vec::default(),
             parents: Vec::default(),
@@ -82,10 +85,10 @@ pub struct MicroMirEncoder<'mir, 'tcx: 'mir> {
 }
 
 impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
-    pub fn expand_syntax(mir: &'mir Body<'tcx>) -> EncodingResult<Self> {
+    pub fn expand_syntax(mir: &'mir Body<'tcx>, tcx: TyCtxt<'tcx>) -> EncodingResult<Self> {
         let mut encoding: FxHashMap<BasicBlock, MicroMirData<'tcx>> = FxHashMap::default();
         for (bb, bbdata) in mir.basic_blocks().iter_enumerated() {
-            let mut ctx: BBCtx<'mir, 'tcx> = BBCtx::new(bb, &mir);
+            let mut ctx: BBCtx<'mir, 'tcx> = BBCtx::new(bb, &mir, tcx);
             // let mut statements: Vec<MicroMirStatement<'tcx>> = vec![];
             for (stmt_idx, statement) in bbdata.statements.iter().enumerate() {
                 ctx.set_stmt_idx(stmt_idx);
@@ -250,6 +253,9 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
         p_dest: &Place<'tcx>,
         op: &Operand<'tcx>,
     ) -> EncodingResult<()> {
+        if p_dest.ty(&ctx.mir.local_decls, ctx.tcx).ty.is_ref() {
+            todo!();
+        }
         ctx.push_stmt(MicroMirStatement::Kill(None, (*p_dest).into()));
         let temp_1 = TemporaryPlace { id: 1 };
         let temp1_mut = Self::encode_operand(ctx, op, temp_1)?;

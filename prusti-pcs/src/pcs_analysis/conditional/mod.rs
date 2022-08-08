@@ -277,9 +277,20 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         mut pcs: PCS<'tcx>,
     ) -> EncodingResult<PCS<'tcx>> {
         for (statement_index, statement) in block_data.statements.iter().enumerate() {
-            // 0. Handle borrows seperately
-            if statement.is_borrow() {
-                todo!();
+            // 0. Handle borrows seperately.
+            if let MicroMirStatement::BorrowMut(p_from, p_to) = statement {
+                if p_from.ty(&self.mir.local_decls, self.env.tcx()).ty.is_ref() {
+                    // p_from is a borrow (so it's in the reborrow DAG)
+                    todo!();
+                } else {
+                    // p_from is not a borrow, so a new borrow needs to be created.
+                    // Both permissions now leave.
+                    todo!();
+                }
+            }
+
+            if let MicroMirStatement::BorrowMove(p_from, p_to) = statement {
+                todo!()
             }
 
             // 1. Elaborate the state-dependent conditions
@@ -287,8 +298,8 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 block: block_data.mir_block,
                 statement_index: block_data.mir_parent[statement_index],
             };
-            let statement_precondition = self.elaborate_precondition(statement, location)?;
-            let statement_postcondition = self.elaborate_postcondition(statement)?;
+            let statement_precondition = self.elaborate_precondition(&statement, location)?;
+            let statement_postcondition = self.elaborate_postcondition(&statement)?;
 
             // 2. Repack to precondition
             pcs = self.repack(pcs, &statement_precondition, op_mir)?;

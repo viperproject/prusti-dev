@@ -19,7 +19,7 @@ pub fn dump_pcs<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> EncodingResul
         println!("id: {:#?}", env.get_unique_item_name(*proc_id));
         let current_procedure: Procedure<'tcx> = env.get_procedure(*proc_id);
         let mir: &Body<'tcx> = current_procedure.get_mir();
-        let micro_mir: MicroMirEncoder<'_, 'tcx> = MicroMirEncoder::expand_syntax(mir)?;
+        let micro_mir: MicroMirEncoder<'_, 'tcx> = MicroMirEncoder::expand_syntax(mir, env.tcx())?;
         micro_mir.pprint();
 
         CondPCSctx {
