@@ -71,7 +71,7 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
                 )?;
                 let target_memory_block = vir_high::Predicate::memory_block_stack_no_pos(
                     encoded_target_place.clone(),
-                    size,
+                    // size,
                 );
                 block_builder.add_statement(encoder.encoder.set_statement_error_ctxt(
                     vir_high::Statement::exhale_no_pos(target_memory_block),

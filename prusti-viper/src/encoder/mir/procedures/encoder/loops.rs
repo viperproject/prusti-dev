@@ -81,7 +81,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
                 let size = self.encoder.encode_type_size_expression(mir_type)?;
                 maybe_modified_places.push(vir_high::Predicate::memory_block_stack_no_pos(
                     self.encoder.encode_place_high(self.mir, place, None)?,
-                    size,
+                    // size,
                 ));
             }
         }

@@ -14,7 +14,7 @@ use crate::encoder::{
         snapshots::{
             IntoProcedureBoolExpression, IntoProcedureFinalSnapshot, IntoProcedureSnapshot,
             SnapshotValidityInterface, SnapshotVariablesInterface,
-        },
+        }, type_layouts::TypeLayoutsInterface,
     },
 };
 use vir_crate::{
@@ -888,7 +888,8 @@ impl IntoLow for vir_mid::Predicate {
             Predicate::MemoryBlockStack(predicate) => {
                 lowerer.encode_memory_block_predicate()?;
                 let place = lowerer.encode_expression_as_place_address(&predicate.place)?;
-                let size = predicate.size.to_procedure_snapshot(lowerer)?;
+                // let size = predicate.size.to_procedure_snapshot(lowerer)?;
+                let size = lowerer.encode_type_size_expression(predicate.place.get_type())?;
                 expr! { acc(MemoryBlock([place], [size]))}.set_default_position(predicate.position)
             }
             Predicate::MemoryBlockStackDrop(predicate) => {

@@ -30,10 +30,10 @@ pub struct LifetimeToken {
 /// Note: After fold-unfold, this predicate is replaced with predicate
 /// `MemoryBlock`. We keep two kinds of predicates initially to simplify
 /// fold-unfold algorithm.
-#[display(fmt = "MemoryBlockStack({}, {})", place, size)]
+#[display(fmt = "MemoryBlockStack({})", place)]
 pub struct MemoryBlockStack {
     pub place: Expression,
-    pub size: Expression,
+    // pub size: Expression,
     pub position: Position,
 }
 

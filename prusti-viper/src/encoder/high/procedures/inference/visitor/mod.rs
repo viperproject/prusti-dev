@@ -324,6 +324,11 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
             }
             vir_typed::Statement::SetUnionVariant(statement) => {
                 let position = statement.position();
+                // Havoc the snapshot.
+                // self.current_statements.push(vir_mid::Statement::havoc(
+
+                //     position,
+                // ));
                 // Split the memory block for the union itself.
                 let parent = statement.variant_place.get_parent_ref().unwrap();
                 let place = parent

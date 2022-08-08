@@ -17,7 +17,7 @@ impl Predicate {
             Self::MemoryBlockStack(predicate) => {
                 vec![
                     predicate.place.get_type().clone(),
-                    predicate.size.get_type().clone(),
+                    // predicate.size.get_type().clone(),
                 ]
             }
             Self::MemoryBlockStackDrop(predicate) => {
