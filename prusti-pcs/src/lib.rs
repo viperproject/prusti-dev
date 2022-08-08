@@ -25,6 +25,7 @@ pub mod joins;
 mod pcs_analysis;
 pub mod syntax;
 
+mod graph;
 mod pcs;
 mod util;
 pub use pcs::dump_pcs;
