@@ -123,14 +123,14 @@ impl<'tcx> PCS<'tcx> {
     pub fn from_vec(vec: Vec<PCSPermission<'tcx>>) -> Self {
         PCS {
             free: FxHashSet::from_iter(vec),
-            dag: Single(Graph::new()),
+            dag: Single(Graph::default()),
         }
     }
 
     pub fn empty() -> Self {
         PCS {
             free: FxHashSet::default(),
-            dag: Single(Graph::new()),
+            dag: Single(Graph::default()),
         }
     }
 

@@ -322,7 +322,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
     ) -> EncodingResult<PCS<'tcx>> {
         let mut ret_pcs = PCS {
             free: FxHashSet::default(),
-            dag: Single(Graph::new()),
+            dag: Single(Graph::default()),
         };
 
         let init_set = self.init_analysis.get_before_block(next_bb);
