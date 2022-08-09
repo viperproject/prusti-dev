@@ -8,10 +8,7 @@ use prusti_rustc_interface::{
 };
 use prusti_specs::specifications::common;
 use rustc_hash::FxHashMap;
-use std::{
-    collections::HashMap,
-    fmt::{Debug, Display, Formatter},
-};
+use std::fmt::{Debug, Display, Formatter};
 
 /// A map of specifications keyed by crate-local DefIds.
 #[derive(Default, Debug, Clone)]
@@ -584,7 +581,7 @@ impl Refinable for ProcedureSpecification {
         // Unspecified trait specs should be treated as a default value instead of nothing
         // See issue-1022
         type SpecVec<T> = SpecificationItem<Vec<T>>;
-        static EMPTYL: SpecVec<LocalDefId> = SpecificationItem::Inherent(vec![]);
+        static EMPTYL: SpecVec<DefId> = SpecificationItem::Inherent(vec![]);
         static EMPTYP: SpecVec<Pledge> = SpecificationItem::Inherent(vec![]);
         fn replace_empty<'a, T>(empty: &'a SpecVec<T>, spec: &'a SpecVec<T>) -> &'a SpecVec<T> {
             match spec {
