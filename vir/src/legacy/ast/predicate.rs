@@ -4,7 +4,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use crate::{common::identifier::WithIdentifier, legacy::ast::*};
+use crate::{common::identifier::WithIdentifier, enum_predicate, legacy::ast::*};
 use std::{collections::HashSet, fmt};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
@@ -258,23 +258,7 @@ impl fmt::Display for EnumVariantIndex {
 impl EnumPredicate {
     /// Construct an expression that represents the body of this predicate.
     pub fn body(&self) -> Expr {
-        let discriminant_loc = Expr::from(self.this.clone()).field(self.discriminant_field.clone());
-        let discriminant_perm = Expr::acc_permission(discriminant_loc, PermAmount::Write);
-        let mut parts = vec![discriminant_perm, self.discriminant_bounds.clone()];
-        for (guard, name, variant) in self.variants.iter() {
-            if variant.has_empty_body() {
-                continue;
-            }
-            let field = Field::new(format!("enum_{}", name), variant.this.typ.clone());
-            let location: Expr = Expr::from(self.this.clone()).field(field);
-            let field_perm = Expr::acc_permission(location.clone(), PermAmount::Write);
-            let pred_perm = variant.construct_access(location, PermAmount::Write);
-            parts.push(Expr::and(
-                field_perm,
-                Expr::implies(guard.clone(), pred_perm),
-            ));
-        }
-        parts.into_iter().conjoin()
+        enum_predicate!(self)
     }
 }
 

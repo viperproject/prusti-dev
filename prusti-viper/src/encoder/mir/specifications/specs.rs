@@ -145,13 +145,9 @@ impl<'tcx> Specifications<'tcx> {
             .cloned()
             .unwrap_or_else(ProcedureSpecification::empty);
 
-        let trait_spec = self.get_proc_spec(env, trait_query);
-
-        let refined = if let Some(trait_spec_set) = trait_spec {
-            impl_spec.refine(trait_spec_set)
-        } else {
-            impl_spec
-        };
+        let empty = ProcedureSpecification::empty();
+        let trait_spec = self.get_proc_spec(env, trait_query).unwrap_or(&empty);
+        let refined = impl_spec.refine(trait_spec);
 
         self.validate_refined_kind(
             env,

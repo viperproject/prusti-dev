@@ -346,11 +346,32 @@ pub fn old<T>(arg: T) -> T {
     arg
 }
 
+/// Universal quantifier.
+///
+/// This is a Prusti-internal representation of the `forall` syntax.
 pub fn forall<T, F>(_trigger_set: T, _closure: F) -> bool {
     true
 }
 
+/// Existential quantifier.
+///
+/// This is a Prusti-internal representation of the `exists` syntax.
 pub fn exists<T, F>(_trigger_set: T, _closure: F) -> bool {
+    true
+}
+
+/// Creates an owned copy of a reference. This should only be used from within
+/// ghost code, as it circumvents the borrow checker.
+pub fn snap<T>(_x: &T) -> T {
+    unimplemented!()
+}
+
+/// Snapshot, "logical", or "mathematical" equality. Compares the in-memory
+/// representation of two instances of the same type, even if there is no
+/// `PartialEq` nor `Copy` implementation. The in-memory representation is
+/// constructed recursively: references are followed, unsafe pointers and cells
+/// are not. Importantly, addresses are not taken into consideration.
+pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
     true
 }
 
