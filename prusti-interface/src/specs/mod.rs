@@ -1,7 +1,7 @@
 use prusti_rustc_interface::{
     ast::ast,
     errors::MultiSpan,
-    hir::{def_id::{CrateNum, DefId, LocalDefId, LOCAL_CRATE}, intravisit},
+    hir::{self, def_id::{CrateNum, DefId, LocalDefId, LOCAL_CRATE}, intravisit, hir_id::HirId},
     middle::{hir::map::Map, ty::TyCtxt},
     serialize::{Decodable, Encodable},
     span::Span
@@ -348,11 +348,15 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn ensure_local_mirs_fetched(&self, def_spec: &mut typed::DefSpecificationMap) {
-        let proc_specs = def_spec.proc_specs
-            // collect [DefId]s in specs of all procedures
-            .values()
+        let mut procs = def_spec.proc_specs
+            .iter()
             // TODO: extend also to specs_with_constraints instead of base_spec only
-            .map(|spec_graph| &spec_graph.base_spec)
+            .map(|(def_id, spec_graph)| (def_id, &spec_graph.base_spec));
+
+        // Spec items
+        let proc_specs = procs.by_ref()
+            // collect [DefId]s in specs of all procedures
+            .map(|(_, base_spec)| base_spec)
             .flat_map(|proc_spec| {
                 vec![&proc_spec.pres, &proc_spec.posts].into_iter().filter_map(|spec_item| {
                     spec_item.extract_with_selective_replacement()
@@ -365,6 +369,30 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             .flatten();
         for def_id in proc_specs.chain(type_specs) {
             self.env.load_local_spec_mir(def_id.expect_local());
+        };
+
+        // Pure functions
+        for def_id in procs.by_ref().filter_map(|(def_id, base_spec)|
+            base_spec.kind.extract_with_selective_replacement().and_then(|kind|
+                match kind {
+                    ProcedureSpecificationKind::Pure => Some(def_id),
+                    _ => None
+                }
+            )
+        ) {
+            self.env.load_pure_function_mir(def_id.expect_local());
+        }
+
+        // Predicates
+        for def_id in procs.by_ref().filter_map(|(_, base_spec)|
+            base_spec.kind.extract_with_selective_replacement().and_then(|kind|
+                match kind {
+                    ProcedureSpecificationKind::Predicate(Some(def_id)) => Some(def_id),
+                    _ => None
+                }
+            )
+        ) {
+            self.env.load_predicate_mir(def_id.expect_local());
         }
     }
 }
