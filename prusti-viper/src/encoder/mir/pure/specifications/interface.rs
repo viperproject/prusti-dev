@@ -197,7 +197,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         // inline invariant body
         let encoded_invariant = inline_closure_high(
             self,
-            inv_def_id,
+            inv_def_id.to_def_id(),
             closure_expression_borrow,
             vec![],
             parent_def_id,
@@ -246,6 +246,11 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
                 parent_def_id,
                 substs,
             ),
+            "prusti_contracts::snap" => Ok(vir_poly::Expr::snap_app(encoded_args[0].clone())),
+            "prusti_contracts::snapshot_equality" => Ok(vir_poly::Expr::eq_cmp(
+                vir_poly::Expr::snap_app(encoded_args[0].clone()),
+                vir_poly::Expr::snap_app(encoded_args[1].clone()),
+            )),
             _ => unimplemented!(),
         }
     }
@@ -337,7 +342,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         // inline invariant body
         let encoded_invariant = inline_closure(
             self,
-            inv_def_id,
+            inv_def_id.to_def_id(),
             inv_cl_expr_encoded.try_into_expr().unwrap(),
             vec![],
             parent_def_id,
