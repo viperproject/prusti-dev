@@ -1,7 +1,7 @@
 use prusti_rustc_interface::{
     ast::ast,
     errors::MultiSpan,
-    hir::{self, def_id::{CrateNum, DefId, LocalDefId, LOCAL_CRATE}, intravisit, hir_id::HirId},
+    hir::{def_id::{CrateNum, DefId, LocalDefId, LOCAL_CRATE}, intravisit},
     middle::{hir::map::Map, ty::TyCtxt},
     serialize::{Decodable, Encodable},
     span::Span
