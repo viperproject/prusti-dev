@@ -20,16 +20,16 @@ pub trait ConditionalOps<'tcx>: Sized {
 }
 
 pub trait CoreOps<'tcx> {
-    fn r#move(&mut self, new: GraphNode<'tcx>, old: GraphNode<'tcx>);
+    fn r#move(&mut self, new: mir::Place<'tcx>, old: mir::Place<'tcx>, location: mir::Location);
     fn mutable_borrow(
         &mut self,
-        from: GraphNode<'tcx>,
+        from: mir::Place<'tcx>,
         loan: facts::Loan,
-        to: GraphNode<'tcx>,
+        to: mir::Place<'tcx>,
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
     );
-    fn package(&mut self, from: GraphNode<'tcx>, to: GraphNode<'tcx>) -> Vec<Annotation<'tcx>>;
+    fn package(&mut self, from: mir::Place<'tcx>, to: mir::Place<'tcx>) -> Vec<Annotation<'tcx>>;
     fn unwind(&mut self, killed_loans: &FxHashSet<facts::Loan>) -> GraphResult<'tcx>;
 }
 
@@ -112,16 +112,16 @@ impl<'tcx> ConditionalOps<'tcx> for ReborrowingGraph<'tcx> {
 
 impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
     // TODO: maybe a visitor for the core ops?
-    fn r#move(&mut self, new: GraphNode<'tcx>, old: GraphNode<'tcx>) {
+    fn r#move(&mut self, new: mir::Place<'tcx>, old: mir::Place<'tcx>, location: mir::Location) {
         match self {
-            Self::Single(graph) => graph.r#move(new, old),
-            Self::Branch { graph, .. } => graph.r#move(new, old),
+            Self::Single(graph) => graph.r#move(new, old, location),
+            Self::Branch { graph, .. } => graph.r#move(new, old, location),
             Self::Conditional { shared, graphs, .. } => {
                 if shared.any_edge(&mut |edge| edge.comes_from(&old)) {
-                    shared.r#move(new, old);
+                    shared.r#move(new, old, location);
                 } else {
                     for graph in graphs.values_mut() {
-                        graph.r#move(new, old);
+                        graph.r#move(new, old, location);
                     }
                 }
             }
@@ -130,9 +130,9 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
 
     fn mutable_borrow(
         &mut self,
-        from: GraphNode<'tcx>,
+        from: mir::Place<'tcx>,
         loan: facts::Loan,
-        to: GraphNode<'tcx>,
+        to: mir::Place<'tcx>,
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
     ) {
@@ -151,7 +151,7 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
         }
     }
 
-    fn package(&mut self, from: GraphNode<'tcx>, to: GraphNode<'tcx>) -> Vec<Annotation<'tcx>> {
+    fn package(&mut self, from: mir::Place<'tcx>, to: mir::Place<'tcx>) -> Vec<Annotation<'tcx>> {
         match self {
             Self::Single(graph) => graph.package(from, to),
             Self::Branch { condition, graph } => condition.apply_to(graph.package(from, to)),
@@ -322,7 +322,11 @@ pub struct Graph<'tcx> {
 }
 
 impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
-    fn r#move(&mut self, new: GraphNode<'tcx>, old: GraphNode<'tcx>) {
+    fn r#move(&mut self, new: mir::Place<'tcx>, old: mir::Place<'tcx>, location: mir::Location) {
+        if self.edges.iter().any(|edge| edge.goes_to(&old)) {
+            self.version(&old, location)
+        }
+
         let mut edge = self
             .take_edge(|edge| edge.comes_from(&old))
             .expect("old node to be found");
@@ -331,7 +335,7 @@ impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
             GraphEdge::Borrow { from, .. }
             | GraphEdge::Abstract { from, .. }
             | GraphEdge::Collapsed { from, .. } => {
-                *from = new;
+                *from = GraphNode::new(new);
                 self.edges.insert(edge);
             }
             GraphEdge::Pack { .. } => panic!("moving a pack edge is unsupported"),
@@ -340,39 +344,41 @@ impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
 
     fn mutable_borrow(
         &mut self,
-        from: GraphNode<'tcx>,
+        from: mir::Place<'tcx>,
         loan: facts::Loan,
-        to: GraphNode<'tcx>,
+        to: mir::Place<'tcx>,
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
     ) {
-        let place = to;
-        for i in 0..place.projection.len() {
-            let node = mir::Place {
-                local: place.local,
-                projection: tcx.intern_place_elems(&place.projection[..i]),
+        for i in 0..to.projection.len() {
+            let to = mir::Place {
+                local: to.local,
+                projection: tcx.intern_place_elems(&to.projection[..i]),
             };
 
-            if !self.edges.iter().any(|edge| edge.goes_to(&node)) {
-                self.unpack(node, mir, tcx);
+            if !self.edges.iter().any(|edge| edge.goes_to(&to)) {
+                self.unpack(to, mir, tcx);
             }
         }
 
         self.edges.insert(GraphEdge::Borrow {
-            from,
+            from: GraphNode::new(from),
             loans: vec![loan],
-            to,
+            to: GraphNode::new(to),
         });
     }
 
-    fn package(&mut self, from: GraphNode<'tcx>, to: GraphNode<'tcx>) -> Vec<Annotation<'tcx>> {
+    fn package(&mut self, from: mir::Place<'tcx>, to: mir::Place<'tcx>) -> Vec<Annotation<'tcx>> {
+        let from = GraphNode::new(from);
+        let to = GraphNode::new(to);
+
         let mut curr_node = from;
         let mut final_loans = Vec::new();
         let mut final_annotations = Vec::new();
 
         while curr_node != to {
             let curr_edge = self
-                .take_edge(|edge| edge.comes_from(&curr_node))
+                .take_edge(|edge| edge.comes_from_node(&curr_node))
                 .expect("node to be found");
             curr_node = *curr_edge.to();
 
@@ -419,15 +425,15 @@ impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
 }
 
 impl<'tcx> Graph<'tcx> {
-    fn unpack(&mut self, node: GraphNode<'tcx>, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) {
-        let places = mir_utils::expand_struct_place(node, mir, tcx, None)
+    fn unpack(&mut self, place: mir::Place<'tcx>, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) {
+        let places = mir_utils::expand_struct_place(place, mir, tcx, None)
             .iter()
-            .map(|p| p.to_mir_place())
+            .map(|p| GraphNode::new(p.to_mir_place()))
             .collect::<Vec<_>>();
 
         self.edges.insert(GraphEdge::Pack {
             from: places,
-            to: node,
+            to: GraphNode::new(place),
         });
     }
 
@@ -459,7 +465,7 @@ impl<'tcx> Graph<'tcx> {
                 | GraphEdge::Collapsed { loans, to, .. } => {
                     if loans.is_empty()
                         && self.edges.iter().any(|edge| {
-                            !matches!(edge, GraphEdge::Pack { .. }) && edge.comes_from(to)
+                            !matches!(edge, GraphEdge::Pack { .. }) && edge.comes_from_node(to)
                         })
                     {
                         collapsed_nodes.push(*to);
@@ -479,7 +485,7 @@ impl<'tcx> Graph<'tcx> {
         let mut final_annotations = Vec::new();
 
         let from_edge = self
-            .take_edge(|edge| edge.goes_to(&node))
+            .take_edge(|edge| edge.goes_to_node(&node))
             .expect("target node to be found");
         let from = match from_edge {
             GraphEdge::Borrow { from, .. }
@@ -489,7 +495,7 @@ impl<'tcx> Graph<'tcx> {
         };
 
         let to_edge = self
-            .take_edge(|edge| edge.comes_from(&node))
+            .take_edge(|edge| edge.comes_from_node(&node))
             .expect("from node to be found");
         let to = *to_edge.to();
 
@@ -522,7 +528,7 @@ impl<'tcx> Graph<'tcx> {
         let mut final_annotations = Vec::new();
         let mut curr = start;
 
-        while let Some(edge) = self.take_edge(|edge| edge.comes_from(&curr)) {
+        while let Some(edge) = self.take_edge(|edge| edge.comes_from_node(&curr)) {
             curr = *edge.to();
 
             match edge {
@@ -548,6 +554,41 @@ impl<'tcx> Graph<'tcx> {
         }
 
         final_annotations
+    }
+
+    fn version(&mut self, place: &mir::Place<'tcx>, location: mir::Location) {
+        self.edges
+            .drain()
+            .collect::<Vec<_>>()
+            .into_iter()
+            .for_each(|mut edge| {
+                match &mut edge {
+                    GraphEdge::Borrow { from, to, .. } | GraphEdge::Abstract { from, to, .. } => {
+                        from.version(place, location);
+                        to.version(place, location);
+                    }
+                    GraphEdge::Pack { from, to } => {
+                        for field in from {
+                            field.version(place, location);
+                        }
+                        to.version(place, location);
+                    }
+                    GraphEdge::Collapsed {
+                        from,
+                        annotations,
+                        to,
+                        ..
+                    } => {
+                        from.version(place, location);
+                        to.version(place, location);
+                        for annotation in annotations {
+                            annotation.version(place, location);
+                        }
+                    }
+                }
+
+                self.edges.insert(edge);
+            });
     }
 
     fn take_edge(&mut self, pred: impl FnMut(&GraphEdge<'tcx>) -> bool) -> Option<GraphEdge<'tcx>> {
@@ -652,7 +693,15 @@ enum GraphEdge<'tcx> {
 }
 
 impl<'tcx> GraphEdge<'tcx> {
-    fn comes_from(&self, node: &GraphNode<'tcx>) -> bool {
+    fn comes_from(&self, place: &mir::Place<'tcx>) -> bool {
+        self.comes_from_node(&GraphNode::new(*place))
+    }
+
+    fn goes_to(&self, place: &mir::Place<'tcx>) -> bool {
+        self.goes_to_node(&GraphNode::new(*place))
+    }
+
+    fn comes_from_node(&self, node: &GraphNode<'tcx>) -> bool {
         match self {
             Self::Borrow { from, .. }
             | Self::Abstract { from, .. }
@@ -661,7 +710,7 @@ impl<'tcx> GraphEdge<'tcx> {
         }
     }
 
-    fn goes_to(&self, node: &GraphNode<'tcx>) -> bool {
+    fn goes_to_node(&self, node: &GraphNode<'tcx>) -> bool {
         self.to() == node
     }
 
@@ -688,9 +737,49 @@ pub enum Annotation<'tcx> {
     },
 }
 
-pub type GraphNode<'tcx> = mir::Place<'tcx>;
+impl<'tcx> Annotation<'tcx> {
+    fn version(&mut self, place: &mir::Place<'tcx>, location: mir::Location) {
+        match self {
+            Annotation::Pack(node) => node.version(place, location),
+            Annotation::Restore { from, to } => {
+                from.version(place, location);
+                to.version(place, location);
+            }
+            Annotation::Conditional { annotation, .. } => {
+                annotation.version(place, location);
+            }
+        }
+    }
+}
 
-#[derive(Default)]
+#[derive(Clone, Copy, Hash, PartialEq, Eq)]
+pub struct GraphNode<'tcx> {
+    place: mir::Place<'tcx>,
+    tag: Option<mir::Location>,
+}
+
+impl<'tcx> std::fmt::Debug for GraphNode<'tcx> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.tag {
+            Some(tag) => write!(f, "{:?}@{:?}", self.place, tag),
+            None => write!(f, "{:?}", self.place),
+        }
+    }
+}
+
+impl<'tcx> GraphNode<'tcx> {
+    pub fn new(place: mir::Place<'tcx>) -> Self {
+        Self { place, tag: None }
+    }
+
+    fn version(&mut self, place: &mir::Place<'tcx>, location: mir::Location) {
+        if self.place == *place && self.tag.is_none() {
+            self.tag = Some(location);
+        }
+    }
+}
+
+#[derive(Debug, Default)]
 pub struct GraphResult<'tcx> {
     annotations: Vec<Annotation<'tcx>>,
     removed: FxHashSet<GraphNode<'tcx>>,
