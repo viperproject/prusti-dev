@@ -35,7 +35,7 @@ fn main() {
 
     let root = quote! { components =>
         pub mod high;
-        pub mod snapshot;
+        pub mod typed;
         pub mod middle;
         pub mod polymorphic;
         pub mod low;

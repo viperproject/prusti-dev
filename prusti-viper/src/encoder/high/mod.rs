@@ -10,5 +10,6 @@ pub(crate) mod lower;
 pub(crate) mod procedures;
 pub(crate) mod pure_functions;
 mod to_middle;
+pub(crate) mod to_typed;
 pub(crate) mod type_layouts;
 pub(crate) mod types;

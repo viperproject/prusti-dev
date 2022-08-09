@@ -28,6 +28,7 @@ mod snapshot;
 mod mirror_function_encoder;
 mod mir;
 mod high;
+mod typed;
 mod middle;
 mod purifier;
 pub mod counterexample;

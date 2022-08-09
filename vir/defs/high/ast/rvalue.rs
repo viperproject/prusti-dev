@@ -1,9 +1,8 @@
-pub(crate) use super::super::{
+pub(crate) use super::{
     expression::{BinaryOpKind, Expression, UnaryOpKind, VariableDecl},
     ty::{LifetimeConst, Type},
-    Position,
 };
-use crate::common::display;
+use crate::common::{display, position::Position};
 
 #[derive_helpers]
 #[derive_visitors]

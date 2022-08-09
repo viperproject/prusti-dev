@@ -223,7 +223,7 @@ fn is_spec_closure(def_id: def_id::DefId, tcx: &TyCtxt) -> bool {
 pub fn is_marked_specification_block(bb_data: &BasicBlockData, tcx: &TyCtxt) -> bool {
     for stmt in &bb_data.statements {
         if let StatementKind::Assign(box (_, Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _))) = &stmt.kind {
-            if is_spec_closure(*def_id, tcx) {
+            if is_spec_closure(def_id.to_def_id(), tcx) {
                 return true;
             }
         }
@@ -234,8 +234,8 @@ pub fn is_marked_specification_block(bb_data: &BasicBlockData, tcx: &TyCtxt) -> 
 pub fn get_loop_invariant<'tcx>(bb_data: &BasicBlockData<'tcx>, tcx: TyCtxt<'tcx>) -> Option<(ProcedureDefId, prusti_rustc_interface::middle::ty::subst::SubstsRef<'tcx>)> {
     for stmt in &bb_data.statements {
         if let StatementKind::Assign(box (_, Rvalue::Aggregate(box AggregateKind::Closure(def_id, substs), _))) = &stmt.kind {
-            if is_spec_closure(*def_id, &tcx) && crate::utils::has_prusti_attr(crate::utils::get_attributes(tcx, *def_id), "loop_body_invariant_spec") {
-                return Some((*def_id, substs))
+            if is_spec_closure(def_id.to_def_id(), &tcx) && crate::utils::has_prusti_attr(crate::utils::get_attributes(tcx, def_id.to_def_id()), "loop_body_invariant_spec") {
+                return Some((def_id.to_def_id(), substs))
             }
         }
     }
@@ -257,7 +257,7 @@ pub fn is_ghost_end_marker<'tcx>(bb: &BasicBlockData<'tcx>, tcx: TyCtxt<'tcx>) -
 fn is_spec_block_kind(bb_data: &BasicBlockData, tcx: TyCtxt, kind: &str) -> bool {
     for stmt in &bb_data.statements {
         if let StatementKind::Assign(box (_, Rvalue::Aggregate(box AggregateKind::Closure(def_id, _), _))) = &stmt.kind {
-            if is_spec_closure(*def_id, &tcx) && crate::utils::has_prusti_attr(crate::utils::get_attributes(tcx, *def_id), kind) {
+            if is_spec_closure(def_id.to_def_id(), &tcx) && crate::utils::has_prusti_attr(crate::utils::get_attributes(tcx, def_id.to_def_id()), kind) {
                 return true;
             }
         }

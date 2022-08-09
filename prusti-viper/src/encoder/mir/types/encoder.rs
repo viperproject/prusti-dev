@@ -319,7 +319,13 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                 up.set_type(vir::Type::MInt);
                 Some((low, up))
             }
-            ty::TyKind::Char => Some((0.into(), std::char::MAX.into())),
+            ty::TyKind::Char => {
+                let mut low: vir::Expression = 0.into();
+                let mut up: vir::Expression = std::char::MAX.into();
+                low.set_type(vir::Type::MInt);
+                up.set_type(vir::Type::MInt);
+                Some((low, up))
+            }
             ty::TyKind::Ref(_, ty, _) => Self::new(self.encoder, *ty).get_integer_bounds(),
             _ => None,
         }
@@ -338,7 +344,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
         }
     }
 
-    pub fn encode_type_def(self) -> SpannedEncodingResult<vir::TypeDecl> {
+    pub fn encode_type_def_high(self) -> SpannedEncodingResult<vir::TypeDecl> {
         debug!("Encode type predicate '{:?}'", self.ty);
         let type_decl = match self.ty.kind() {
             ty::TyKind::Bool => vir::TypeDecl::bool(),
@@ -402,7 +408,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     }),
                     "prusti_contracts::Ghost" => {
                         if let ty::subst::GenericArgKind::Type(ty) = substs[0].unpack() {
-                            Self::new(self.encoder, ty).encode_type_def()?
+                            Self::new(self.encoder, ty).encode_type_def_high()?
                         } else {
                             unreachable!("no type parameter given for Ghost<T>")
                         }

@@ -74,6 +74,7 @@ RUSTFMT_PATHS = [
     'prusti-viper/src/encoder/foldunfold/mod.rs',
     'prusti-viper/src/encoder/mir/mod.rs',
     'prusti-viper/src/encoder/high/mod.rs',
+    'prusti-viper/src/encoder/typed/mod.rs',
     'prusti-viper/src/encoder/middle/mod.rs',
     'prusti-viper/src/encoder/snapshot/mod.rs',
     'prusti-viper/src/encoder/lifetimes/mod.rs',
@@ -82,7 +83,7 @@ RUSTFMT_PATHS = [
     'vir/defs/middle/mod.rs',
     'vir/defs/polymorphic/mod.rs',
     'vir/defs/components/mod.rs',
-    'vir/defs/snapshot/mod.rs',
+    'vir/defs/typed/mod.rs',
     'vir/defs/low/mod.rs',
 ]
 
