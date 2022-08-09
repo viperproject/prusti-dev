@@ -32,7 +32,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> super::ProcedureEncoder<'p, 'v, 'tcx> {
                     ),
                 )) = statement.kind
                 {
-                    let specification = self.encoder.get_loop_specs(cl_def_id).unwrap();
+                    let specification = self.encoder.get_loop_specs(cl_def_id.to_def_id()).unwrap();
                     let span = self
                         .encoder
                         .get_definition_span(specification.invariant.to_def_id());
