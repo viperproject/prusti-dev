@@ -87,7 +87,7 @@ pub(super) fn encode_pure_expression<'p, 'v: 'p, 'tcx: 'v>(
 ) -> SpannedEncodingResult<vir_high::Expression> {
     let mir = encoder
         .env()
-        .local_body_mir(proc_def_id.expect_local(), substs);
+        .spec_or_local_body_mir(proc_def_id, substs);
     let interpreter = ExpressionBackwardInterpreter::new(
         encoder,
         &mir,

@@ -329,19 +329,47 @@ impl<'tcx> Environment<'tcx> {
         self.subst_into_body(&mut body.body, substs)
     }
 
+    // used only internally
+    fn external_spec_mir(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
+        let mut external_spec_bodies = self.external_spec_bodies.borrow_mut();
+        let body = external_spec_bodies.get_mut(&def_id)
+            .expect(&format!("External body of spec {:?} was not imported!", def_id));
+        self.subst_into_body(body, substs)
+    }
+
     /// Get the MIR body of a spec, monomorphised with the given type substitutions.
     /// Can be both local or non-local to the current crate.
     pub fn spec_mir(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
         if let Some(def_id) = def_id.as_local() {
             let mut local_spec_bodies = self.local_spec_bodies.borrow_mut();
-            let body = local_spec_bodies.get_mut(&def_id)
-                .expect(&format!("Local body of spec {:?} was not loaded with `load_local_spec_mir`!", def_id));
+            let mut pure_function_bodies = self.pure_function_bodies.borrow_mut();
+            let mut predicate_bodies = self.predicate_bodies.borrow_mut();
+            let body = if let Some(body) = local_spec_bodies.get_mut(&def_id) {
+                Some(body)
+            } else if let Some(body) = pure_function_bodies.get_mut(&def_id) {
+                Some(body)
+            } else if let Some(body) = predicate_bodies.get_mut(&def_id) {
+                Some(body)
+            } else {
+                None
+            }.expect(&format!("Local body of spec {:?} was not loaded with `load_local_spec_mir`!", def_id));
             self.subst_into_body(&mut body.body, substs)
         } else {
-            let mut external_spec_bodies = self.external_spec_bodies.borrow_mut();
-            let body = external_spec_bodies.get_mut(&def_id)
-                .expect(&format!("External body of spec {:?} was not imported!", def_id));
-            self.subst_into_body(body, substs)
+            self.external_spec_mir(def_id, substs)
+        }
+    }
+
+    /// Similar to `spec_mir` but also allows lookup in local bodies.
+    pub fn spec_or_local_body_mir(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
+        if let Some(def_id) = def_id.as_local() {
+            let mut local_spec_bodies = self.local_spec_bodies.borrow_mut();
+            if let Some(body) = local_spec_bodies.get_mut(&def_id) {
+                self.subst_into_body(&mut body.body, substs)
+            } else {
+                self.local_body_mir(def_id, substs)
+            }
+        } else {
+            self.external_spec_mir(def_id, substs)
         }
     }
 
