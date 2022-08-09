@@ -67,6 +67,8 @@ pub struct Environment<'tcx> {
     bodies: RefCell<HashMap<LocalDefId, CachedLocalBody<'tcx>>>,
     /// The spec bodies should be loaded into cache at the start
     local_spec_bodies: RefCell<HashMap<LocalDefId, CachedLocalBody<'tcx>>>,
+    pure_function_bodies: RefCell<HashMap<LocalDefId, CachedLocalBody<'tcx>>>,
+    predicate_bodies: RefCell<HashMap<LocalDefId, CachedLocalBody<'tcx>>>,
     external_spec_bodies: RefCell<HashMap<DefId, CachedBody<'tcx>>>,
     tcx: TyCtxt<'tcx>,
     warn_buffer: RefCell<Vec<prusti_rustc_interface::errors::Diagnostic>>,
@@ -82,6 +84,8 @@ impl<'tcx> Environment<'tcx> {
             tcx,
             bodies: RefCell::new(HashMap::new()),
             local_spec_bodies: RefCell::new(HashMap::new()),
+            pure_function_bodies: RefCell::new(HashMap::new()),
+            predicate_bodies: RefCell::new(HashMap::new()),
             external_spec_bodies: RefCell::new(HashMap::new()),
             warn_buffer: RefCell::new(Vec::new()),
         }
@@ -279,46 +283,48 @@ impl<'tcx> Environment<'tcx> {
         Procedure::new(self, proc_def_id)
     }
 
+    // Common logic used internally by functions below to get local MIR bodies.
+    fn raw_load_local_mir(&self, def_id: LocalDefId) -> CachedLocalBody<'tcx> {
+        // SAFETY: This is safe because we are feeding in the same `tcx`
+        // that was used to store the data.
+        let body_with_facts = unsafe {
+            self::mir_storage::retrieve_mir_body(self.tcx, def_id)
+        };
+
+        let facts = BorrowckFacts {
+            input_facts: RefCell::new(Some(body_with_facts.input_facts)),
+            output_facts: body_with_facts.output_facts,
+            location_table: RefCell::new(Some(body_with_facts.location_table)),
+        };
+
+        CachedLocalBody {
+            body: CachedBody {
+                base_body: Rc::new(body_with_facts.body),
+                monomorphised_bodies: HashMap::new(),
+            },
+            borrowck_facts: Rc::new(facts),
+        }
+    }
+
     /// Get the MIR body of a local procedure, monomorphised with the given
     /// type substitutions.
     pub fn local_body_mir(&self, def_id: LocalDefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
+        // look first into the map of pre-fetched pure functions
+        let mut pure_function_bodies = self.pure_function_bodies.borrow_mut();
+        let mut predicate_bodies = self.predicate_bodies.borrow_mut();
         let mut bodies = self.bodies.borrow_mut();
-        let body = bodies.entry(def_id)
-            .or_insert_with(|| {
-                let local_spec_bodies = self.local_spec_bodies.borrow();
-
-                if let Some(body) = local_spec_bodies.get(&def_id) {
-                    CachedLocalBody {
-                        body: CachedBody {
-                            base_body: Rc::clone(&body.body.base_body),
-                            monomorphised_bodies: HashMap::new(),
-                        },
-                        borrowck_facts: Rc::clone(&body.borrowck_facts),
-                    }
-                } else {
-                    // SAFETY: This is safe because we are feeding in the same `tcx`
-                    // that was used to store the data.
-                    let body_with_facts = unsafe {
-                        self::mir_storage::retrieve_mir_body(self.tcx, def_id)
-                    };
-                    let body = body_with_facts.body;
-                    let facts = BorrowckFacts {
-                        input_facts: RefCell::new(Some(body_with_facts.input_facts)),
-                        output_facts: body_with_facts.output_facts,
-                        location_table: RefCell::new(Some(body_with_facts.location_table)),
-                    };
-
-                    CachedLocalBody {
-                        body: CachedBody {
-                            base_body: Rc::new(body),
-                            monomorphised_bodies: HashMap::new(),
-                        },
-                        borrowck_facts: Rc::new(facts),
-                    }
-                }
-            });
-
-
+        let body = if let Some(body) = pure_function_bodies.get_mut(&def_id) {
+            body
+        } else if let Some(body) = predicate_bodies.get_mut(&def_id) {
+            body
+        } else {
+            // fallback to fetching the non-pure mir body, which may not be cached yet
+            let body = bodies.entry(def_id)
+                .or_insert_with(|| {
+                    self.raw_load_local_mir(def_id)
+                });
+            body
+        };
 
         self.subst_into_body(&mut body.body, substs)
     }
@@ -371,33 +377,30 @@ impl<'tcx> Environment<'tcx> {
     pub fn load_local_spec_mir(&self, def_id: LocalDefId) {
         let mut local_spec_bodies = self.local_spec_bodies.borrow_mut();
         assert!(!local_spec_bodies.contains_key(&def_id));
-        // SAFETY: This is safe because we are feeding in the same `tcx`
-        // that was used to store the data.
-        let body_with_facts = unsafe {
-            self::mir_storage::retrieve_mir_body(self.tcx, def_id)
-        };
 
-        let facts = BorrowckFacts {
-            input_facts: RefCell::new(Some(body_with_facts.input_facts)),
-            output_facts: body_with_facts.output_facts,
-            location_table: RefCell::new(Some(body_with_facts.location_table)),
-        };
+        local_spec_bodies.insert(def_id, self.raw_load_local_mir(def_id));
+    }
 
-        local_spec_bodies.insert(
-            def_id,
-            CachedLocalBody {
-                body: CachedBody {
-                    base_body: Rc::new(body_with_facts.body),
-                    monomorphised_bodies: HashMap::new(),
-                },
-                borrowck_facts: Rc::new(facts),
-            }
-        );
+    pub fn load_pure_function_mir(&self, def_id: LocalDefId) {
+        let mut pure_function_bodies = self.pure_function_bodies.borrow_mut();
+        assert!(!pure_function_bodies.contains_key(&def_id));
+
+        pure_function_bodies.insert(def_id, self.raw_load_local_mir(def_id));
+    }
+
+    pub fn load_predicate_mir(&self, def_id: LocalDefId) {
+        let mut predicate_bodies = self.predicate_bodies.borrow_mut();
+        assert!(!predicate_bodies.contains_key(&def_id));
+
+        predicate_bodies.insert(def_id, self.raw_load_local_mir(def_id));
     }
 
     /// Get all local spec mir bodies to save to file for cross-crate export
     pub fn bodies_for_export(&self) -> CrossCrateBodyMap<'tcx> {
-        self.local_spec_bodies.borrow().iter().map(
+        self.local_spec_bodies.borrow().iter()
+            .chain(self.pure_function_bodies.borrow().iter())
+            .chain(self.predicate_bodies.borrow().iter())
+            .map(
             |(id, cb)| (id.to_def_id(), cb.body.base_body.clone())
         ).collect()
     }
