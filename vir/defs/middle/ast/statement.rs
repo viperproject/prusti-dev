@@ -33,6 +33,7 @@ pub enum Statement {
     WritePlace(WritePlace),
     WriteAddress(WriteAddress),
     Assign(Assign),
+    SetUnionVariant(SetUnionVariant),
     NewLft(NewLft),
     EndLft(EndLft),
     DeadReference(DeadReference),
@@ -280,6 +281,12 @@ pub struct WriteAddress {
 pub struct Assign {
     pub target: Expression,
     pub value: Rvalue,
+    pub position: Position,
+}
+
+#[display(fmt = "set-union-variant {}", variant_place)]
+pub struct SetUnionVariant {
+    pub variant_place: Expression,
     pub position: Position,
 }
 
