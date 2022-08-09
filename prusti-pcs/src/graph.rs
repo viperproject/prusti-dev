@@ -13,14 +13,23 @@ use prusti_rustc_interface::{
     middle::{mir, ty::TyCtxt},
 };
 
+/// The additional operations that can be performed to construct a conditional graph.
 pub trait ConditionalOps<'tcx>: Sized {
     // TODO: probably better to not clone here and use something like a cow/rc pointer
+    /// Creates a new branch graph under the given condition.
     fn branch(&self, condition: ConditionValue, start: mir::BasicBlock) -> Self;
+
+    /// Given `n` different branch graphs starting at the same basic block, join them into one conditional graph.
     fn join(graphs: Vec<Self>) -> Self;
 }
 
+/// The operations that can be performed on a single graph without conditionals.
 pub trait CoreOps<'tcx> {
+    /// Changes the `old` node to `new`, potentially tagging `old` with `location` it is already present.
     fn r#move(&mut self, new: mir::Place<'tcx>, old: mir::Place<'tcx>, location: mir::Location);
+
+    /// Creates a borrow edge starting at `from` and ending at `to` that is live for the given `loan`.
+    /// If `to` has projections, it will generate the necessary unpack annotations.
     fn mutable_borrow(
         &mut self,
         from: mir::Place<'tcx>,
@@ -28,8 +37,14 @@ pub trait CoreOps<'tcx> {
         to: mir::Place<'tcx>,
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
-    );
+    ) -> Vec<Annotation<'tcx>>;
+
+    /// Creates an abstract edge starting at `from` and ending at `to` and outputs the necessary
+    /// annotations to be packaged.
     fn package(&mut self, from: mir::Place<'tcx>, to: mir::Place<'tcx>) -> Vec<Annotation<'tcx>>;
+
+    /// Unrolls the graph starting at the leaves based on the set of loans that were killed,
+    /// outputting the annotations needed to restore the newly added capabilities.
     fn unwind(&mut self, killed_loans: &FxHashSet<facts::Loan>) -> GraphResult<'tcx>;
 }
 
@@ -135,17 +150,29 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
         to: mir::Place<'tcx>,
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
-    ) {
+    ) -> Vec<Annotation<'tcx>> {
         match self {
             Self::Single(graph) => graph.mutable_borrow(from, loan, to, mir, tcx),
             Self::Branch { graph, .. } => graph.mutable_borrow(from, loan, to, mir, tcx),
-            Self::Conditional { shared, graphs, .. } => {
+            Self::Conditional {
+                shared,
+                start,
+                graphs,
+            } => {
                 if shared.any_edge(&mut |edge| edge.goes_to(&to)) {
                     shared.mutable_borrow(from, loan, to, mir, tcx)
                 } else {
-                    for graph in graphs.values_mut() {
-                        graph.mutable_borrow(from, loan, to, mir, tcx)
-                    }
+                    graphs
+                        .iter_mut()
+                        .flat_map(|(condition_value, graph)| {
+                            let condition = ConditionId {
+                                value: *condition_value,
+                                start: *start,
+                            };
+
+                            condition.apply_to(graph.mutable_borrow(from, loan, to, mir, tcx))
+                        })
+                        .collect()
                 }
             }
         }
@@ -242,6 +269,7 @@ impl<'tcx> ReborrowingGraph<'tcx> {
         }
     }
 
+    /// The part of the graph that could be shared among conditionals.
     fn shared_part(&self) -> &Graph<'tcx> {
         match self {
             Self::Single(graph) => graph,
@@ -302,6 +330,7 @@ impl ConditionId {
         Self { value, start }
     }
 
+    // TODO: maybe this should just generate one annotation
     fn apply_to<'tcx>(&self, annotations: Vec<Annotation<'tcx>>) -> Vec<Annotation<'tcx>> {
         annotations
             .into_iter()
@@ -316,7 +345,7 @@ impl ConditionId {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ConditionValue(pub u128);
 
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Graph<'tcx> {
     edges: FxHashSet<GraphEdge<'tcx>>,
 }
@@ -349,7 +378,8 @@ impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
         to: mir::Place<'tcx>,
         mir: &mir::Body<'tcx>,
         tcx: TyCtxt<'tcx>,
-    ) {
+    ) -> Vec<Annotation<'tcx>> {
+        let mut unpacks = Vec::new();
         for i in 0..to.projection.len() {
             let to = mir::Place {
                 local: to.local,
@@ -358,6 +388,7 @@ impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
 
             if !self.edges.iter().any(|edge| edge.goes_to(&to)) {
                 self.unpack(to, mir, tcx);
+                unpacks.push(Annotation::Unpack(to));
             }
         }
 
@@ -366,6 +397,8 @@ impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
             loans: vec![loan],
             to: GraphNode::new(to),
         });
+
+        unpacks.into_iter().rev().collect()
     }
 
     fn package(&mut self, from: mir::Place<'tcx>, to: mir::Place<'tcx>) -> Vec<Annotation<'tcx>> {
@@ -437,6 +470,7 @@ impl<'tcx> Graph<'tcx> {
         });
     }
 
+    /// Remove the killed loans from the graph and collapse nodes where possible.
     fn collapse_killed(&mut self, killed_loans: &FxHashSet<facts::Loan>) {
         // TODO: bit of a work around since you can't mutate set elements but we want sets for intersection
         //       maybe we could keep a separate list for the killed loans or a map from edges to loans
@@ -457,29 +491,14 @@ impl<'tcx> Graph<'tcx> {
                 self.edges.insert(edge);
             });
 
-        let mut collapsed_nodes = Vec::new();
-        for edge in &self.edges {
-            match edge {
-                GraphEdge::Borrow { loans, to, .. }
-                | GraphEdge::Abstract { loans, to, .. }
-                | GraphEdge::Collapsed { loans, to, .. } => {
-                    if loans.is_empty()
-                        && self.edges.iter().any(|edge| {
-                            !matches!(edge, GraphEdge::Pack { .. }) && edge.comes_from_node(to)
-                        })
-                    {
-                        collapsed_nodes.push(*to);
-                    }
-                }
-                GraphEdge::Pack { .. } => {}
+        self.nodes().into_iter().for_each(|node| {
+            if node.is_collapsible(self) {
+                self.collapse(node);
             }
-        }
-
-        for node in collapsed_nodes {
-            self.collapse(node);
-        }
+        });
     }
 
+    /// Create a collapsed edge from the edges that come from and go to a node.
     fn collapse(&mut self, node: GraphNode<'tcx>) {
         let mut final_loans = Vec::new();
         let mut final_annotations = Vec::new();
@@ -524,6 +543,8 @@ impl<'tcx> Graph<'tcx> {
         });
     }
 
+    /// Unwind as far as possible by following the path from `start`.
+    /// Unwinds edges with no live loans on them and eagerly unwinds pack edges.
     fn unwind_path(&mut self, start: GraphNode<'tcx>) -> Vec<Annotation<'tcx>> {
         let mut final_annotations = Vec::new();
         let mut curr = start;
@@ -556,6 +577,7 @@ impl<'tcx> Graph<'tcx> {
         final_annotations
     }
 
+    /// Creates a version of all nodes and annotations of `place` in the graph that is tagged with the given `location`.
     fn version(&mut self, place: &mir::Place<'tcx>, location: mir::Location) {
         self.edges
             .drain()
@@ -623,6 +645,27 @@ impl<'tcx> Graph<'tcx> {
             .into_iter()
             .filter_map(|(node, count)| (count == 1).then_some(node))
             .collect()
+    }
+
+    fn nodes(&self) -> FxHashSet<GraphNode<'tcx>> {
+        self.edges
+            .iter()
+            .fold(FxHashSet::default(), |mut nodes, edge| {
+                match edge {
+                    GraphEdge::Borrow { from, to, .. }
+                    | GraphEdge::Abstract { from, to, .. }
+                    | GraphEdge::Collapsed { from, to, .. } => {
+                        nodes.insert(*from);
+                        nodes.insert(*to);
+                    }
+                    GraphEdge::Pack { from, to } => {
+                        nodes.extend(from);
+                        nodes.insert(*to);
+                    }
+                }
+
+                nodes
+            })
     }
 }
 
@@ -722,10 +765,20 @@ impl<'tcx> GraphEdge<'tcx> {
             | Self::Pack { to, .. } => to,
         }
     }
+
+    fn is_collapsible(&self) -> bool {
+        match self {
+            Self::Borrow { loans, .. }
+            | Self::Abstract { loans, .. }
+            | Self::Collapsed { loans, .. } => loans.is_empty(),
+            Self::Pack { .. } => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub enum Annotation<'tcx> {
+    Unpack(mir::Place<'tcx>),
     Pack(GraphNode<'tcx>),
     Restore {
         from: GraphNode<'tcx>,
@@ -740,6 +793,7 @@ pub enum Annotation<'tcx> {
 impl<'tcx> Annotation<'tcx> {
     fn version(&mut self, place: &mir::Place<'tcx>, location: mir::Location) {
         match self {
+            Annotation::Unpack(_) => {}
             Annotation::Pack(node) => node.version(place, location),
             Annotation::Restore { from, to } => {
                 from.version(place, location);
@@ -775,6 +829,18 @@ impl<'tcx> GraphNode<'tcx> {
     fn version(&mut self, place: &mir::Place<'tcx>, location: mir::Location) {
         if self.place == *place && self.tag.is_none() {
             self.tag = Some(location);
+        }
+    }
+
+    fn is_collapsible(&self, graph: &Graph<'tcx>) -> bool {
+        let from_edge = graph.edges.iter().find(|edge| edge.goes_to_node(self));
+        let to_edge = graph.edges.iter().find(|edge| edge.comes_from_node(self));
+
+        match (from_edge, to_edge) {
+            (Some(from_edge), Some(to_edge)) => {
+                from_edge.is_collapsible() && to_edge.is_collapsible()
+            }
+            _ => false,
         }
     }
 }
