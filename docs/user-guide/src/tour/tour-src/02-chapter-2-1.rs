@@ -16,8 +16,8 @@ help: insert some indirection (e.g., a `Box`, `Rc`, or `&`) to make `List` repre
    |  
 
     [Module std::boxed](https://doc.rust-lang.org/std/boxed/index.html):
-        > Box<T>, casually referred to as a ‘box’, provides the simplest form of heap allocation in Rust. 
-        > Boxes provide ownership for this allocation, and drop their contents when they go out of scope. 
+        > Box<T>, casually referred to as a ‘box’, provides the simplest form of heap allocation in Rust.
+        > Boxes provide ownership for this allocation, and drop their contents when they go out of scope.
 */
 
 
@@ -32,9 +32,9 @@ pub enum List {
     Notation: [] = Stack () = Heap
 
     A list with three elements looks as follows:
-  
+
         > [Elem A, ptr] -> (Elem B, ptr) -> (Elem C, ptr) -> (Empty *junk*)
-    
+
     - The last node is just overhead, the first node is not on the heap
     - Empty consumes space for a full pointer and an element
 

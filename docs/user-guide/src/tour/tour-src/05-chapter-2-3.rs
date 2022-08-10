@@ -7,7 +7,7 @@
 
 // (1) required to enable Prusti's annotations (implemented as Rust macros/attributes)
 extern crate prusti_contracts;
-use prusti_contracts::*; 
+use prusti_contracts::*;
 
 pub struct List {
     head: Link,
@@ -26,7 +26,7 @@ struct Node {
 impl List {
 
     // (3) add a method for length without annotations
-    // Methods are a special case of function in Rust because of the self argument, 
+    // Methods are a special case of function in Rust because of the self argument,
     // which doesn't have a declared type.
     // There are 3 primary forms that self can take: self, &mut self, and &self
     // We choose &self since computing the length only requires immutable access.
