@@ -277,27 +277,36 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         mut pcs: PCS<'tcx>,
     ) -> EncodingResult<PCS<'tcx>> {
         for (statement_index, statement) in block_data.statements.iter().enumerate() {
-            // 0. Handle borrows seperately.
-            if let MicroMirStatement::BorrowMut(p_from, p_to) = statement {
-                if p_from.ty(&self.mir.local_decls, self.env.tcx()).ty.is_ref() {
-                    // p_from is a borrow (so it's in the reborrow DAG)
-                    todo!();
-                } else {
-                    // p_from is not a borrow, so a new borrow needs to be created.
-                    // Both permissions now leave.
-                    todo!();
-                }
-            }
-
-            if let MicroMirStatement::BorrowMove(p_from, p_to) = statement {
-                todo!()
-            }
-
-            // 1. Elaborate the state-dependent conditions
             let location = Location {
                 block: block_data.mir_block,
                 statement_index: block_data.mir_parent[statement_index],
             };
+
+            // 0. Handle borrows seperately.
+            if let MicroMirStatement::BorrowMut(p_from, p_to) = statement {
+                if p_from.ty(&self.mir.local_decls, self.env.tcx()).ty.is_ref() {
+                    // p_from is a borrow (so it's in the reborrow DAG)
+                    let loan = todo!();
+                    pcs.dag
+                        .mutable_borrow(p_from, todo!(), p_to, self.mir, self.env.tcx());
+                    // EXPECT there are no annotations returned?
+                } else {
+                    // p_from is not a borrow, so a new borrow needs to be created.
+                    // Both permissions now leave.
+                    let annotations =
+                        pcs.dag
+                            .mutable_borrow(p_from, todo!(), p_to, self.mir, self.env.tcx());
+                    // Apply some annotations?
+                }
+                continue;
+            }
+
+            if let MicroMirStatement::BorrowMove(p_from, p_to) = statement {
+                pcs.dag.r#move(p_to, p_from, location);
+                continue;
+            }
+
+            // 1. Elaborate the state-dependent conditions
             let statement_precondition = self.elaborate_precondition(&statement, location)?;
             let statement_postcondition = self.elaborate_postcondition(&statement)?;
 
