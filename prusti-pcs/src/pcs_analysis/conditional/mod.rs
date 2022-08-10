@@ -22,6 +22,7 @@ use prusti_interface::{
             initialization::DefinitelyInitializedAnalysisResult,
         },
         mir_sets::{LocalSet, PlaceSet},
+        polonius_info::PoloniusInfo,
         Environment,
     },
     utils::is_prefix,
@@ -161,6 +162,7 @@ pub struct CondPCSctx<'mir, 'env: 'mir, 'tcx: 'env> {
     pub env: &'env Environment<'tcx>,
     pub init_analysis: DefinitelyInitializedAnalysisResult<'tcx>,
     pub alloc_analysis: DefinitelyAllocatedAnalysisResult,
+    pub polonius_info: PoloniusInfo<'mir, 'tcx>,
 }
 
 /// Data structure for all computations of the CondPCS
@@ -284,25 +286,30 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
             // 0. Handle borrows seperately.
             if let MicroMirStatement::BorrowMut(p_from, p_to) = statement {
+                let parent_loan = self.polonius_info.get_loan_at_location(location);
+
                 if p_from.ty(&self.mir.local_decls, self.env.tcx()).ty.is_ref() {
                     // p_from is a borrow (so it's in the reborrow DAG)
-                    let loan = todo!();
                     pcs.dag
-                        .mutable_borrow(p_from, todo!(), p_to, self.mir, self.env.tcx());
+                        .mutable_borrow(*p_from, parent_loan, *p_to, self.mir, self.env.tcx());
                     // EXPECT there are no annotations returned?
                 } else {
                     // p_from is not a borrow, so a new borrow needs to be created.
                     // Both permissions now leave.
-                    let annotations =
-                        pcs.dag
-                            .mutable_borrow(p_from, todo!(), p_to, self.mir, self.env.tcx());
+                    let annotations = pcs.dag.mutable_borrow(
+                        *p_from,
+                        parent_loan,
+                        *p_to,
+                        self.mir,
+                        self.env.tcx(),
+                    );
                     // Apply some annotations?
                 }
                 continue;
             }
 
             if let MicroMirStatement::BorrowMove(p_from, p_to) = statement {
-                pcs.dag.r#move(p_to, p_from, location);
+                pcs.dag.r#move(*p_to, *p_from, location);
                 continue;
             }
 

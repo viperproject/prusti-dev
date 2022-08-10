@@ -8,6 +8,7 @@ use prusti_interface::environment::{
     mir_analyses::{
         allocation::compute_definitely_allocated, initialization::compute_definitely_initialized,
     },
+    polonius_info::PoloniusInfo,
     Environment, Procedure,
 };
 use prusti_rustc_interface::middle::mir::Body;
@@ -22,12 +23,16 @@ pub fn dump_pcs<'env, 'tcx: 'env>(env: &'env Environment<'tcx>) -> EncodingResul
         let micro_mir: MicroMirEncoder<'_, 'tcx> = MicroMirEncoder::expand_syntax(mir, env.tcx())?;
         micro_mir.pprint();
 
+        let polonius_info =
+            PoloniusInfo::new_without_loop_invariant_block(env, &current_procedure).unwrap();
+
         CondPCSctx {
             micro_mir: &(micro_mir.encoding),
             mir,
             env,
             init_analysis: compute_definitely_initialized((*proc_id).clone(), mir, env.tcx()),
             alloc_analysis: compute_definitely_allocated((*proc_id).clone(), mir),
+            polonius_info,
         }
         .cond_pcs()?
         .pprint();
