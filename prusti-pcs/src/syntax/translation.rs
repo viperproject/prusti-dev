@@ -15,7 +15,7 @@ use crate::{
     },
     util::EncodingResult,
 };
-use prusti_interface::PrustiError;
+use prusti_interface::{environment::polonius_info::PoloniusInfo, PrustiError};
 use prusti_rustc_interface::{
     data_structures::stable_map::FxHashMap,
     errors::MultiSpan,
