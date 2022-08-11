@@ -443,11 +443,11 @@ impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
         self.collapse_killed(live_loans);
 
         let leaves_before = self.leaves();
+        let mut leaves_after = leaves_before.clone();
         let annotations = leaves_before
             .iter()
-            .flat_map(|leaf| self.unwind_path(*leaf))
+            .flat_map(|leaf| self.unwind_path(*leaf, &mut leaves_after))
             .collect();
-        let leaves_after = self.leaves();
 
         GraphResult {
             annotations,
@@ -545,12 +545,31 @@ impl<'tcx> Graph<'tcx> {
 
     /// Unwind as far as possible by following the path from `start`.
     /// Unwinds edges with no live loans on them and eagerly unwinds pack edges.
-    fn unwind_path(&mut self, start: GraphNode<'tcx>) -> Vec<Annotation<'tcx>> {
+    fn unwind_path(
+        &mut self,
+        start: GraphNode<'tcx>,
+        leaves: &mut FxHashSet<GraphNode<'tcx>>,
+    ) -> Vec<Annotation<'tcx>> {
         let mut final_annotations = Vec::new();
         let mut curr = start;
 
         while let Some(edge) = self.take_edge(|edge| edge.comes_from_node(&curr)) {
             curr = *edge.to();
+
+            match &edge {
+                GraphEdge::Borrow { from, to, .. }
+                | GraphEdge::Abstract { from, to, .. }
+                | GraphEdge::Collapsed { from, to, .. } => {
+                    leaves.remove(from);
+                    leaves.insert(*to);
+                }
+                GraphEdge::Pack { from, to } => {
+                    for field in from {
+                        leaves.remove(field);
+                    }
+                    leaves.insert(*to);
+                }
+            }
 
             match edge {
                 GraphEdge::Borrow { loans, .. } if loans.is_empty() => {}
