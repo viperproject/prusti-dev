@@ -43,9 +43,9 @@ pub trait CoreOps<'tcx> {
     /// annotations to be packaged.
     fn package(&mut self, from: mir::Place<'tcx>, to: mir::Place<'tcx>) -> Vec<Annotation<'tcx>>;
 
-    /// Unrolls the graph starting at the leaves based on the set of loans that were killed,
+    /// Unrolls the graph starting at the leaves, keeping the loans that are still alive, and
     /// outputting the annotations needed to restore the newly added capabilities.
-    fn unwind(&mut self, killed_loans: &FxHashSet<facts::Loan>) -> GraphResult<'tcx>;
+    fn unwind(&mut self, live_loans: &FxHashSet<facts::Loan>) -> GraphResult<'tcx>;
 }
 
 pub trait ToGraphviz {
@@ -202,11 +202,11 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
         }
     }
 
-    fn unwind(&mut self, killed_loans: &FxHashSet<facts::Loan>) -> GraphResult<'tcx> {
+    fn unwind(&mut self, live_loans: &FxHashSet<facts::Loan>) -> GraphResult<'tcx> {
         match self {
-            Self::Single(graph) => graph.unwind(killed_loans),
+            Self::Single(graph) => graph.unwind(live_loans),
             Self::Branch { condition, graph } => {
-                let result = graph.unwind(killed_loans);
+                let result = graph.unwind(live_loans);
 
                 GraphResult {
                     annotations: condition.apply_to(result.annotations),
@@ -222,7 +222,7 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
                 let graphs_result = graphs.iter_mut().fold(
                     GraphResult::default(),
                     |acc, (condition_value, graph)| {
-                        let mut result = graph.unwind(killed_loans);
+                        let mut result = graph.unwind(live_loans);
                         let condition = ConditionId::new(*condition_value, *start);
 
                         result.annotations = condition.apply_to(result.annotations);
@@ -233,7 +233,7 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
                         result
                     },
                 );
-                let shared_result = shared.unwind(killed_loans);
+                let shared_result = shared.unwind(live_loans);
 
                 shared_result.combine(graphs_result)
             }
@@ -439,8 +439,8 @@ impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
         final_annotations
     }
 
-    fn unwind(&mut self, killed_loans: &FxHashSet<facts::Loan>) -> GraphResult<'tcx> {
-        self.collapse_killed(killed_loans);
+    fn unwind(&mut self, live_loans: &FxHashSet<facts::Loan>) -> GraphResult<'tcx> {
+        self.collapse_killed(live_loans);
 
         let leaves_before = self.leaves();
         let annotations = leaves_before
@@ -470,8 +470,8 @@ impl<'tcx> Graph<'tcx> {
         });
     }
 
-    /// Remove the killed loans from the graph and collapse nodes where possible.
-    fn collapse_killed(&mut self, killed_loans: &FxHashSet<facts::Loan>) {
+    /// Remove the non-live loans from the graph and collapse nodes where possible.
+    fn collapse_killed(&mut self, live_loans: &FxHashSet<facts::Loan>) {
         // TODO: bit of a work around since you can't mutate set elements but we want sets for intersection
         //       maybe we could keep a separate list for the killed loans or a map from edges to loans
         self.edges
@@ -483,7 +483,7 @@ impl<'tcx> Graph<'tcx> {
                     GraphEdge::Borrow { loans, .. }
                     | GraphEdge::Abstract { loans, .. }
                     | GraphEdge::Collapsed { loans, .. } => {
-                        loans.retain(|loan| !killed_loans.contains(loan));
+                        loans.retain(|loan| live_loans.contains(loan));
                     }
                     GraphEdge::Pack { .. } => {}
                 }
