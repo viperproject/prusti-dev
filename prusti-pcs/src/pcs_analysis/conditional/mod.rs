@@ -278,6 +278,22 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         op_mir: &mut StraightOperationalMir<'tcx>,
         mut pcs: PCS<'tcx>,
     ) -> EncodingResult<PCS<'tcx>> {
+        // Dumb hack: For each MIR parent, find the last index
+        let it = block_data.statements.iter().enumerate().map(|(i, _)| i);
+        let it1 = block_data
+            .statements
+            .iter()
+            .enumerate()
+            .map(|(i, _)| i)
+            .skip(1);
+
+        let mut polonius_apply_places: Vec<usize> = vec![];
+        for (st, next) in zip(it, it1) {
+            if block_data.mir_parent[st] != block_data.mir_parent[next] {
+                polonius_apply_places.push(st);
+            }
+        }
+
         for (statement_index, statement) in block_data.statements.iter().enumerate() {
             let location = Location {
                 block: block_data.mir_block,
@@ -321,11 +337,61 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             pcs = self.repack(pcs, &statement_precondition, op_mir)?;
 
             // 3. Statement is coherent: push
+            println!("{:?}\t{:?}", location, statement);
             op_mir.statements.push(statement.clone());
             op_mir.pcs_before.push(pcs.clone());
 
             // 4. Apply statement's semantics to state.
             pcs = transform_pcs(pcs, &statement_precondition, &statement_postcondition)?;
+
+            // 5. Apply all loans if the MIR parent is the last one
+            if polonius_apply_places.contains(&statement_index) {
+                println!("{:?} PCS BEFORE {:?}", location, pcs);
+
+                let live_loans = self.polonius_info.get_all_active_loans(location);
+                let active_loans = live_loans
+                    .0
+                    .into_iter()
+                    .chain(live_loans.1.into_iter())
+                    .collect::<FxHashSet<_>>();
+                let graph_result = pcs.dag.unwind(&active_loans);
+
+                // TODO: Print the annotations
+                // TODO: What happens on a conditional?!?!
+                let perms_into_graph = graph_result
+                    .added
+                    .iter()
+                    .filter(|p| p.tag == None)
+                    .map(|p| PCSPermission {
+                        target: LinearResource::Mir(p.place),
+                        kind: Exclusive,
+                    })
+                    .collect::<FxHashSet<_>>();
+
+                // Repack so the required permissions are in the right state
+                // pcs = self.repack(pcs, &perms_into_graph, op_mir)?;
+
+                // for perm in perms_into_graph.iter() {
+                //     assert!(pcs.free.remove(perm));
+                // }
+
+                let perms_out_of_graph = graph_result
+                    .removed
+                    .iter()
+                    .filter(|p| p.tag == None)
+                    .map(|p| PCSPermission {
+                        target: LinearResource::Mir(p.place),
+                        kind: Exclusive,
+                    })
+                    .collect::<FxHashSet<_>>();
+
+                println!("Attempting to insert {:?}", perms_out_of_graph);
+                for perm in perms_out_of_graph.into_iter() {
+                    assert!(pcs.free.insert(perm));
+                }
+
+                println!("{:?} Annotations: {:?}", location, graph_result.annotations);
+            }
         }
 
         Ok(pcs)
