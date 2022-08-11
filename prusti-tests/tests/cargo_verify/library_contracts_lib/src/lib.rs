@@ -6,9 +6,7 @@ pub enum Opt<T> {
 }
 
 impl<T> Opt<T> {
-    // TODO fix the error related to pure functions
     #[pure]
-    // #[ensures(matches!(*self, Opt::Some(..)) == result)]
     pub fn is_some(&self) -> bool {
         matches!(*self, Opt::Some(..))
     }
