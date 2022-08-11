@@ -847,8 +847,8 @@ impl<'tcx> Annotation<'tcx> {
 
 #[derive(Clone, Copy, Hash, PartialEq, Eq)]
 pub struct GraphNode<'tcx> {
-    place: mir::Place<'tcx>,
-    tag: Option<mir::Location>,
+    pub place: mir::Place<'tcx>,
+    pub tag: Option<mir::Location>,
 }
 
 impl<'tcx> std::fmt::Debug for GraphNode<'tcx> {
@@ -886,9 +886,9 @@ impl<'tcx> GraphNode<'tcx> {
 
 #[derive(Debug, Default)]
 pub struct GraphResult<'tcx> {
-    annotations: Vec<Annotation<'tcx>>,
-    removed: FxHashSet<GraphNode<'tcx>>,
-    added: FxHashSet<GraphNode<'tcx>>,
+    pub annotations: Vec<Annotation<'tcx>>,
+    pub removed: FxHashSet<GraphNode<'tcx>>,
+    pub added: FxHashSet<GraphNode<'tcx>>,
 }
 
 impl<'tcx> GraphResult<'tcx> {
