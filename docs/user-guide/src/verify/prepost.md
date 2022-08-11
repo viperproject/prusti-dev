@@ -3,7 +3,6 @@
 In Prusti, the externally observable behaviour of a function can be specified with preconditions and postconditions. They can be provided using [Rust attributes](https://doc.rust-lang.org/reference/attributes.html):
 
 ```rust
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[requires(...)]
