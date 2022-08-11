@@ -5,7 +5,7 @@
     To this end, we also need to implement a length function for links
 */
 
-// (1) required to enable Prusti's annotations (implemented as Rust macros/attributes)
+// (1) simplifies writing Prusti's annotations (implemented as Rust macros/attributes)
 use prusti_contracts::*;
 
 pub struct List {
