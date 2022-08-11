@@ -334,7 +334,7 @@ impl<'tcx> Environment<'tcx> {
     fn external_spec_mir(&self, def_id: DefId, substs: SubstsRef<'tcx>) -> Rc<mir::Body<'tcx>> {
         let mut external_spec_bodies = self.external_spec_bodies.borrow_mut();
         let body = external_spec_bodies.get_mut(&def_id)
-            .expect(&format!("External body of spec {:?} was not imported!", def_id));
+            .unwrap_or_else(|| panic!("External body of spec {:?} was not imported!", def_id));
         self.subst_into_body(body, substs)
     }
 
@@ -349,11 +349,9 @@ impl<'tcx> Environment<'tcx> {
                 Some(body)
             } else if let Some(body) = pure_function_bodies.get_mut(&def_id) {
                 Some(body)
-            } else if let Some(body) = predicate_bodies.get_mut(&def_id) {
-                Some(body)
             } else {
-                None
-            }.expect(&format!("Local body of spec {:?} was not loaded with `load_local_spec_mir`!", def_id));
+                predicate_bodies.get_mut(&def_id)
+            }.unwrap_or_else(|| panic!("Local body of spec {:?} was not loaded with `load_local_spec_mir`!", def_id));
             self.subst_into_body(&mut body.body, substs)
         } else {
             self.external_spec_mir(def_id, substs)
