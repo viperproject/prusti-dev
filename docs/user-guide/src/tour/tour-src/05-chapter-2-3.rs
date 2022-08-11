@@ -6,8 +6,7 @@
 */
 
 // (1) required to enable Prusti's annotations (implemented as Rust macros/attributes)
-extern crate prusti_contracts;
-use prusti_contracts::*; 
+use prusti_contracts::*;
 
 pub struct List {
     head: Link,
