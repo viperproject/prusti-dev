@@ -200,10 +200,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
         let body = if is_bodyless {
             None
         } else {
-            let mir = self
-                .encoder
-                .env()
-                .spec_mir(self.proc_def_id, self.substs);
+            let mir = self.encoder.env().spec_mir(self.proc_def_id, self.substs);
             let interpreter = ExpressionBackwardInterpreter::new(
                 self.encoder,
                 &mir,

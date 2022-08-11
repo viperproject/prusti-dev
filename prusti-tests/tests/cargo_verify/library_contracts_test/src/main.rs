@@ -1,3 +1,5 @@
+extern crate prusti_contracts_common;
+extern crate library_contracts_extern_specs;
 use library_contracts_lib::Opt;
 
 // Demonstrating library contracts: specification is imported

@@ -136,6 +136,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         def_spec: &mut typed::DefSpecificationMap,
         build_output_dir: &Path,
     ) {
+        // TODO: atm one needs to write `extern crate extern_spec_lib` to import the specs
+        // from a crate which is not used in the current crate (e.g. an `#[extern_spec]` only crate)
+        // Otherwise the crate doesn't show up in `tcx.crates()`.  Is there some better way
+        // to get dependency crates, which doesn't ignore unused ones? Maybe:
+        // https://doc.rust-lang.org/stable/nightly-rustc/rustc_metadata/creader/struct.CrateMetadataRef.html#method.dependencies
         for crate_num in self.tcx.crates(()) {
             if *crate_num == LOCAL_CRATE {
                 continue;
