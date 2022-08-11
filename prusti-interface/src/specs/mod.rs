@@ -372,12 +372,15 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             self.env.load_local_spec_mir(def_id.expect_local());
         };
 
-        // Pure functions
-        let pure_fns = def_spec.proc_specs.iter().filter(|(_, spec_graph)|
-            spec_graph.base_spec.kind.is_pure().expect("Expected pure")
+        // Pure functions without trusted annotation
+        let pure_untrusted_fns = def_spec.proc_specs.iter().filter(|(_, spec_graph)|
+            spec_graph.base_spec.kind.is_pure().expect("Expected pure") &&
+            !spec_graph.base_spec.trusted.extract_inherit().expect("Expected trusted")
         );
-        for (def_id, _) in pure_fns {
-            self.env.load_pure_function_mir(def_id.expect_local());
+        for (&def_id, _) in pure_untrusted_fns {
+            if self.tcx.is_mir_available(def_id) && !self.tcx.is_constructor(def_id) {
+                self.env.load_pure_function_mir(def_id.expect_local());
+            }
         }
 
         // Predicates
