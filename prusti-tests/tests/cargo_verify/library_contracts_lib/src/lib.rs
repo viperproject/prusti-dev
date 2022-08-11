@@ -1,4 +1,3 @@
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 pub enum Opt<T> {
@@ -8,13 +7,10 @@ pub enum Opt<T> {
 
 impl<T> Opt<T> {
     // TODO fix the error related to pure functions
-    //#[pure]
-    #[ensures(matches!(*self, Opt::Some(_)) == result)]
+    #[pure]
+    // #[ensures(matches!(*self, Opt::Some(..)) == result)]
     pub fn is_some(&self) -> bool {
-        match self {
-            Opt::Some(_) => true,
-            Opt::None => false
-        }
+        matches!(*self, Opt::Some(..))
     }
 
     pub fn map<U, F>(self, f: F) -> Opt<U>

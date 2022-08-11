@@ -1,5 +1,3 @@
-extern crate prusti_contracts;
-extern crate library_contracts_lib;
 use prusti_contracts::*;
 use library_contracts_lib::*;
 

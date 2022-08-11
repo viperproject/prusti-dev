@@ -348,15 +348,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn ensure_local_mirs_fetched(&self, def_spec: &mut typed::DefSpecificationMap) {
-        let mut procs = def_spec.proc_specs
-            .iter()
-            // TODO: extend also to specs_with_constraints instead of base_spec only
-            .map(|(def_id, spec_graph)| (def_id, &spec_graph.base_spec));
 
         // Spec items
-        let proc_specs = procs.by_ref()
+        let proc_specs = def_spec.proc_specs.iter()
             // collect [DefId]s in specs of all procedures
-            .map(|(_, base_spec)| base_spec)
+            .map(|(_, spec_graph)| &spec_graph.base_spec)
             .flat_map(|proc_spec| {
                 vec![&proc_spec.pres, &proc_spec.posts].into_iter().filter_map(|spec_item| {
                     spec_item.extract_with_selective_replacement()
@@ -372,20 +368,16 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         };
 
         // Pure functions
-        for def_id in procs.by_ref().filter_map(|(def_id, base_spec)|
-            base_spec.kind.extract_with_selective_replacement().and_then(|kind|
-                match kind {
-                    ProcedureSpecificationKind::Pure => Some(def_id),
-                    _ => None
-                }
-            )
-        ) {
+        let pure_fns = def_spec.proc_specs.iter().filter(|(_, spec_graph)|
+            spec_graph.base_spec.kind.is_pure().expect("Expected pure")
+        );
+        for (def_id, _) in pure_fns {
             self.env.load_pure_function_mir(def_id.expect_local());
         }
 
         // Predicates
-        for def_id in procs.by_ref().filter_map(|(_, base_spec)|
-            base_spec.kind.extract_with_selective_replacement().and_then(|kind|
+        for def_id in def_spec.proc_specs.iter().filter_map(|(_, spec_graph)|
+            spec_graph.base_spec.kind.extract_with_selective_replacement().and_then(|kind|
                 match kind {
                     ProcedureSpecificationKind::Predicate(Some(def_id)) => Some(def_id),
                     _ => None

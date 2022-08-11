@@ -386,9 +386,14 @@ impl<'tcx> Environment<'tcx> {
 
     pub fn try_get_local_mir_borrowck_facts(&self, def_id: LocalDefId) -> Option<Rc<BorrowckFacts>> {
         trace!("try_get_local_mir_borrowck_facts: {:?}", def_id);
-        self.bodies.borrow()
+        let res = self.bodies.borrow()
             .get(&def_id)
-            .map(|body| body.borrowck_facts.clone())
+            .map(|body| body.borrowck_facts.clone());
+        if res.is_none() {
+            self.pure_function_bodies.borrow()
+                .get(&def_id)
+                .map(|body| body.borrowck_facts.clone())
+        } else { res }
     }
 
     /// Import non-local mir bodies of specs from cross-crate import.

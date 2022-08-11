@@ -203,7 +203,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureEncoder<'p, 'v, 'tcx> {
             let mir = self
                 .encoder
                 .env()
-                .local_body_mir(self.proc_def_id.expect_local(), self.substs);
+                .spec_mir(self.proc_def_id, self.substs);
             let interpreter = ExpressionBackwardInterpreter::new(
                 self.encoder,
                 &mir,
