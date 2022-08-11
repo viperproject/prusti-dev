@@ -2,22 +2,28 @@ extern crate prusti_contracts;
 use prusti_contracts::*;
 
 pub enum Opt<T> {
-    OSome(T),
-    ONone
+    Some(T),
+    None
 }
 
 impl<T> Opt<T> {
-    #[ensures(matches!(*self, Opt::OSome(_)) == result)]
+    // TODO fix the error related to pure functions
+    //#[pure]
+    #[ensures(matches!(*self, Opt::Some(_)) == result)]
     pub fn is_some(&self) -> bool {
         match self {
-            Opt::OSome(_) => true,
-            Opt::ONone => false
+            Opt::Some(_) => true,
+            Opt::None => false
         }
     }
-}
 
-#[extern_spec]
-impl<T> Option<T> {
-    #[ensures(matches!(*self, Some(_)) == result)]
-    fn is_some(&self) -> bool;
+    pub fn map<U, F>(self, f: F) -> Opt<U>
+    where
+        F: FnOnce(T) -> U,
+    {
+        match self {
+            Opt::Some(x) => Opt::Some(f(x)),
+            Opt::None => Opt::None,
+        }
+    }
 }
