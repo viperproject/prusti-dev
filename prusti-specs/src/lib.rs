@@ -53,8 +53,9 @@ fn extract_prusti_attributes(
     let mut prusti_attributes = Vec::new();
     let mut regular_attributes = Vec::new();
     for attr in item.attrs_mut().drain(0..) {
-        if attr.path.segments.len() == 1 {
-            if let Ok(attr_kind) = attr.path.segments[0].ident.to_string().try_into() {
+        if attr.path.segments.len() == 1 || (attr.path.segments.len() == 2 && attr.path.segments[0].ident == "prusti_contracts") {
+            let idx = attr.path.segments.len()-1;
+            if let Ok(attr_kind) = attr.path.segments[idx].ident.to_string().try_into() {
                 let tokens = match attr_kind {
                     SpecAttributeKind::Requires
                     | SpecAttributeKind::Ensures
