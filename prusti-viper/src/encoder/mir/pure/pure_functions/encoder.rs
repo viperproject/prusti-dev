@@ -126,7 +126,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let mir = self
             .encoder
             .env()
-            .local_body_mir(self.proc_def_id.expect_local(), self.substs);
+            .spec_or_local_body_mir(self.proc_def_id, self.substs);
         let interpreter = PureFunctionBackwardInterpreter::new(
             self.encoder,
             &mir,

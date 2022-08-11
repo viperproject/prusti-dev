@@ -141,6 +141,7 @@ fn test_local_project_with_dependencies<T: Into<PathBuf>>(project_name: T, depen
         "prusti-utils",
         "prusti-specs",
         "prusti-contracts",
+        "prusti-contracts-common",
         "prusti-contracts-impl",
         "prusti-contracts-internal",
     ];
@@ -253,5 +254,8 @@ fn test_overflow_checks() {
 
 #[cargo_test]
 fn test_library_contracts_test() {
-    test_local_project_with_dependencies("library_contracts_test", &["library_contracts_lib"]);
+    test_local_project_with_dependencies(
+        "library_contracts_test",
+        &["library_contracts_lib", "library_contracts_extern_specs"],
+    );
 }
