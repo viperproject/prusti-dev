@@ -254,7 +254,16 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
         op: &Operand<'tcx>,
     ) -> EncodingResult<()> {
         if p_dest.ty(&ctx.mir.local_decls, ctx.tcx).ty.is_ref() {
-            todo!();
+            match op {
+                Copy(_) | Constant(_) => todo!(),
+                Move(p_from) => {
+                    ctx.push_stmt(MicroMirStatement::BorrowMove(
+                        (*p_from).clone(),
+                        (*p_dest).clone(),
+                    ));
+                    return Ok(());
+                }
+            }
         }
         ctx.push_stmt(MicroMirStatement::Kill(None, (*p_dest).into()));
         let temp_1 = TemporaryPlace { id: 1 };
