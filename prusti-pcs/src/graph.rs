@@ -132,11 +132,15 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
             Self::Single(graph) => graph.r#move(new, old, location),
             Self::Branch { graph, .. } => graph.r#move(new, old, location),
             Self::Conditional { shared, graphs, .. } => {
-                if shared.any_edge(&mut |edge| edge.comes_from(&old)) {
+                let mut pred = |edge: &GraphEdge<'tcx>| edge.comes_from(&old);
+
+                if shared.any_edge(&mut pred) {
                     shared.r#move(new, old, location);
                 } else {
                     for graph in graphs.values_mut() {
-                        graph.r#move(new, old, location);
+                        if graph.any_edge(&mut pred) {
+                            graph.r#move(new, old, location);
+                        }
                     }
                 }
             }
@@ -159,11 +163,14 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
                 start,
                 graphs,
             } => {
-                if shared.any_edge(&mut |edge| edge.goes_to(&to)) {
+                let mut pred = |edge: &GraphEdge<'tcx>| edge.goes_to(&to);
+
+                if shared.any_edge(&mut pred) {
                     shared.mutable_borrow(from, loan, to, mir, tcx)
                 } else {
                     graphs
                         .iter_mut()
+                        .filter(|(_, graph)| graph.any_edge(&mut pred))
                         .flat_map(|(condition_value, graph)| {
                             let condition = ConditionId {
                                 value: *condition_value,
@@ -187,11 +194,14 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
                 start,
                 graphs,
             } => {
-                if shared.any_edge(&mut |edge| edge.goes_to(&to)) {
+                let mut pred = |edge: &GraphEdge<'tcx>| edge.goes_to(&to);
+
+                if shared.any_edge(&mut pred) {
                     shared.package(from, to)
                 } else {
                     graphs
                         .iter_mut()
+                        .filter(|(_, graph)| graph.any_edge(&mut pred))
                         .flat_map(|(condition_value, graph)| {
                             ConditionId::new(*condition_value, *start)
                                 .apply_to(graph.package(from, to))
@@ -258,6 +268,42 @@ impl<'tcx> ReborrowingGraph<'tcx> {
 
                 common.extend(shared.unconditionally_accessible());
                 common
+            }
+        }
+    }
+
+    pub fn unpack(
+        &mut self,
+        place: mir::Place<'tcx>,
+        mir: &mir::Body<'tcx>,
+        tcx: TyCtxt<'tcx>,
+    ) -> Vec<Annotation<'tcx>> {
+        match self {
+            Self::Single(graph) => vec![graph.unpack(place, mir, tcx)],
+            Self::Branch { graph, .. } => graph.unpack(place, mir, tcx),
+            Self::Conditional {
+                shared,
+                start,
+                graphs,
+            } => {
+                let mut pred = |edge: &GraphEdge<'tcx>| edge.goes_to(&place);
+
+                if shared.any_edge(&mut pred) {
+                    shared.unpack(place, mir, tcx)
+                } else {
+                    graphs
+                        .iter_mut()
+                        .filter(|(_, graph)| graph.any_edge(&mut pred))
+                        .flat_map(|(condition_value, graph)| {
+                            let condition = ConditionId {
+                                value: *condition_value,
+                                start: *start,
+                            };
+
+                            condition.apply_to(graph.unpack(place, mir, tcx))
+                        })
+                        .collect()
+                }
             }
         }
     }
@@ -407,8 +453,8 @@ impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
             };
 
             if !self.edges.iter().any(|edge| edge.goes_to(&to)) {
-                self.unpack(to, mir, tcx);
-                unpacks.push(Annotation::Unpack(to));
+                let annotation = self.unpack(to, mir, tcx);
+                unpacks.push(annotation);
             }
         }
 
@@ -478,7 +524,12 @@ impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
 }
 
 impl<'tcx> Graph<'tcx> {
-    fn unpack(&mut self, place: mir::Place<'tcx>, mir: &mir::Body<'tcx>, tcx: TyCtxt<'tcx>) {
+    pub fn unpack(
+        &mut self,
+        place: mir::Place<'tcx>,
+        mir: &mir::Body<'tcx>,
+        tcx: TyCtxt<'tcx>,
+    ) -> Annotation<'tcx> {
         let places = mir_utils::expand_struct_place(place, mir, tcx, None)
             .iter()
             .map(|p| GraphNode::new(p.to_mir_place()))
@@ -488,6 +539,8 @@ impl<'tcx> Graph<'tcx> {
             from: places,
             to: GraphNode::new(place),
         });
+
+        Annotation::Unpack(place)
     }
 
     /// Remove the non-live loans from the graph and collapse nodes where possible.
