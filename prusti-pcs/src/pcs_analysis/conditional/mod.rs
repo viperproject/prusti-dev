@@ -290,7 +290,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         let mut polonius_apply_places: Vec<usize> = vec![];
         for (st, next) in zip(it, it1) {
             if block_data.mir_parent[st] != block_data.mir_parent[next] {
-                polonius_apply_places.push(st);
+                polonius_apply_places.push(next);
             }
         }
 
@@ -346,7 +346,11 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
             // 0. Apply loans expiring at a place
             if polonius_apply_places.contains(&statement_index) {
-                println!("{:?} PCS BEFORE {:?}", location, pcs);
+                println!("{:?} {:?}", location, pcs);
+                println!(
+                    "live loans {:?}",
+                    self.polonius_info.get_all_active_loans(location)
+                );
 
                 let live_loans = self.polonius_info.get_all_active_loans(location);
                 let active_loans = live_loans
@@ -390,7 +394,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                     assert!(pcs.free.insert(perm));
                 }
 
-                println!("{:?} Annotations: {:?}", location, graph_result.annotations);
+                println!("Annotations: {:?}", graph_result.annotations);
 
                 // Ensure any unconditioanlly accessible places are added back into the graph
                 for p in pcs.dag.unconditionally_accessible().iter() {
@@ -410,6 +414,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             pcs = self.repack(pcs, &statement_precondition, op_mir)?;
 
             // 3. Statement is coherent: push
+            println!("{:?}\t{:?}", location, pcs);
             println!("{:?}\t{:?}", location, statement);
             op_mir.statements.push(statement.clone());
             op_mir.pcs_before.push(pcs.clone());
