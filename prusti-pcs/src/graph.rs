@@ -242,6 +242,26 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
 }
 
 impl<'tcx> ReborrowingGraph<'tcx> {
+    pub fn unconditionally_accessible(&self) -> FxHashSet<mir::Place<'tcx>> {
+        match self {
+            ReborrowingGraph::Single(graph) => {
+                // TODO: leaves should all be untagged?
+                graph.leaves().into_iter().map(|node| node.place).collect()
+            }
+            ReborrowingGraph::Branch { graph, .. } => graph.unconditionally_accessible(),
+            ReborrowingGraph::Conditional { shared, graphs, .. } => {
+                let mut common = graphs
+                    .values()
+                    .map(|graph| graph.unconditionally_accessible())
+                    .reduce(|acc, item| &acc & &item)
+                    .unwrap();
+
+                common.extend(shared.unconditionally_accessible());
+                common
+            }
+        }
+    }
+
     fn subtract(&mut self, other: &Graph<'tcx>) {
         match self {
             Self::Single(graph) => {
@@ -637,7 +657,7 @@ impl<'tcx> Graph<'tcx> {
     }
 
     // TODO: this could probably be cached in a field
-    pub fn leaves(&self) -> FxHashSet<GraphNode<'tcx>> {
+    fn leaves(&self) -> FxHashSet<GraphNode<'tcx>> {
         self.edges
             .iter()
             .fold(
