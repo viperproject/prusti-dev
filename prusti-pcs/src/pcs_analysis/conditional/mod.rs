@@ -321,6 +321,21 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                     );
                     // Apply some annotations?
                 }
+
+                // hack
+                assert!(pcs.free.remove(&PCSPermission {
+                    target: LinearResource::Mir((*p_from).clone()),
+                    kind: Exclusive,
+                }));
+                assert!(pcs.free.remove(&PCSPermission {
+                    target: LinearResource::Mir((*p_to).clone()),
+                    kind: Uninit,
+                }));
+
+                assert!(pcs.free.insert(PCSPermission {
+                    target: LinearResource::Mir((*p_to).clone()),
+                    kind: Exclusive,
+                }));
                 continue;
             }
 
@@ -329,22 +344,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 continue;
             }
 
-            // 1. Elaborate the state-dependent conditions
-            let statement_precondition = self.elaborate_precondition(&statement, location)?;
-            let statement_postcondition = self.elaborate_postcondition(&statement)?;
-
-            // 2. Repack to precondition
-            pcs = self.repack(pcs, &statement_precondition, op_mir)?;
-
-            // 3. Statement is coherent: push
-            println!("{:?}\t{:?}", location, statement);
-            op_mir.statements.push(statement.clone());
-            op_mir.pcs_before.push(pcs.clone());
-
-            // 4. Apply statement's semantics to state.
-            pcs = transform_pcs(pcs, &statement_precondition, &statement_postcondition)?;
-
-            // 5. Apply all loans if the MIR parent is the last one
+            // 0. Apply loans expiring at a place
             if polonius_apply_places.contains(&statement_index) {
                 println!("{:?} PCS BEFORE {:?}", location, pcs);
 
@@ -371,9 +371,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 // Repack so the required permissions are in the right state
                 // pcs = self.repack(pcs, &perms_into_graph, op_mir)?;
 
-                // for perm in perms_into_graph.iter() {
-                //     assert!(pcs.free.remove(perm));
-                // }
+                println!("into of graph {:?}", perms_into_graph);
 
                 let perms_out_of_graph = graph_result
                     .removed
@@ -385,13 +383,39 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                     })
                     .collect::<FxHashSet<_>>();
 
+                println!("out of graph {:?}", perms_out_of_graph);
+
                 println!("Attempting to insert {:?}", perms_out_of_graph);
                 for perm in perms_out_of_graph.into_iter() {
                     assert!(pcs.free.insert(perm));
                 }
 
                 println!("{:?} Annotations: {:?}", location, graph_result.annotations);
+
+                // Ensure any unconditioanlly accessible places are added back into the graph
+                for p in pcs.dag.unconditionally_accessible().iter() {
+                    // (Naive) just insert, don't check if it's already in there or conflicts?
+                    pcs.free.insert(PCSPermission {
+                        target: LinearResource::Mir((*p).clone()),
+                        kind: Exclusive,
+                    });
+                }
             }
+
+            // 1. Elaborate the state-dependent conditions
+            let statement_precondition = self.elaborate_precondition(&statement, location)?;
+            let statement_postcondition = self.elaborate_postcondition(&statement)?;
+
+            // 2. Repack to precondition
+            pcs = self.repack(pcs, &statement_precondition, op_mir)?;
+
+            // 3. Statement is coherent: push
+            println!("{:?}\t{:?}", location, statement);
+            op_mir.statements.push(statement.clone());
+            op_mir.pcs_before.push(pcs.clone());
+
+            // 4. Apply statement's semantics to state.
+            pcs = transform_pcs(pcs, &statement_precondition, &statement_postcondition)?;
         }
 
         Ok(pcs)
