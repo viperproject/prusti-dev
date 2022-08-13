@@ -322,10 +322,10 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                 //    the end of the exit block).
                 state.clear()?;
             }
-            vir_typed::Statement::SetUnionVariant(statement) => {
-                let position = statement.position();
+            vir_typed::Statement::SetUnionVariant(variant_statement) => {
+                let position = variant_statement.position();
                 // Split the memory block for the union itself.
-                let parent = statement.variant_place.get_parent_ref().unwrap();
+                let parent = variant_statement.variant_place.get_parent_ref().unwrap();
                 let place = parent
                     .get_parent_ref()
                     .unwrap()
@@ -344,6 +344,8 @@ impl<'p, 'v, 'tcx> Visitor<'p, 'v, 'tcx> {
                 let encoded_statement =
                     vir_mid::Statement::split_block(place, None, None, position);
                 self.current_statements.push(encoded_statement);
+                self.current_statements
+                    .push(statement.typed_to_middle_statement(self.encoder)?);
             }
             _ => {
                 self.current_statements

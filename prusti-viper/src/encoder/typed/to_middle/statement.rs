@@ -49,13 +49,6 @@ impl<'v, 'tcx> TypedToMiddleStatementLowerer for crate::encoder::Encoder<'v, 'tc
         unreachable!("leak-all statement cannot be lowered")
     }
 
-    fn typed_to_middle_statement_statement_set_union_variant(
-        &self,
-        _statement: vir_typed::SetUnionVariant,
-    ) -> Result<vir_mid::Statement, Self::Error> {
-        unreachable!("set union variant statement cannot be lowered")
-    }
-
     fn typed_to_middle_statement_operand(
         &self,
         operand: vir_typed::Operand,
