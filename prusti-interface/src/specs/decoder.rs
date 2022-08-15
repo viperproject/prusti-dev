@@ -60,6 +60,7 @@ impl<'a, 'tcx> Decodable<DefSpecsDecoder<'a, 'tcx>> for CrateNum {
     }
 }
 
+// See https://doc.rust-lang.org/nightly/nightly-rustc/rustc_metadata/rmeta/decoder/struct.DecodeContext.html
 impl<'a, 'tcx> Decodable<DefSpecsDecoder<'a, 'tcx>> for Span {
     fn decode(s: &mut DefSpecsDecoder<'a, 'tcx>) -> Span {
         let sm = s.tcx.sess.source_map();

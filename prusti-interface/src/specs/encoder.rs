@@ -85,6 +85,7 @@ impl<'tcx> Encodable<DefSpecsEncoder<'tcx>> for CrateNum {
     }
 }
 
+// See https://doc.rust-lang.org/nightly/nightly-rustc/rustc_metadata/rmeta/encoder/struct.EncodeContext.html
 impl<'tcx> Encodable<DefSpecsEncoder<'tcx>> for Span {
     fn encode(&self, s: &mut DefSpecsEncoder<'tcx>) {
         let sm = s.tcx.sess.source_map();
