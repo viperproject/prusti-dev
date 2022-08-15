@@ -6,6 +6,7 @@ use prusti_rustc_interface::{
     },
     serialize::{opaque, Decodable},
     session::StableCrateId,
+    span::{BytePos, source_map::StableSourceFileId, Span, SyntaxContext},
 };
 use rustc_hash::FxHashMap;
 
@@ -56,6 +57,23 @@ impl<'a, 'tcx> Decodable<DefSpecsDecoder<'a, 'tcx>> for CrateNum {
     fn decode(d: &mut DefSpecsDecoder<'a, 'tcx>) -> CrateNum {
         let stable_id = StableCrateId::decode(d);
         d.tcx.stable_crate_id_to_crate_num(stable_id)
+    }
+}
+
+impl<'a, 'tcx> Decodable<DefSpecsDecoder<'a, 'tcx>> for Span {
+    fn decode(s: &mut DefSpecsDecoder<'a, 'tcx>) -> Span {
+        let sm = s.tcx.sess.source_map();
+        let pos = [(); 2].map(|_| {
+            let ssfi = StableSourceFileId::decode(s);
+            let rel_bp = BytePos::decode(s);
+            sm.source_file_by_stable_id(ssfi)
+                // See comment in 'encoder.rs'
+                .map(|sf| sf.start_pos + rel_bp)
+                // This should hopefully never fail,
+                // so maybe could be an `unwrap` instead?
+                .unwrap_or(BytePos(0))
+        });
+        Span::new(pos[0], pos[1], SyntaxContext::root(), None)
     }
 }
 
