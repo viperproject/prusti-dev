@@ -273,7 +273,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .specs
             .borrow_mut()
             .get_and_refine_proc_spec(self.env(), query)
-            .and_then(|spec| spec.span)
+            .map(|spec| self.env().get_def_span(spec.source))
             .unwrap_or_else(|| self.env().get_def_span(def_id))
     }
 }

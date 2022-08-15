@@ -143,11 +143,13 @@ impl<'tcx> Specifications<'tcx> {
         let impl_spec = self
             .get_proc_spec(env, impl_query)
             .cloned()
-            .unwrap_or_else(ProcedureSpecification::empty);
+            .unwrap_or_else(|| ProcedureSpecification::empty(impl_query.referred_def_id()));
 
-        let empty = ProcedureSpecification::empty();
-        let trait_spec = self.get_proc_spec(env, trait_query).unwrap_or(&empty);
-        let refined = impl_spec.refine(trait_spec);
+        let trait_spec = self
+            .get_proc_spec(env, trait_query)
+            .cloned()
+            .unwrap_or_else(|| ProcedureSpecification::empty(trait_query.referred_def_id()));
+        let refined = impl_spec.refine(&trait_spec);
 
         self.validate_refined_kind(
             env,

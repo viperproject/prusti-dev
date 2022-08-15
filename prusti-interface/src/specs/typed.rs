@@ -1,14 +1,14 @@
-use crate::{environment::Environment, utils::has_trait_bounds_ghost_constraint};
+use crate::{environment::Environment, PrustiError, utils::has_trait_bounds_ghost_constraint};
 pub use common::{SpecIdRef, SpecType, SpecificationId};
 use log::trace;
 use prusti_rustc_interface::{
     hir::def_id::{DefId, LocalDefId},
     macros::{TyDecodable, TyEncodable},
-    span::Span,
 };
 use prusti_specs::specifications::common;
 use rustc_hash::FxHashMap;
 use std::fmt::{Debug, Display, Formatter};
+use regex::Regex;
 
 /// A map of specifications keyed by crate-local DefIds.
 #[derive(Default, Debug, Clone)]
@@ -54,11 +54,96 @@ impl DefSpecificationMap {
     pub fn get_ghost_end(&self, def_id: &DefId) -> Option<&GhostEnd> {
         self.ghost_end.get(def_id)
     }
+
+    pub(crate) fn import_external(
+        &mut self,
+        proc_specs: FxHashMap<DefId, SpecGraph<ProcedureSpecification>>,
+        type_specs: FxHashMap<DefId, TypeSpecification>,
+        env: &Environment,
+    ) {
+        let duplicate_error = |item_id, spec_id_a: DefId, spec_id_b: DefId|
+            PrustiError::incorrect(
+                format!(
+                    "duplicate specification for `{}` from crate `{}` and `{}`",
+                    env.get_item_name(item_id),
+                    env.crate_name(spec_id_a.krate),
+                    env.crate_name(spec_id_b.krate),
+                ),
+                crate::specs::MultiSpan::from_spans(vec![
+                    env.get_def_span(spec_id_a),
+                    env.get_def_span(spec_id_b),
+                ]),
+            ).emit(env);
+        for (k, v) in proc_specs {
+            if let Some(other) = self.proc_specs.insert(k, v) {
+                let v = self.proc_specs.get(&k).unwrap();
+                duplicate_error(k, other.base_spec.source, v.base_spec.source);
+            }
+        }
+        for (k, v) in type_specs {
+            if let Some(other) = self.type_specs.insert(k, v) {
+                let v = self.type_specs.get(&k).unwrap();
+                duplicate_error(k, other.source, v.source);
+            }
+        }
+    }
+
+    pub fn all_values_debug(&self, hide_uuids: bool) -> Vec<String> {
+        let loop_specs: Vec<_> = self
+            .loop_specs
+            .values()
+            .map(|spec| format!("{:?}", spec))
+            .collect();
+        let proc_specs: Vec<_> = self
+            .proc_specs
+            .values()
+            .map(|spec| format!("{:?}", spec.base_spec))
+            .collect();
+        let type_specs: Vec<_> = self
+            .type_specs
+            .values()
+            .map(|spec| format!("{:?}", spec))
+            .collect();
+        let asserts: Vec<_> = self
+            .prusti_assertions
+            .values()
+            .map(|spec| format!("{:?}", spec))
+            .collect();
+        let assumptions: Vec<_> = self
+            .prusti_assumptions
+            .values()
+            .map(|spec| format!("{:?}", spec))
+            .collect();
+        let mut values = Vec::new();
+        values.extend(loop_specs);
+        values.extend(proc_specs);
+        values.extend(type_specs);
+        values.extend(asserts);
+        values.extend(assumptions);
+        if hide_uuids {
+            let uuid =
+                Regex::new("[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}").unwrap();
+            let num_uuid = Regex::new("[a-z0-9]{32}").unwrap();
+            let mut replaced_values: Vec<String> = vec![];
+            for item in values {
+                let item = num_uuid.replace_all(&item, "$(NUM_UUID)");
+                let item = uuid.replace_all(&item, "$(UUID)");
+                replaced_values.push(String::from(item));
+            }
+            values = replaced_values;
+        }
+        // We sort in this strange way so that the output is
+        // determinstic enough to be used in tests.
+        values.sort_by_key(|v| (v.len(), v.to_string()));
+        values
+    }
 }
 
 #[derive(Debug, Clone, TyEncodable, TyDecodable)]
 pub struct ProcedureSpecification {
-    pub span: Option<Span>,
+    // DefId of fn signature to which the spec was attached.
+    // For `extern_spec` it differs to the key in `proc_specs`
+    pub source: DefId,
     pub kind: SpecificationItem<ProcedureSpecificationKind>,
     pub pres: SpecificationItem<Vec<DefId>>,
     pub posts: SpecificationItem<Vec<DefId>>,
@@ -67,9 +152,9 @@ pub struct ProcedureSpecification {
 }
 
 impl ProcedureSpecification {
-    pub fn empty() -> Self {
+    pub fn empty(source: DefId) -> Self {
         ProcedureSpecification {
-            span: None,
+            source,
             // We never create an empty "kind". Having no concrete user-annotation
             // defaults to an impure function
             kind: SpecificationItem::Inherent(ProcedureSpecificationKind::Impure),
@@ -113,13 +198,18 @@ pub struct LoopSpecification {
 /// Specification of a type.
 #[derive(Debug, Clone, TyEncodable, TyDecodable)]
 pub struct TypeSpecification {
+    // DefId of type defn to which the spec was attached.
+    // Currently identical to the key in `type_specs`, but once
+    // `extern_spec` for type invs is supported it could differ.
+    pub source: DefId,
     pub invariant: SpecificationItem<Vec<DefId>>,
     pub trusted: SpecificationItem<bool>,
 }
 
 impl TypeSpecification {
-    pub fn empty() -> Self {
+    pub fn empty(source: DefId) -> Self {
         TypeSpecification {
+            source,
             invariant: SpecificationItem::Empty,
             trusted: SpecificationItem::Inherent(false),
         }
@@ -303,14 +393,6 @@ impl SpecGraph<ProcedureSpecification> {
         self.specs_with_constraints
             .values_mut()
             .for_each(|s| s.kind.set(kind));
-    }
-
-    /// Sets the span for the base spec and all constrained specs.
-    pub fn set_span(&mut self, span: Span) {
-        self.base_spec.span = Some(span);
-        self.specs_with_constraints
-            .values_mut()
-            .for_each(|s| s.span = Some(span));
     }
 
     /// Lazily gets/creates a constrained spec.
@@ -590,7 +672,7 @@ impl Refinable for ProcedureSpecification {
             }
         }
         ProcedureSpecification {
-            span: self.span.or(other.span),
+            source: self.source,
             pres: self.pres.refine(replace_empty(&EMPTYL, &other.pres)),
             posts: self.posts.refine(replace_empty(&EMPTYL, &other.posts)),
             pledges: self.pledges.refine(replace_empty(&EMPTYP, &other.pledges)),

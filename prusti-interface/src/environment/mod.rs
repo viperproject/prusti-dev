@@ -8,7 +8,7 @@
 
 use prusti_rustc_interface::middle::mir;
 use prusti_rustc_interface::hir::hir_id::HirId;
-use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
+use prusti_rustc_interface::hir::def_id::{CrateNum, DefId, LocalDefId};
 use prusti_rustc_interface::middle::ty::{self, Binder, BoundConstness, ImplPolarity, TraitPredicate, TraitRef, TyCtxt};
 use prusti_rustc_interface::middle::ty::subst::{Subst, SubstsRef};
 use prusti_rustc_interface::trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
@@ -103,11 +103,14 @@ impl<'tcx> Environment<'tcx> {
         source_path.file_name().unwrap().to_str().unwrap().to_owned()
     }
 
+    /// Returns the name of the crate given a crate number
+    pub fn crate_name(&self, cnum: CrateNum) -> String {
+        self.tcx.crate_name(cnum).to_string()
+    }
+
     /// Returns the name of the crate that is being compiled
-    pub fn crate_name(&self) -> String {
-        self.tcx
-            .crate_name(prusti_rustc_interface::span::def_id::LOCAL_CRATE)
-            .to_string()
+    pub fn local_crate_name(&self) -> String {
+        self.crate_name(prusti_rustc_interface::span::def_id::LOCAL_CRATE)
     }
 
     /// Returns the typing context
@@ -250,7 +253,7 @@ impl<'tcx> Environment<'tcx> {
     /// Get an absolute `def_path`. Note: not preserved across compilations!
     pub fn get_item_def_path(&self, def_id: DefId) -> String {
         let def_path = self.tcx.def_path(def_id);
-        let mut crate_name = self.tcx.crate_name(def_path.krate).to_string();
+        let mut crate_name = self.crate_name(def_path.krate);
         crate_name.push_str(&def_path.to_string_no_crate_verbose());
         crate_name
     }
@@ -260,7 +263,7 @@ impl<'tcx> Environment<'tcx> {
         let def_path = self.tcx.def_path(def_id);
         format!(
             "{}::{}",
-            self.tcx.crate_name(def_path.krate),
+            self.crate_name(def_path.krate),
             self.tcx.def_path_str(def_id)
         )
     }
