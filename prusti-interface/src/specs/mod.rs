@@ -4,7 +4,7 @@ use prusti_rustc_interface::{
     hir::{def_id::{CrateNum, DefId, LocalDefId, LOCAL_CRATE}, intravisit},
     middle::{hir::map::Map, ty::TyCtxt},
     serialize::{Decodable, Encodable},
-    span::Span
+    span::{DUMMY_SP, Span}
 };
 use rustc_hash::FxHashMap;
 
@@ -16,10 +16,10 @@ use crate::{
     },
     PrustiError,
 };
-use log::{debug, warn};
+use log::debug;
 use std::{
     collections::HashMap, convert::TryInto, fmt::Debug, fs,
-    io::{Read, Write}, path::{Path, PathBuf}
+    io::{Read, Write, Result}, path::{Path, PathBuf}
 };
 
 pub mod checker;
@@ -113,9 +113,14 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         if let Some(build_output_dir) = build_output_dir {
             // Then, write those to the export file
             let target_filename = self.get_crate_specs_path(build_output_dir, LOCAL_CRATE);
-            Self::write_into_file(&def_spec, self.env, self.tcx, target_filename.as_path()).unwrap();
+            if let Err(e) = Self::write_into_file(&def_spec, self.env, self.tcx, target_filename.as_path()) {
+                PrustiError::internal(
+                    format!("error exporting specs to file \"{}\": {}", target_filename.to_string_lossy(), e),
+                    DUMMY_SP.into(),
+                ).emit(self.env);
+            }
             // Lastly, load all external MIR bodies
-            self.merge_specs_from_dependencies(&mut def_spec, build_output_dir);
+            self.import_specs_from_dependencies(&mut def_spec, build_output_dir);
         }
 
         def_spec
@@ -131,7 +136,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         path
     }
 
-    fn merge_specs_from_dependencies(
+    fn import_specs_from_dependencies(
         &self,
         def_spec: &mut typed::DefSpecificationMap,
         build_output_dir: &Path,
@@ -148,32 +153,28 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
 
             let file = self.get_crate_specs_path(build_output_dir, *crate_num);
             if file.is_file() {
-                Self::extend_from_file(def_spec, self.env, self.tcx, &file)
-                    .expect("error reading specs for dependency crate from file");
+                if let Err(e) = Self::import_from_file(def_spec, self.env, self.tcx, &file) {
+                    PrustiError::internal(
+                        format!("error importing specs from file \"{}\": {}", file.to_string_lossy(), e),
+                        DUMMY_SP.into(),
+                    ).emit(self.env);
+                }
             }
         }
     }
 
-    fn write_into_file(def_spec: &typed::DefSpecificationMap, env: &Environment<'tcx>, tcx: TyCtxt<'tcx>, path: &Path) -> std::io::Result<()> {
+    fn write_into_file(def_spec: &typed::DefSpecificationMap, env: &Environment<'tcx>, tcx: TyCtxt<'tcx>, path: &Path) -> Result<usize> {
         let mut encoder = DefSpecsEncoder::new(tcx);
         def_spec.proc_specs.encode(&mut encoder);
         def_spec.type_specs.encode(&mut encoder);
         env.bodies_for_export().encode(&mut encoder);
 
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-        fs::File::create(path)
-            .and_then(|mut file| file.write(&encoder.into_inner()))
-            .map_err(|err| {
-                warn!(
-                    "could not encode metadata for crate `{:?}`, error: {:?}",
-                    "LOCAL_CRATE", err
-                );
-                err
-            })?;
-        Ok(())
+        fs::create_dir_all(path.parent().unwrap())?;
+        let mut file = fs::File::create(path)?;
+        file.write(&encoder.into_inner())
     }
 
-    fn extend_from_file(def_spec: &mut typed::DefSpecificationMap, env: &Environment<'tcx>, tcx: TyCtxt<'tcx>, path: &Path) -> std::io::Result<()> {
+    fn import_from_file(def_spec: &mut typed::DefSpecificationMap, env: &Environment<'tcx>, tcx: TyCtxt<'tcx>, path: &Path) -> Result<()> {
         let mut data = Vec::new();
         let mut file = fs::File::open(path)?;
         file.read_to_end(&mut data)?;
@@ -182,16 +183,16 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         let proc_specs = FxHashMap::decode(&mut decoder);
         let type_specs = FxHashMap::decode(&mut decoder);
         let mirs_of_specs = FxHashMap::decode(&mut decoder);
-        def_spec.proc_specs.extend(proc_specs);
-        def_spec.type_specs.extend(type_specs);
+        def_spec.import_external(proc_specs, type_specs, env);
         env.import_external_bodies(mirs_of_specs);
         Ok(())
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for (local_id, refs) in self.procedure_specs.iter() {
-            let mut spec = SpecGraph::new(ProcedureSpecification::empty());
-            spec.set_span(self.env.get_def_span(local_id.to_def_id()));
+            let mut spec = SpecGraph::new(
+                ProcedureSpecification::empty(local_id.to_def_id())
+            );
 
             let mut kind = if refs.abstract_predicate {
                 ProcedureSpecificationKind::Predicate(None)
@@ -241,7 +242,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             {
                 let span = self.env.tcx().def_span(*local_id);
                 PrustiError::unsupported(
-                    "Ghost constraints need to be enabled with a feature flag",
+                    "Ghost constraints need to be enabled with the feature flag `enable_ghost_constraints`",
                     MultiSpan::from(span),
                 )
                 .emit(self.env);
@@ -297,7 +298,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             if !refs.invariants.is_empty() && !prusti_common::config::enable_type_invariants() {
                 let span = self.env.tcx().def_span(type_id.to_def_id());
                 PrustiError::unsupported(
-                    "Type invariants need to be enabled with a feature flag",
+                    "Type invariants need to be enabled with the feature flag `enable_type_invariants`",
                     MultiSpan::from(span),
                 )
                 .emit(self.env);
@@ -306,6 +307,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             def_spec.type_specs.insert(
                 type_id.to_def_id(),
                 typed::TypeSpecification {
+                    source: type_id.to_def_id(),
                     invariant: SpecificationItem::Inherent(
                         refs.invariants
                             .clone()

@@ -128,7 +128,7 @@ fn get_procedure_contract<'p, 'v: 'p, 'tcx: 'v>(
     let tcx = env.tcx();
     let specification = encoder
         .get_procedure_specs(proc_def_id, substs)
-        .unwrap_or_else(typed::ProcedureSpecification::empty);
+        .unwrap_or_else(|| typed::ProcedureSpecification::empty(proc_def_id));
 
     trace!("[get_procedure_contract] enter name={:?}", proc_def_id);
 
