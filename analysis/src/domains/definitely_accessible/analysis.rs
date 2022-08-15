@@ -15,7 +15,7 @@ use crate::{
 };
 use prusti_rustc_interface::{
     borrowck::BodyWithBorrowckFacts,
-    data_structures::{stable_map::FxHashMap, stable_set::FxHashSet},
+    data_structures::fx::{FxHashMap, FxHashSet},
     middle::{mir, ty::TyCtxt},
     span::def_id::DefId,
 };
