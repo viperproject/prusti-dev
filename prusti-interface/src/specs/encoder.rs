@@ -6,6 +6,7 @@ use prusti_rustc_interface::{
         ty::{self, codec::TyEncoder, PredicateKind, Ty, TyCtxt},
     },
     serialize::{opaque, Encodable, Encoder},
+    span::{source_map::StableSourceFileId, Span},
 };
 
 pub struct DefSpecsEncoder<'tcx> {
@@ -81,6 +82,22 @@ impl<'tcx> Encodable<DefSpecsEncoder<'tcx>> for DefIndex {
 impl<'tcx> Encodable<DefSpecsEncoder<'tcx>> for CrateNum {
     fn encode(&self, s: &mut DefSpecsEncoder<'tcx>) {
         s.tcx.stable_crate_id(*self).encode(s)
+    }
+}
+
+impl<'tcx> Encodable<DefSpecsEncoder<'tcx>> for Span {
+    fn encode(&self, s: &mut DefSpecsEncoder<'tcx>) {
+        let sm = s.tcx.sess.source_map();
+        for bp in [self.lo(), self.hi()] {
+            let sf = sm.lookup_source_file(bp);
+            let ssfi = StableSourceFileId::new(&sf);
+            ssfi.encode(s);
+            // Not sure if this is the most stable way to encode a BytePos. If it fails
+            // try finding a function in `SourceMap` or `SourceFile` instead. E.g. the
+            // `bytepos_to_file_charpos` fn which returns `CharPos` (though there is
+            // currently no fn mapping back to `BytePos` for decode)
+            (bp - sf.start_pos).encode(s);
+        }
     }
 }
 
