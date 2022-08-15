@@ -2,7 +2,6 @@
 #![allow(dead_code)]
 #![allow(unused_must_use)]
 
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[extern_spec]

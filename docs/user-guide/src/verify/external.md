@@ -5,7 +5,6 @@ Since the Rust standard library and external libraries do not specify contracts 
 The standard library type `std::option::Option` could be specified as follows:
 
 ```rust
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[extern_spec]
@@ -30,7 +29,6 @@ Any function in an external specification is implicitly [trusted](trusted.md) (a
 Module functions can be specified using a nested `mod` syntax:
 
 ```rust
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[extern_spec]
