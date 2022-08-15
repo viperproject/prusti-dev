@@ -1,5 +1,3 @@
-extern crate prusti_contracts;
-
 pub fn test1() {
     let a = 4;
     let _x = &a;
