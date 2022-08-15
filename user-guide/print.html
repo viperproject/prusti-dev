@@ -187,8 +187,7 @@ This tells us that</p>
 that the return value of <code>max</code> is at least as large as both <code>a</code> and <code>b</code> and, additionally, coincides with <code>a</code> or <code>b</code>:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>extern crate prusti_contracts;
-use prusti_contracts::*;
+</span>use prusti_contracts::*;
 
 #[ensures(result &gt;= a &amp;&amp; result &gt;= b)]
 #[ensures(result == a || result == b)]
@@ -201,11 +200,7 @@ fn max(a: i32, b: i32) -&gt; i32 {
 }
 <span class="boring">}
 </span></code></pre></pre>
-<p>In the above program, the first two lines are required to enable Prusti-specific syntax for writing specifications:</p>
-<ul>
-<li>The first line, <code>extern crate prusti_contracts;</code>, is needed by Prusti to typecheck the specifications.</li>
-<li>The second line, <code>use prusti_contracts::*;</code>, allows us to write <code>#[ensures(...)]</code> instead of <code>#[prusti_contracts::ensures(...)]</code>.</li>
-</ul>
+<p>In the above program, the first line (<code>use prusti_contracts::*;</code>) simplifies writing Prusti-specific syntax for specifications; allowing us to write <code>#[ensures(...)]</code> instead of <code>#[prusti_contracts::ensures(...)]</code>.</p>
 <blockquote>
 <p><strong>Warning:</strong> Due to limitations in Rust procedural macros, <code>use prusti_contracts::*;</code> should <em>always</em> be used, and the Prusti specification attributes should not be imported with an alias.</p>
 </blockquote>
@@ -216,8 +211,7 @@ Notice that Prusti assumes by default that integer types are bounded; it thus pe
 <p>Next, we add a second function <code>max3</code> which returns the maximum of three instead of two integers; we reuse the already verified function <code>max</code> in the new function's specification to show that this function is implemented correctly.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>extern crate prusti_contracts;
-use prusti_contracts::*;
+</span>use prusti_contracts::*;
 
 #[pure]
 #[ensures(result &gt;= a &amp;&amp; result &gt;= b)]
@@ -269,8 +263,7 @@ fn max3(a: i32, b: i32, c: i32) -&gt; i32 {
 <p>For debugging purposes, it is often useful to add <code>assert!(...)</code> macros to our code to locate the issue. For example, in the code below, we added an assertion that fails because <code>b &gt; c</code> and thus the maximum of <code>b</code> and <code>c</code> is <code>b</code> instead of <code>c</code>. </p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>extern crate prusti_contracts;
-use prusti_contracts::*;
+</span>use prusti_contracts::*;
 
 #[pure]
 #[ensures(result &gt;= a &amp;&amp; result &gt;= b)]
@@ -653,7 +646,6 @@ before it considers a function pure.
 After adding the <code>#[pure]</code> attribute to our <code>List::len()</code> method, it is allowed to
 appear in Prusti specifications:</p>
 <pre><code class="language-rust noplaypen"><span class="boring">//uncomment: #![feature(box_patterns)]
-</span><span class="boring">extern crate prusti_contracts;
 </span><span class="boring">use prusti_contracts::*; 
 </span><span class="boring">
 </span><span class="boring">pub struct List {
@@ -705,7 +697,6 @@ In this case, Prusti complains because we call an impure function,
 namely <code>Link::len()</code>, within the body of the pure function <code>List::len()</code>.</p>
 <p>To fix this issue, it suffices to mark <code>Link::len()</code> as pure as well.</p>
 <pre><code class="language-rust noplaypen"><span class="boring">//uncomment: #![feature(box_patterns)]
-</span><span class="boring">extern crate prusti_contracts;
 </span><span class="boring">use prusti_contracts::*; 
 </span><span class="boring">
 </span><span class="boring">pub struct List {
@@ -2288,8 +2279,7 @@ Furthermore, Prusti may verify a program although some (or even all) of its exec
 <p>In Prusti, the externally observable behaviour of a function can be specified with preconditions and postconditions. They can be provided using <a href="https://doc.rust-lang.org/reference/attributes.html">Rust attributes</a>:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>extern crate prusti_contracts;
-use prusti_contracts::*;
+</span>use prusti_contracts::*;
 
 #[requires(...)]
 #[ensures(...)]
@@ -2302,8 +2292,7 @@ fn example() { ... }
 <p>Sometimes specifications express a fact which is true about a function, but the verifier cannot prove it automatically, or it uses features not yet supported by Prusti. In such cases, it is possible to mark a function as <code>#[trusted]</code>:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>extern crate prusti_contracts;
-use prusti_contracts::*;
+</span>use prusti_contracts::*;
 
 #[trusted]
 #[ensures(*a == old(*b) &amp;&amp; *b == old(*a))]
@@ -2322,8 +2311,7 @@ As the example below demonstrates, a single wrong, yet trusted, specification ma
 Hence, some care is needed to ensure that the specifications of trusted functions are indeed correct.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>extern crate prusti_contracts;
-use prusti_contracts::*;
+</span>use prusti_contracts::*;
 
 #[trusted]
 #[ensures(42 == 23)] // assumed correct since we trust foo()
@@ -2339,8 +2327,7 @@ fn test() {
 <p>Pure functions are functions which are deterministic and side-effect free. In Prusti, such functions can be marked with the <code>#[pure]</code> attribute. They can take shared references as arguments, but they cannot take mutable references, because modifying the heap is considered a side effect.</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>extern crate prusti_contracts;
-use prusti_contracts::*;
+</span>use prusti_contracts::*;
 
 #[pure]
 #[ensures(result == *a + *b)]
@@ -2381,8 +2368,7 @@ fn zero(a: &amp;mut MyArray) { ... }
 <p>The standard library type <code>std::option::Option</code> could be specified as follows:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>extern crate prusti_contracts;
-use prusti_contracts::*;
+</span>use prusti_contracts::*;
 
 #[extern_spec]
 impl&lt;T&gt; std::option::Option&lt;T&gt; {
@@ -2405,8 +2391,7 @@ impl&lt;T&gt; std::option::Option&lt;T&gt; {
 <p>Module functions can be specified using a nested <code>mod</code> syntax:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>extern crate prusti_contracts;
-use prusti_contracts::*;
+</span>use prusti_contracts::*;
 
 #[extern_spec]
 mod std {
@@ -2454,8 +2439,7 @@ mod std {
 </ol>
 <p>Finally, the loop body invariant is not enforced when exiting from a loop with a <code>break</code> or <code>return</code> statement.</p>
 <p>As an example, consider the following program. The loop condition calls <code>test_and_increment</code>, and the call has side effects:</p>
-<pre><pre class="playground"><code class="language-rust">extern crate prusti_contracts;
-use prusti_contracts::*;
+<pre><pre class="playground"><code class="language-rust">use prusti_contracts::*;
 
 #[ensures(result == (old(*i) &gt;= 0))]
 #[ensures(*i == 1 + old(*i))]
@@ -2488,8 +2472,7 @@ fn main() {
 <p>As a full example, a wrapper around Rust <code>Vec&lt;i32&gt;</code> could be implemented as follows:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>extern crate prusti_contracts;
-use prusti_contracts::*;
+</span>use prusti_contracts::*;
 
 pub struct VecWrapperI32 {
     v: Vec&lt;i32&gt;
@@ -2560,8 +2543,7 @@ pub trait Eq: PartialEq&lt;Self&gt; {}
 <p><strong>NOT YET SUPPORTED:</strong> This feature is not yet supported in Prusti. See <a href="https://github.com/viperproject/prusti-dev/pull/138">PR #138</a> for the status of this feature as well as a prototype. The syntax described here is subject to change.</p>
 </blockquote>
 <p><a href="https://doc.rust-lang.org/book/ch13-01-closures.html">Rust closures</a> can be given a specification using the <code>closure!(...)</code> syntax:</p>
-<pre><pre class="playground"><code class="language-rust">extern crate prusti_contracts;
-use prusti_contracts::*;
+<pre><pre class="playground"><code class="language-rust">use prusti_contracts::*;
 
 fn main() {
     let cl = closure!(
@@ -2579,8 +2561,7 @@ fn main() {
 <p>The contract for a closure or function pointer variable can be given using the specification entailment syntax:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>extern crate prusti_contracts;
-use prusti_contracts::*;
+</span>use prusti_contracts::*;
 
 #[requires(
   f |= |a: i32, b: i32| [
@@ -2759,8 +2740,7 @@ impl&lt;T&gt; Iterator for std::slice::Iter&lt;'a, T&gt; {
 <p>Old expressions are used to refer to the value that a memory location pointed at by a mutable reference had at the beginning of the function:</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>extern crate prusti_contracts;
-use prusti_contracts::*;
+</span>use prusti_contracts::*;
 
 #[ensures(*x == old(*x) + 1)]
 pub fn inc(x: &amp;mut u32) {
