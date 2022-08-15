@@ -9,7 +9,7 @@
 use prusti_rustc_interface::middle::mir;
 use prusti_rustc_interface::hir::hir_id::HirId;
 use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
-use prusti_rustc_interface::middle::ty::{self, Binder, BoundConstness, ImplPolarity, TraitPredicate, TraitRef, TyCtxt};
+use prusti_rustc_interface::middle::ty::{self, Binder, BoundConstness, ImplPolarity, TraitPredicate, TraitRef, TyCtxt, TypeSuperFoldable};
 use prusti_rustc_interface::middle::ty::subst::{Subst, SubstsRef};
 use prusti_rustc_interface::trait_selection::infer::{InferCtxtExt, TyCtxtInferExt};
 use prusti_rustc_interface::trait_selection::traits::{ImplSource, Obligation, ObligationCause, SelectionContext};
@@ -308,7 +308,11 @@ impl<'tcx> Environment<'tcx> {
         body
             .monomorphised_bodies
             .entry(substs)
-            .or_insert_with(|| ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs))
+            .or_insert_with(|| {
+                let param_env = self.tcx.param_env(def_id);
+                let substituted = ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs);
+                self.resolve_assoc_types(substituted.clone(), param_env)
+            })
             .clone()
     }
 
@@ -538,10 +542,35 @@ impl<'tcx> Environment<'tcx> {
         // Normalize the type to account for associated types
         let ty = self.resolve_assoc_types(ty, param_env);
         let ty = self.tcx.erase_late_bound_regions(ty);
+
+        // Associated type was not normalised but it might still have a
+        // `Copy` bound declared on it.
+        // TODO: implement this more generally in `type_implements_trait` and
+        //       `type_implements_trait_with_trait_substs`.
+        if let ty::TyKind::Projection(proj) = ty.kind() {
+            let item_bounds = self.tcx.bound_item_bounds(proj.item_def_id);
+            if item_bounds.0.iter().any(|predicate| {
+                if let ty::PredicateKind::Trait(ty::TraitPredicate {
+                    trait_ref: ty::TraitRef { def_id: trait_def_id, .. },
+                    polarity: ty::ImplPolarity::Positive,
+                    ..
+                }) = predicate.kind().skip_binder() {
+                    trait_def_id == self.tcx.lang_items()
+                        .copy_trait()
+                        .unwrap()
+                } else {
+                    false
+                }
+            }) {
+                return true;
+            }
+        }
+
         ty.is_copy_modulo_regions(self.tcx.at(prusti_rustc_interface::span::DUMMY_SP), param_env)
     }
 
     /// Checks whether the given type implements the trait with the given DefId.
+    /// The trait should have no type parameters.
     pub fn type_implements_trait(&self, ty: ty::Ty<'tcx>, trait_def_id: DefId, param_env: ty::ParamEnv<'tcx>) -> bool {
         self.type_implements_trait_with_trait_substs(ty, trait_def_id, ty::List::empty(), param_env)
     }
