@@ -220,8 +220,14 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
                 pcs.free.insert(PCSPermission::new_uninit((*dest).into()));
                 Some(pcs)
             }
-            MicroMirStatement::BorrowMut(_, _) => None,
-            MicroMirStatement::BorrowMove(_, _) => None,
+            MicroMirStatement::BorrowMut(from, to) => Some(PCS::from_vec(vec![
+                PCSPermission::new_initialized(Mutability::Mut, (*to).into()),
+                PCSPermission::new_uninit((*from).into()),
+            ])),
+            MicroMirStatement::BorrowMove(from, into) => Some(PCS::from_vec(vec![
+                PCSPermission::new_initialized(Mutability::Mut, (*from).into()),
+                PCSPermission::new_uninit((*into).into()),
+            ])),
         }
     }
 
@@ -300,8 +306,16 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
                 }
                 Some(pcs)
             }
-            MicroMirStatement::BorrowMut(_, _) => Some(PCS::empty()),
-            MicroMirStatement::BorrowMove(_, _) => Some(PCS::empty()),
+            MicroMirStatement::BorrowMut(from, _) => {
+                Some(PCS::from_vec(vec![PCSPermission::new_initialized(
+                    Mutability::Mut,
+                    (*from).into(),
+                )]))
+            }
+            MicroMirStatement::BorrowMove(from, into) => Some(PCS::from_vec(vec![
+                PCSPermission::new_uninit((*from).into()),
+                PCSPermission::new_initialized(Mutability::Mut, (*into).into()),
+            ])),
         }
     }
 }

@@ -300,55 +300,97 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 statement_index: block_data.mir_parent[statement_index],
             };
 
-            // 0. Handle borrows seperately.
-            if let MicroMirStatement::BorrowMut(p_from, p_to) = statement {
-                let parent_loan = self.polonius_info.get_loan_at_location(location);
+            // if let MicroMirStatement::BorrowMut(p_from, p_to) = statement {
+            //     // println!("{:?}\t{:?}", location, pcs);
+            //     // println!("{:?}\t{:?}", location, statement);
+            //     // op_mir.statements.push(statement.clone());
+            //     // op_mir.pcs_before.push(pcs.clone());
 
-                if p_from.ty(&self.mir.local_decls, self.env.tcx()).ty.is_ref() {
-                    // p_from is a borrow (so it's in the reborrow DAG)
-                    pcs.dag
-                        .mutable_borrow(*p_from, parent_loan, *p_to, self.mir, self.env.tcx());
-                    // EXPECT there are no annotations returned?
-                } else {
-                    // p_from is not a borrow, so a new borrow needs to be created.
-                    // Both permissions now leave.
-                    let annotations = pcs.dag.mutable_borrow(
-                        *p_from,
-                        parent_loan,
-                        *p_to,
-                        self.mir,
-                        self.env.tcx(),
-                    );
-                    // Apply some annotations?
-                }
+            //     if p_from.ty(&self.mir.local_decls, self.env.tcx()).ty.is_ref() {
+            //         // p_from is a borrow (so it's in the reborrow DAG)
+            //         todo!();
+            //         pcs.dag
+            //             .mutable_borrow(*p_from, parent_loan, *p_to, self.mir, self.env.tcx());
+            //         // EXPECT there are no annotations returned?
+            //     } else {
+            //         // p_from is not a borrow, so a new borrow needs to be created.
+            //         // Both permissions now leave.
+            //         let annotations = pcs.dag.mutable_borrow(
+            //             *p_from,
+            //             parent_loan,
+            //             *p_to,
+            //             self.mir,
+            //             self.env.tcx(),
+            //         );
+            //         println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+            //         println!("The annotations are {:?}", annotations);
+            //         println!("The PCS after is {:?}", pcs);
+            //         println!("p_from is {:?}", p_from);
+            //         println!("p_to is {:?}", p_to);
 
-                // hack
-                assert!(pcs.free.remove(&PCSPermission {
-                    target: LinearResource::Mir((*p_from).clone()),
-                    kind: Exclusive,
-                }));
-                assert!(pcs.free.remove(&PCSPermission {
-                    target: LinearResource::Mir((*p_to).clone()),
-                    kind: Uninit,
-                }));
+            //         // Apply some annotations?
+            //     }
 
-                assert!(pcs.free.insert(PCSPermission {
-                    target: LinearResource::Mir((*p_to).clone()),
-                    kind: Exclusive,
-                }));
-                continue;
-            }
+            //     assert!(pcs.free.remove(&PCSPermission {
+            //         target: LinearResource::Mir((*p_from).clone()),
+            //         kind: Exclusive,
+            //     }));
 
-            if let MicroMirStatement::BorrowMove(p_from, p_to) = statement {
-                pcs.dag.r#move(*p_to, *p_from, location);
-                continue;
-            }
+            //     assert!(pcs.free.remove(&PCSPermission {
+            //         target: LinearResource::Mir((*p_to).clone()),
+            //         kind: Uninit,
+            //     }));
+
+            //     assert!(pcs.free.insert(PCSPermission {
+            //         target: LinearResource::Mir((*p_to).clone()),
+            //         kind: Exclusive,
+            //     }));
+
+            //     println!("The PCS after doing transformations is {:?}", pcs);
+            // }
+
+            // if let MicroMirStatement::BorrowMove(p_from, p_to) = statement {
+            //     // println!("{:?}\t{:?}", location, pcs);
+            //     // println!("{:?}\t{:?}", location, statement);
+            //     // op_mir.statements.push(statement.clone());
+            //     // op_mir.pcs_before.push(pcs.clone());
+
+            //     pcs.dag.r#move(*p_to, *p_from, location);
+            // }
 
             // 0. Apply loans expiring at a place
+
+            // 1. Elaborate the state-dependent conditions
+            let statement_precondition = self.elaborate_precondition(&statement, location)?;
+
+            let statement_postcondition = self.elaborate_postcondition(&statement)?;
+
+            // 2. Repack to precondition
+            pcs = self.repack(pcs, &statement_precondition, op_mir)?;
+
+            // 3. Statement is coherent: push
+            println!("{:?}\t{:?}", location, pcs);
+            println!("{:?}\t{:?}", location, statement);
+            op_mir.statements.push(statement.clone());
+            op_mir.pcs_before.push(pcs.clone());
+
+            // 4. Apply statement's semantics to state.
+            pcs = transform_pcs(pcs, &statement_precondition, &statement_postcondition)?;
+            if let MicroMirStatement::BorrowMut(p_from, p_to) = statement {
+                let parent_loan = self.polonius_info.get_loan_at_location(location);
+                pcs.dag
+                    .mutable_borrow(*p_from, parent_loan, *p_to, self.mir, self.env.tcx());
+            } else if let MicroMirStatement::BorrowMove(p_from, p_to) = statement {
+                pcs.dag.r#move(*p_to, *p_from, location);
+            }
+            println!("\tAfter all semantics: {:?}", pcs);
+
+            // 5. Update loans
             if polonius_apply_places.contains(&statement_index) {
-                println!("{:?} {:?}", location, pcs);
+                println!("\tWORKING ON: apply loans");
+                println!("\t{:?} {:?}", location, pcs);
                 println!(
-                    "live loans {:?}",
+                    "\tlive loans {:?}",
                     self.polonius_info.get_all_active_loans(location)
                 );
 
@@ -359,6 +401,8 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                     .chain(live_loans.1.into_iter())
                     .collect::<FxHashSet<_>>();
                 let graph_result = pcs.dag.unwind(&active_loans);
+
+                println!("\tGRAPH RESULT. NEW PCS {:?}", pcs);
 
                 // TODO: Print the annotations
                 // TODO: What happens on a conditional?!?!
@@ -375,7 +419,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 // Repack so the required permissions are in the right state
                 // pcs = self.repack(pcs, &perms_into_graph, op_mir)?;
 
-                println!("into of graph {:?}", perms_into_graph);
+                println!("\tinto of graph {:?}", perms_into_graph);
 
                 let perms_out_of_graph = graph_result
                     .removed
@@ -387,40 +431,29 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                     })
                     .collect::<FxHashSet<_>>();
 
-                println!("out of graph {:?}", perms_out_of_graph);
+                println!("\tout of graph {:?}", perms_out_of_graph);
 
-                println!("Attempting to insert {:?}", perms_out_of_graph);
-                for perm in perms_out_of_graph.into_iter() {
-                    assert!(pcs.free.insert(perm));
-                }
+                // println!("Attempting to insert {:?}", perms_out_of_graph);
+                // for perm in perms_out_of_graph.into_iter() {
+                //     assert!(pcs.free.insert(perm));
+                // }
 
-                println!("Annotations: {:?}", graph_result.annotations);
+                println!("\tAnnotations: {:?}", graph_result.annotations);
+                println!("\t\tDAG {:?}", pcs.dag);
 
-                // Ensure any unconditioanlly accessible places are added back into the graph
-                for p in pcs.dag.unconditionally_accessible().iter() {
-                    // (Naive) just insert, don't check if it's already in there or conflicts?
-                    pcs.free.insert(PCSPermission {
-                        target: LinearResource::Mir((*p).clone()),
-                        kind: Exclusive,
-                    });
-                }
+                println!(
+                    "\t\tUnconditionally Accessible {:?}",
+                    pcs.dag.unconditionally_accessible()
+                );
+                // // Ensure any unconditioanlly accessible places are added back into the graph
+                // for p in pcs.dag.unconditionally_accessible().iter() {
+                //     // (Naive) just insert, don't check if it's already in there or conflicts?
+                //     pcs.free.insert(PCSPermission {
+                //         target: LinearResource::Mir((*p).clone()),
+                //         kind: Exclusive,
+                //     });
+                // }
             }
-
-            // 1. Elaborate the state-dependent conditions
-            let statement_precondition = self.elaborate_precondition(&statement, location)?;
-            let statement_postcondition = self.elaborate_postcondition(&statement)?;
-
-            // 2. Repack to precondition
-            pcs = self.repack(pcs, &statement_precondition, op_mir)?;
-
-            // 3. Statement is coherent: push
-            println!("{:?}\t{:?}", location, pcs);
-            println!("{:?}\t{:?}", location, statement);
-            op_mir.statements.push(statement.clone());
-            op_mir.pcs_before.push(pcs.clone());
-
-            // 4. Apply statement's semantics to state.
-            pcs = transform_pcs(pcs, &statement_precondition, &statement_postcondition)?;
         }
 
         Ok(pcs)
