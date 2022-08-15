@@ -129,15 +129,15 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
             Assign(box (p_dest, NullaryOp(nullop, _))) => Self::encode_nullop(ctx, *nullop, p_dest),
 
             Assign(box (
-                p_dest,
+                p_from,
                 Ref(
                     _,
                     BorrowKind::Mut {
                         allow_two_phase_borrow: _,
                     },
-                    p_from,
+                    p_to,
                 ),
-            )) => Self::encode_borrow(ctx, *p_from, *p_dest),
+            )) => Self::encode_borrow(ctx, *p_from, *p_to),
 
             // TODO: These need to be discussed
             StorageDead(local) => Self::encode_storagedead(ctx, *local),
@@ -257,6 +257,7 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
             match op {
                 Copy(_) | Constant(_) => todo!(),
                 Move(p_from) => {
+                    ctx.push_stmt(MicroMirStatement::Kill(None, (*p_dest).into()));
                     ctx.push_stmt(MicroMirStatement::BorrowMove(
                         (*p_from).clone(),
                         (*p_dest).clone(),
