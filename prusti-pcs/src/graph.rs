@@ -711,32 +711,13 @@ impl<'tcx> Graph<'tcx> {
 
     // TODO: this could probably be cached in a field
     fn leaves(&self) -> FxHashSet<GraphNode<'tcx>> {
-        self.edges
-            .iter()
-            .fold(
-                FxHashMap::default(),
-                |mut degrees, edge| -> FxHashMap<GraphNode<'tcx>, usize> {
-                    match edge {
-                        GraphEdge::Borrow { from, to, .. }
-                        | GraphEdge::Abstract { from, to, .. }
-                        | GraphEdge::Collapsed { from, to, .. } => {
-                            *degrees.entry(*from).or_default() += 1;
-                            *degrees.entry(*to).or_default() += 1;
-                        }
-                        GraphEdge::Pack { from, to } => {
-                            for field in from {
-                                *degrees.entry(*field).or_default() += 1;
-                            }
-                            *degrees.entry(*to).or_default() += 1;
-                        }
-                    }
+        let mut leaves = self.nodes();
 
-                    degrees
-                },
-            )
-            .into_iter()
-            .filter_map(|(node, count)| (count == 1).then_some(node))
-            .collect()
+        for edge in &self.edges {
+            leaves.remove(edge.to());
+        }
+
+        leaves
     }
 
     fn nodes(&self) -> FxHashSet<GraphNode<'tcx>> {
