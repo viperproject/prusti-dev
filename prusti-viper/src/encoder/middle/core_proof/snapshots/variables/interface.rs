@@ -122,6 +122,13 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                 }
                 vir_mid::TypeDecl::Union(_) | vir_mid::TypeDecl::Enum(_) => {
                     let place_variant = place.clone().unwrap_variant(); // FIXME: Implement a macro that takes a reference to avoid clonning.
+                    let old_discriminant =
+                        self.obtain_enum_discriminant(old_snapshot.clone(), parent_type, position)?;
+                    let new_discriminant =
+                        self.obtain_enum_discriminant(new_snapshot.clone(), parent_type, position)?;
+                    statements.push(stmtp! {
+                        position => assume ([new_discriminant] == [old_discriminant])
+                    });
                     Ok((
                         self.obtain_enum_variant_snapshot(
                             parent_type,
@@ -252,6 +259,12 @@ pub(in super::super::super) trait SnapshotVariablesInterface {
         variable: &vir_mid::VariableDecl,
         label: &str,
     ) -> SpannedEncodingResult<vir_low::VariableDecl>;
+    fn encode_snapshot_havoc(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        target: &vir_mid::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()>;
     #[allow(clippy::ptr_arg)] // Clippy false positive.
     fn encode_snapshot_update(
         &mut self,
@@ -318,6 +331,19 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
             .get_or_default(&variable.name);
         self.create_snapshot_variable(&variable.name, &variable.ty, version)
     }
+    fn encode_snapshot_havoc(
+        &mut self,
+        statements: &mut Vec<vir_low::Statement>,
+        target: &vir_mid::Expression,
+        position: vir_low::Position,
+    ) -> SpannedEncodingResult<()> {
+        let base = target.get_base();
+        self.ensure_type_definition(&base.ty)?;
+        let old_snapshot = base.to_procedure_snapshot(self)?;
+        let new_snapshot = self.new_snapshot_variable_version(&base, position)?;
+        self.snapshot_copy_except(statements, old_snapshot, new_snapshot, target, position)?;
+        Ok(())
+    }
     fn encode_snapshot_update(
         &mut self,
         statements: &mut Vec<vir_low::Statement>,
@@ -326,11 +352,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> SnapshotVariablesInterface for Lowerer<'p, 'v, 'tcx> 
         position: vir_low::Position,
     ) -> SpannedEncodingResult<()> {
         use vir_low::macros::*;
-        let base = target.get_base();
-        self.ensure_type_definition(&base.ty)?;
-        let old_snapshot = base.to_procedure_snapshot(self)?;
-        let new_snapshot = self.new_snapshot_variable_version(&base, position)?;
-        self.snapshot_copy_except(statements, old_snapshot, new_snapshot, target, position)?;
+        self.encode_snapshot_havoc(statements, target, position)?;
         statements
             .push(stmtp! { position => assume ([target.to_procedure_snapshot(self)?] == [value]) });
         Ok(())
