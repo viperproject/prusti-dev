@@ -216,13 +216,10 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
         match self {
             Self::Single(graph) => graph.unwind(live_loans),
             Self::Branch { condition, graph } => {
-                let result = graph.unwind(live_loans);
+                let mut result = graph.unwind(live_loans);
 
-                GraphResult {
-                    annotations: condition.apply_to(result.annotations),
-                    removed: result.removed,
-                    added: result.added,
-                }
+                result.annotations = condition.apply_to(result.annotations);
+                result
             }
             Self::Conditional {
                 shared,
@@ -239,6 +236,8 @@ impl<'tcx> CoreOps<'tcx> for ReborrowingGraph<'tcx> {
                         result.annotations.extend(acc.annotations);
                         result.added = &result.added & &acc.added;
                         result.removed = &result.removed & &acc.removed;
+                        result.removed_intermediates =
+                            &result.removed_intermediates & &acc.removed_intermediates;
 
                         result
                     },
@@ -418,7 +417,7 @@ pub struct Graph<'tcx> {
 
 impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
     fn r#move(&mut self, new: mir::Place<'tcx>, old: mir::Place<'tcx>, location: mir::Location) {
-        if self.edges.iter().any(|edge| edge.goes_to(&old)) {
+        if self.is_intermediate(&GraphNode::new(old)) {
             self.version(&old, location)
         }
 
@@ -509,16 +508,27 @@ impl<'tcx> CoreOps<'tcx> for Graph<'tcx> {
         self.collapse_killed(live_loans);
 
         let leaves_before = self.leaves();
+        let intermediates = self.intermediate_nodes();
         let mut leaves_after = leaves_before.clone();
+
+        let mut all_added = FxHashSet::default();
+        let mut all_removed = FxHashSet::default();
+
         let annotations = leaves_before
             .iter()
-            .flat_map(|leaf| self.unwind_path(*leaf, &mut leaves_after))
+            .flat_map(|leaf| self.unwind_path(*leaf, &mut all_added, &mut all_removed))
             .collect();
+
+        for node in &all_removed {
+            leaves_after.remove(node);
+        }
+        leaves_after.extend(all_added);
 
         GraphResult {
             annotations,
             removed: &leaves_before - &leaves_after,
             added: &leaves_after - &leaves_before,
+            removed_intermediates: &all_removed & &intermediates,
         }
     }
 }
@@ -621,7 +631,8 @@ impl<'tcx> Graph<'tcx> {
     fn unwind_path(
         &mut self,
         start: GraphNode<'tcx>,
-        leaves: &mut FxHashSet<GraphNode<'tcx>>,
+        added: &mut FxHashSet<GraphNode<'tcx>>,
+        removed: &mut FxHashSet<GraphNode<'tcx>>,
     ) -> Vec<Annotation<'tcx>> {
         let mut final_annotations = Vec::new();
         let mut curr = start;
@@ -631,22 +642,22 @@ impl<'tcx> Graph<'tcx> {
 
             match edge {
                 GraphEdge::Borrow { from, loans, to } if loans.is_empty() => {
-                    leaves.remove(&from);
-                    leaves.insert(to);
+                    removed.insert(from);
+                    added.insert(to);
                 }
                 GraphEdge::Pack { from, to }
                     if !self.edges.iter().any(|edge| from.contains(edge.to())) =>
                 {
                     for field in from {
-                        leaves.remove(&field);
+                        removed.insert(field);
                     }
-                    leaves.insert(to);
+                    added.insert(to);
 
                     final_annotations.push(Annotation::Pack(to));
                 }
                 GraphEdge::Abstract { from, loans, to } if loans.is_empty() => {
-                    leaves.remove(&from);
-                    leaves.insert(to);
+                    removed.insert(from);
+                    added.insert(to);
 
                     final_annotations.push(Annotation::Restore { from, to });
                 }
@@ -656,8 +667,8 @@ impl<'tcx> Graph<'tcx> {
                     annotations,
                     to,
                 } if loans.is_empty() => {
-                    leaves.remove(&from);
-                    leaves.insert(to);
+                    removed.insert(from);
+                    added.insert(to);
 
                     final_annotations.extend(annotations);
                 }
@@ -741,6 +752,18 @@ impl<'tcx> Graph<'tcx> {
 
                 nodes
             })
+    }
+
+    fn intermediate_nodes(&self) -> FxHashSet<GraphNode<'tcx>> {
+        self.nodes()
+            .into_iter()
+            .filter(|node| self.is_intermediate(node))
+            .collect()
+    }
+
+    fn is_intermediate(&self, node: &GraphNode<'tcx>) -> bool {
+        self.edges.iter().any(|edge| edge.goes_to_node(node))
+            && self.edges.iter().any(|edge| edge.comes_from_node(node))
     }
 }
 
@@ -925,6 +948,7 @@ pub struct GraphResult<'tcx> {
     pub annotations: Vec<Annotation<'tcx>>,
     pub removed: FxHashSet<GraphNode<'tcx>>,
     pub added: FxHashSet<GraphNode<'tcx>>,
+    pub removed_intermediates: FxHashSet<GraphNode<'tcx>>,
 }
 
 impl<'tcx> GraphResult<'tcx> {
@@ -932,6 +956,8 @@ impl<'tcx> GraphResult<'tcx> {
         self.annotations.extend(other.annotations);
         self.removed.extend(other.removed);
         self.added.extend(other.added);
+        self.removed_intermediates
+            .extend(other.removed_intermediates);
         self
     }
 }
