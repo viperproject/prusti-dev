@@ -629,34 +629,36 @@ impl<'tcx> Graph<'tcx> {
         while let Some(edge) = self.take_edge(|edge| edge.comes_from_node(&curr)) {
             curr = *edge.to();
 
-            match &edge {
-                GraphEdge::Borrow { from, to, .. }
-                | GraphEdge::Abstract { from, to, .. }
-                | GraphEdge::Collapsed { from, to, .. } => {
-                    leaves.remove(from);
-                    leaves.insert(*to);
-                }
-                GraphEdge::Pack { from, to } => {
-                    for field in from {
-                        leaves.remove(field);
-                    }
-                    leaves.insert(*to);
-                }
-            }
-
             match edge {
-                GraphEdge::Borrow { loans, .. } if loans.is_empty() => {}
+                GraphEdge::Borrow { from, loans, to } if loans.is_empty() => {
+                    leaves.remove(&from);
+                    leaves.insert(to);
+                }
                 GraphEdge::Pack { from, to }
                     if !self.edges.iter().any(|edge| from.contains(edge.to())) =>
                 {
+                    for field in from {
+                        leaves.remove(&field);
+                    }
+                    leaves.insert(to);
+
                     final_annotations.push(Annotation::Pack(to));
                 }
                 GraphEdge::Abstract { from, loans, to } if loans.is_empty() => {
+                    leaves.remove(&from);
+                    leaves.insert(to);
+
                     final_annotations.push(Annotation::Restore { from, to });
                 }
                 GraphEdge::Collapsed {
-                    loans, annotations, ..
+                    from,
+                    loans,
+                    annotations,
+                    to,
                 } if loans.is_empty() => {
+                    leaves.remove(&from);
+                    leaves.insert(to);
+
                     final_annotations.extend(annotations);
                 }
                 _ => {
