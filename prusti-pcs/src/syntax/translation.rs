@@ -257,7 +257,7 @@ impl<'mir, 'tcx: 'mir> MicroMirEncoder<'mir, 'tcx> {
             match op {
                 Copy(_) | Constant(_) => todo!(),
                 Move(p_from) => {
-                    ctx.push_stmt(MicroMirStatement::Kill(None, (*p_dest).into()));
+                    // ctx.push_stmt(MicroMirStatement::Kill(None, (*p_dest).into()));
                     ctx.push_stmt(MicroMirStatement::BorrowMove(
                         (*p_from).clone(),
                         (*p_dest).clone(),

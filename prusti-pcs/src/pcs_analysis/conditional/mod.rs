@@ -713,7 +713,8 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         }
 
         // State-dependent preconditions we can elaborate:
-        //   - If ref-typed, the kill must be UNINIT (ie it must be handled by DAG)
+        //   - If ref-typed, AND the place can be tagged in the DAG, the KILL precondition can be none
+        //   - If ref-typed and the place is untaggable, the KILL precondition has to be UNINIT
         //   - Kill of a MIR place
         //          INIT p => { e p }
         //          ALLOC p & !INIT p => { u p }
