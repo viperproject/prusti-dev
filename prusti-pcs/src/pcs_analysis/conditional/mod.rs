@@ -424,6 +424,8 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 })
                 .collect::<FxHashSet<_>>();
 
+            let remove_place_iter = graph_result.removed.iter().map(|p| p.place);
+
             let to_insert = graph_result.added.iter().map(|p| {
                 PCSPermission::new_initialized(Mutability::Mut, LinearResource::Mir(p.place))
             });
@@ -438,8 +440,15 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             )?;
             println!("{:?} 2.5 PACK {:?}", location, pcs);
 
-            for rm in to_remove.iter() {
-                assert!(pcs.free.remove(&rm));
+            for p in remove_place_iter {
+                assert!(pcs.free.remove(&PCSPermission::new_initialized(
+                    Mutability::Mut,
+                    LinearResource::Mir(p)
+                )));
+
+                assert!(pcs
+                    .free
+                    .insert(PCSPermission::new_uninit(LinearResource::Mir(p))));
             }
 
             for ins in to_insert {
@@ -704,11 +713,18 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         }
 
         // State-dependent preconditions we can elaborate:
+        //   - If ref-typed, the kill must be UNINIT (ie it must be handled by DAG)
         //   - Kill of a MIR place
         //          INIT p => { e p }
         //          ALLOC p & !INIT p => { u p }
         match stmt {
             MicroMirStatement::Kill(None, LinearResource::Mir(p)) => {
+                if p.ty(&self.mir.local_decls, self.env.tcx()).ty.is_ref() {
+                    return Ok(PCS::from_vec(vec![PCSPermission::new_uninit(
+                        LinearResource::Mir(*p),
+                    )]));
+                }
+
                 self.analysis_as_permission(p, location).ok_or_else(|| {
                     PrustiError::internal(
                         format!("could not find permission {:?} in analyses", p),
