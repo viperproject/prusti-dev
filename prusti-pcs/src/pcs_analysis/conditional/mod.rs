@@ -416,6 +416,38 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             println!("{:?} 2.3 RMVD {:?}", location, graph_result.removed);
             println!("{:?} 2.4 ADD  {:?}", location, graph_result.added);
 
+            let to_remove = graph_result
+                .removed
+                .iter()
+                .map(|p| {
+                    PCSPermission::new_initialized(Mutability::Mut, LinearResource::Mir(p.place))
+                })
+                .collect::<FxHashSet<_>>();
+
+            let to_insert = graph_result.added.iter().map(|p| {
+                PCSPermission::new_initialized(Mutability::Mut, LinearResource::Mir(p.place))
+            });
+
+            pcs = self.repack(
+                pcs,
+                &PCS {
+                    free: to_remove.clone(),
+                    dag: Single(Graph::default()),
+                },
+                op_mir,
+            )?;
+            println!("{:?} 2.5 PACK {:?}", location, pcs);
+
+            for rm in to_remove.iter() {
+                assert!(pcs.free.remove(&rm));
+            }
+
+            for ins in to_insert {
+                assert!(pcs.free.insert(ins.clone()));
+            }
+
+            println!("{:?} 2.5 BFX  {:?}", location, pcs);
+
             // if polonius_apply_places.contains(&statement_index) {
             //     // println!("\tWORKING ON: apply loans");
             //     // println!("\t{:?} {:?}", location, pcs);
