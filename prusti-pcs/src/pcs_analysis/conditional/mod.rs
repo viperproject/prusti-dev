@@ -299,6 +299,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 block: block_data.mir_block,
                 statement_index: block_data.mir_parent[statement_index],
             };
+            println!("{:?} ----- {:?}", location, statement);
 
             // if let MicroMirStatement::BorrowMut(p_from, p_to) = statement {
             //     // println!("{:?}\t{:?}", location, pcs);
@@ -359,23 +360,32 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             // }
 
             // 0. Apply loans expiring at a place
+            println!(
+                "{:?} 0.0 ACTV {:?}",
+                location,
+                self.polonius_info.get_active_loans(location, false)
+            );
+
+            println!(
+                "{:?} 0.1 DIES {:?}",
+                location,
+                self.polonius_info.get_loans_dying_at(location, false)
+            );
 
             // 1. Elaborate the state-dependent conditions
             let statement_precondition = self.elaborate_precondition(&statement, location)?;
-
+            println!("{:?} 1.1 PRE  {:?}", location, statement_precondition);
             let statement_postcondition = self.elaborate_postcondition(&statement)?;
-
+            println!("{:?} 1.2 POST {:?}", location, statement_postcondition);
             // 2. Repack to precondition
             pcs = self.repack(pcs, &statement_precondition, op_mir)?;
-
             // 3. Statement is coherent: push
-            println!("{:?}\t{:?}", location, pcs);
-            println!("{:?}\t{:?}", location, statement);
+            println!("{:?} 1.3 PACK {:?}", location, pcs);
             op_mir.statements.push(statement.clone());
             op_mir.pcs_before.push(pcs.clone());
-
             // 4. Apply statement's semantics to state.
             pcs = transform_pcs(pcs, &statement_precondition, &statement_postcondition)?;
+            println!("{:?} 1.3 AP F {:?}", location, pcs);
             if let MicroMirStatement::BorrowMut(p_from, p_to) = statement {
                 let parent_loan = self.polonius_info.get_loan_at_location(location);
                 pcs.dag
@@ -383,77 +393,87 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             } else if let MicroMirStatement::BorrowMove(p_from, p_to) = statement {
                 pcs.dag.r#move(*p_to, *p_from, location);
             }
-            println!("\tAfter all semantics: {:?}", pcs);
+            println!("{:?} 1.3 AP B {:?}", location, pcs);
 
-            // 5. Update loans
-            if polonius_apply_places.contains(&statement_index) {
-                println!("\tWORKING ON: apply loans");
-                println!("\t{:?} {:?}", location, pcs);
-                println!(
-                    "\tlive loans {:?}",
-                    self.polonius_info.get_all_active_loans(location)
-                );
+            // Update loans
+            let live_loans = self.polonius_info.get_active_loans(location, false);
 
-                let live_loans = self.polonius_info.get_all_active_loans(location);
-                let active_loans = live_loans
-                    .0
-                    .into_iter()
-                    .chain(live_loans.1.into_iter())
-                    .collect::<FxHashSet<_>>();
-                let graph_result = pcs.dag.unwind(&active_loans);
+            let active_loans = live_loans
+                //.0
+                .into_iter()
+                //.chain(live_loans.into_iter())
+                .collect::<FxHashSet<_>>();
 
-                println!("\tGRAPH RESULT. NEW PCS {:?}", pcs);
+            println!("{:?} 2.0 ACTV {:?}", location, active_loans);
+            let graph_result = pcs.dag.unwind(&active_loans);
+            println!("{:?} 2.1 AP G {:?}", location, pcs);
+            println!(
+                "{:?} 2.2 DEFA {:?}",
+                location,
+                pcs.dag.unconditionally_accessible()
+            );
 
-                // TODO: Print the annotations
-                // TODO: What happens on a conditional?!?!
-                let perms_into_graph = graph_result
-                    .added
-                    .iter()
-                    .filter(|p| p.tag == None)
-                    .map(|p| PCSPermission {
-                        target: LinearResource::Mir(p.place),
-                        kind: Exclusive,
-                    })
-                    .collect::<FxHashSet<_>>();
+            println!("{:?} 2.3 RMVD {:?}", location, graph_result.removed);
+            println!("{:?} 2.4 ADD  {:?}", location, graph_result.added);
 
-                // Repack so the required permissions are in the right state
-                // pcs = self.repack(pcs, &perms_into_graph, op_mir)?;
+            // if polonius_apply_places.contains(&statement_index) {
+            //     // println!("\tWORKING ON: apply loans");
+            //     // println!("\t{:?} {:?}", location, pcs);
+            //     // println!(
+            //     //     "\tlive loans {:?}",
+            //     //     self.polonius_info.get_all_active_loans(location)
+            //     // );
 
-                println!("\tinto of graph {:?}", perms_into_graph);
+            //     // TODO: Print the annotations
+            //     // TODO: What happens on a conditional?!?!
+            //     let perms_into_graph = graph_result
+            //         .added
+            //         .iter()
+            //         .filter(|p| p.tag == None)
+            //         .map(|p| PCSPermission {
+            //             target: LinearResource::Mir(p.place),
+            //             kind: Exclusive,
+            //         })
+            //         .collect::<FxHashSet<_>>();
 
-                let perms_out_of_graph = graph_result
-                    .removed
-                    .iter()
-                    .filter(|p| p.tag == None)
-                    .map(|p| PCSPermission {
-                        target: LinearResource::Mir(p.place),
-                        kind: Exclusive,
-                    })
-                    .collect::<FxHashSet<_>>();
+            //     // Repack so the required permissions are in the right state
+            //     // pcs = self.repack(pcs, &perms_into_graph, op_mir)?;
 
-                println!("\tout of graph {:?}", perms_out_of_graph);
+            //     // println!("\tinto of graph {:?}", perms_into_graph);
 
-                // println!("Attempting to insert {:?}", perms_out_of_graph);
-                // for perm in perms_out_of_graph.into_iter() {
-                //     assert!(pcs.free.insert(perm));
-                // }
+            //     let perms_out_of_graph = graph_result
+            //         .removed
+            //         .iter()
+            //         .filter(|p| p.tag == None)
+            //         .map(|p| PCSPermission {
+            //             target: LinearResource::Mir(p.place),
+            //             kind: Exclusive,
+            //         })
+            //         .collect::<FxHashSet<_>>();
 
-                println!("\tAnnotations: {:?}", graph_result.annotations);
-                println!("\t\tDAG {:?}", pcs.dag);
+            //     // println!("\tout of graph {:?}", perms_out_of_graph);
 
-                println!(
-                    "\t\tUnconditionally Accessible {:?}",
-                    pcs.dag.unconditionally_accessible()
-                );
-                // // Ensure any unconditioanlly accessible places are added back into the graph
-                // for p in pcs.dag.unconditionally_accessible().iter() {
-                //     // (Naive) just insert, don't check if it's already in there or conflicts?
-                //     pcs.free.insert(PCSPermission {
-                //         target: LinearResource::Mir((*p).clone()),
-                //         kind: Exclusive,
-                //     });
-                // }
-            }
+            //     // println!("Attempting to insert {:?}", perms_out_of_graph);
+            //     // for perm in perms_out_of_graph.into_iter() {
+            //     //     assert!(pcs.free.insert(perm));
+            //     // }
+
+            //     // println!("\tAnnotations: {:?}", graph_result.annotations);
+            //     // println!("\t\tDAG {:?}", pcs.dag);
+
+            //     // println!(
+            //     //     "\t\tUnconditionally Accessible {:?}",
+            //     //     pcs.dag.unconditionally_accessible()
+            //     // );
+            //     // // Ensure any unconditioanlly accessible places are added back into the graph
+            //     // for p in pcs.dag.unconditionally_accessible().iter() {
+            //     //     // (Naive) just insert, don't check if it's already in there or conflicts?
+            //     //     pcs.free.insert(PCSPermission {
+            //     //         target: LinearResource::Mir((*p).clone()),
+            //     //         kind: Exclusive,
+            //     //     });
+            //     // }
+            // }
         }
 
         Ok(pcs)
