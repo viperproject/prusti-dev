@@ -1,5 +1,3 @@
-extern crate prusti_contracts;
-
 pub enum E1 {
     V1,
     V2,
