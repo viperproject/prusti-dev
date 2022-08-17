@@ -36,7 +36,6 @@ Finally, the loop body invariant is not enforced when exiting from a loop with a
 As an example, consider the following program. The loop condition calls `test_and_increment`, and the call has side effects:
 
 ```rust
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[ensures(result == (old(*i) >= 0))]

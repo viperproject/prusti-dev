@@ -3,7 +3,6 @@
 Pure functions are functions which are deterministic and side-effect free. In Prusti, such functions can be marked with the `#[pure]` attribute. They can take shared references as arguments, but they cannot take mutable references, because modifying the heap is considered a side effect.
 
 ```rust
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[pure]

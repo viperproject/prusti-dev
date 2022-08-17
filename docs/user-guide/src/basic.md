@@ -43,7 +43,6 @@ To also verify that `max` indeed always returns the maximum of its two inputs, w
 that the return value of `max` is at least as large as both `a` and `b` and, additionally, coincides with `a` or `b`:
 
 ```rust
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[ensures(result >= a && result >= b)]
@@ -57,10 +56,7 @@ fn max(a: i32, b: i32) -> i32 {
 }
 ```
 
-In the above program, the first two lines are required to enable Prusti-specific syntax for writing specifications:
-
-- The first line, `extern crate prusti_contracts;`, is needed by Prusti to typecheck the specifications.
-- The second line, `use prusti_contracts::*;`, allows us to write `#[ensures(...)]` instead of `#[prusti_contracts::ensures(...)]`.
+In the above program, the first line (`use prusti_contracts::*;`) simplifies writing Prusti-specific syntax for specifications; allowing us to write `#[ensures(...)]` instead of `#[prusti_contracts::ensures(...)]`.
 
 > **Warning:** Due to limitations in Rust procedural macros, `use prusti_contracts::*;` should *always* be used, and the Prusti specification attributes should not be imported with an alias.
 
@@ -73,7 +69,6 @@ Notice that Prusti assumes by default that integer types are bounded; it thus pe
 Next, we add a second function `max3` which returns the maximum of three instead of two integers; we reuse the already verified function `max` in the new function's specification to show that this function is implemented correctly.
 
 ```rust
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[pure]
@@ -128,7 +123,6 @@ In this case, Prusti will highlight the line with the error and report that the 
 For debugging purposes, it is often useful to add `assert!(...)` macros to our code to locate the issue. For example, in the code below, we added an assertion that fails because `b > c` and thus the maximum of `b` and `c` is `b` instead of `c`. 
 
 ```rust
-extern crate prusti_contracts;
 use prusti_contracts::*;
 
 #[pure]

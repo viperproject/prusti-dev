@@ -117,6 +117,7 @@ lazy_static::lazy_static! {
         settings.set_default("verify_specifications", true).unwrap();
         settings.set_default("verify_specifications_with_core_proof", false).unwrap();
         settings.set_default("verify_specifications_backend", "Silicon").unwrap();
+        settings.set_default("use_eval_axioms", true).unwrap();
         settings.set_default("inline_caller_for", false).unwrap();
         settings.set_default("check_no_drops", false).unwrap();
         settings.set_default("enable_type_invariants", false).unwrap();
@@ -762,16 +763,16 @@ pub fn unsafe_core_proof() -> bool {
 
 /// Whether the core proof (memory safety) should be verified.
 ///
-/// **Note:** This option is taken into account only when `unsafe_core_proof` to
-/// be true.
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
 pub fn verify_core_proof() -> bool {
     read_setting("verify_core_proof")
 }
 
 /// Whether the functional specifications should be verified.
 ///
-/// **Note:** This option is taken into account only when `unsafe_core_proof` to
-/// be true.
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
 pub fn verify_specifications() -> bool {
     read_setting("verify_specifications")
 }
@@ -779,8 +780,8 @@ pub fn verify_specifications() -> bool {
 /// Whether when verifying functional specifications, the core proof should be
 /// also included.
 ///
-/// **Note:** This option is taken into account only when `unsafe_core_proof` to
-/// be true.
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
 pub fn verify_specifications_with_core_proof() -> bool {
     read_setting("verify_specifications_with_core_proof")
 }
@@ -792,6 +793,14 @@ pub fn verify_specifications_backend() -> viper::VerificationBackend {
         .trim()
         .to_string();
     <viper::VerificationBackend as std::str::FromStr>::from_str(&verification_backend_name).unwrap()
+}
+
+/// Whether to generate `eval_axiom`.
+///
+/// **Note:** This option is taken into account only when `unsafe_core_proof` is
+/// true.
+pub fn use_eval_axioms() -> bool {
+    read_setting("use_eval_axioms")
 }
 
 /// When enabled, inlines `caller_for` heap dependent functions.
