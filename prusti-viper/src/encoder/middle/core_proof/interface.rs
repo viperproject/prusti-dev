@@ -46,7 +46,7 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
             methods,
         } = super::lowerer::lower_procedure(self, procedure)?;
         let mut program = vir_low::Program {
-            name: self.env().get_absolute_item_name(proc_def_id),
+            name: self.env().name.get_absolute_item_name(proc_def_id),
             check_mode,
             procedures: vec![procedure],
             domains,

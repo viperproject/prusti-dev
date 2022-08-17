@@ -50,7 +50,7 @@ pub(super) fn lower_procedure<'p, 'v: 'p, 'tcx: 'v>(
     let lowerer = self::Lowerer::new(encoder);
     let result = lowerer.lower_procedure(procedure)?;
     if prusti_common::config::dump_debug_info() {
-        let source_filename = encoder.env().source_file_name();
+        let source_filename = encoder.env().name.source_file_name();
         prusti_common::report::log::report_with_writer(
             "graphviz_method_vir_low",
             format!("{}.{}.dot", source_filename, result.procedure.name),

@@ -2,11 +2,11 @@ use prusti_rustc_interface::{
     hir::def_id::{CrateNum, DefId, DefIndex, DefPathHash},
     middle::{
         implement_ty_decoder,
-        ty::{codec::TyDecoder, Ty, TyCtxt}
+        ty::{codec::TyDecoder, Ty, TyCtxt},
     },
     serialize::{opaque, Decodable},
     session::StableCrateId,
-    span::{BytePos, source_map::StableSourceFileId, Span, SyntaxContext},
+    span::{source_map::StableSourceFileId, BytePos, Span, SyntaxContext},
 };
 use rustc_hash::FxHashMap;
 

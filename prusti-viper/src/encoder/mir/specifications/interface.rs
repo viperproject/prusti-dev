@@ -133,7 +133,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             ProcedureSpecificationKind::Pure | ProcedureSpecificationKind::Predicate(_)
         );
 
-        let func_name = self.env().get_unique_item_name(def_id);
+        let func_name = self.env().name.get_unique_item_name(def_id);
         if func_name.starts_with("prusti_contracts::prusti_contracts::Map")
             || func_name.starts_with("prusti_contracts::prusti_contracts::Seq")
             || func_name.starts_with("prusti_contracts::prusti_contracts::Ghost")
@@ -151,7 +151,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
         def_id: DefId,
         substs: Option<SubstsRef<'tcx>>,
     ) -> ProcedureSpecificationKind {
-        let substs = substs.unwrap_or_else(|| self.env().identity_substs(def_id));
+        let substs = substs.unwrap_or_else(|| self.env().query.identity_substs(def_id));
         let query = SpecQuery::GetProcKind(def_id, substs);
         self.specifications_state
             .specs
@@ -163,7 +163,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
     }
 
     fn is_trusted(&self, def_id: DefId, substs: Option<SubstsRef<'tcx>>) -> bool {
-        let substs = substs.unwrap_or_else(|| self.env().identity_substs(def_id));
+        let substs = substs.unwrap_or_else(|| self.env().query.identity_substs(def_id));
         let query = SpecQuery::GetProcKind(def_id, substs);
         let result = self
             .specifications_state
@@ -264,7 +264,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
     }
 
     fn is_spec_closure(&self, def_id: DefId) -> bool {
-        has_spec_only_attr(self.env().get_attributes(def_id))
+        has_spec_only_attr(self.env().query.get_attributes(def_id))
     }
 
     fn get_spec_span(&self, def_id: DefId) -> Span {
@@ -273,7 +273,7 @@ impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encode
             .specs
             .borrow_mut()
             .get_and_refine_proc_spec(self.env(), query)
-            .map(|spec| self.env().get_def_span(spec.source))
-            .unwrap_or_else(|| self.env().get_def_span(def_id))
+            .map(|spec| self.env().query.get_def_span(spec.source))
+            .unwrap_or_else(|| self.env().query.get_def_span(def_id))
     }
 }

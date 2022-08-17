@@ -60,7 +60,7 @@ pub(super) fn encode_body<'p, 'v: 'p, 'tcx: 'v>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir::Expr> {
-    let mir = encoder.env().spec_or_local_body_mir(proc_def_id, substs);
+    let mir = encoder.env().body.get_expression_body(proc_def_id, substs);
     let interpreter = PureFunctionBackwardInterpreter::new(
         encoder,
         &mir,
@@ -69,7 +69,7 @@ pub(super) fn encode_body<'p, 'v: 'p, 'tcx: 'v>(
         parent_def_id,
     );
 
-    let function_name = encoder.env().get_absolute_item_name(proc_def_id);
+    let function_name = encoder.env().name.get_absolute_item_name(proc_def_id);
     debug!("Encode body of pure function {}", function_name);
 
     let state = run_backward_interpretation(&mir, &interpreter)?
@@ -97,7 +97,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         // been an error reported earlier)
         assert_eq!(
             substs.len(),
-            encoder.env().identity_substs(proc_def_id).len()
+            encoder.env().query.identity_substs(proc_def_id).len()
         );
 
         let span = encoder.get_spec_span(proc_def_id);
@@ -108,6 +108,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             .subst(encoder.env().tcx(), substs);
         let sig = encoder
             .env()
+            .query
             .resolve_assoc_types(sig, encoder.env().tcx().param_env(proc_def_id));
 
         PureFunctionEncoder {
@@ -126,7 +127,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let mir = self
             .encoder
             .env()
-            .spec_or_local_body_mir(self.proc_def_id, self.substs);
+            .body
+            .get_pure_fn_body(self.proc_def_id, self.substs);
         let interpreter = PureFunctionBackwardInterpreter::new(
             self.encoder,
             &mir,
@@ -169,7 +171,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             let ty = self.sig.output();
             let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
 
-            if !self.encoder.env().type_is_copy(ty, param_env) {
+            if !self.encoder.env().query.type_is_copy(ty, param_env) {
                 return Err(SpannedEncodingError::unsupported(
                     "return type of pure function does not implement Copy",
                     self.get_return_span(),
@@ -261,7 +263,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let pure_fn_return_variable = vir_local! { __result: {return_type.clone()} };
         // Add value range of the arguments and return value to the pre/postconditions
         if config::check_overflows() {
-            debug_assert!(self.encoder.env().type_is_copy(
+            debug_assert!(self.encoder.env().query.type_is_copy(
                 self.sig.output(),
                 self.encoder.env().tcx().param_env(self.proc_def_id)
             ));
@@ -282,6 +284,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 debug_assert!(self
                     .encoder
                     .env()
+                    .query
                     .type_is_copy(typ, self.encoder.env().tcx().param_env(self.proc_def_id)));
                 let mut bounds = self
                     .encoder
@@ -529,7 +532,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
 
         // Return an error for unsupported return types
         let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
-        if !self.encoder.env().type_is_copy(ty, param_env) {
+        if !self.encoder.env().query.type_is_copy(ty, param_env) {
             return Err(SpannedEncodingError::incorrect(
                 "return type of pure function does not implement Copy",
                 self.get_return_span(),
@@ -556,7 +559,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             let var_span = self.get_local_span(local);
 
             let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
-            if !self.encoder.env().type_is_copy(local_ty, param_env) {
+            if !self.encoder.env().query.type_is_copy(local_ty, param_env) {
                 return Err(SpannedEncodingError::incorrect(
                     "pure function parameters must be Copy",
                     var_span,

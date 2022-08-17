@@ -286,7 +286,7 @@ pub fn graphviz<'tcx>(
         }};
     }
 
-    let facts = env.local_mir_borrowck_facts(def_id.expect_local());
+    let facts = env.body.local_mir_borrowck_facts(def_id.expect_local());
     let interner = facts::Interner::new(facts.location_table.take().unwrap());
 
     let borrowck_in_facts = facts.input_facts.take().unwrap();
@@ -666,7 +666,7 @@ impl<'a, 'tcx: 'a> PoloniusInfo<'a, 'tcx> {
         let mir = procedure.get_mir();
 
         // Read Polonius facts.
-        let facts = env.local_mir_borrowck_facts(def_id.expect_local());
+        let facts = env.body.local_mir_borrowck_facts(def_id.expect_local());
 
         // // Read relations between region IDs and local variables.
         // let renumber_path = config::log_dir()

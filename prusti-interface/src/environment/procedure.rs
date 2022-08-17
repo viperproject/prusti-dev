@@ -4,12 +4,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use super::loops;
+use super::body::MirBody;
+use super::{loops, EnvName};
 use crate::data::ProcedureDefId;
-use prusti_rustc_interface::middle::mir::{self, Body as Mir, Rvalue, AggregateKind};
+use prusti_rustc_interface::middle::mir::{self, Body, Rvalue, AggregateKind};
 use prusti_rustc_interface::middle::mir::{BasicBlock, BasicBlockData};
 use prusti_rustc_interface::middle::ty::{Ty, TyCtxt};
-use std::rc::Rc;
 use std::collections::{HashSet, HashMap};
 use prusti_rustc_interface::span::Span;
 use log::{trace, debug};
@@ -25,8 +25,9 @@ pub type BasicBlockIndex = mir::BasicBlock;
 /// A facade that provides information about the Rust procedure.
 pub struct Procedure<'tcx> {
     tcx: TyCtxt<'tcx>,
+    env_name: EnvName<'tcx>,
     proc_def_id: ProcedureDefId,
-    mir: Rc<Mir<'tcx>>,
+    mir: MirBody<'tcx>,
     real_edges: RealEdges,
     loop_info: loops::ProcedureLoops,
     reachable_basic_blocks: HashSet<BasicBlock>,
@@ -38,7 +39,7 @@ impl<'tcx> Procedure<'tcx> {
     /// identifier of a procedure
     pub fn new(env: &Environment<'tcx>, proc_def_id: ProcedureDefId) -> Self {
         trace!("Encoding procedure {:?}", proc_def_id);
-        let mir = env.local_body_mir(proc_def_id.expect_local(), env.identity_substs(proc_def_id));
+        let mir = env.body.get_impure_fn_body(proc_def_id.expect_local(), env.query.identity_substs(proc_def_id));
         let real_edges = RealEdges::new(&mir);
         let reachable_basic_blocks = build_reachable_basic_blocks(&mir, &real_edges);
         let nonspec_basic_blocks = build_nonspec_basic_blocks(&mir, &real_edges, &env.tcx());
@@ -46,6 +47,7 @@ impl<'tcx> Procedure<'tcx> {
 
         Self {
             tcx: env.tcx(),
+            env_name: env.name,
             proc_def_id,
             mir,
             real_edges,
@@ -76,7 +78,7 @@ impl<'tcx> Procedure<'tcx> {
     }
 
     pub fn get_lifetime_of_var(&self, var: mir::Local) -> Option<String>{
-        fn get_lifetime_if_matches(local: mir::Local, var: mir::Local, mir: &Mir) -> Option<String>{
+        fn get_lifetime_if_matches(local: mir::Local, var: mir::Local, mir: &Body) -> Option<String>{
             if local == var {
                 let ty_kind = mir.local_decls[local].ty.kind();
                 if let prusti_rustc_interface::middle::ty::TyKind::Ref(region, _ty, _mutability) = ty_kind {
@@ -117,7 +119,7 @@ impl<'tcx> Procedure<'tcx> {
     }
 
     /// Get the MIR of the procedure
-    pub fn get_mir(&self) -> &Mir<'tcx> {
+    pub fn get_mir(&self) -> &Body<'tcx> {
         &self.mir
     }
 
@@ -128,10 +130,7 @@ impl<'tcx> Procedure<'tcx> {
 
     /// Get an absolute `def_path`. Note: not preserved across compilations!
     pub fn get_def_path(&self) -> String {
-        let def_path = self.tcx.def_path(self.proc_def_id);
-        let mut crate_name = self.tcx.crate_name(def_path.krate).to_string();
-        crate_name.push_str(&def_path.to_string_no_crate_verbose());
-        crate_name
+        self.env_name.get_item_def_path(self.proc_def_id)
     }
 
     // /// Get a short name of the procedure
@@ -191,7 +190,7 @@ impl<'tcx> Procedure<'tcx> {
 }
 
 /// Returns the set of basic blocks that are not used as part of the typechecking of Prusti specifications
-fn build_reachable_basic_blocks(mir: &Mir, real_edges: &RealEdges) -> HashSet<BasicBlock> {
+fn build_reachable_basic_blocks(mir: &Body, real_edges: &RealEdges) -> HashSet<BasicBlock> {
     let mut reachable_basic_blocks: HashSet<BasicBlock> = HashSet::new();
     let mut visited: HashSet<BasicBlock> = HashSet::new();
     let mut to_visit: Vec<BasicBlock> = vec![mir.basic_blocks().indices().next().unwrap()];
@@ -291,7 +290,7 @@ fn blocks_definitely_leading_to(bb_graph: &HashMap<BasicBlock, BasicBlockNode>, 
     blocks
 }
 
-fn blocks_dominated_by(mir: &Mir, dominator: BasicBlock) -> HashSet<BasicBlock> {
+fn blocks_dominated_by(mir: &Body, dominator: BasicBlock) -> HashSet<BasicBlock> {
     let dominators = mir.basic_blocks.dominators();
     let mut blocks = HashSet::new();
     for bb in mir.basic_blocks().indices() {
@@ -302,7 +301,7 @@ fn blocks_dominated_by(mir: &Mir, dominator: BasicBlock) -> HashSet<BasicBlock> 
     blocks
 }
 
-fn get_nonspec_basic_blocks(bb_graph: HashMap<BasicBlock, BasicBlockNode>, mir: &Mir, tcx: &TyCtxt) -> HashSet<BasicBlock>{
+fn get_nonspec_basic_blocks(bb_graph: HashMap<BasicBlock, BasicBlockNode>, mir: &Body, tcx: &TyCtxt) -> HashSet<BasicBlock>{
     let mut spec_basic_blocks: HashSet<BasicBlock> = HashSet::new();
     for (bb, _) in bb_graph.iter() {
         if is_marked_specification_block(&mir[*bb], tcx) {
@@ -318,7 +317,7 @@ fn get_nonspec_basic_blocks(bb_graph: HashMap<BasicBlock, BasicBlockNode>, mir: 
 }
 
 /// Returns the set of basic blocks that are not used as part of the typechecking of Prusti specifications
-fn build_nonspec_basic_blocks(mir: &Mir, real_edges: &RealEdges, tcx: &TyCtxt) -> HashSet<BasicBlock> {
+fn build_nonspec_basic_blocks(mir: &Body, real_edges: &RealEdges, tcx: &TyCtxt) -> HashSet<BasicBlock> {
     let dominators = mir.basic_blocks.dominators();
     let mut loop_heads: HashSet<BasicBlock> = HashSet::new();
 

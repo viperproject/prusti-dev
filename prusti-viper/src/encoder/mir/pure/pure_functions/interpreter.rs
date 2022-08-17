@@ -403,8 +403,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                     );
                     let def_id = *def_id;
                     let tcx = self.encoder.env().tcx();
-                    let full_func_proc_name: &str = &tcx.def_path_str(def_id);
-                    let func_proc_name = &self.encoder.env().get_item_name(def_id);
+                    let env_name = self.encoder.env().name;
+                    let full_func_proc_name: &str = &env_name.get_absolute_item_name(def_id);
+                    let func_proc_name = &self.encoder.env().name.get_item_name(def_id);
 
                     let state = if let Some(target_block) = target {
                         let (encoded_lhs, ty, _) =
@@ -500,7 +501,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                         span,
                                     ))
                                 };
-                                let idx_ident = tcx.def_path_str(idx_ty_did);
+                                let idx_ident = env_name.get_absolute_item_name(idx_ty_did);
                                 let encoded_idx = &encoded_args[1];
 
                                 // TODO: what do we actually do here? this seems a littly hacky.
@@ -589,6 +590,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> BackwardMirInterpreter<'tcx>
                                 let (called_def_id, call_substs) = self
                                     .encoder
                                     .env()
+                                    .query
                                     .resolve_method_call(self.def_id, def_id, call_substs);
                                 trace!("Resolved function call: {:?}", called_def_id);
 

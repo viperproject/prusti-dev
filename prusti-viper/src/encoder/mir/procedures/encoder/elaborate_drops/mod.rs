@@ -26,6 +26,7 @@ pub(super) fn elaborate_drops<'v, 'tcx: 'v>(
 ) -> SpannedEncodingResult<(mir::Body<'tcx>, Lifetimes)> {
     let (mut input_facts, mut location_table) = if let Some(facts) = encoder
         .env()
+        .body
         .try_get_local_mir_borrowck_facts(def_id.expect_local())
     {
         let input_facts = facts.input_facts.borrow().as_ref().unwrap().clone();

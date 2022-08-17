@@ -37,7 +37,7 @@ impl<'tcx> SpecChecker<'tcx> {
         for check in self.checks.iter() {
             let errors = check.check(env);
             for error in errors {
-                error.emit(env);
+                error.emit(&env.diagnostic);
             }
         }
     }
