@@ -43,7 +43,7 @@ pub(super) fn elaborate_drops<'v, 'tcx: 'v>(
 
     if config::dump_debug_info() {
         let local_def_id = def_id.expect_local();
-        let def_path = encoder.env().tcx().hir().def_path(local_def_id);
+        let def_path = encoder.env().query.hir().def_path(local_def_id);
         let graph = to_graphviz(&input_facts, &location_table, mir);
         prusti_common::report::log::report_with_writer(
             "graphviz_mir_dump_before_patch",
@@ -58,7 +58,7 @@ pub(super) fn elaborate_drops<'v, 'tcx: 'v>(
 
     if config::dump_debug_info() {
         let local_def_id = def_id.expect_local();
-        let def_path = encoder.env().tcx().hir().def_path(local_def_id);
+        let def_path = encoder.env().query.hir().def_path(local_def_id);
         let graph = to_graphviz(&input_facts, &location_table, &mir);
         prusti_common::report::log::report_with_writer(
             "graphviz_mir_dump_after_patch",

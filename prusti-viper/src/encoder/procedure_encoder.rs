@@ -5325,7 +5325,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         } else {
             // FIXME: why are we getting the MIR body for this?
-            let mir = self.encoder.env().body.get_impure_fn_body(
+            let mir = self.encoder.env().body.get_impure_fn_body_subs(
                 containing_def_id.expect_local(),
                 // TODO(tymap): identity substs here are probably wrong?
                 self.encoder.env().query.identity_substs(containing_def_id),

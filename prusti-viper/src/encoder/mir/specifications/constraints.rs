@@ -156,9 +156,9 @@ pub mod trait_bounds {
         // contain a behavioral subtyping check which will be performed on the
         // resolved spec.
         let param_env_lookup = if let Some(caller_def_id) = context.caller_proc_def_id {
-            env.tcx().param_env(caller_def_id)
+            caller_def_id
         } else {
-            env.tcx().param_env(context.proc_def_id)
+            context.proc_def_id
         };
 
         let all_bounds_satisfied = param_env_constraint

@@ -124,8 +124,6 @@ fn get_procedure_contract<'p, 'v: 'p, 'tcx: 'v>(
     proc_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> EncodingResult<ProcedureContractMirDef<'tcx>> {
-    use prusti_rustc_interface::middle::ty::subst::Subst;
-
     let env = encoder.env();
     let specification = encoder
         .get_procedure_specs(proc_def_id, substs)
@@ -139,8 +137,7 @@ fn get_procedure_contract<'p, 'v: 'p, 'tcx: 'v>(
     if !env.query.is_closure(proc_def_id) {
         // FIXME: "skip_binder" is most likely wrong
         // FIXME: Replace with FakeMirEncoder.
-        let fn_sig: FnSig =
-            ty::EarlyBinder(env.tcx().fn_sig(proc_def_id).skip_binder()).subst(env.tcx(), substs);
+        let fn_sig: FnSig = env.query.get_fn_sig(proc_def_id, substs).skip_binder();
         if fn_sig.c_variadic {
             return Err(EncodingError::unsupported(
                 "variadic functions are not supported",
@@ -153,7 +150,7 @@ fn get_procedure_contract<'p, 'v: 'p, 'tcx: 'v>(
     } else {
         let mir = env
             .body
-            .get_impure_fn_body(proc_def_id.expect_local(), substs);
+            .get_impure_fn_body_subs(proc_def_id.expect_local(), substs);
         // local_decls:
         // _0    - return, with closure's return type
         // _1    - closure's self

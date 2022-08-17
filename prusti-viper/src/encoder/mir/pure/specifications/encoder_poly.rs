@@ -39,7 +39,7 @@ pub(super) fn inline_closure<'tcx>(
     let mir = encoder
         .env()
         .body
-        .get_closure_body(def_id.expect_local(), substs);
+        .get_closure_body_subs(def_id.expect_local(), substs);
     assert_eq!(mir.arg_count, args.len() + 1);
     let mir_encoder = MirEncoder::new(encoder, &mir, def_id);
     let mut body_replacements = vec![];
@@ -82,7 +82,7 @@ pub(super) fn inline_spec_item<'tcx>(
         encoder.env().query.identity_substs(def_id).len()
     );
 
-    let mir = encoder.env().body.get_expression_body(def_id, substs);
+    let mir = encoder.env().body.get_expression_body_subs(def_id, substs);
     assert_eq!(
         mir.arg_count,
         target_args.len() + if target_return.is_some() { 1 } else { 0 }
@@ -129,8 +129,6 @@ pub(super) fn encode_quantifier<'tcx>(
     parent_def_id: DefId,
     substs: ty::subst::SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_crate::polymorphic::Expr> {
-    let tcx = encoder.env().tcx();
-
     // Quantifiers are encoded as:
     //   forall(
     //     (
@@ -144,7 +142,8 @@ pub(super) fn encode_quantifier<'tcx>(
     //   )
 
     let cl_type_body = substs.type_at(1);
-    let (body_def_id, body_substs, body_span, args, _) = extract_closure_from_ty(tcx, cl_type_body);
+    let (body_def_id, body_substs, body_span, args, _) =
+        extract_closure_from_ty(encoder.env().query, cl_type_body);
 
     let mut encoded_qvars = vec![];
     let mut bounds = vec![];
@@ -176,7 +175,7 @@ pub(super) fn encode_quantifier<'tcx>(
         let mut set_spans = vec![];
         for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().into_iter().enumerate() {
             let (trigger_def_id, trigger_substs, trigger_span, _, _) =
-                extract_closure_from_ty(tcx, ty_trigger);
+                extract_closure_from_ty(encoder.env().query, ty_trigger);
             let set_field = encoder
                 .encode_raw_ref_field(format!("tuple_{}", trigger_set_idx), ty_trigger_set)
                 .with_span(trigger_span)?;

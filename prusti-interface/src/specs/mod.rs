@@ -139,7 +139,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         path.push(format!(
             "{}-{:x}.bin",
             self.env.name.crate_name(crate_num),
-            self.env.query.tcx().stable_crate_id(crate_num).to_u64(),
+            self.env.tcx().stable_crate_id(crate_num).to_u64(),
         ));
         path
     }
@@ -154,7 +154,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         // Otherwise the crate doesn't show up in `tcx.crates()`.  Is there some better way
         // to get dependency crates, which doesn't ignore unused ones? Maybe:
         // https://doc.rust-lang.org/stable/nightly-rustc/rustc_metadata/creader/struct.CrateMetadataRef.html#method.dependencies
-        for crate_num in self.env.query.tcx().crates(()) {
+        for crate_num in self.env.tcx().crates(()) {
             if *crate_num == LOCAL_CRATE {
                 continue;
             }
@@ -181,7 +181,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         def_spec: &typed::DefSpecificationMap,
         path: &Path,
     ) -> Result<usize> {
-        let mut encoder = DefSpecsEncoder::new(self.env.query.tcx());
+        let mut encoder = DefSpecsEncoder::new(self.env.tcx());
         def_spec.proc_specs.encode(&mut encoder);
         def_spec.type_specs.encode(&mut encoder);
         CrossCrateBodies::from(&self.env.body).encode(&mut encoder);
@@ -199,7 +199,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         let mut data = Vec::new();
         let mut file = fs::File::open(path)?;
         file.read_to_end(&mut data)?;
-        let mut decoder = DefSpecsDecoder::new(self.env.query.tcx(), &data);
+        let mut decoder = DefSpecsDecoder::new(self.env.tcx(), &data);
 
         let proc_specs = FxHashMap::decode(&mut decoder);
         let type_specs = FxHashMap::decode(&mut decoder);
@@ -468,7 +468,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
         intravisit::walk_trait_item(self, ti);
 
         let id = ti.hir_id();
-        let local_id = self.env.query.hir().local_def_id(id);
+        let local_id = self.env.query.as_local_def_id(id);
         let def_id = local_id.to_def_id();
         let attrs = self.env.query.get_local_attributes(ti.def_id);
 
@@ -488,9 +488,9 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
     ) {
         intravisit::walk_fn(self, fn_kind, fn_decl, body_id, span, id);
 
-        let local_id = self.env.query.hir().local_def_id(id);
+        let local_id = self.env.query.as_local_def_id(id);
         let def_id = local_id.to_def_id();
-        let attrs = self.env.query.hir().attrs(id);
+        let attrs = self.env.query.get_local_attributes(id);
 
         // Collect spec functions
         if let Some(raw_spec_id) = read_prusti_attr("spec_id", attrs) {
@@ -568,10 +568,10 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 
         // Collect closure specifications
         if let prusti_rustc_interface::hir::StmtKind::Local(local) = stmt.kind {
-            let attrs = self.env.query.hir().attrs(local.hir_id);
+            let attrs = self.env.query.get_local_attributes(local.hir_id);
             if has_prusti_attr(attrs, "closure") {
                 let init_expr = local.init.expect("closure on Local without assignment");
-                let local_id = self.env.query.hir().local_def_id(init_expr.hir_id);
+                let local_id = self.env.query.as_local_def_id(init_expr.hir_id);
                 let def_id = local_id.to_def_id();
                 // Collect procedure specifications
                 if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {

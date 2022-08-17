@@ -56,7 +56,7 @@ impl ExternSpecDeclaration {
     /// Constructs [ExternSpecDeclaration] from a method call with the given substitutions.
     fn from_method_call<'tcx>(def_id: DefId, substs: SubstsRef<'tcx>, env_query: EnvQuery<'tcx>) -> Self {
         let is_impl_method = env_query.is_trait_method_impl(def_id);
-        let is_trait_method = env_query.is_trait_method(def_id);
+        let is_trait_method = env_query.get_trait_of_item(def_id).is_some();
         let maybe_impl_def_id = env_query.find_impl_of_trait_method_call(def_id, substs);
 
         if is_trait_method && maybe_impl_def_id.is_none() {
@@ -130,7 +130,7 @@ impl<'tcx> ExternSpecResolver<'tcx> {
             spec_found: None,
         };
         visitor.visit_fn(fn_kind, fn_decl, body_id, span, id);
-        let current_def_id = self.env_query.hir().local_def_id(id).to_def_id();
+        let current_def_id = self.env_query.as_local_def_id(id).to_def_id();
         if let Some((target_def_id, substs, span)) = visitor.spec_found {
             let extern_spec_decl = ExternSpecDeclaration::from_method_call(target_def_id, substs, self.env_query);
 

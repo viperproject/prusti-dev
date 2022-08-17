@@ -1,11 +1,8 @@
 use prusti_interface::environment::{
     is_ghost_begin_marker, is_ghost_end_marker, is_loop_invariant_block,
-    is_marked_specification_block, Procedure,
+    is_marked_specification_block, EnvQuery, Procedure,
 };
-use prusti_rustc_interface::{
-    data_structures::graph::WithSuccessors,
-    middle::{mir, ty::TyCtxt},
-};
+use prusti_rustc_interface::{data_structures::graph::WithSuccessors, middle::mir};
 use std::collections::{BTreeMap, BTreeSet};
 
 /// Information about the specification blocks.
@@ -33,14 +30,14 @@ pub(super) struct LoopInvariantBlocks {
 
 impl SpecificationBlocks {
     pub(super) fn build<'tcx>(
-        tcx: TyCtxt<'tcx>,
+        env_query: EnvQuery<'tcx>,
         body: &mir::Body<'tcx>,
         procedure: &Procedure<'tcx>,
     ) -> Self {
         // Blocks that contain closures marked with `#[spec_only]` attributes.
         let mut marked_specification_blocks = BTreeSet::new();
         for (bb, block) in body.basic_blocks().iter_enumerated() {
-            if is_marked_specification_block(block, &tcx) {
+            if is_marked_specification_block(env_query, block) {
                 marked_specification_blocks.insert(bb);
             }
         }
@@ -87,7 +84,7 @@ impl SpecificationBlocks {
         // preserve the order of invariants in which they were specified by the
         // user.
         for (bb, data) in prusti_rustc_interface::middle::mir::traversal::reverse_postorder(body) {
-            if specification_blocks.contains(&bb) && is_loop_invariant_block(data, tcx) {
+            if specification_blocks.contains(&bb) && is_loop_invariant_block(env_query, data) {
                 let loop_head = loop_info.get_loop_head(bb).unwrap();
                 let loop_blocks = loop_invariant_blocks.entry(loop_head).or_insert_with(|| {
                     assert_eq!(
@@ -127,10 +124,10 @@ impl SpecificationBlocks {
             let mut queue = Vec::new();
 
             for (bb, data) in mir::traversal::reverse_postorder(body) {
-                if is_ghost_begin_marker(data, tcx) {
+                if is_ghost_begin_marker(env_query, data) {
                     queue.push(bb);
                 }
-                if is_ghost_end_marker(data, tcx) {
+                if is_ghost_end_marker(env_query, data) {
                     ghost_blocks.insert(bb);
                 }
             }
@@ -147,7 +144,7 @@ impl SpecificationBlocks {
                 let before_end = data
                     .terminator()
                     .successors()
-                    .any(|bb| is_ghost_end_marker(&body.basic_blocks()[bb], tcx));
+                    .any(|bb| is_ghost_end_marker(env_query, &body.basic_blocks()[bb]));
 
                 for succ in data.terminator.iter().flat_map(|t| t.successors()) {
                     if before_end {

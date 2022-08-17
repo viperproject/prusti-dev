@@ -1,4 +1,6 @@
-use rustc_hash::{FxHashMap};
+use prusti_interface::environment::EnvQuery;
+use prusti_interface::environment::body::MirBody;
+use rustc_hash::FxHashMap;
 use viper::silicon_counterexample::*;
 use prusti_interface::data::ProcedureDefId;
 use crate::encoder::Encoder;
@@ -108,10 +110,11 @@ pub fn backtranslate(
 }
 
 pub struct CounterexampleTranslator<'ce, 'tcx> {
-    mir: mir::Body<'tcx>,
+    env_query: EnvQuery<'tcx>,
+    tcx: TyCtxt<'tcx>,
+    mir: MirBody<'tcx>,
     def_id: ProcedureDefId,
     silicon_counterexample: &'ce SiliconCounterexample,
-    tcx: TyCtxt<'tcx>,
     is_pure: bool,
     disc_info: FxHashMap<(ProcedureDefId, String), Vec<String>>,
     var_debug_info: Vec<VarDebugInfo<'tcx>>,
@@ -124,14 +127,15 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         def_id: ProcedureDefId,
         silicon_counterexample: &'ce SiliconCounterexample,
     ) -> Self {
-        let mir = encoder.env().get_procedure(def_id).get_mir().clone();
+        let mir = encoder.env().body.get_impure_fn_body(def_id.expect_local());
         let var_debug_info = mir.var_debug_info.clone();
         let local_variable_manager = LocalVariableManager::new(&mir.local_decls);
         Self {
+            env_query: encoder.env().query,
+            tcx: encoder.env().tcx(),
             mir,
             def_id,
             silicon_counterexample,
-            tcx: encoder.env().tcx(),
             is_pure: false, // No verified functions are pure. encoder.is_pure(def_id),
                             // TODO: This assumption should allow simplifying the translator quite a bit.
             disc_info: encoder.discriminants_info(),
@@ -170,9 +174,8 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         let return_local = Local::from(mir::Local::from_usize(0));
         assert!(self.local_variable_manager.is_return(return_local));
 
-        let hir = self.tcx.hir();
-        let hir_id = hir.local_def_id_to_hir_id(self.def_id.as_local().unwrap());
-        let span = hir.fn_decl_by_hir_id(hir_id).unwrap().output.span();
+        let hir_id = self.env_query.as_hir_id(self.def_id.expect_local());
+        let span = self.env_query.hir().fn_decl_by_hir_id(hir_id).unwrap().output.span();
 
         let vir_name = if !self.is_pure {
             self.local_variable_manager.get_name(return_local)

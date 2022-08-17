@@ -196,7 +196,7 @@ impl<'tcx> Specifications<'tcx> {
             )) => {
                 let impl_method_span = env.query.get_def_span(impl_proc_def_id);
 
-                let trait_def_id = env.tcx().trait_of_item(trait_proc_def_id).unwrap();
+                let trait_def_id = env.query.get_trait_of_item(trait_proc_def_id).unwrap();
                 let trait_span = env.query.get_def_span(trait_def_id);
                 let trait_name = env.name.get_absolute_item_name(trait_def_id);
                 let trait_method_name = env.name.get_absolute_item_name(trait_proc_def_id);
