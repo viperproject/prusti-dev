@@ -9,10 +9,9 @@
 use log::trace;
 use prusti_rustc_interface::ast::ast;
 use prusti_rustc_interface::data_structures::fx::FxHashSet;
-use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
 use prusti_rustc_interface::middle::{
     mir,
-    ty::{self, TyCtxt},
+    ty::TyCtxt,
 };
 
 /// Check if the place `potential_prefix` is a prefix of `place`. For example:
@@ -191,18 +190,6 @@ impl<'tcx> VecPlace<'tcx> {
     }
     pub fn component_count(&self) -> usize {
         self.components.len()
-    }
-}
-
-pub fn get_local_attributes<'tcx>(tcx: ty::TyCtxt<'tcx>, def_id: LocalDefId) -> &'tcx [prusti_rustc_interface::ast::ast::Attribute] {
-    tcx.hir().attrs(tcx.hir().local_def_id_to_hir_id(def_id))
-}
-
-pub fn get_attributes<'tcx>(tcx: ty::TyCtxt<'tcx>, def_id: DefId) -> &'tcx [prusti_rustc_interface::ast::ast::Attribute] {
-    if let Some(local_def_id) = def_id.as_local() {
-        get_local_attributes(tcx, local_def_id)
-    } else {
-        tcx.item_attrs(def_id)
     }
 }
 

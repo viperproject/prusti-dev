@@ -55,7 +55,7 @@ impl IllegalPredicateUsagesChecker {
     /// Map of the `DefID`s to the `Span`s of `predicate!` functions found in the first pass.
     fn collect_predicates<'tcx>(&self, env_query: EnvQuery<'tcx>) -> CollectPredicatesVisitor<'tcx> {
         let mut collect = CollectPredicatesVisitor {
-            tcx: env_query.tcx(),
+            env_query,
             predicates: HashMap::new(),
             abstract_predicate_with_bodies: HashSet::new(),
         };
@@ -83,7 +83,7 @@ impl IllegalPredicateUsagesChecker {
 /// First predicate checks visitor: collect all function items that originate
 /// from predicates
 struct CollectPredicatesVisitor<'tcx> {
-    tcx: TyCtxt<'tcx>,
+    env_query: EnvQuery<'tcx>,
     predicates: HashMap<DefId, Span>,
     abstract_predicate_with_bodies: HashSet<DefId>,
 }
@@ -93,7 +93,7 @@ impl<'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'tcx> {
     type NestedFilter =prusti_rustc_interface::middle::hir::nested_filter::All;
 
     fn nested_visit_map(&mut self) -> Self::Map {
-        self.tcx.hir()
+        self.env_query.hir()
     }
 
     fn visit_fn(
@@ -105,9 +105,9 @@ impl<'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'tcx> {
         id: hir::HirId,
     ) {
         // collect this fn's DefId if predicate function
-        let attrs = self.tcx.hir().attrs(id);
+        let attrs = self.env_query.get_local_attributes(id);
         if has_prusti_attr(attrs, "pred_spec_id_ref") {
-            let def_id = self.tcx.hir().local_def_id(id).to_def_id();
+            let def_id = self.env_query.as_local_def_id(id).to_def_id();
             self.predicates.insert(def_id, s);
         }
 
@@ -116,10 +116,10 @@ impl<'tcx> intravisit::Visitor<'tcx> for CollectPredicatesVisitor<'tcx> {
 
     fn visit_trait_item(&mut self, ti: &'tcx hir::TraitItem<'tcx>) {
         let def_id = ti.def_id.to_def_id();
-        let attrs = crate::utils::get_local_attributes(self.tcx, ti.def_id);
+        let attrs = self.env_query.get_local_attributes(ti.def_id);
 
         if has_abstract_predicate_attr(attrs) {
-            let span = self.tcx.def_span(def_id);
+            let span = self.env_query.get_def_span(def_id);
             self.predicates.insert(def_id, span);
         } else if has_prusti_attr(attrs, "pred_spec_id_ref") {
             if let hir::TraitItemKind::Fn(_, hir::TraitFn::Provided(_)) = &ti.kind {

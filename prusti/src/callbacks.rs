@@ -77,9 +77,10 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             spec_checker.check(&env);
             compiler.session().abort_if_errors();
 
+            let hir = env.query.hir();
             let mut spec_collector = specs::SpecCollector::new(&mut env);
-            tcx.hir().walk_toplevel_module(&mut spec_collector);
-            tcx.hir().walk_attributes(&mut spec_collector);
+            hir.walk_toplevel_module(&mut spec_collector);
+            hir.walk_attributes(&mut spec_collector);
 
             let build_output_dir = compiler.output_dir();
             let def_spec = spec_collector.build_def_specs(build_output_dir);
