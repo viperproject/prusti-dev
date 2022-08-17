@@ -103,12 +103,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let span = encoder.get_spec_span(proc_def_id);
 
         // TODO: move this to a signatures module
-        use prusti_rustc_interface::middle::ty::subst::Subst;
-        let sig = ty::EarlyBinder(encoder.env().tcx().fn_sig(proc_def_id))
-            .subst(encoder.env().tcx(), substs);
-        let sig = encoder
-            .env()
-            .resolve_assoc_types(sig, encoder.env().tcx().param_env(proc_def_id));
+        let sig = encoder.env().tcx().fn_sig(proc_def_id);
+        let sig = encoder.env().tcx().subst_and_normalize_erasing_regions(
+                substs,
+                encoder.env().tcx().param_env(parent_def_id),
+                sig,
+            );
+        //use prusti_rustc_interface::middle::ty::subst::Subst;
+        //let sig = ty::EarlyBinder(encoder.env().tcx().fn_sig(proc_def_id))
+        //    .subst(encoder.env().tcx(), substs);
+        //let sig = encoder
+        //    .env()
+        //    .resolve_assoc_types(sig, encoder.env().tcx().param_env(proc_def_id));
 
         PureFunctionEncoder {
             encoder,
@@ -126,7 +132,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let mir = self
             .encoder
             .env()
-            .local_mir(self.proc_def_id.expect_local(), self.substs);
+            .local_mir_with_caller(self.proc_def_id.expect_local(), self.parent_def_id.expect_local(), self.substs);
         let interpreter = PureFunctionBackwardInterpreter::new(
             self.encoder,
             &mir,

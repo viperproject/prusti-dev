@@ -99,15 +99,11 @@ impl Function {
 
 pub fn compute_identifier(
     name: &str,
-    type_arguments: &[Type],
-    _formal_args: &[LocalVar],
-    _return_type: &Type,
+    _type_arguments: &[Type],
+    formal_args: &[LocalVar],
+    return_type: &Type,
 ) -> String {
     let mut identifier = name.to_string();
-    // Include the signature of the function in the function name
-    if !type_arguments.is_empty() {
-        identifier.push_str("__$TY$__");
-    }
     fn type_name(typ: &Type) -> String {
         match typ {
             Type::Int => "$int$".to_string(),
@@ -126,10 +122,22 @@ pub fn compute_identifier(
             ),
         }
     }
+    identifier.push_str("__$TY$__");
+    for arg in formal_args {
+        identifier.push_str(&type_name(&arg.typ));
+        identifier.push('$');
+    }
+    identifier.push_str(&type_name(return_type));
+    /*
+    // Include the signature of the function in the function name
+    if !type_arguments.is_empty() {
+        identifier.push_str("__$TY$__");
+    }
     for arg in type_arguments {
         identifier.push_str(&type_name(arg));
         identifier.push('$');
     }
+    */
     identifier
 }
 

@@ -55,6 +55,8 @@ struct CachedBody<'tcx> {
     monomorphised_bodies: HashMap<SubstsRef<'tcx>, Rc<mir::Body<'tcx>>>,
     /// Cached borrowck information.
     borrowck_facts: Rc<BorrowckFacts>,
+
+    monomorphised_bodies_with_caller: HashMap<(SubstsRef<'tcx>, LocalDefId), Rc<mir::Body<'tcx>>>,
 }
 
 struct CachedExternalBody<'tcx> {
@@ -303,6 +305,7 @@ impl<'tcx> Environment<'tcx> {
                     base_body: Rc::new(body),
                     monomorphised_bodies: HashMap::new(),
                     borrowck_facts: Rc::new(facts),
+                    monomorphised_bodies_with_caller: HashMap::new(),
                 }
             });
         body
@@ -312,6 +315,45 @@ impl<'tcx> Environment<'tcx> {
                 let param_env = self.tcx.param_env(def_id);
                 let substituted = ty::EarlyBinder(body.base_body.clone()).subst(self.tcx, substs);
                 self.resolve_assoc_types(substituted.clone(), param_env)
+            })
+            .clone()
+    }
+
+    pub fn local_mir_with_caller(
+        &self,
+        def_id: LocalDefId,
+        caller_def_id: LocalDefId,
+        substs: SubstsRef<'tcx>,
+    ) -> Rc<mir::Body<'tcx>> {
+        // TODO: duplication ...
+        let mut bodies = self.bodies.borrow_mut();
+        let body = bodies.entry(def_id)
+            .or_insert_with(|| {
+                // SAFETY: This is safe because we are feeding in the same `tcx`
+                // that was used to store the data.
+                let body_with_facts = unsafe {
+                    self::mir_storage::retrieve_mir_body(self.tcx, def_id)
+                };
+                let body = body_with_facts.body;
+                let facts = BorrowckFacts {
+                    input_facts: RefCell::new(Some(body_with_facts.input_facts)),
+                    output_facts: body_with_facts.output_facts,
+                    location_table: RefCell::new(Some(body_with_facts.location_table)),
+                };
+
+                CachedBody {
+                    base_body: Rc::new(body),
+                    monomorphised_bodies: HashMap::new(),
+                    borrowck_facts: Rc::new(facts),
+                    monomorphised_bodies_with_caller: HashMap::new(),
+                }
+            });
+        body
+            .monomorphised_bodies_with_caller
+            .entry((substs, caller_def_id))
+            .or_insert_with(|| {
+                let param_env = self.tcx.param_env(caller_def_id);
+                self.tcx.subst_and_normalize_erasing_regions(substs, param_env, body.base_body.clone())
             })
             .clone()
     }
