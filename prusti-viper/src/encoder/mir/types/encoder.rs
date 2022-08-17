@@ -65,7 +65,7 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
     }
 
     fn is_mathematical_type(&self, did: DefId) -> bool {
-        let type_name: &str = &self.encoder.env().tcx().def_path_str(did);
+        let type_name: &str = &self.encoder.env().name.get_absolute_item_name(did);
         matches!(
             type_name,
             "prusti_contracts::Seq"
@@ -132,7 +132,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             }
 
             ty::TyKind::Adt(adt_def, substs) if adt_def.is_struct() => {
-                let type_name: &str = &self.encoder.env().tcx().def_path_str(adt_def.did());
+                let type_name: &str = &self
+                    .encoder
+                    .env()
+                    .name
+                    .get_absolute_item_name(adt_def.did());
 
                 let enc_substs = self
                     .encode_substs(substs)
@@ -282,12 +286,12 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
             | ty::TyKind::Placeholder(_)
             | ty::TyKind::Infer(_)
             | ty::TyKind::Error(_) => MultiSpan::new(),
-            ty::TyKind::Adt(adt, _) => self.encoder.env().get_def_span(adt.did()).into(),
+            ty::TyKind::Adt(adt, _) => self.encoder.env().query.get_def_span(adt.did()).into(),
             ty::TyKind::Foreign(did)
             | ty::TyKind::FnDef(did, _)
             | ty::TyKind::Closure(did, _)
             | ty::TyKind::Generator(did, _, _)
-            | ty::TyKind::Opaque(did, _) => self.encoder.env().get_def_span(*did).into(),
+            | ty::TyKind::Opaque(did, _) => self.encoder.env().query.get_def_span(did).into(),
         }
     }
 
@@ -392,7 +396,11 @@ impl<'p, 'v, 'r: 'v, 'tcx: 'v> TypeEncoder<'p, 'v, 'tcx> {
                     .collect(),
             ),
             ty::TyKind::Adt(adt_def, substs) if self.is_mathematical_type(adt_def.did()) => {
-                let type_name: &str = &self.encoder.env().tcx().def_path_str(adt_def.did());
+                let type_name: &str = &self
+                    .encoder
+                    .env()
+                    .name
+                    .get_absolute_item_name(adt_def.did());
                 let enc_substs = self.encode_substs(substs).into_iter().collect::<Vec<_>>();
                 match type_name {
                     "prusti_contracts::Seq" => vir::TypeDecl::Sequence(vir::type_decl::Sequence {
@@ -644,7 +652,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
         if !config::unsafe_core_proof() {
             return Err(SpannedEncodingError::unsupported(
                 "unions are not supported",
-                encoder.env().get_def_span(adt_def.did()),
+                encoder.env().query.get_def_span(adt_def.did()),
             ));
         }
         assert!(variant_index.is_none());
@@ -758,7 +766,7 @@ pub(super) fn encode_adt_def<'v, 'tcx>(
     } else {
         Err(SpannedEncodingError::internal(
             format!("unexpected variant of adt_def: {:?}", adt_def),
-            encoder.env().get_def_span(adt_def.did()),
+            encoder.env().query.get_def_span(adt_def.did()),
         ))
     }
 }

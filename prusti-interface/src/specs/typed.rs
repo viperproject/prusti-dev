@@ -1,4 +1,4 @@
-use crate::{environment::Environment, PrustiError, utils::has_trait_bounds_ghost_constraint};
+use crate::{environment::Environment, utils::has_trait_bounds_ghost_constraint, PrustiError};
 pub use common::{SpecIdRef, SpecType, SpecificationId};
 use log::trace;
 use prusti_rustc_interface::{
@@ -6,9 +6,9 @@ use prusti_rustc_interface::{
     macros::{TyDecodable, TyEncodable},
 };
 use prusti_specs::specifications::common;
+use regex::Regex;
 use rustc_hash::FxHashMap;
 use std::fmt::{Debug, Display, Formatter};
-use regex::Regex;
 
 /// A map of specifications keyed by crate-local DefIds.
 #[derive(Default, Debug, Clone)]
@@ -55,25 +55,70 @@ impl DefSpecificationMap {
         self.ghost_end.get(def_id)
     }
 
+    pub(crate) fn defid_for_export(&self) -> (
+        // Specs
+        Vec<DefId>,
+        // Pure fns
+        Vec<DefId>,
+        // Predicates
+        Vec<DefId>,
+    ) {
+        let mut specs = Vec::new();
+        let mut pure_fns = Vec::new();
+        let mut predicates = Vec::new();
+        for (def_id, spec_graph) in &self.proc_specs {
+            let all_specs = std::iter::once(&spec_graph.base_spec)
+                .chain(spec_graph.specs_with_constraints.values());
+            for spec in all_specs {
+                if let Some(pres) = spec.pres.extract_with_selective_replacement() {
+                    specs.extend(pres);
+                }
+                if let Some(posts) = spec.posts.extract_with_selective_replacement() {
+                    specs.extend(posts);
+                }
+                if let Some(pledges) = spec.pledges.extract_with_selective_replacement() {
+                    specs.extend(pledges.iter().filter_map(|pledge| pledge.lhs));
+                    specs.extend(pledges.iter().map(|pledge| pledge.rhs));
+                }
+                if spec.kind.is_pure().expect("Expected pure") &&
+                    !spec.trusted.extract_inherit().expect("Expected trusted")
+                {
+                    pure_fns.push(*def_id)
+                }
+                if let Some(ProcedureSpecificationKind::Predicate(Some(def_id))) = spec.kind.extract_with_selective_replacement() {
+                    predicates.push(*def_id);
+                }
+            }
+        }
+        for (_, spec) in &self.type_specs {
+            if let Some(invariants) = spec.invariant.extract_with_selective_replacement() {
+                specs.extend(invariants);
+            }
+        }
+        (specs, pure_fns, predicates)
+    }
+
     pub(crate) fn import_external(
         &mut self,
         proc_specs: FxHashMap<DefId, SpecGraph<ProcedureSpecification>>,
         type_specs: FxHashMap<DefId, TypeSpecification>,
         env: &Environment,
     ) {
-        let duplicate_error = |item_id, spec_id_a: DefId, spec_id_b: DefId|
+        let duplicate_error = |item_id, spec_id_a: DefId, spec_id_b: DefId| {
             PrustiError::incorrect(
                 format!(
                     "duplicate specification for `{}` from crate `{}` and `{}`",
-                    env.get_item_name(item_id),
-                    env.crate_name(spec_id_a.krate),
-                    env.crate_name(spec_id_b.krate),
+                    env.name.get_item_name(item_id),
+                    env.name.crate_name(spec_id_a.krate),
+                    env.name.crate_name(spec_id_b.krate),
                 ),
                 crate::specs::MultiSpan::from_spans(vec![
-                    env.get_def_span(spec_id_a),
-                    env.get_def_span(spec_id_b),
+                    env.query.get_def_span(spec_id_a),
+                    env.query.get_def_span(spec_id_b),
                 ]),
-            ).emit(env);
+            )
+            .emit(&env.diagnostic)
+        };
         for (k, v) in proc_specs {
             if let Some(other) = self.proc_specs.insert(k, v) {
                 let v = self.proc_specs.get(&k).unwrap();
@@ -415,7 +460,7 @@ impl SpecGraph<ProcedureSpecification> {
         spec: LocalDefId,
         env: &Environment<'tcx>,
     ) -> Option<SpecConstraintKind> {
-        let attrs = env.get_local_attributes(spec);
+        let attrs = env.query.get_local_attributes(spec);
         if has_trait_bounds_ghost_constraint(attrs) {
             return Some(SpecConstraintKind::ResolveGenericParamTraitBounds);
         }
@@ -426,8 +471,8 @@ impl SpecGraph<ProcedureSpecification> {
 #[derive(Debug, Clone, PartialEq, Eq, TyEncodable, TyDecodable)]
 pub struct Pledge {
     pub reference: Option<()>, // TODO: pledge references
-    pub lhs: Option<LocalDefId>,
-    pub rhs: LocalDefId,
+    pub lhs: Option<DefId>,
+    pub rhs: DefId,
 }
 
 /// A specification, such as preconditions or a `#[pure]` annotation.
@@ -650,7 +695,7 @@ impl<T: Debug + Clone + PartialEq> Refinable for SpecificationItem<T> {
             Empty => Inherited(other_val.clone()),
             Inherent(val) | Inherited(val) => Refined(other_val.clone(), val),
             Refined(from, val) if &from == other_val => Refined(from, val),
-            Refined(_, _) => panic!("Can not refine this refined item")
+            Refined(_, _) => panic!("Can not refine this refined item"),
         };
 
         trace!("\t -> {:?}", refined);
@@ -668,7 +713,7 @@ impl Refinable for ProcedureSpecification {
         fn replace_empty<'a, T>(empty: &'a SpecVec<T>, spec: &'a SpecVec<T>) -> &'a SpecVec<T> {
             match spec {
                 SpecificationItem::Empty => empty,
-                other => other
+                other => other,
             }
         }
         ProcedureSpecification {

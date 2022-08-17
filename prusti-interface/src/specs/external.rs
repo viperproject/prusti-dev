@@ -6,7 +6,7 @@ use prusti_rustc_interface::middle::{hir::map::Map};
 use prusti_rustc_interface::span::Span;
 use prusti_rustc_interface::errors::MultiSpan;
 
-use crate::{environment::Environment, PrustiError};
+use crate::{environment::{Environment, EnvDiagnostic, EnvQuery, EnvName}, PrustiError};
 use std::collections::HashMap;
 use prusti_specs::ExternSpecKind;
 use prusti_rustc_interface::middle::ty::subst::SubstsRef;
@@ -54,10 +54,10 @@ pub enum ExternSpecDeclaration {
 
 impl ExternSpecDeclaration {
     /// Constructs [ExternSpecDeclaration] from a method call with the given substitutions.
-    fn from_method_call<'tcx>(def_id: DefId, substs: SubstsRef<'tcx>, env: &Environment<'tcx>) -> Self {
-        let is_impl_method = env.tcx().impl_of_method(def_id).is_some();
-        let is_trait_method = env.tcx().trait_of_item(def_id).is_some();
-        let maybe_impl_def_id = env.find_impl_of_trait_method_call(def_id, substs);
+    fn from_method_call<'tcx>(def_id: DefId, substs: SubstsRef<'tcx>, env_query: EnvQuery<'tcx>) -> Self {
+        let is_impl_method = env_query.is_trait_method_impl(def_id);
+        let is_trait_method = env_query.is_trait_method(def_id);
+        let maybe_impl_def_id = env_query.find_impl_of_trait_method_call(def_id, substs);
 
         if is_trait_method && maybe_impl_def_id.is_none() {
             Self::Trait(def_id)
@@ -83,8 +83,9 @@ impl ExternSpecDeclaration {
 
 /// This struct is used to build a mapping of external functions to their
 /// Prusti specifications (see `extern_fn_map`).
-pub struct ExternSpecResolver<'v, 'tcx: 'v> {
-    env: &'v Environment<'tcx>,
+pub struct ExternSpecResolver<'tcx> {
+    env_name: EnvName<'tcx>,
+    env_query: EnvQuery<'tcx>,
 
     /// Maps real functions to Prusti-generated fake functions with specifications.
     pub extern_fn_map: HashMap<ExternSpecDeclaration, DefId>,
@@ -97,10 +98,11 @@ pub struct ExternSpecResolver<'v, 'tcx: 'v> {
     errors: Vec<ExternSpecResolverError>,
 }
 
-impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
-    pub fn new(env: &'v Environment<'tcx>) -> Self {
+impl<'tcx> ExternSpecResolver<'tcx> {
+    pub fn new(env: &Environment<'tcx>) -> Self {
         Self {
-            env,
+            env_name: env.name,
+            env_query: env.query,
             extern_fn_map: HashMap::new(),
             spec_duplicates: HashMap::new(),
             errors: vec![],
@@ -124,13 +126,13 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
         extern_spec_kind: ExternSpecKind,
     ) {
         let mut visitor = ExternSpecVisitor {
-            env: self.env,
+            env_query: self.env_query,
             spec_found: None,
         };
         visitor.visit_fn(fn_kind, fn_decl, body_id, span, id);
-        let current_def_id = self.env.tcx().hir().local_def_id(id).to_def_id();
+        let current_def_id = self.env_query.hir().local_def_id(id).to_def_id();
         if let Some((target_def_id, substs, span)) = visitor.spec_found {
-            let extern_spec_decl = ExternSpecDeclaration::from_method_call(target_def_id, substs, self.env);
+            let extern_spec_decl = ExternSpecDeclaration::from_method_call(target_def_id, substs, self.env_query);
 
             if matches!(extern_spec_kind, ExternSpecKind::Trait) &&
                 !matches!(extern_spec_decl, ExternSpecDeclaration::Trait(_)) {
@@ -143,7 +145,7 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
             {
                 // TODO: this resolution happens here but also in SpecCollector
                 // maybe it can be done once only?
-                let (resolved_def_id, _) = self.env.resolve_method_call(
+                let (resolved_def_id, _) = self.env_query.resolve_method_call(
                     current_def_id,
                     target_def_id,
                     substs,
@@ -159,9 +161,12 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
                     // type substitutions applied.
                     // TODO: there is more that we could check, e.g. that trait
                     // constraints are the same (otherwise specs might not make sense)
-                    if self.env.identity_substs(resolved_def_id).len() != self.env.identity_substs(current_def_id).len() {
-                        let diff = self.env.identity_substs(resolved_def_id).len() as isize
-                                            - self.env.identity_substs(current_def_id).len() as isize;
+                    let (resolved_gens, current_gens) = (
+                        self.env_query.identity_substs(resolved_def_id).len(),
+                        self.env_query.identity_substs(current_def_id).len()
+                    );
+                    if resolved_gens != current_gens {
+                        let diff = resolved_gens as isize - current_gens as isize;
                         self.errors.push(
                             ExternSpecResolverError::InvalidGenerics(diff, resolved_def_id, span),
                         );
@@ -201,38 +206,38 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
     }
 
     /// Report errors encountered when resolving extern specs
-    pub fn check_errors(&self, env: &Environment<'tcx>) {
-        self.check_duplicates(env);
+    pub fn check_errors(&self, env_diagnostic: &EnvDiagnostic<'tcx>) {
+        self.check_duplicates(env_diagnostic);
 
         for error in self.errors.iter() {
             match error {
                 // TODO: branches look very similar
                 ExternSpecResolverError::InvalidExternSpecForTraitImpl(def_id, span) => {
-                    let function_name = env.get_item_name(*def_id);
+                    let function_name = self.env_name.get_item_name(*def_id);
                     let err_note = format!("Defined an external spec for trait method '{}'. Use '#[extern_spec] impl TheTrait for TheStruct {{ ... }}' syntax instead.", function_name);
                     PrustiError::incorrect(
                         "Invalid external specification",
                         MultiSpan::from_span(*span),
                     ).add_note(err_note, None)
-                        .emit(env);
+                        .emit(env_diagnostic);
                 }
                 ExternSpecResolverError::InvalidGenerics(diff, def_id, span) => {
-                    let function_name = env.get_item_name(*def_id);
+                    let function_name = self.env_name.get_item_name(*def_id);
                     let err_note = format!("Invalid type parameters for method '{}'. The number of type parameters must match the target method; change by {} to get rid of this error.", function_name, diff);
                     PrustiError::incorrect(
                         "Invalid external specification",
                         MultiSpan::from_span(*span),
                     ).add_note(err_note, None)
-                        .emit(env);
+                        .emit(env_diagnostic);
                 }
                 ExternSpecResolverError::ResolvedToDefault(def_id, span) => {
-                    let function_name = env.get_item_name(*def_id);
+                    let function_name = self.env_name.get_item_name(*def_id);
                     let err_note = format!("Specified method ('{}') resolved to the trait's implementation. Add specification to the trait instead.", function_name);
                     PrustiError::incorrect(
                         "Invalid external specification",
                         MultiSpan::from_span(*span),
                     ).add_note(err_note, None)
-                        .emit(env);
+                        .emit(env_diagnostic);
                 }
             }
         }
@@ -240,13 +245,13 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
 
     /// Report errors for duplicate specifications found during specification
     /// collection.
-    fn check_duplicates(&self, env: &Environment<'tcx>) {
+    fn check_duplicates(&self, env_diagnostic: &EnvDiagnostic<'tcx>) {
         for (&def_id, specs) in self.spec_duplicates.iter() {
-            let function_name = env.get_item_name(def_id);
+            let function_name = self.env_name.get_item_name(def_id);
             PrustiError::incorrect(
                 format!("duplicate specification for {}", function_name),
                 MultiSpan::from_spans(specs.iter().map(|s| s.1).collect()),
-            ).emit(env);
+            ).emit(env_diagnostic);
         }
     }
 }
@@ -257,17 +262,17 @@ impl<'v, 'tcx: 'v> ExternSpecResolver<'v, 'tcx> {
 ///
 /// TODO: is the HIR representation stable enought that this could be
 /// accomplished by a nested match rather than a full visitor?
-struct ExternSpecVisitor<'v, 'tcx: 'v> {
-    env: &'v Environment<'tcx>,
+struct ExternSpecVisitor<'tcx> {
+    env_query: EnvQuery<'tcx>,
     spec_found: Option<(DefId, SubstsRef<'tcx>, Span)>,
 }
 
-impl<'v, 'tcx: 'v> Visitor<'tcx> for ExternSpecVisitor<'v, 'tcx> {
+impl<'tcx> Visitor<'tcx> for ExternSpecVisitor<'tcx> {
     type Map = Map<'tcx>;
     type NestedFilter =prusti_rustc_interface::middle::hir::nested_filter::All;
 
     fn nested_visit_map(&mut self) -> Self::Map {
-        self.env.tcx().hir()
+        self.env_query.hir()
     }
 
     fn visit_expr(&mut self, ex: &'tcx prusti_rustc_interface::hir::Expr<'tcx>) {
@@ -277,7 +282,7 @@ impl<'v, 'tcx: 'v> Visitor<'tcx> for ExternSpecVisitor<'v, 'tcx> {
         if let prusti_rustc_interface::hir::ExprKind::Call(callee_expr, _arguments) = ex.kind {
             if let prusti_rustc_interface::hir::ExprKind::Path(ref qself) = callee_expr.kind {
                 let tyck_res = self
-                    .env.tcx()
+                    .env_query.tcx()
                     .typeck(callee_expr.hir_id.owner);
                 let substs = tyck_res.node_substs(callee_expr.hir_id);
                 let res = tyck_res.qpath_res(qself, callee_expr.hir_id);

@@ -1,15 +1,18 @@
 use prusti_rustc_interface::{
     ast::ast,
     errors::MultiSpan,
-    hir::{def_id::{CrateNum, DefId, LocalDefId, LOCAL_CRATE}, intravisit},
-    middle::{hir::map::Map, ty::TyCtxt},
+    hir::{
+        def_id::{CrateNum, DefId, LocalDefId, LOCAL_CRATE},
+        intravisit,
+    },
+    middle::hir::map::Map,
     serialize::{Decodable, Encodable},
-    span::{DUMMY_SP, Span}
+    span::{Span, DUMMY_SP},
 };
 use rustc_hash::FxHashMap;
 
 use crate::{
-    environment::Environment,
+    environment::{Environment, body::CrossCrateBodies},
     utils::{
         has_abstract_predicate_attr, has_extern_spec_attr, has_prusti_attr, read_prusti_attr,
         read_prusti_attrs,
@@ -18,8 +21,12 @@ use crate::{
 };
 use log::debug;
 use std::{
-    collections::HashMap, convert::TryInto, fmt::Debug, fs,
-    io::{Read, Write, Result}, path::{Path, PathBuf}
+    collections::HashMap,
+    convert::TryInto,
+    fmt::Debug,
+    fs,
+    io::{Read, Result, Write},
+    path::{Path, PathBuf},
 };
 
 pub mod checker;
@@ -36,8 +43,7 @@ use crate::specs::{
 };
 use prusti_specs::specifications::common::SpecificationId;
 
-use self::decoder::DefSpecsDecoder;
-use self::encoder::DefSpecsEncoder;
+use self::{decoder::DefSpecsDecoder, encoder::DefSpecsEncoder};
 
 #[derive(Debug)]
 struct ProcedureSpecRefs {
@@ -58,9 +64,8 @@ struct TypeSpecRefs {
 /// a mapping of DefIds (which may not be local due to extern specs) to their
 /// [typed::SpecificationSet], i.e. procedures, loop invariants, and structs.
 pub struct SpecCollector<'a, 'tcx: 'a> {
-    tcx: TyCtxt<'tcx>,
-    env: &'a Environment<'tcx>,
-    extern_resolver: ExternSpecResolver<'a, 'tcx>,
+    env: &'a mut Environment<'tcx>,
+    extern_resolver: ExternSpecResolver<'tcx>,
 
     /// Map from specification IDs to their typed expressions.
     spec_functions: HashMap<SpecificationId, LocalDefId>,
@@ -76,12 +81,10 @@ pub struct SpecCollector<'a, 'tcx: 'a> {
 }
 
 impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
-    pub fn new(env: &'a Environment<'tcx>) -> Self {
-        let tcx = env.tcx();
+    pub fn new(env: &'a mut Environment<'tcx>) -> Self {
         Self {
-            tcx,
-            env,
             extern_resolver: ExternSpecResolver::new(env),
+            env,
             spec_functions: HashMap::new(),
             procedure_specs: HashMap::new(),
             loop_specs: vec![],
@@ -94,7 +97,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     pub fn build_def_specs(
-        &self,
+        &mut self,
         build_output_dir: &Option<PathBuf>,
     ) -> typed::DefSpecificationMap {
         let mut def_spec = typed::DefSpecificationMap::new();
@@ -113,11 +116,16 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         if let Some(build_output_dir) = build_output_dir {
             // Then, write those to the export file
             let target_filename = self.get_crate_specs_path(build_output_dir, LOCAL_CRATE);
-            if let Err(e) = Self::write_into_file(&def_spec, self.env, self.tcx, target_filename.as_path()) {
+            if let Err(e) = self.write_into_file(&def_spec, target_filename.as_path()) {
                 PrustiError::internal(
-                    format!("error exporting specs to file \"{}\": {}", target_filename.to_string_lossy(), e),
+                    format!(
+                        "error exporting specs to file \"{}\": {}",
+                        target_filename.to_string_lossy(),
+                        e
+                    ),
                     DUMMY_SP.into(),
-                ).emit(self.env);
+                )
+                .emit(&self.env.diagnostic);
             }
             // Lastly, load all external MIR bodies
             self.import_specs_from_dependencies(&mut def_spec, build_output_dir);
@@ -130,14 +138,14 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         let mut path = build_output_dir.join("serialized_specs");
         path.push(format!(
             "{}-{:x}.bin",
-            self.tcx.crate_name(crate_num),
-            self.tcx.stable_crate_id(crate_num).to_u64(),
+            self.env.name.crate_name(crate_num),
+            self.env.query.tcx().stable_crate_id(crate_num).to_u64(),
         ));
         path
     }
 
     fn import_specs_from_dependencies(
-        &self,
+        &mut self,
         def_spec: &mut typed::DefSpecificationMap,
         build_output_dir: &Path,
     ) {
@@ -146,53 +154,64 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         // Otherwise the crate doesn't show up in `tcx.crates()`.  Is there some better way
         // to get dependency crates, which doesn't ignore unused ones? Maybe:
         // https://doc.rust-lang.org/stable/nightly-rustc/rustc_metadata/creader/struct.CrateMetadataRef.html#method.dependencies
-        for crate_num in self.tcx.crates(()) {
+        for crate_num in self.env.query.tcx().crates(()) {
             if *crate_num == LOCAL_CRATE {
                 continue;
             }
 
             let file = self.get_crate_specs_path(build_output_dir, *crate_num);
             if file.is_file() {
-                if let Err(e) = Self::import_from_file(def_spec, self.env, self.tcx, &file) {
+                if let Err(e) = self.import_from_file(def_spec, &file) {
                     PrustiError::internal(
-                        format!("error importing specs from file \"{}\": {}", file.to_string_lossy(), e),
+                        format!(
+                            "error importing specs from file \"{}\": {}",
+                            file.to_string_lossy(),
+                            e
+                        ),
                         DUMMY_SP.into(),
-                    ).emit(self.env);
+                    )
+                    .emit(&self.env.diagnostic);
                 }
             }
         }
     }
 
-    fn write_into_file(def_spec: &typed::DefSpecificationMap, env: &Environment<'tcx>, tcx: TyCtxt<'tcx>, path: &Path) -> Result<usize> {
-        let mut encoder = DefSpecsEncoder::new(tcx);
+    fn write_into_file(
+        &self,
+        def_spec: &typed::DefSpecificationMap,
+        path: &Path,
+    ) -> Result<usize> {
+        let mut encoder = DefSpecsEncoder::new(self.env.query.tcx());
         def_spec.proc_specs.encode(&mut encoder);
         def_spec.type_specs.encode(&mut encoder);
-        env.bodies_for_export().encode(&mut encoder);
+        CrossCrateBodies::from(&self.env.body).encode(&mut encoder);
 
         fs::create_dir_all(path.parent().unwrap())?;
         let mut file = fs::File::create(path)?;
         file.write(&encoder.into_inner())
     }
 
-    fn import_from_file(def_spec: &mut typed::DefSpecificationMap, env: &Environment<'tcx>, tcx: TyCtxt<'tcx>, path: &Path) -> Result<()> {
+    fn import_from_file(
+        &mut self,
+        def_spec: &mut typed::DefSpecificationMap,
+        path: &Path,
+    ) -> Result<()> {
         let mut data = Vec::new();
         let mut file = fs::File::open(path)?;
         file.read_to_end(&mut data)?;
-        let mut decoder = DefSpecsDecoder::new(tcx, &data);
+        let mut decoder = DefSpecsDecoder::new(self.env.query.tcx(), &data);
 
         let proc_specs = FxHashMap::decode(&mut decoder);
         let type_specs = FxHashMap::decode(&mut decoder);
-        let mirs_of_specs = FxHashMap::decode(&mut decoder);
-        def_spec.import_external(proc_specs, type_specs, env);
-        env.import_external_bodies(mirs_of_specs);
+        let mirs_of_specs = CrossCrateBodies::decode(&mut decoder);
+        def_spec.import_external(proc_specs, type_specs, &self.env);
+        self.env.body.import_external_bodies(mirs_of_specs);
         Ok(())
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for (local_id, refs) in self.procedure_specs.iter() {
-            let mut spec = SpecGraph::new(
-                ProcedureSpecification::empty(local_id.to_def_id())
-            );
+            let mut spec = SpecGraph::new(ProcedureSpecification::empty(local_id.to_def_id()));
 
             let mut kind = if refs.abstract_predicate {
                 ProcedureSpecificationKind::Predicate(None)
@@ -218,13 +237,13 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                             reference: None, // FIXME: Currently only `result` is supported.
                             lhs: lhs
                                 .as_ref()
-                                .map(|spec_id| *self.spec_functions.get(spec_id).unwrap()),
-                            rhs: *self.spec_functions.get(rhs).unwrap(),
+                                .map(|spec_id| self.spec_functions.get(spec_id).unwrap().to_def_id()),
+                            rhs: self.spec_functions.get(rhs).unwrap().to_def_id(),
                         });
                     }
                     SpecIdRef::Predicate(spec_id) => {
                         kind = ProcedureSpecificationKind::Predicate(Some(
-                            (*self.spec_functions.get(spec_id).unwrap()).to_def_id(),
+                            self.spec_functions.get(spec_id).unwrap().to_def_id(),
                         ));
                     }
                 }
@@ -240,21 +259,21 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
             if !spec.specs_with_constraints.is_empty()
                 && !prusti_common::config::enable_ghost_constraints()
             {
-                let span = self.env.tcx().def_span(*local_id);
+                let span = self.env.query.get_def_span(*local_id);
                 PrustiError::unsupported(
                     "Ghost constraints need to be enabled with the feature flag `enable_ghost_constraints`",
                     MultiSpan::from(span),
                 )
-                .emit(self.env);
+                .emit(&self.env.diagnostic);
             } else if !spec.specs_with_constraints.is_empty()
                 && !*spec.base_spec.trusted.expect_inherent()
             {
-                let span = self.env.tcx().def_span(*local_id);
+                let span = self.env.query.get_def_span(*local_id);
                 PrustiError::unsupported(
                     "Ghost constraints can only be used on trusted functions",
                     MultiSpan::from(span),
                 )
-                .emit(self.env);
+                .emit(&self.env.diagnostic);
             } else {
                 def_spec.proc_specs.insert(local_id.to_def_id(), spec);
             }
@@ -262,7 +281,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     }
 
     fn determine_extern_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
-        self.extern_resolver.check_errors(self.env);
+        self.extern_resolver.check_errors(&self.env.diagnostic);
         for (extern_spec_decl, spec_id) in self.extern_resolver.extern_fn_map.iter() {
             let target_def_id = extern_spec_decl.get_target_def_id();
 
@@ -270,11 +289,11 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
                 PrustiError::incorrect(
                     format!(
                         "external specification provided for {}, which already has a specification",
-                        self.env.get_item_name(target_def_id)
+                        self.env.name.get_item_name(target_def_id)
                     ),
-                    MultiSpan::from_span(self.env.get_def_span(*spec_id)),
+                    MultiSpan::from_span(self.env.query.get_def_span(spec_id)),
                 )
-                .emit(self.env);
+                .emit(&self.env.diagnostic);
             }
 
             let spec = def_spec.proc_specs.remove(spec_id).unwrap();
@@ -296,12 +315,12 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
     fn determine_type_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
         for (type_id, refs) in self.type_specs.iter() {
             if !refs.invariants.is_empty() && !prusti_common::config::enable_type_invariants() {
-                let span = self.env.tcx().def_span(type_id.to_def_id());
+                let span = self.env.query.get_def_span(*type_id);
                 PrustiError::unsupported(
                     "Type invariants need to be enabled with the feature flag `enable_type_invariants`",
                     MultiSpan::from(span),
                 )
-                .emit(self.env);
+                .emit(&self.env.diagnostic);
             }
 
             def_spec.type_specs.insert(
@@ -354,47 +373,18 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         }
     }
 
-    fn ensure_local_mirs_fetched(&self, def_spec: &mut typed::DefSpecificationMap) {
-
-        // Spec items
-        let proc_specs = def_spec.proc_specs.iter()
-            // collect [DefId]s in specs of all procedures
-            .map(|(_, spec_graph)| &spec_graph.base_spec)
-            .flat_map(|proc_spec| {
-                vec![&proc_spec.pres, &proc_spec.posts].into_iter().filter_map(|spec_item| {
-                    spec_item.extract_with_selective_replacement()
-                })
-                    .flatten()
-            });
-        let type_specs = def_spec.type_specs
-            .values()
-            .filter_map(|ts| ts.invariant.extract_with_selective_replacement())
-            .flatten();
-        for def_id in proc_specs.chain(type_specs) {
-            self.env.load_local_spec_mir(def_id.expect_local());
-        };
-
-        // Pure functions without trusted annotation
-        let pure_untrusted_fns = def_spec.proc_specs.iter().filter(|(_, spec_graph)|
-            spec_graph.base_spec.kind.is_pure().expect("Expected pure") &&
-            !spec_graph.base_spec.trusted.extract_inherit().expect("Expected trusted")
-        );
-        for (&def_id, _) in pure_untrusted_fns {
-            if self.tcx.is_mir_available(def_id) && !self.tcx.is_constructor(def_id) {
-                self.env.load_pure_function_mir(def_id.expect_local());
+    fn ensure_local_mirs_fetched(&mut self, def_spec: &mut typed::DefSpecificationMap) {
+        let (specs, pure_fns, predicates) = def_spec.defid_for_export();
+        for def_id in specs {
+            self.env.body.load_spec_body(def_id.expect_local());
+        }
+        for def_id in pure_fns {
+            if self.env.query.has_body(def_id) {
+                self.env.body.load_pure_fn_body(def_id.expect_local());
             }
         }
-
-        // Predicates
-        for def_id in def_spec.proc_specs.iter().filter_map(|(_, spec_graph)|
-            spec_graph.base_spec.kind.extract_with_selective_replacement().and_then(|kind|
-                match kind {
-                    ProcedureSpecificationKind::Predicate(Some(def_id)) => Some(def_id),
-                    _ => None
-                }
-            )
-        ) {
-            self.env.load_predicate_mir(def_id.expect_local());
+        for def_id in predicates {
+            self.env.body.load_predicate_body(def_id.expect_local());
         }
     }
 }
@@ -468,19 +458,19 @@ fn get_procedure_spec_ids(def_id: DefId, attrs: &[ast::Attribute]) -> Option<Pro
 
 impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
     type Map = Map<'tcx>;
-    type NestedFilter =prusti_rustc_interface::middle::hir::nested_filter::All;
+    type NestedFilter = prusti_rustc_interface::middle::hir::nested_filter::All;
 
     fn nested_visit_map(&mut self) -> Self::Map {
-        self.tcx.hir()
+        self.env.query.hir()
     }
 
     fn visit_trait_item(&mut self, ti: &'tcx prusti_rustc_interface::hir::TraitItem) {
         intravisit::walk_trait_item(self, ti);
 
         let id = ti.hir_id();
-        let local_id = self.tcx.hir().local_def_id(id);
+        let local_id = self.env.query.hir().local_def_id(id);
         let def_id = local_id.to_def_id();
-        let attrs = self.env.get_local_attributes(ti.def_id);
+        let attrs = self.env.query.get_local_attributes(ti.def_id);
 
         // Collect procedure specifications
         if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
@@ -498,9 +488,9 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
     ) {
         intravisit::walk_fn(self, fn_kind, fn_decl, body_id, span, id);
 
-        let local_id = self.tcx.hir().local_def_id(id);
+        let local_id = self.env.query.hir().local_def_id(id);
         let def_id = local_id.to_def_id();
-        let attrs = self.tcx.hir().attrs(id);
+        let attrs = self.env.query.hir().attrs(id);
 
         // Collect spec functions
         if let Some(raw_spec_id) = read_prusti_attr("spec_id", attrs) {
@@ -518,7 +508,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             // Collect type invariants
             if has_prusti_attr(attrs, "type_invariant_spec") {
                 let self_id = fn_decl.inputs[0].hir_id;
-                let hir = self.tcx.hir();
+                let hir = self.env.query.hir();
                 let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
                 self.type_specs
@@ -531,7 +521,7 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             // Collect trusted type flag
             if has_prusti_attr(attrs, "trusted_type") {
                 let self_id = fn_decl.inputs[0].hir_id;
-                let hir = self.tcx.hir();
+                let hir = self.env.query.hir();
                 let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
                 self.type_specs
@@ -578,10 +568,10 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 
         // Collect closure specifications
         if let prusti_rustc_interface::hir::StmtKind::Local(local) = stmt.kind {
-            let attrs = self.tcx.hir().attrs(local.hir_id);
+            let attrs = self.env.query.hir().attrs(local.hir_id);
             if has_prusti_attr(attrs, "closure") {
                 let init_expr = local.init.expect("closure on Local without assignment");
-                let local_id = self.tcx.hir().local_def_id(init_expr.hir_id);
+                let local_id = self.env.query.hir().local_def_id(init_expr.hir_id);
                 let def_id = local_id.to_def_id();
                 // Collect procedure specifications
                 if let Some(procedure_spec_ref) = get_procedure_spec_ids(def_id, attrs) {
@@ -595,8 +585,9 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 fn get_type_id_from_impl_node(node: prusti_rustc_interface::hir::Node) -> Option<DefId> {
     if let prusti_rustc_interface::hir::Node::Item(item) = node {
         if let prusti_rustc_interface::hir::ItemKind::Impl(item_impl) = &item.kind {
-            if let prusti_rustc_interface::hir::TyKind::Path(prusti_rustc_interface::hir::QPath::Resolved(_, path)) =
-                item_impl.self_ty.kind
+            if let prusti_rustc_interface::hir::TyKind::Path(
+                prusti_rustc_interface::hir::QPath::Resolved(_, path),
+            ) = item_impl.self_ty.kind
             {
                 if let prusti_rustc_interface::hir::def::Res::Def(_, def_id) = path.res {
                     return Some(def_id);

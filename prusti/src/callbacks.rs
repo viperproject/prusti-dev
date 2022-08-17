@@ -72,12 +72,12 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     ) -> Compilation {
         compiler.session().abort_if_errors();
         queries.global_ctxt().unwrap().peek_mut().enter(|tcx| {
-            let env = Environment::new(tcx);
+            let mut env = Environment::new(tcx);
             let spec_checker = specs::checker::SpecChecker::new();
             spec_checker.check(&env);
             compiler.session().abort_if_errors();
 
-            let mut spec_collector = specs::SpecCollector::new(&env);
+            let mut spec_collector = specs::SpecCollector::new(&mut env);
             tcx.hir().walk_toplevel_module(&mut spec_collector);
             tcx.hir().walk_attributes(&mut spec_collector);
 

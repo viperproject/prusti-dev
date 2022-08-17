@@ -26,7 +26,7 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for IllegalModelUsagesChecker {
         }
         .wrap_as_visitor();
 
-        env.tcx().hir().walk_toplevel_module(&mut visit);
+        env.query.hir().walk_toplevel_module(&mut visit);
 
         let illegal_model_usages = visit.wrapped.model_usages_in_non_spec_code;
         illegal_model_usages
@@ -93,7 +93,7 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for ModelDefinedOnTypeWithoutFields {
             tcx: env.tcx(),
             modelled_types: FxHashMap::default(),
         };
-        env.tcx().hir().walk_toplevel_module(&mut collect);
+        env.query.hir().walk_toplevel_module(&mut collect);
 
         // Mark all modelled types as "dangerous", i.e. assume they have no fields
         let mut modelled_types_has_fields: FxHashMap<HirId, bool> = collect
@@ -109,7 +109,7 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for ModelDefinedOnTypeWithoutFields {
                 if let Res::Def(DefKind::Struct, def_id) = path.res {
                     let adt_def = env.tcx().adt_def(def_id);
                     let has_fields = adt_def.all_fields().next().is_some();
-                    let def_path_str = env.tcx().def_path_str(def_id);
+                    let def_path_str = env.name.get_absolute_item_name(def_id);
                     debug!("Type {} has fields: {}", def_path_str, has_fields);
                     modelled_types_has_fields.insert(hir_id, !has_fields);
                     type_names.insert(hir_id, def_path_str);
@@ -121,7 +121,7 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for ModelDefinedOnTypeWithoutFields {
             .into_iter()
             .filter(|(_, has_no_fields)| *has_no_fields)
             .map(|(ty_hir_id_without_fields, _)| {
-                let span = env.tcx().def_span(ty_hir_id_without_fields.owner);
+                let span = env.query.get_def_span(ty_hir_id_without_fields.owner);
                 let message_type_name = type_names.get(&ty_hir_id_without_fields).unwrap();
                 let message = format!("Potentially dangerous type model definition for type '{}'", message_type_name);
 

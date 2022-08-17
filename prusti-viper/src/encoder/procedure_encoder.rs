@@ -136,7 +136,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         let mir = procedure.get_mir();
         let proc_def_id = procedure.get_id();
-        let substs = encoder.env().identity_substs(proc_def_id);
+        let substs = encoder.env().query.identity_substs(proc_def_id);
         let tcx = encoder.env().tcx();
         let mir_encoder = MirEncoder::new(encoder, mir, proc_def_id);
         let init_info = InitInfo::new(mir, tcx, proc_def_id, &mir_encoder)
@@ -381,7 +381,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         self.check_vir()?;
         let method_name = self.cfg_method.name();
-        let source_filename = self.encoder.env().source_file_name();
+        let source_filename = self.encoder.env().name.source_file_name();
 
         self.encoder
             .log_vir_program_before_foldunfold(self.cfg_method.to_string());
@@ -876,7 +876,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             // Multispan to highlight both
             let span = MultiSpan::from_spans(vec![span_lg, span_lb].into_iter().flatten().collect());
             // It's only a warning so we might as well emit it straight away
-            PrustiError::warning(warning_msg, span).emit(self.encoder.env());
+            PrustiError::warning(warning_msg, span).emit(&self.encoder.env().diagnostic);
             None
         };
 
@@ -2289,7 +2289,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     debug!("Encode function call {:?} with substs {:?}", called_def_id, call_substs);
 
                     let full_func_proc_name: &str =
-                        &self.encoder.env().tcx().def_path_str(called_def_id);
+                        &self.encoder.env().name.get_absolute_item_name(called_def_id);
 
                     match full_func_proc_name {
                         "std::rt::begin_panic"
@@ -2478,7 +2478,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             // The called method might be a trait method.
                             // We try to resolve it to the concrete implementation
                             // and type substitutions.
-                            let (called_def_id, call_substs) = self.encoder.env()
+                            let (called_def_id, call_substs) = self.encoder.env().query
                                 .resolve_method_call(self.proc_def_id, called_def_id, call_substs);
 
                             let is_pure_function = self.encoder.is_pure(called_def_id, Some(call_substs)) &&
@@ -2730,7 +2730,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let encoded_idx = self.mir_encoder.encode_operand_place(&args[1])?.unwrap();
         trace!("idx: {:?}", encoded_idx);
         let idx_ty = self.mir_encoder.get_operand_ty(&args[1]);
-        let idx_ident = self.encoder.env().tcx().def_path_str(idx_ty.ty_adt_def().unwrap().did());
+        let idx_ident = self.encoder.env().name.get_absolute_item_name(idx_ty.ty_adt_def().unwrap().did());
         trace!("ident: {}", idx_ident);
 
         self.slice_created_at.insert(location, encoded_lhs);
@@ -2993,9 +2993,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let full_func_proc_name = &self
             .encoder
             .env()
-            .tcx()
-            .def_path_str(called_def_id);
-            // .absolute_item_path_str(called_def_id);
+            .name
+            .get_absolute_item_name(called_def_id);
         debug!("Encoding non-pure function call '{}' with args {:?} and substs {:?}", full_func_proc_name, mir_args, substs);
 
         // Spans for fake exprs that cannot be encoded in viper
@@ -3013,7 +3012,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             .map(|arg| self.mir_encoder.encode_operand_place(arg))
             .collect::<Result<Vec<Option<vir::Expr>>, _>>()
             .with_span(call_site_span)?;
-        if self.encoder.env().tcx().is_closure(called_def_id) {
+        if self.encoder.env().query.is_closure(called_def_id) {
             // Closure calls are wrapped around std::ops::Fn::call(), which receives
             // two arguments: The closure instance, and the tupled-up arguments
             assert_eq!(mir_args.len(), 2);
@@ -3738,7 +3737,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let precondition_spans = MultiSpan::from_spans(
             contract.functional_precondition(self.encoder.env(), substs)
                 .iter()
-                .map(|(ts, _)| self.encoder.env().tcx().def_span(ts))
+                .map(|(ts, _)| self.encoder.env().query.get_def_span(ts))
                 .collect(),
         );
 
@@ -3789,7 +3788,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         if let SpecificationItem::Refined(from, to) = &procedure_spec.pres {
             // See comment in `ProcedureContractGeneric::functional_precondition`.
-            let trait_substs = self.encoder.env().find_trait_method_substs(
+            let trait_substs = self.encoder.env().query.find_trait_method_substs(
                 self.proc_def_id,
                 self.substs,
             ).unwrap().1;
@@ -3823,7 +3822,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             // The spans are used for error reporting
             let spec_functions_span = MultiSpan::from_spans(from.iter().chain(to.iter())
-                .map(|spec_def_id| self.encoder.env().tcx().def_span(spec_def_id)).collect()
+                .map(|spec_def_id| self.encoder.env().query.get_def_span(spec_def_id)).collect()
             );
 
             weakening = Some(RefinementCheckExpr {
@@ -3834,7 +3833,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
         if let SpecificationItem::Refined(from, to) = &procedure_spec.posts {
             // See comment in `ProcedureContractGeneric::functional_precondition`.
-            let trait_substs = self.encoder.env().find_trait_method_substs(
+            let trait_substs = self.encoder.env().query.find_trait_method_substs(
                 self.proc_def_id,
                 self.substs,
             ).unwrap().1;
@@ -3870,7 +3869,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
 
             // The spans are used for error reporting
             let spec_functions_span = MultiSpan::from_spans(from.iter().chain(to.iter())
-                .map(|spec_def_id| self.encoder.env().tcx().def_span(spec_def_id)).collect()
+                .map(|spec_def_id| self.encoder.env().query.get_def_span(spec_def_id)).collect()
             );
 
             let strengthening_expr = self.wrap_arguments_into_old(
@@ -4035,7 +4034,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 );
                 let mut assertion_lhs = if let Some(body_lhs) = body_lhs {
                     self.encoder.encode_assertion(
-                        &body_lhs.to_def_id(),
+                        &body_lhs,
                         Some(pre_label),
                         &encoded_args,
                         Some(&encoded_return),
@@ -4047,7 +4046,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     true.into()
                 };
                 let mut assertion_rhs = self.encoder.encode_assertion(
-                    &body_rhs.to_def_id(),
+                    &body_rhs,
                     Some(pre_label),
                     &encoded_args,
                     Some(&encoded_return),
@@ -4285,7 +4284,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 self.proc_def_id,
                 assertion_substs,
             )?;
-            let assertion_span = self.encoder.env().tcx().def_span(typed_assertion);
+            let assertion_span = self.encoder.env().query.get_def_span(typed_assertion);
             func_spec_spans.push(assertion_span);
             let assertion_pos = self.mir_encoder.register_span(assertion_span);
             assertion = self.wrap_arguments_into_old(
@@ -5121,7 +5120,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             self.proc_def_id,
                             cl_substs,
                         )?);
-                        encoded_spec_spans.push(self.encoder.env().tcx().def_span(spec.invariant.to_def_id()));
+                        encoded_spec_spans.push(self.encoder.env().query.get_def_span(spec.invariant));
                     }
                 }
             }
@@ -5326,10 +5325,10 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         } else {
             // FIXME: why are we getting the MIR body for this?
-            let mir = self.encoder.env().local_body_mir(
+            let mir = self.encoder.env().body.get_impure_fn_body(
                 containing_def_id.expect_local(),
                 // TODO(tymap): identity substs here are probably wrong?
-                self.encoder.env().identity_substs(containing_def_id),
+                self.encoder.env().query.identity_substs(containing_def_id),
             );
             let return_ty = mir.return_ty();
             let arg_tys = mir.args_iter().map(|arg| mir.local_decls[arg].ty).collect();
