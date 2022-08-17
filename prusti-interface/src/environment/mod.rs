@@ -612,22 +612,51 @@ impl<'tcx> Environment<'tcx> {
 
     /// Normalizes associated types in foldable types,
     /// i.e. this resolves projection types ([ty::TyKind::Projection]s)
-    /// **Important:** Regions while be erased during this process
-    pub fn resolve_assoc_types<T: ty::TypeFoldable<'tcx> + std::fmt::Debug + Copy>(&self, normalizable: T, param_env: ty::ParamEnv<'tcx>) -> T {
-        let norm_res = self.tcx.try_normalize_erasing_regions(
-            param_env,
-            normalizable
-        );
+    pub fn resolve_assoc_types<T: ty::TypeFoldable<'tcx> + std::fmt::Debug>(&self, normalizable: T, param_env: ty::ParamEnv<'tcx>) -> T {
+        struct Normalizer<'a, 'tcx> {
+            tcx: &'a ty::TyCtxt<'tcx>,
+            param_env: ty::ParamEnv<'tcx>,
+        }
+        impl<'a, 'tcx> ty::fold::TypeFolder<'tcx> for Normalizer<'a, 'tcx> {
+            fn tcx(&self) -> ty::TyCtxt<'tcx> {
+                *self.tcx
+            }
 
-        match norm_res {
-            Ok(normalized) => {
-                debug!("Normalized {:?}: {:?}", normalizable, normalized);
-                normalized
-            },
-            Err(err) => {
-                debug!("Error while resolving associated types for {:?}: {:?}", normalizable, err);
-                normalizable
+            fn fold_mir_const(&mut self, c: mir::ConstantKind<'tcx>) -> mir::ConstantKind<'tcx> {
+                // rustc by default panics when we execute this TypeFolder on a mir::* type,
+                // but we want to resolve associated types when we retrieve a local mir::Body
+                c
+            }
+
+            fn fold_ty(&mut self, ty: ty::Ty<'tcx>) -> ty::Ty<'tcx> {
+                match ty.kind() {
+                    ty::TyKind::Projection(_) => {
+                        let normalized = self.tcx.infer_ctxt().enter(|infcx| {
+                            use prusti_rustc_interface::trait_selection::traits::{fully_normalize, FulfillmentContext};
+
+                            let normalization_result = fully_normalize(
+                                &infcx,
+                                FulfillmentContext::new(),
+                                ObligationCause::dummy(),
+                                self.param_env,
+                                ty
+                            );
+
+                            match normalization_result {
+                                Ok(res) => res,
+                                Err(errors) => {
+                                    debug!("Error while resolving associated types: {:?}", errors);
+                                    ty
+                                }
+                            }
+                        });
+                        normalized.super_fold_with(self)
+                    }
+                    _ => ty.super_fold_with(self)
+                }
             }
         }
+
+        normalizable.fold_with(&mut Normalizer {tcx: &self.tcx, param_env})
     }
 }
