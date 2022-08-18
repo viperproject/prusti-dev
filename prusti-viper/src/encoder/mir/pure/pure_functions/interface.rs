@@ -17,13 +17,17 @@ use prusti_interface::specs::typed::ProcedureSpecificationKind;
 use std::cell::RefCell;
 use vir_crate::{common::identifier::WithIdentifier, high as vir_high, polymorphic as vir_poly};
 
-/// Key of stored call infos, consisting of the DefId of the called function
-/// and the signature of the function after type substitutions and normalisation
-/// have been applied. The latter is stored to account for different
-/// monomorphisations resulting from the function being called from callers
-/// with different parameter environments. Each variant of a pure function will
-/// be encoded as a separate pure function in Viper.
-type Key<'tcx> = (ProcedureDefId, &'tcx ty::List<ty::Ty<'tcx>>);
+/// Key of stored call infos, consisting of the DefId of the called function,
+/// the normalised type substitutions, and the function signature after type
+/// substitution and normalisation. The second and third components are stored
+/// to account for different monomorphisations resulting from the function
+/// being called from callers (with different parameter environments). Each
+/// variant of a pure function will be encoded as a separate Viper function.
+type Key<'tcx> = (
+    ProcedureDefId,
+    SubstsRef<'tcx>,
+    &'tcx ty::List<ty::Ty<'tcx>>,
+);
 
 /// Compute the key for the given call.
 fn compute_key<'v, 'tcx: 'v>(
@@ -38,8 +42,14 @@ fn compute_key<'v, 'tcx: 'v>(
     } else {
         tcx.fn_sig(proc_def_id)
     };
-    let sig = tcx.subst_and_normalize_erasing_regions(substs, tcx.param_env(caller_def_id), sig);
-    Ok((proc_def_id, sig.inputs_and_output().skip_binder()))
+    let param_env = tcx.param_env(caller_def_id);
+    let sig = tcx.subst_and_normalize_erasing_regions(substs, param_env, sig);
+    let substs = tcx.subst_and_normalize_erasing_regions(
+        substs,
+        param_env,
+        encoder.env().identity_substs(proc_def_id),
+    );
+    Ok((proc_def_id, substs, sig.inputs_and_output().skip_binder()))
 }
 
 type FunctionConstructor<'v, 'tcx> = Box<
@@ -411,7 +421,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             .pure_function_encoder_state
             .call_infos_poly
             .borrow_mut();
-        if !call_infos.contains_key(&key) {
+        if let std::collections::hash_map::Entry::Vacant(e) = call_infos.entry(key) {
             // Compute information necessary to encode the function call and
             // memoize it.
             let pure_function_encoder = PureFunctionEncoder::new(
@@ -443,7 +453,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                     substs,
                 });
 
-            call_infos.insert(key, function_call_info);
+            e.insert(function_call_info);
         }
         let function_call_info = &call_infos[&key];
 
@@ -471,7 +481,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             .pure_function_encoder_state
             .call_infos_high
             .borrow_mut();
-        if !call_infos.contains_key(&key) {
+        if let std::collections::hash_map::Entry::Vacant(e) = call_infos.entry(key) {
             // Compute information necessary to encode the function call and
             // memoize it.
             let function_call_info = super::new_encoder::encode_function_call_info(
@@ -499,7 +509,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 let _ = self.encode_pure_function_use(proc_def_id, parent_def_id, substs)?;
             }
 
-            call_infos.insert(key, function_call_info);
+            e.insert(function_call_info);
         }
         let function_call_info = &call_infos[&key];
 

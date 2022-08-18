@@ -99,7 +99,7 @@ impl Function {
 
 pub fn compute_identifier(
     name: &str,
-    _type_arguments: &[Type],
+    type_arguments: &[Type],
     formal_args: &[LocalVar],
     return_type: &Type,
 ) -> String {
@@ -123,21 +123,17 @@ pub fn compute_identifier(
         }
     }
     identifier.push_str("__$TY$__");
+    // Include the type parameters of the function in the function name
+    for arg in type_arguments {
+        identifier.push_str(&type_name(arg));
+        identifier.push('$');
+    }
+    // Include the signature of the function in the function name
     for arg in formal_args {
         identifier.push_str(&type_name(&arg.typ));
         identifier.push('$');
     }
     identifier.push_str(&type_name(return_type));
-    /*
-    // Include the signature of the function in the function name
-    if !type_arguments.is_empty() {
-        identifier.push_str("__$TY$__");
-    }
-    for arg in type_arguments {
-        identifier.push_str(&type_name(arg));
-        identifier.push('$');
-    }
-    */
     identifier
 }
 

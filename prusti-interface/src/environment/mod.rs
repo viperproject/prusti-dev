@@ -55,7 +55,10 @@ struct CachedBody<'tcx> {
     monomorphised_bodies: HashMap<SubstsRef<'tcx>, Rc<mir::Body<'tcx>>>,
     /// Cached borrowck information.
     borrowck_facts: Rc<BorrowckFacts>,
-
+    /// Copies of the MIR body with the given substs applied, called from the
+    /// given caller. This also allows for associated types to be correctly
+    /// normalised.
+    /// TODO: merge more nicely with monomorphised_bodies?
     monomorphised_bodies_with_caller: HashMap<(SubstsRef<'tcx>, LocalDefId), Rc<mir::Body<'tcx>>>,
 }
 
