@@ -173,8 +173,38 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
         // Computation left to do
         let mut dirty_blocks = self.initial_state();
+        let mut done_blocks: Vec<BasicBlock> = vec![];
 
-        while let Some((bb, mut pcs)) = dirty_blocks.pop() {
+        loop {
+            // Search dirty_blocks for block with all preds marked done
+            let bb: BasicBlock;
+            let mut pcs: PCS<'tcx>;
+
+            if let Some((next_bb, next_pcs)) = &dirty_blocks
+                .iter()
+                .filter(|(b, _)| {
+                    !done_blocks.contains(b)
+                        && self.mir.predecessors()[*b]
+                            .iter()
+                            .all(|bp| done_blocks.contains(bp))
+                })
+                .next()
+            {
+                println!("{:?}", next_bb);
+                println!("   {:?}", done_blocks);
+                println!("   {:?}", dirty_blocks);
+
+                bb = (*next_bb).clone();
+                pcs = next_pcs.clone();
+            } else if dirty_blocks.len() == 0 {
+                break;
+            } else {
+                return Err(PrustiError::unsupported(
+                    "MIR cycle detected",
+                    MultiSpan::new(),
+                ));
+            }
+
             // Translate the basic block bb, starting with PCS pcs
             //  (this should be the exact PCS that all in-edges end up with)
             let block_data = self.get_block_data(&bb)?;
@@ -218,9 +248,9 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                             self.alloc_analysis.get_before_block(next_block)
                         );
                         return Err(PrustiError::internal(
-                            format!("trimmed+packed pcs ({:?}) does not match existing block ({:?}) exiting a join", this_pcs, done_block.body.pcs_before[0]),
-                            MultiSpan::new(),
-                        ));
+                                       format!("trimmed+packed pcs ({:?}) does not match existing block ({:?}) exiting a join", this_pcs, done_block.body.pcs_before[0]),
+                                       MultiSpan::new(),
+                                   ));
                     }
                 } else if let Some(todo_pcs) = dirty_blocks
                     .iter()
@@ -264,6 +294,9 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                     pcs_after,
                 },
             );
+
+            dirty_blocks.retain(|(b, _)| *b != bb);
+            done_blocks.push(bb);
         }
 
         Ok(CondPCS {
@@ -300,64 +333,6 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 statement_index: block_data.mir_parent[statement_index],
             };
             println!("{:?} ----- {:?}", location, statement);
-
-            // if let MicroMirStatement::BorrowMut(p_from, p_to) = statement {
-            //     // println!("{:?}\t{:?}", location, pcs);
-            //     // println!("{:?}\t{:?}", location, statement);
-            //     // op_mir.statements.push(statement.clone());
-            //     // op_mir.pcs_before.push(pcs.clone());
-
-            //     if p_from.ty(&self.mir.local_decls, self.env.tcx()).ty.is_ref() {
-            //         // p_from is a borrow (so it's in the reborrow DAG)
-            //         todo!();
-            //         pcs.dag
-            //             .mutable_borrow(*p_from, parent_loan, *p_to, self.mir, self.env.tcx());
-            //         // EXPECT there are no annotations returned?
-            //     } else {
-            //         // p_from is not a borrow, so a new borrow needs to be created.
-            //         // Both permissions now leave.
-            //         let annotations = pcs.dag.mutable_borrow(
-            //             *p_from,
-            //             parent_loan,
-            //             *p_to,
-            //             self.mir,
-            //             self.env.tcx(),
-            //         );
-            //         println!("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-            //         println!("The annotations are {:?}", annotations);
-            //         println!("The PCS after is {:?}", pcs);
-            //         println!("p_from is {:?}", p_from);
-            //         println!("p_to is {:?}", p_to);
-
-            //         // Apply some annotations?
-            //     }
-
-            //     assert!(pcs.free.remove(&PCSPermission {
-            //         target: LinearResource::Mir((*p_from).clone()),
-            //         kind: Exclusive,
-            //     }));
-
-            //     assert!(pcs.free.remove(&PCSPermission {
-            //         target: LinearResource::Mir((*p_to).clone()),
-            //         kind: Uninit,
-            //     }));
-
-            //     assert!(pcs.free.insert(PCSPermission {
-            //         target: LinearResource::Mir((*p_to).clone()),
-            //         kind: Exclusive,
-            //     }));
-
-            //     println!("The PCS after doing transformations is {:?}", pcs);
-            // }
-
-            // if let MicroMirStatement::BorrowMove(p_from, p_to) = statement {
-            //     // println!("{:?}\t{:?}", location, pcs);
-            //     // println!("{:?}\t{:?}", location, statement);
-            //     // op_mir.statements.push(statement.clone());
-            //     // op_mir.pcs_before.push(pcs.clone());
-
-            //     pcs.dag.r#move(*p_to, *p_from, location);
-            // }
 
             // 0. Apply loans expiring at a place
             println!(
@@ -456,65 +431,6 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
             }
 
             println!("{:?} 2.5 BFX  {:?}", location, pcs);
-
-            // if polonius_apply_places.contains(&statement_index) {
-            //     // println!("\tWORKING ON: apply loans");
-            //     // println!("\t{:?} {:?}", location, pcs);
-            //     // println!(
-            //     //     "\tlive loans {:?}",
-            //     //     self.polonius_info.get_all_active_loans(location)
-            //     // );
-
-            //     // TODO: Print the annotations
-            //     // TODO: What happens on a conditional?!?!
-            //     let perms_into_graph = graph_result
-            //         .added
-            //         .iter()
-            //         .filter(|p| p.tag == None)
-            //         .map(|p| PCSPermission {
-            //             target: LinearResource::Mir(p.place),
-            //             kind: Exclusive,
-            //         })
-            //         .collect::<FxHashSet<_>>();
-
-            //     // Repack so the required permissions are in the right state
-            //     // pcs = self.repack(pcs, &perms_into_graph, op_mir)?;
-
-            //     // println!("\tinto of graph {:?}", perms_into_graph);
-
-            //     let perms_out_of_graph = graph_result
-            //         .removed
-            //         .iter()
-            //         .filter(|p| p.tag == None)
-            //         .map(|p| PCSPermission {
-            //             target: LinearResource::Mir(p.place),
-            //             kind: Exclusive,
-            //         })
-            //         .collect::<FxHashSet<_>>();
-
-            //     // println!("\tout of graph {:?}", perms_out_of_graph);
-
-            //     // println!("Attempting to insert {:?}", perms_out_of_graph);
-            //     // for perm in perms_out_of_graph.into_iter() {
-            //     //     assert!(pcs.free.insert(perm));
-            //     // }
-
-            //     // println!("\tAnnotations: {:?}", graph_result.annotations);
-            //     // println!("\t\tDAG {:?}", pcs.dag);
-
-            //     // println!(
-            //     //     "\t\tUnconditionally Accessible {:?}",
-            //     //     pcs.dag.unconditionally_accessible()
-            //     // );
-            //     // // Ensure any unconditioanlly accessible places are added back into the graph
-            //     // for p in pcs.dag.unconditionally_accessible().iter() {
-            //     //     // (Naive) just insert, don't check if it's already in there or conflicts?
-            //     //     pcs.free.insert(PCSPermission {
-            //     //         target: LinearResource::Mir((*p).clone()),
-            //     //         kind: Exclusive,
-            //     //     });
-            //     // }
-            // }
         }
 
         Ok(pcs)
