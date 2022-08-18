@@ -3,15 +3,14 @@
 use super::encoder::{FunctionCallInfo, FunctionCallInfoHigh, PureFunctionEncoder};
 use crate::encoder::{
     errors::{SpannedEncodingResult, WithSpan},
-    mir::{generics::MirGenericsEncoderInterface, specifications::SpecificationsInterface},
+    mir::specifications::SpecificationsInterface,
     snapshot::interface::SnapshotEncoderInterface,
     stub_function_encoder::StubFunctionEncoder,
 };
 use log::{debug, trace};
 use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
-use prusti_rustc_interface::middle::ty;
-use prusti_rustc_interface::middle::ty::subst::SubstsRef;
+use prusti_rustc_interface::middle::{ty, ty::subst::SubstsRef};
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use prusti_interface::specs::typed::ProcedureSpecificationKind;
@@ -19,43 +18,28 @@ use std::cell::RefCell;
 use vir_crate::{common::identifier::WithIdentifier, high as vir_high, polymorphic as vir_poly};
 
 /// Key of stored call infos, consisting of the DefId of the called function
-/// and (the VIR encoding of) the type substitutions applied to it. This means
-/// that each generic variant of a pure function will be encoded as a separate
-/// pure function in Viper.
+/// and the signature of the function after type substitutions and normalisation
+/// have been applied. The latter is stored to account for different
+/// monomorphisations resulting from the function being called from callers
+/// with different parameter environments. Each variant of a pure function will
+/// be encoded as a separate pure function in Viper.
 type Key<'tcx> = (ProcedureDefId, &'tcx ty::List<ty::Ty<'tcx>>);
-// (ProcedureDefId, ProcedureDefId, Vec<vir_high::Type>);
 
+/// Compute the key for the given call.
 fn compute_key<'v, 'tcx: 'v>(
     encoder: &crate::encoder::encoder::Encoder<'v, 'tcx>,
     proc_def_id: ProcedureDefId,
     caller_def_id: ProcedureDefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<Key<'tcx>> {
-    //let mir_span = encoder.env().tcx().def_span(proc_def_id);
     let tcx = encoder.env().tcx();
     let sig = if tcx.is_closure(proc_def_id) {
         substs.as_closure().sig()
     } else {
         tcx.fn_sig(proc_def_id)
     };
-    let sig = tcx.subst_and_normalize_erasing_regions(
-            substs,
-            tcx.param_env(caller_def_id),
-            sig,
-        );
-    Ok((
-        proc_def_id,
-        sig.inputs_and_output().skip_binder(),
-    ))
-    /*
-    Ok((
-        proc_def_id,
-        caller_def_id,
-        encoder
-            .encode_generic_arguments_high(proc_def_id, substs)
-            .with_span(mir_span)?,
-    ))
-    */
+    let sig = tcx.subst_and_normalize_erasing_regions(substs, tcx.param_env(caller_def_id), sig);
+    Ok((proc_def_id, sig.inputs_and_output().skip_binder()))
 }
 
 type FunctionConstructor<'v, 'tcx> = Box<
@@ -219,7 +203,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 .pure_function_encoder_state
                 .bodies_high
                 .borrow_mut()
-                .insert(key.clone(), body)
+                .insert(key, body)
                 .is_none());
         }
         Ok(self.pure_function_encoder_state.bodies_high.borrow()[&key].clone())
@@ -256,7 +240,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             self.pure_function_encoder_state
                 .bodies_poly
                 .borrow_mut()
-                .insert(key.clone(), body);
+                .insert(key, body);
         }
         Ok(self.pure_function_encoder_state.bodies_poly.borrow()[&key].clone())
     }
@@ -293,7 +277,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
             self.pure_function_encoder_state
                 .pure_functions_encoding_started
                 .borrow_mut()
-                .insert(key.clone());
+                .insert(key);
 
             let mut pure_function_encoder = PureFunctionEncoder::new(
                 self,
@@ -459,7 +443,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                     substs,
                 });
 
-            call_infos.insert(key.clone(), function_call_info);
+            call_infos.insert(key, function_call_info);
         }
         let function_call_info = &call_infos[&key];
 
@@ -515,7 +499,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 let _ = self.encode_pure_function_use(proc_def_id, parent_def_id, substs)?;
             }
 
-            call_infos.insert(key.clone(), function_call_info);
+            call_infos.insert(key, function_call_info);
         }
         let function_call_info = &call_infos[&key];
 
