@@ -32,10 +32,15 @@ fn compute_key<'v, 'tcx: 'v>(
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<Key<'tcx>> {
     //let mir_span = encoder.env().tcx().def_span(proc_def_id);
-    let sig = encoder.env().tcx().fn_sig(proc_def_id);
-    let sig = encoder.env().tcx().subst_and_normalize_erasing_regions(
+    let tcx = encoder.env().tcx();
+    let sig = if tcx.is_closure(proc_def_id) {
+        substs.as_closure().sig()
+    } else {
+        tcx.fn_sig(proc_def_id)
+    };
+    let sig = tcx.subst_and_normalize_erasing_regions(
             substs,
-            encoder.env().tcx().param_env(caller_def_id),
+            tcx.param_env(caller_def_id),
             sig,
         );
     Ok((

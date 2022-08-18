@@ -269,7 +269,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         if config::check_overflows() {
             debug_assert!(self.encoder.env().type_is_copy(
                 self.sig.output(),
-                self.encoder.env().tcx().param_env(self.proc_def_id)
+                self.encoder.env().tcx().param_env(self.parent_def_id)
             ));
             let mut return_bounds: Vec<_> = self
                 .encoder
@@ -288,7 +288,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
                 debug_assert!(self
                     .encoder
                     .env()
-                    .type_is_copy(typ, self.encoder.env().tcx().param_env(self.proc_def_id)));
+                    .type_is_copy(typ, self.encoder.env().tcx().param_env(self.parent_def_id)));
                 let mut bounds = self
                     .encoder
                     .encode_type_bounds(&vir::Expr::local(formal_arg.clone()), typ.skip_binder());
@@ -534,7 +534,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         let ty = self.sig.output();
 
         // Return an error for unsupported return types
-        let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
+        let param_env = self.encoder.env().tcx().param_env(self.parent_def_id);
         if !self.encoder.env().type_is_copy(ty, param_env) {
             return Err(SpannedEncodingError::incorrect(
                 "return type of pure function does not implement Copy",
@@ -561,7 +561,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
             let var_name = format!("{:?}", local);
             let var_span = self.get_local_span(local);
 
-            let param_env = self.encoder.env().tcx().param_env(self.proc_def_id);
+            let param_env = self.encoder.env().tcx().param_env(self.parent_def_id);
             if !self.encoder.env().type_is_copy(local_ty, param_env) {
                 return Err(SpannedEncodingError::incorrect(
                     "pure function parameters must be Copy",
