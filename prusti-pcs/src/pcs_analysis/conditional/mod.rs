@@ -6,7 +6,7 @@
 #![allow(unused_imports)]
 use crate::{
     graph::{ReborrowingGraph::*, *},
-    joins::{RepackPackup, RepackUnify, RepackWeaken},
+    joins::{PermissionSet, RepackJoin, RepackPackup, RepackUnify, RepackWeaken},
     syntax::{
         hoare_semantics::HoareSemantics, LinearResource, MicroMirData, MicroMirEncoder,
         MicroMirEncoding, MicroMirStatement, MicroMirTerminator, PCSPermission, PCSPermissionKind,
@@ -42,9 +42,10 @@ use std::{
 /// INVARIANT: coherent pre- and post- conditions
 /// INVARIANT: len(statements) == len(pcs_before)
 /// todo: remove the pub(crate) permission here... implement iterator.
+#[derive(Debug)]
 pub struct StraightOperationalMir<'tcx> {
-    statements: Vec<MicroMirStatement<'tcx>>,
-    pcs_before: Vec<PCS<'tcx>>,
+    pub statements: Vec<MicroMirStatement<'tcx>>,
+    pub pcs_before: Vec<PCS<'tcx>>,
 }
 
 impl<'tcx> StraightOperationalMir<'tcx> {
@@ -190,17 +191,93 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 })
                 .next()
             {
+                println!("~~~~~~~ next basic block info");
                 println!("{:?}", next_bb);
                 println!("\t{:?}", done_blocks);
                 println!("\t{:?}", dirty_blocks);
-
                 println!("\t{:?}", next_pcs);
 
-                match &next_pcs[..] {
-                    [p1] => {
-                        pcs = (*p1).clone();
+                // let mut futures: Vec<&mut PostBlock<'tcx>> = vec![];
+                // for pred in self.mir.predecessors()[*next_bb].iter() {
+                //     // Borrow the generated block
+                //     let borrow_fut = &mut generated_blocks.get_mut(pred).unwrap().pcs_after;
+                //     // Only one of these is valid but I'm going to do the dumb thing for now
+                //     for fut in borrow_fut.iter_mut() {
+                //         if fut.0.next == *next_bb {
+                //             futures.push(&mut (*fut).0);
+                //         }
+                //     }
+                // }
+
+                // Not going to emit any annotations for now. just hack it.
+                match self.mir.predecessors()[*next_bb].iter().collect::<Vec<_>>()[..] {
+                    [] => {
+                        println!("\t[INIT BLOCK]");
+                        println!("~~~~~~~");
+
+                        pcs = PCS::empty();
                     }
-                    _ => todo!(),
+                    [pred_bb] => {
+                        println!("\t[SINGLE BLOCK]");
+                        println!("~~~~~~~");
+                        pcs = (generated_blocks
+                            .get(pred_bb)
+                            .unwrap()
+                            .pcs_after
+                            .get(0)
+                            .unwrap()
+                            .1)
+                            .clone();
+                    }
+                    [pred_b1, pred_bb2] => {
+                        println!("\t[2-MERGE BLOCK]");
+                        println!("~~~~~~~");
+                        let pcs_a = (generated_blocks
+                            .get(pred_b1)
+                            .unwrap()
+                            .pcs_after
+                            .iter()
+                            .filter(|(pb, _)| pb.next == *next_bb)
+                            .next()
+                            .unwrap()
+                            .1)
+                            .clone();
+                        let pcs_b = (generated_blocks
+                            .get(pred_bb2)
+                            .unwrap()
+                            .pcs_after
+                            .iter()
+                            .filter(|(pb, _)| pb.next == *next_bb)
+                            .next()
+                            .unwrap()
+                            .1)
+                            .clone();
+                        let repack_join = RepackJoin::repack_join(
+                            self.env.tcx(),
+                            self.mir,
+                            self.env,
+                            PermissionSet {
+                                0: pcs_a.free.clone(),
+                            },
+                            PermissionSet {
+                                0: pcs_b.free.clone(),
+                            },
+                        );
+
+                        let mut s1 = StraightOperationalMir::default();
+                        let mut s2 = StraightOperationalMir::default();
+                        pcs = repack_join.apply_join(&mut s1, pcs_a, &mut s2, pcs_b);
+
+                        println!("=============== PCS JOIN ");
+                        println!("next: {:?}", next_bb);
+                        println!("pcs: {:?}", pcs);
+                        println!("s1: {:?}", s1);
+                        println!("s2: {:?}", s2);
+                        println!("=============== ");
+                    }
+                    _ => {
+                        todo!();
+                    }
                 }
                 bb = (*next_bb).clone();
             } else if dirty_blocks.len() == 0 {
@@ -244,11 +321,11 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 let mut this_op_mir = StraightOperationalMir::default();
 
                 // Trim the PCS by way of eager drops (we are now the same mod repacks)
-                this_pcs = self.trim_pcs(next_block, &mut this_pcs, &mut this_op_mir)?;
+                // this_pcs = self.trim_pcs(next_block, &mut this_pcs, &mut this_op_mir)?;
 
                 // Pack to the most packed state possible (we are now identical)
                 // (any unique state works)
-                this_pcs = self.packup(this_pcs, &mut this_op_mir)?;
+                // this_pcs = self.packup(this_pcs, &mut this_op_mir)?;
 
                 // If the next block is not already done, add it as a dirty block (to do)
 
@@ -257,9 +334,6 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                     // We haven't found (and proven) a method to deal with this yet.
                     // Is 1+1 iterations sufficient? Is there a compiler analysis to read off?
                     todo!();
-                } else if let Some(_) = dirty_blocks.iter().filter(|(block, _)| *block == bb).next()
-                {
-                    // Do nothing if already in dirty_blocks
                 } else {
                     if let Some(db) = dirty_blocks
                         .iter_mut()

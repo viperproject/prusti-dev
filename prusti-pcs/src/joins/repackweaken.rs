@@ -7,6 +7,7 @@
 
 #![allow(unused_imports)]
 use crate::{
+    joins::PermissionSet,
     syntax::{
         LinearResource, MicroMirStatement, MicroMirStatement::*, PCSPermission, PCSPermissionKind,
         PCSPermissionKind::*, PCS,
@@ -77,29 +78,6 @@ pub struct RepackWeaken<'tcx> {
 //
 // The string of generated annotations must be coherent and it's result
 // should contain pcs_to
-
-#[derive(Clone, Debug)]
-pub struct PermissionSet<'tcx>(FxHashSet<PCSPermission<'tcx>>);
-
-impl<'tcx> Default for PermissionSet<'tcx> {
-    fn default() -> Self {
-        PermissionSet {
-            0: FxHashSet::default(),
-        }
-    }
-}
-
-impl<'tcx> PermissionSet<'tcx> {
-    pub fn from_vec(vec: Vec<PCSPermission<'tcx>>) -> Self {
-        PermissionSet {
-            0: vec.iter().cloned().collect(),
-        }
-    }
-}
-
-fn usize_place<'tcx>(id: usize) -> mir::Place<'tcx> {
-    mir::Local::from_usize(id).into()
-}
 
 // TO DO NEXT:
 //   Encode to the actual list of Free statements with pcs across them
