@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #![allow(unused_imports)]
 use crate::{
-    graph::{ReborrowingGraph::*, *},
+    graph::{ReborrowingGraph, ReborrowingGraph::*, *},
     joins::{PermissionSet, RepackJoin, RepackPackup, RepackUnify, RepackWeaken},
     syntax::{
         hoare_semantics::HoareSemantics, LinearResource, MicroMirData, MicroMirEncoder,
@@ -129,6 +129,11 @@ impl<'tcx> CondPCS<'tcx> {
                 print!("\tPCS: ");
                 pcs.pprint_contents();
                 println!();
+                if pcs.dag != ReborrowingGraph::Single(Graph::default()) {
+                    print!("\tDAG: ");
+                    pcs.pprint_dag();
+                    println!();
+                }
                 println!("\t\t{:?}", st);
             }
 
@@ -561,7 +566,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
                 // If any prefix of the place is inited, do no insert uninit permission
 
-                if !init_set.contains_prefix_of(p) && alloc_set.contains_prefix_of(p) {
+                if p.projection.len() == 0 {
                     assert!(pcs
                         .free
                         .insert(PCSPermission::new_uninit(LinearResource::Mir(p))));

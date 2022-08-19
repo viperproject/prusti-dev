@@ -154,6 +154,10 @@ impl<'tcx> PCS<'tcx> {
             print!("{:#?}, ", s)
         }
     }
+
+    pub fn pprint_dag(&self) {
+        print!("{:?}", self.dag);
+    }
 }
 
 impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
