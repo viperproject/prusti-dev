@@ -24,17 +24,21 @@ where
         prusti_rustc_path.set_extension("exe");
     }
 
-    // Remove the leading "prusti" argument when `cargo-prusti` is invocated
-    // as `cargo prusti` (note the space)
-    let clean_args = args.skip_while(|x| x == "prusti");
+    let mut args = args.peekable();
+    args.peek_mut().map(|arg|
+        // Remove the leading "prusti" argument when `cargo-prusti` is invocated
+        // as `cargo prusti` (note the space)
+        if arg == "prusti" {
+            *arg = "check".into();
+        }
+    );
 
     let cargo_path = std::env::var("CARGO_PATH").unwrap_or_else(|_| "cargo".to_string());
     let mut cargo_target =
         PathBuf::from(std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string()));
     cargo_target.push("verify");
     let exit_status = Command::new(cargo_path)
-        .arg("check")
-        .args(clean_args)
+        .args(args)
         .env("RUST_TOOLCHAIN", get_rust_toolchain_channel())
         .env("RUSTC_WRAPPER", prusti_rustc_path)
         .env("DEFAULT_PRUSTI_QUIET", "true")

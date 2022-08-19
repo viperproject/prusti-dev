@@ -21,9 +21,9 @@ fn main() {
 }
 
 fn process(mut args: Vec<String>) -> Result<(), i32> {
-    let current_executable_dir = get_current_executable_dir();
+    let prusti_home = get_current_executable_dir();
 
-    let mut prusti_driver_path = current_executable_dir.join("prusti-driver");
+    let mut prusti_driver_path = prusti_home.join("prusti-driver");
     if cfg!(windows) {
         prusti_driver_path.set_extension("exe");
     }
@@ -42,33 +42,36 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     let compiler_bin = prusti_sysroot.join("bin");
     let compiler_lib = prusti_sysroot.join("lib");
 
-    let prusti_home = prusti_driver_path
-        .parent()
-        .expect("Failed to find Prusti's home");
-
     let mut cmd = Command::new(&prusti_driver_path);
 
     add_to_loader_path(vec![compiler_lib, compiler_bin, libjvm_path], &mut cmd);
 
-    prusti_launch::set_environment_settings(&mut cmd, &current_executable_dir, &java_home);
+    prusti_launch::set_environment_settings(&mut cmd, &prusti_home, &java_home);
 
     // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
     // We're invoking the compiler programmatically, so we ignore this
-    if !args.is_empty() && Path::new(&args[0]).file_stem() == Some("rustc".as_ref()) {
+    let cargo_invoked = !args.is_empty() && Path::new(&args[0]).file_stem() == Some("rustc".as_ref());
+    if cargo_invoked {
         args.remove(0);
     }
 
-    // filter out the `prusti-contracts` dependency (if present), because we will
-    // replace it below with a version that is distributed with Prusti.
-    if let Some(remove_index) =
-        args.windows(2)
-            .flat_map(<&[_; 2]>::try_from)
-            .position(|[extern_flag, dependency]| {
-                extern_flag == "--extern" && dependency.starts_with("prusti_contracts=")
-            })
-    {
-        args.remove(remove_index);
-        args.remove(remove_index);
+    // No need to check if we happen to be running on e.g. the `prusti-contracts` crate since this
+    // should always be with `cargo` anyway (i.e. cargo_invoked == true)
+    if !cargo_invoked {
+        // Need to give references to standard prusti libraries
+        let target_dir = prusti_home.parent().unwrap().parent().unwrap()
+            .join("prusti-contracts").join("target").join("verify").join("release");
+        let target_dir = target_dir.as_os_str().to_str().expect("the prusti-contracts path contains invalid UTF-8");
+
+        args.extend([
+            // This is where Prusti looks for exported specs atm (we may want to change this)
+            "--out-dir", &format!("{target_dir}/deps"),
+            // This is where the files we'll link against live
+            "-L", &format!("dependency={target_dir}/deps"),
+            // These are the libraries that files compiled with prusti-rustc get
+            "--extern", &format!("prusti_contracts={target_dir}/libprusti_contracts.rlib"),
+            "--extern", &format!("prusti_contracts_std={target_dir}/libprusti_contracts_std.rlib"),
+        ].into_iter().map(String::from));
     }
     cmd.args(&args);
 
@@ -82,35 +85,6 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
                 .expect("sysroot is not a valid utf-8 string"),
         );
     };
-
-    // only do the following if we're not compiling the `prusti-contracts` dependency:
-    if !args
-        .windows(2)
-        .any(|p| p == ["--crate-name", "prusti_contracts"])
-    {
-        cmd.arg("-L");
-        cmd.arg(format!(
-            "dependency={}",
-            prusti_home
-                .join("deps")
-                .as_os_str()
-                .to_str()
-                .expect("the Prusti HOME path contains invalid UTF-8")
-        ));
-
-        cmd.arg("--extern");
-        let prusti_contracts_path = prusti_home.join("libprusti_contracts.rlib");
-        cmd.arg(format!(
-            "prusti_contracts={}",
-            prusti_contracts_path
-                .as_os_str()
-                .to_str()
-                .expect("the Prusti contracts path contains invalid UTF-8")
-        ));
-
-        // Set the `prusti` compilation flag, used to enable `prusti_contract`'s macros.
-        cmd.arg("--cfg=feature=\"prusti\"");
-    }
 
     // cmd.arg("-Zreport-delayed-bugs");
     // cmd.arg("-Ztreat-err-as-bug=1");

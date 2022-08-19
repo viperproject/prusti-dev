@@ -97,6 +97,9 @@ mod private {
 }
 
 #[cfg(feature = "prusti")]
+pub mod core_spec;
+
+#[cfg(feature = "prusti")]
 mod private {
     use core::{marker::PhantomData, ops::*};
 
@@ -150,6 +153,7 @@ mod private {
     /// which are active only when these bounds are satisfied for a call.
     pub use prusti_contracts_internal::ghost_constraint;
 
+    #[trusted]
     pub fn prusti_set_union_active_field<T>(_arg: T) {
         unreachable!();
     }
@@ -160,10 +164,12 @@ mod private {
     pub struct Int(());
 
     impl Int {
+        #[trusted]
         pub fn new(_: i64) -> Self {
             panic!()
         }
 
+        #[trusted]
         pub fn new_usize(_: usize) -> Self {
             panic!()
         }
@@ -173,6 +179,7 @@ mod private {
         ($($trait:ident $fun:ident),*) => {$(
             impl core::ops::$trait for Int {
                 type Output = Self;
+                #[trusted]
                 fn $fun(self, _other: Self) -> Self {
                     panic!()
                 }
@@ -184,17 +191,20 @@ mod private {
 
     impl Neg for Int {
         type Output = Self;
+        #[trusted]
         fn neg(self) -> Self {
             panic!()
         }
     }
 
     impl PartialOrd for Int {
+        #[trusted]
         fn partial_cmp(&self, _other: &Self) -> Option<core::cmp::Ordering> {
             panic!()
         }
     }
     impl Ord for Int {
+        #[trusted]
         fn cmp(&self, _other: &Self) -> core::cmp::Ordering {
             panic!()
         }
@@ -208,18 +218,23 @@ mod private {
     }
 
     impl<T: Copy> Seq<T> {
+        #[trusted]
         pub fn empty() -> Self {
             panic!()
         }
+        #[trusted]
         pub fn single(_: T) -> Self {
             panic!()
         }
+        #[trusted]
         pub fn concat(self, _: Self) -> Self {
             panic!()
         }
+        #[trusted]
         pub fn lookup(self, _index: usize) -> T {
             panic!()
         }
+        #[trusted]
         pub fn len(self) -> Int {
             panic!()
         }
@@ -240,6 +255,7 @@ mod private {
 
     impl<T: Copy> Index<usize> for Seq<T> {
         type Output = T;
+        #[trusted]
         fn index(&self, _: usize) -> &T {
             panic!()
         }
@@ -247,6 +263,7 @@ mod private {
 
     impl<T: Copy> Index<Int> for Seq<T> {
         type Output = T;
+        #[trusted]
         fn index(&self, _: Int) -> &T {
             panic!()
         }
@@ -261,21 +278,27 @@ mod private {
     }
 
     impl<K, V> Map<K, V> {
+        #[trusted]
         pub fn empty() -> Self {
             panic!()
         }
+        #[trusted]
         pub fn insert(self, _key: K, _val: V) -> Self {
             panic!()
         }
+        #[trusted]
         pub fn delete(self, _key: K) -> Self {
             panic!()
         }
+        #[trusted]
         pub fn len(self) -> Int {
             panic!()
         }
+        #[trusted]
         pub fn lookup(self, _key: K) -> V {
             panic!()
         }
+        #[trusted]
         pub fn contains(self, _key: K) -> bool {
             panic!()
         }
@@ -296,6 +319,7 @@ mod private {
 
     impl<K, V> core::ops::Index<K> for Map<K, V> {
         type Output = V;
+        #[trusted]
         fn index(&self, _key: K) -> &V {
             panic!()
         }
@@ -308,6 +332,7 @@ mod private {
     }
 
     impl<T> Ghost<T> {
+        #[trusted]
         pub fn new(_: T) -> Self {
             panic!()
         }
@@ -315,12 +340,14 @@ mod private {
 
     impl<T> Deref for Ghost<T> {
         type Target = T;
+        #[trusted]
         fn deref(&self) -> &T {
             panic!()
         }
     }
 
     impl<T> DerefMut for Ghost<T> {
+        #[trusted]
         fn deref_mut(&mut self) -> &mut T {
             panic!()
         }
@@ -333,12 +360,14 @@ mod private {
 
 /// This function is used to evaluate an expression in the context just
 /// before the borrows expires.
+#[trusted]
 pub fn before_expiry<T>(arg: T) -> T {
     arg
 }
 
 /// This function is used to evaluate an expression in the “old”
 /// context, that is at the beginning of the method call.
+#[trusted]
 pub fn old<T>(arg: T) -> T {
     arg
 }
@@ -346,6 +375,7 @@ pub fn old<T>(arg: T) -> T {
 /// Universal quantifier.
 ///
 /// This is a Prusti-internal representation of the `forall` syntax.
+#[trusted]
 pub fn forall<T, F>(_trigger_set: T, _closure: F) -> bool {
     true
 }
@@ -353,12 +383,14 @@ pub fn forall<T, F>(_trigger_set: T, _closure: F) -> bool {
 /// Existential quantifier.
 ///
 /// This is a Prusti-internal representation of the `exists` syntax.
+#[trusted]
 pub fn exists<T, F>(_trigger_set: T, _closure: F) -> bool {
     true
 }
 
 /// Creates an owned copy of a reference. This should only be used from within
 /// ghost code, as it circumvents the borrow checker.
+#[trusted]
 pub fn snap<T>(_x: &T) -> T {
     unimplemented!()
 }
@@ -368,6 +400,7 @@ pub fn snap<T>(_x: &T) -> T {
 /// `PartialEq` nor `Copy` implementation. The in-memory representation is
 /// constructed recursively: references are followed, unsafe pointers and cells
 /// are not. Importantly, addresses are not taken into consideration.
+#[trusted]
 pub fn snapshot_equality<T>(_l: T, _r: T) -> bool {
     true
 }
