@@ -504,6 +504,10 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
             println!("{:?} 2.3 RMVD {:?}", location, graph_result.removed);
             println!("{:?} 2.4 ADD  {:?}", location, graph_result.added);
+            println!(
+                "{:?} 2.5 INTER  {:?}",
+                location, graph_result.removed_intermediates
+            );
 
             let to_remove = graph_result
                 .removed
@@ -515,7 +519,9 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
 
             let remove_place_iter = graph_result.removed.iter().map(|p| p.place);
 
-            let to_insert = graph_result.added.iter().map(|p| {
+            let add_minus_inter = &graph_result.added - &graph_result.removed_intermediates;
+
+            let to_insert = add_minus_inter.iter().map(|p| {
                 PCSPermission::new_initialized(Mutability::Mut, LinearResource::Mir(p.place))
             });
 
@@ -527,7 +533,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 },
                 op_mir,
             )?;
-            println!("{:?} 2.5 PACK {:?}", location, pcs);
+            println!("{:?} 2.6 PACK {:?}", location, pcs);
 
             for p in remove_place_iter {
                 assert!(pcs.free.remove(&PCSPermission::new_initialized(
@@ -535,16 +541,38 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                     LinearResource::Mir(p)
                 )));
 
-                assert!(pcs
-                    .free
-                    .insert(PCSPermission::new_uninit(LinearResource::Mir(p))));
+                // let p_place = match p.target {
+                //     LinearResource::Mir(pl) => pl,
+                //     _ => panic(),
+                // };
+
+                // If p is uninit, insert it
+                let init_set = self.init_analysis.get_after_statement(location);
+                let alloc_set = self.alloc_analysis.get_after_statement(location);
+
+                println!("***** {:?} init_set {:?}", p, init_set);
+                println!("***** {:?} alloc_set {:?}", p, alloc_set);
+                println!(
+                    "***** {:?} : init {:?}, alloc {:?}",
+                    p,
+                    init_set.contains_prefix_of(p),
+                    alloc_set.contains_prefix_of(p),
+                );
+
+                // If any prefix of the place is inited, do no insert uninit permission
+
+                if !init_set.contains_prefix_of(p) && alloc_set.contains_prefix_of(p) {
+                    assert!(pcs
+                        .free
+                        .insert(PCSPermission::new_uninit(LinearResource::Mir(p))));
+                }
             }
 
             for ins in to_insert {
                 assert!(pcs.free.insert(ins.clone()));
             }
 
-            println!("{:?} 2.5 BFX  {:?}", location, pcs);
+            println!("{:?} 2.7 BFX  {:?}", location, pcs);
         }
 
         Ok(pcs)
