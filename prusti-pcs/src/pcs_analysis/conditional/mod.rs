@@ -6,7 +6,7 @@
 #![allow(unused_imports)]
 use crate::{
     graph::{ReborrowingGraph::*, *},
-    joins::{RepackPackup, RepackUnify},
+    joins::{RepackPackup, RepackUnify, RepackWeaken},
     syntax::{
         hoare_semantics::HoareSemantics, LinearResource, MicroMirData, MicroMirEncoder,
         MicroMirEncoding, MicroMirStatement, MicroMirTerminator, PCSPermission, PCSPermissionKind,
@@ -172,7 +172,7 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
         let mut generated_blocks: FxHashMap<BasicBlock, CondPCSBlock<'tcx>> = FxHashMap::default();
 
         // Computation left to do
-        let mut dirty_blocks = self.initial_state();
+        let mut dirty_blocks: Vec<(BasicBlock, Vec<PCS<'tcx>>)> = self.initial_state();
         let mut done_blocks: Vec<BasicBlock> = vec![];
 
         loop {
@@ -191,11 +191,18 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 .next()
             {
                 println!("{:?}", next_bb);
-                println!("   {:?}", done_blocks);
-                println!("   {:?}", dirty_blocks);
+                println!("\t{:?}", done_blocks);
+                println!("\t{:?}", dirty_blocks);
 
+                println!("\t{:?}", next_pcs);
+
+                match &next_pcs[..] {
+                    [p1] => {
+                        pcs = (*p1).clone();
+                    }
+                    _ => todo!(),
+                }
                 bb = (*next_bb).clone();
-                pcs = next_pcs.clone();
             } else if dirty_blocks.len() == 0 {
                 break;
             } else {
@@ -227,6 +234,13 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                     &dependent_postcondition,
                 )?;
 
+                // println!("= {:?} -> {:?} ===============================================================", bb, next_block);
+                // println!("init {:?}", self.init_analysis.get_before_block(next_block));
+                // println!(
+                //     "alloc {:?}",
+                //     self.alloc_analysis.get_before_block(next_block)
+                // );
+
                 let mut this_op_mir = StraightOperationalMir::default();
 
                 // Trim the PCS by way of eager drops (we are now the same mod repacks)
@@ -237,44 +251,70 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
                 this_pcs = self.packup(this_pcs, &mut this_op_mir)?;
 
                 // If the next block is not already done, add it as a dirty block (to do)
-                if let Some(done_block) = generated_blocks.get(&next_block) {
-                    // Check that the final PCS is the same as the
-                    // intial PCS in the block
-                    if this_pcs != done_block.body.pcs_before[0] {
-                        println!("init {:?}", self.init_analysis.get_before_block(next_block));
 
-                        println!(
-                            "alloc {:?}",
-                            self.alloc_analysis.get_before_block(next_block)
-                        );
-                        return Err(PrustiError::internal(
-                                       format!("trimmed+packed pcs ({:?}) does not match existing block ({:?}) exiting a join", this_pcs, done_block.body.pcs_before[0]),
-                                       MultiSpan::new(),
-                                   ));
-                    }
-                } else if let Some(todo_pcs) = dirty_blocks
-                    .iter()
-                    .filter_map(|(todo_bb, todo_pcs)| {
-                        if *todo_bb == next_block {
-                            Some(todo_pcs)
-                        } else {
-                            None
-                        }
-                    })
-                    .next()
+                if let Some(_) = generated_blocks.get(&next_block) {
+                    // Join corresponding to loop head.
+                    // We haven't found (and proven) a method to deal with this yet.
+                    // Is 1+1 iterations sufficient? Is there a compiler analysis to read off?
+                    todo!();
+                } else if let Some(_) = dirty_blocks.iter().filter(|(block, _)| *block == bb).next()
                 {
-                    // Check that the final PCS is the same as the
-                    // intial PCS in the block
-                    if this_pcs != *todo_pcs {
-                        return Err(PrustiError::internal(
-                            "trimmed+packed pcs does not join with a dirty PCS",
-                            MultiSpan::new(),
-                        ));
-                    }
+                    // Do nothing if already in dirty_blocks
                 } else {
-                    // Mark the next block as dirty
-                    dirty_blocks.push((next_block, this_pcs.clone()));
+                    if let Some(db) = dirty_blocks
+                        .iter_mut()
+                        .filter(|(nb, _)| *nb == next_block)
+                        .next()
+                    {
+                        db.1.push(this_pcs.clone());
+                    } else {
+                        dirty_blocks.push((next_block, vec![this_pcs.clone()]));
+                    }
                 }
+                // if let Some(done_block) = generated_blocks.get(&next_block) {
+                //     // Check that the final PCS is the same as the
+                //     // intial PCS in the block
+                //     if this_pcs != done_block.body.pcs_before[0] {
+                //         println!("init {:?}", self.init_analysis.get_before_block(next_block));
+
+                //         println!(
+                //             "alloc {:?}",
+                //             self.alloc_analysis.get_before_block(next_block)
+                //         );
+                //         return Err(PrustiError::internal(
+                //                        format!("trimmed+packed pcs ({:?}) does not match existing block ({:?}) exiting a join", this_pcs, done_block.body.pcs_before[0]),
+                //                        MultiSpan::new(),
+                //                    ));
+                //     }
+                // } else if let Some(todo_pcs) = dirty_blocks
+                //     .iter()
+                //     .filter_map(|(todo_bb, todo_pcs)| {
+                //         if *todo_bb == next_block {
+                //             Some(todo_pcs)
+                //         } else {
+                //             None
+                //         }
+                //     })
+                //     .next()
+                // {
+                //     // Check that the final PCS is the same as the
+                //     // intial PCS in the block
+                //     if this_pcs != *todo_pcs {
+                //         println!("init {:?}", self.init_analysis.get_before_block(next_block));
+                //         println!(
+                //             "alloc {:?}",
+                //             self.alloc_analysis.get_before_block(next_block)
+                //         );
+
+                //         return Err(PrustiError::internal(
+                //             format!("trimmed+packed pcs does not join with a dirty PCS\nfinal_pcs: {:?}\ntodo_pcs{:?}", this_pcs, *todo_pcs),
+                //             MultiSpan::new(),
+                //         ));
+                //     }
+                // } else {
+                //     // Mark the next block as dirty
+                //     dirty_blocks.push((next_block, this_pcs.clone()));
+                // }
 
                 pcs_after.push((
                     PostBlock {
@@ -446,8 +486,8 @@ impl<'mir, 'env: 'mir, 'tcx: 'env> CondPCSctx<'mir, 'env, 'tcx> {
     /// TODO
     ///   1. I do not know if bb0 is always the initial basic block
     ///   2. I certainly know that we do not always start with an empty PCS
-    fn initial_state(&self) -> Vec<(BasicBlock, PCS<'tcx>)> {
-        vec![((0 as u32).into(), PCS::empty())]
+    fn initial_state(&self) -> Vec<(BasicBlock, Vec<PCS<'tcx>>)> {
+        vec![((0 as u32).into(), vec![PCS::empty()])]
     }
 
     /// Modifies a PCS to be coherent with the initialization state

@@ -5,9 +5,11 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 mod packup;
+mod repackweaken;
 mod unify;
 
 pub use packup::*;
+pub use repackweaken::*;
 pub use unify::*;
 
 use crate::syntax::MicroMirStatement;
