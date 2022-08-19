@@ -2,17 +2,15 @@ use prusti_rustc_interface::{
     ast::ast,
     errors::MultiSpan,
     hir::{
-        def_id::{CrateNum, DefId, LocalDefId, LOCAL_CRATE},
+        def_id::{DefId, LocalDefId},
         intravisit,
     },
     middle::hir::map::Map,
-    serialize::{Decodable, Encodable},
-    span::{Span, DUMMY_SP},
+    span::Span,
 };
-use rustc_hash::FxHashMap;
 
 use crate::{
-    environment::{Environment, body::CrossCrateBodies},
+    environment::Environment,
     utils::{
         has_abstract_predicate_attr, has_extern_spec_attr, has_prusti_attr, read_prusti_attr,
         read_prusti_attrs,
@@ -24,9 +22,6 @@ use std::{
     collections::HashMap,
     convert::TryInto,
     fmt::Debug,
-    fs,
-    io::{Read, Result, Write},
-    path::{Path, PathBuf},
 };
 
 pub mod checker;
@@ -34,6 +29,7 @@ pub mod decoder;
 pub mod encoder;
 pub mod external;
 pub mod typed;
+pub mod cross_crate;
 
 use typed::SpecIdRef;
 
@@ -42,8 +38,6 @@ use crate::specs::{
     typed::{ProcedureSpecification, ProcedureSpecificationKind, SpecGraph, SpecificationItem},
 };
 use prusti_specs::specifications::common::SpecificationId;
-
-use self::{decoder::DefSpecsDecoder, encoder::DefSpecsEncoder};
 
 #[derive(Debug)]
 struct ProcedureSpecRefs {
@@ -63,7 +57,7 @@ struct TypeSpecRefs {
 /// HIR. After the visit, [SpecCollector::build_def_specs] can be used to get back
 /// a mapping of DefIds (which may not be local due to extern specs) to their
 /// [typed::SpecificationSet], i.e. procedures, loop invariants, and structs.
-pub struct SpecCollector<'a, 'tcx: 'a> {
+pub struct SpecCollector<'a, 'tcx> {
     env: &'a mut Environment<'tcx>,
     extern_resolver: ExternSpecResolver<'tcx>,
 
@@ -96,10 +90,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         }
     }
 
-    pub fn build_def_specs(
-        &mut self,
-        build_output_dir: &Option<PathBuf>,
-    ) -> typed::DefSpecificationMap {
+    pub fn build_def_specs(&mut self) -> typed::DefSpecificationMap {
         let mut def_spec = typed::DefSpecificationMap::new();
         self.determine_procedure_specs(&mut def_spec);
         self.determine_extern_specs(&mut def_spec);
@@ -110,103 +101,9 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         self.determine_ghost_begin_ends(&mut def_spec);
         // TODO: remove spec functions (make sure none are duplicated or left over)
 
-        // First, load all local spec MIR bodies
-        self.ensure_local_mirs_fetched(&mut def_spec);
-
-        if let Some(build_output_dir) = build_output_dir {
-            // Then, write those to the export file
-            let target_filename = self.get_crate_specs_path(build_output_dir, LOCAL_CRATE);
-            if let Err(e) = self.write_into_file(&def_spec, target_filename.as_path()) {
-                PrustiError::internal(
-                    format!(
-                        "error exporting specs to file \"{}\": {}",
-                        target_filename.to_string_lossy(),
-                        e
-                    ),
-                    DUMMY_SP.into(),
-                )
-                .emit(&self.env.diagnostic);
-            }
-            // Lastly, load all external MIR bodies
-            self.import_specs_from_dependencies(&mut def_spec, build_output_dir);
-        }
-
+        // Load all local spec MIR bodies, for export and later use
+        self.ensure_local_mirs_fetched(&def_spec);
         def_spec
-    }
-
-    fn get_crate_specs_path(&self, build_output_dir: &Path, crate_num: CrateNum) -> PathBuf {
-        let mut path = build_output_dir.join("serialized_specs");
-        path.push(format!(
-            "{}-{:x}.bin",
-            self.env.name.crate_name(crate_num),
-            self.env.tcx().stable_crate_id(crate_num).to_u64(),
-        ));
-        path
-    }
-
-    fn import_specs_from_dependencies(
-        &mut self,
-        def_spec: &mut typed::DefSpecificationMap,
-        build_output_dir: &Path,
-    ) {
-        // TODO: atm one needs to write `extern crate extern_spec_lib` to import the specs
-        // from a crate which is not used in the current crate (e.g. an `#[extern_spec]` only crate)
-        // Otherwise the crate doesn't show up in `tcx.crates()`.  Is there some better way
-        // to get dependency crates, which doesn't ignore unused ones? Maybe:
-        // https://doc.rust-lang.org/stable/nightly-rustc/rustc_metadata/creader/struct.CrateMetadataRef.html#method.dependencies
-        for crate_num in self.env.tcx().crates(()) {
-            if *crate_num == LOCAL_CRATE {
-                continue;
-            }
-
-            let file = self.get_crate_specs_path(build_output_dir, *crate_num);
-            if file.is_file() {
-                if let Err(e) = self.import_from_file(def_spec, &file) {
-                    PrustiError::internal(
-                        format!(
-                            "error importing specs from file \"{}\": {}",
-                            file.to_string_lossy(),
-                            e
-                        ),
-                        DUMMY_SP.into(),
-                    )
-                    .emit(&self.env.diagnostic);
-                }
-            }
-        }
-    }
-
-    fn write_into_file(
-        &self,
-        def_spec: &typed::DefSpecificationMap,
-        path: &Path,
-    ) -> Result<usize> {
-        let mut encoder = DefSpecsEncoder::new(self.env.tcx());
-        def_spec.proc_specs.encode(&mut encoder);
-        def_spec.type_specs.encode(&mut encoder);
-        CrossCrateBodies::from(&self.env.body).encode(&mut encoder);
-
-        fs::create_dir_all(path.parent().unwrap())?;
-        let mut file = fs::File::create(path)?;
-        file.write(&encoder.into_inner())
-    }
-
-    fn import_from_file(
-        &mut self,
-        def_spec: &mut typed::DefSpecificationMap,
-        path: &Path,
-    ) -> Result<()> {
-        let mut data = Vec::new();
-        let mut file = fs::File::open(path)?;
-        file.read_to_end(&mut data)?;
-        let mut decoder = DefSpecsDecoder::new(self.env.tcx(), &data);
-
-        let proc_specs = FxHashMap::decode(&mut decoder);
-        let type_specs = FxHashMap::decode(&mut decoder);
-        let mirs_of_specs = CrossCrateBodies::decode(&mut decoder);
-        def_spec.import_external(proc_specs, type_specs, &self.env);
-        self.env.body.import_external_bodies(mirs_of_specs);
-        Ok(())
     }
 
     fn determine_procedure_specs(&self, def_spec: &mut typed::DefSpecificationMap) {
@@ -373,7 +270,7 @@ impl<'a, 'tcx> SpecCollector<'a, 'tcx> {
         }
     }
 
-    fn ensure_local_mirs_fetched(&mut self, def_spec: &mut typed::DefSpecificationMap) {
+    fn ensure_local_mirs_fetched(&mut self, def_spec: &typed::DefSpecificationMap) {
         let (specs, pure_fns, predicates) = def_spec.defid_for_export();
         for def_id in specs {
             self.env.body.load_spec_body(def_id.expect_local());

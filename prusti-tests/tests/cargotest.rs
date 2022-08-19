@@ -137,20 +137,10 @@ fn test_local_project_with_dependencies<T: Into<PathBuf>>(project_name: T, depen
                 project_path.display()
             )
         });
-    let prusti_contract_deps = [
-        "prusti-utils",
-        "prusti-specs",
-        "prusti-contracts",
-        "prusti-contracts-common",
-        "prusti-contracts-impl",
-        "prusti-contracts-internal",
-    ];
-    for crate_name in &prusti_contract_deps {
-        project_builder = project_builder.symlink_dir(
-            prusti_dev_path.join(crate_name).as_path(),
-            Path::new(crate_name),
-        );
-    }
+    project_builder = project_builder.symlink_dir(
+        prusti_dev_path.join("prusti-contracts").as_path(),
+        Path::new("prusti-contracts"),
+    );
 
     let cargo_verify_path = project_path.parent().unwrap_or_else(|| {
         panic!(

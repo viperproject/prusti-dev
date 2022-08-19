@@ -308,6 +308,12 @@ def main(argv):
         elif arg == 'check-smir':
             check_smir(*argv[i+1:])
             break
+        elif arg == 'build':
+            # First builds `prusti`
+            cargo(argv[i:])
+            # Second runs build script to build `prusti-contracts`
+            cargo(argv[i:])
+            break
         else:
             cargo(argv[i:])
             break
