@@ -76,6 +76,7 @@ pub enum MicroMirStatement<'tcx> {
     // Places annotated so that we do not need to truck around the mir
     Pack(Vec<Place<'tcx>>, Place<'tcx>),
     Unpack(Place<'tcx>, Vec<Place<'tcx>>),
+    Weaken(PCSPermission<'tcx>, PCSPermission<'tcx>),
 }
 
 impl<'tcx> MicroMirStatement<'tcx> {
@@ -215,6 +216,7 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
                     (*p).into(),
                 )]))
             }
+            MicroMirStatement::Weaken(p, _) => Some(PCS::from_vec(vec![(*p).clone()])),
             MicroMirStatement::Aggregate(dest, subpermissions, _) => {
                 let mut pcs = PCS::from_vec(subpermissions.to_vec());
                 pcs.free.insert(PCSPermission::new_uninit((*dest).into()));
@@ -297,6 +299,7 @@ impl<'tcx> HoareSemantics for MicroMirStatement<'tcx> {
                     (*p).into(),
                 )]))
             }
+            MicroMirStatement::Weaken(_, p) => Some(PCS::from_vec(vec![(*p).clone()])),
             MicroMirStatement::Aggregate(p, subpermissions, m) => {
                 let mut pcs = PCS::from_vec(vec![PCSPermission::new_initialized(*m, (*p).into())]);
                 for permission in subpermissions.iter() {
@@ -492,6 +495,7 @@ impl<'tcx> Debug for MicroMirStatement<'tcx> {
             MicroMirStatement::Len(p, t, m) => write!(f, "len {:?} -> {:?} ({:?})", p, t, m),
             MicroMirStatement::Pack(ps, p) => write!(f, "pack {:?} -> {:?}", ps, p),
             MicroMirStatement::Unpack(p, ps) => write!(f, "unpack {:?} -> {:?}", p, ps),
+            MicroMirStatement::Weaken(p, p1) => write!(f, "weaken {:?} -> {:?}", p, p1),
             MicroMirStatement::Allocate(p) => write!(f, "alloc {:?}", p),
             MicroMirStatement::Deallocate(p) => write!(f, "dealloc {:?}", p),
             MicroMirStatement::Aggregate(p, subpermissions, m) => {
