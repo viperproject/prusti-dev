@@ -161,6 +161,17 @@ impl PrustiTokenStream {
         self.tokens.is_empty()
     }
 
+    fn as_single<T, F>(mut self, f: F) -> syn::Result<T>
+    where
+        F: FnOnce(&mut Self) -> syn::Result<T>,
+    {
+        let result = f(&mut self)?;
+        if !self.is_empty() {
+            return error(self.source_span, "unexpected tokens");
+        }
+        Ok(result)
+    }
+
     /// Processes a Prusti token stream back into Rust syntax.
     /// Prusti-specific syntax is allowed and translated.
     fn parse(mut self) -> syn::Result<TokenStream> {
@@ -238,7 +249,7 @@ impl PrustiTokenStream {
         // inside the ghost constraint.
         let nested_specs = arguments
             .remove(arguments.len() - 1)
-            .pop_group_of_nested_specs(Span::call_site())?;
+            .as_single(|stream| stream.pop_group_of_nested_specs(Span::call_site()))?;
 
         let constraint_tokens = arguments.into_iter()
             .map(|arg| arg.parse_rust_only())
@@ -410,32 +421,29 @@ impl PrustiTokenStream {
 
         Some(Self { tokens, source_span: self.source_span })
     }
-
-    fn pop_one_nested_spec(self) -> Option<NestedSpec<Self>> {
-        // TODO: clean up the interface somehow ...
-        if self.tokens.is_empty() {
-            return None;
-        }
-        if self.tokens.len() != 2 {
-            panic!();
-        }
-        match [
-            &self.tokens[0],
-            &self.tokens[1],
-        ] {
-            [
-                PrustiToken::Token(TokenTree::Ident(ident)),
-                PrustiToken::Group(_span, Delimiter::Parenthesis, box group),
-            ] => {
-                if ident == "requires" {
-                    Some(NestedSpec::Requires(group.clone()))
-                } else if ident == "ensures" {
-                    Some(NestedSpec::Ensures(group.clone()))
-                } else {
-                    None
-                }
+    
+    fn pop_parenthesized_group(&mut self) -> syn::Result<Self> {
+        match self.tokens.pop_front() {
+            Some(PrustiToken::Group(_span, Delimiter::Parenthesis, box group)) => {
+                Ok(group) // TODO: need to clone()?
             }
-            _ => None
+            _ => Err(syn::parse::Error::new(self.source_span, "expected parenthesized group")),
+        }
+    }
+    
+    fn pop_single_nested_spec(&mut self) -> syn::Result<NestedSpec<Self>> {
+        let first = self.tokens.pop_front().map_or_else(|| {
+            error(self.source_span, "expected nested spec")
+        }, Ok)?;
+        if let PrustiToken::Token(TokenTree::Ident(spec_type)) = first {
+            match spec_type.to_string().as_ref() {
+                "requires" => Ok(NestedSpec::Requires(self.pop_parenthesized_group()?)),
+                "ensures" => Ok(NestedSpec::Ensures(self.pop_parenthesized_group()?)),
+                "pure" => Ok(NestedSpec::Pure),
+                other => error(self.source_span, format!("unexpected nested spec type: {}", other).as_ref()),
+            }
+        } else {
+            error(self.source_span, "expected identifier").into()
         }
     }
 
@@ -445,9 +453,8 @@ impl PrustiTokenStream {
         let parsed = group_of_specs
             .split(PrustiBinaryOp::Rust(RustOp::Comma), true)
             .into_iter()
-            .map(|stream| stream.pop_one_nested_spec().unwrap())
-            // TODO: assert empty afterwards ...
-            .map(|stream| stream.parse())
+            .map(|stream| stream.as_single(|stream| stream.pop_single_nested_spec()))
+            .map(|stream| stream.and_then(|s| s.parse()))
             .collect::<syn::Result<Vec<NestedSpec<TokenStream>>>>()?;
         Ok(parsed)
     }
@@ -513,6 +520,7 @@ impl PrustiTokenStream {
 pub enum NestedSpec<T> {
     Requires(T),
     Ensures(T),
+    Pure,
 }
 
 impl NestedSpec<PrustiTokenStream> {
@@ -520,6 +528,7 @@ impl NestedSpec<PrustiTokenStream> {
         Ok(match self {
             NestedSpec::Requires(stream) => NestedSpec::Requires(stream.parse()?),
             NestedSpec::Ensures(stream) => NestedSpec::Ensures(stream.parse()?),
+            NestedSpec::Pure => NestedSpec::Pure,
         })
     }
 }

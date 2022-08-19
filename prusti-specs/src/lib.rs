@@ -238,6 +238,10 @@ fn generate_for_pure(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedR
         ));
     }
 
+    do_generate_for_pure(item)
+}
+
+fn do_generate_for_pure(item: &untyped::AnyFnItem) -> GeneratedResult {
     Ok((
         vec![],
         vec![parse_quote_spanned! {item.span()=>
