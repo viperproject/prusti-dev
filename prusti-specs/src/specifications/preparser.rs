@@ -1,11 +1,11 @@
 /// The preparser processes Prusti syntax into Rust syntax.
 
-use proc_macro2::{Span, TokenStream, TokenTree, Delimiter, Spacing};
+use proc_macro2::{Span, TokenStream, TokenTree, Delimiter};
 use std::collections::VecDeque;
-use quote::{ToTokens, quote, quote_spanned, TokenStreamExt};
+use quote::{ToTokens, quote, quote_spanned};
 use proc_macro2::Punct;
 use proc_macro2::Spacing::*;
-use syn::spanned::Spanned;
+use syn::{parse::{Parse, ParseStream}, spanned::Spanned};
 
 /// The representation of an argument to a quantifier (for example `a: i32`)
 #[derive(Debug, Clone)]
@@ -50,9 +50,8 @@ pub fn parse_prusti_assert_pledge(tokens: TokenStream) -> syn::Result<(TokenStre
     Ok((lhs, rhs))
 }
 
-pub fn parse_ghost_constraint(tokens: TokenStream) -> syn::Result<(TokenStream, Vec<NestedSpec<TokenStream>>)> {
-    let pts = PrustiTokenStream::new(tokens);
-    pts.parse_ghost_constraint()
+pub fn parse_ghost_constraint(tokens: TokenStream) -> syn::Result<GhostConstraint> {
+    syn::parse2(tokens)
 }
 
 /*
@@ -81,6 +80,7 @@ fn error<T>(span: Span, msg: &str) -> syn::Result<T> {
 struct PrustiTokenStream {
     tokens: VecDeque<PrustiToken>,
     source_span: Span,
+    // TODO: can we somehow update the span after popping stuff?
 }
 
 impl PrustiTokenStream {
@@ -167,7 +167,7 @@ impl PrustiTokenStream {
     {
         let result = f(&mut self)?;
         if !self.is_empty() {
-            return error(self.source_span, "unexpected tokens");
+            return error(self.source_span, "unexpected extra tokens");
         }
         Ok(result)
     }
@@ -230,36 +230,6 @@ impl PrustiTokenStream {
         } else {
             error(Span::call_site(), "missing assertion")
         }
-    }
-
-    fn parse_ghost_constraint(self) -> syn::Result<(TokenStream, Vec<NestedSpec<TokenStream>>)> {
-        let span = self.source_span;
-        let mut arguments = self.split(PrustiBinaryOp::Rust(RustOp::Comma), false);
-        let parsing_error = || {
-            error(span, "Invalid use of macro. Two arguments expected (a trait bound `T: A + B` and multiple specifications `[requires(...), ensures(...), ...]`)")
-        };
-
-        if arguments.len() < 2 {
-            return parsing_error();
-        }
-
-        // We interpret the last element of the arguments as the nested specs and everything before
-        // as the ghost constraints.
-        // This is due to the fact that the prusti token stream also splits on commas
-        // inside the ghost constraint.
-        let nested_specs = arguments
-            .remove(arguments.len() - 1)
-            .as_single(|stream| stream.pop_group_of_nested_specs(Span::call_site()))?;
-
-        let constraint_tokens = arguments.into_iter()
-            .map(|arg| arg.parse_rust_only())
-            .collect::<Result<Vec<TokenStream>, _>>()?;
-
-        let mut trait_bounds_ts = TokenStream::new();
-        trait_bounds_ts.append_separated(constraint_tokens, TokenTree::Punct(Punct::new(',', Spacing::Alone)));
-
-        // let trait_bounds_ts = trait_bounds_ts.parse_rust_only()?;
-        Ok((trait_bounds_ts, nested_specs))
     }
 
     /// The core of the Pratt parser algorithm. [self.tokens] is the source of
@@ -513,6 +483,72 @@ impl PrustiTokenStream {
             _ => Ok(vec![]),
         }
     }
+}
+
+trait AsPrustiTokenStream {
+    fn as_pts(&self) -> PrustiTokenStream;
+}
+
+// bridge between syn parse streams and prusti token streams
+impl AsPrustiTokenStream for ParseStream<'_> {
+    fn as_pts(&self) -> PrustiTokenStream {
+        PrustiTokenStream::new(self.parse().unwrap())
+    }
+}
+
+// TODO: is there a better place for this type and its logic?
+
+pub struct GhostConstraint {
+    pub trait_bounds: syn::PredicateType,
+    pub comma: syn::token::Comma,
+    pub specs: Vec<NestedSpec<TokenStream>>,
+}
+
+impl Parse for GhostConstraint {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(GhostConstraint {
+            trait_bounds: parse_trait_bounds(input)?,
+            comma: input.parse()?,
+            specs: input.as_pts().pop_group_of_nested_specs(input.span())?,
+        })
+    }
+}
+
+fn parse_trait_bounds(input: ParseStream) -> syn::Result<syn::PredicateType> {
+    use syn::WherePredicate::*;
+    let where_predicate: syn::WherePredicate = input.parse()?;
+    match where_predicate {
+        Type(type_bound) => {
+            validate_trait_bounds(&type_bound)?;
+            Ok(type_bound)
+        }
+        Lifetime(lifetime_bound) => disallowed_lifetime_error(lifetime_bound.span()),
+        Eq(eq_bound) => error(eq_bound.span(), "equality predicates are not supported in trait bounds"),
+    }
+}
+
+fn disallowed_lifetime_error<T>(span: Span) -> syn::Result<T> {
+    error(span, "lifetimes are not allowed in ghost constraint trait bounds")
+}
+
+fn validate_trait_bounds(trait_bounds: &syn::PredicateType) -> syn::Result<()> {
+    if let Some(lifetimes) = &trait_bounds.lifetimes {
+        return disallowed_lifetime_error(lifetimes.span());
+    }
+    for bound in &trait_bounds.bounds {
+        match bound {
+            syn::TypeParamBound::Lifetime(lt) => {
+                return disallowed_lifetime_error(lt.span());
+            }
+            syn::TypeParamBound::Trait(trait_bound) => {
+                if let Some(lt) = &trait_bound.lifetimes {
+                    return disallowed_lifetime_error(lt.span())
+                }
+            }
+        }
+    }
+
+    Ok(())
 }
 
 /// A specification enclosed in another specification (e.g. in spec entailments or ghost constraints)
