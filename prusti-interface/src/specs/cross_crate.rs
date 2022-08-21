@@ -1,5 +1,5 @@
 use prusti_rustc_interface::{
-    hir::def_id::{CrateNum, LOCAL_CRATE},
+    metadata::creader::CStore,
     serialize::{Decodable, Encodable},
     span::DUMMY_SP,
 };
@@ -19,14 +19,16 @@ impl CrossCrateSpecs {
     pub fn import_export_cross_crate(
         env: &mut Environment,
         def_spec: &mut DefSpecificationMap,
-        dir: &path::PathBuf,
     ) {
-        Self::export_specs(env, def_spec, dir);
-        Self::import_specs(env, def_spec, dir);
+        Self::export_specs(env, def_spec);
+        Self::import_specs(env, def_spec);
     }
 
-    fn export_specs(env: &Environment, def_spec: &DefSpecificationMap, dir: &path::PathBuf) {
-        let target_filename = Self::get_crate_specs_path(env, dir, LOCAL_CRATE);
+    fn export_specs(env: &Environment, def_spec: &DefSpecificationMap) {
+        let outputs = env.tcx().output_filenames(());
+        // If we run `rustc` without the `--out-dir` flag set, then don't export specs
+        if outputs.out_directory.to_string_lossy() == "" { return; }
+        let target_filename = outputs.out_directory.join(&format!("lib{}.specs", env.name.local_crate_filename()));
         if let Err(e) = Self::write_into_file(env, &def_spec, &target_filename) {
             PrustiError::internal(
                 format!(
@@ -40,47 +42,35 @@ impl CrossCrateSpecs {
         }
     }
 
-    fn get_crate_specs_path(env: &Environment, dir: &path::PathBuf, crate_num: CrateNum) -> path::PathBuf {
-        let mut path = dir.join("serialized_specs");
-        if env.name.crate_name(crate_num) == "prusti_contracts_core" {
-            println!("prusti-contracts-core stable crate id is: {:x}\n", env.tcx().stable_crate_id(crate_num).to_u64());
-        }
-        path.push(format!(
-            "{}-{:x}.bin",
-            env.name.crate_name(crate_num),
-            env.tcx().stable_crate_id(crate_num).to_u64(),
-        ));
-        path
-    }
-
     fn import_specs(
         env: &mut Environment,
         def_spec: &mut DefSpecificationMap,
-        dir: &path::PathBuf,
     ) {
+        let cstore = CStore::from_tcx(env.tcx());
         // TODO: atm one needs to write `extern crate extern_spec_lib` to import the specs
         // from a crate which is not used in the current crate (e.g. an `#[extern_spec]` only crate)
         // Otherwise the crate doesn't show up in `tcx.crates()`.  Is there some better way
         // to get dependency crates, which doesn't ignore unused ones? Maybe:
         // https://doc.rust-lang.org/stable/nightly-rustc/rustc_metadata/creader/struct.CrateMetadataRef.html#method.dependencies
         for crate_num in env.tcx().crates(()) {
-            if *crate_num == LOCAL_CRATE {
-                continue;
-            }
-
-            let file = Self::get_crate_specs_path(env, &dir, *crate_num);
-            // println!("Check file: {:?}", file);
-            if file.is_file() {
-                if let Err(e) = Self::import_from_file(env, def_spec, &file) {
-                    PrustiError::internal(
-                        format!(
-                            "error importing specs from file \"{}\": {}",
-                            file.to_string_lossy(),
-                            e
-                        ),
-                        DUMMY_SP.into(),
-                    )
-                    .emit(&env.diagnostic);
+            if let Some(extern_crate) = env.tcx().extern_crate(crate_num.as_def_id()) {
+                if extern_crate.is_direct() {
+                    let cs = cstore.crate_source_untracked(*crate_num);
+                    let mut source = cs.paths().next().unwrap().clone();
+                    source.set_extension("specs");
+                    if source.is_file() {
+                        if let Err(e) = Self::import_from_file(env, def_spec, &source) {
+                            PrustiError::internal(
+                                format!(
+                                    "error importing specs from file \"{}\": {}",
+                                    source.to_string_lossy(),
+                                    e
+                                ),
+                                DUMMY_SP.into(),
+                            )
+                            .emit(&env.diagnostic);
+                        }
+                    }
                 }
             }
         }
@@ -97,6 +87,7 @@ impl CrossCrateSpecs {
         def_spec.type_specs.encode(&mut encoder);
         CrossCrateBodies::from(&env.body).encode(&mut encoder);
 
+        // Probably not needed; dir should already exist?
         fs::create_dir_all(path.parent().unwrap())?;
         let mut file = fs::File::create(path)?;
         file.write(&encoder.into_inner())

@@ -1,4 +1,4 @@
-use std::{process::Command, path::PathBuf};
+use std::{path::PathBuf, process::Command};
 
 fn main() {
     // In theory we should build to here (i.e. set `CARGO_TARGET_DIR` to this),
@@ -10,22 +10,35 @@ fn main() {
     println!("cargo:rerun-if-changed=../prusti-contracts");
 
     // Build `prusti-contracts`
-    let dir = if cfg!(debug_assertions) { "debug" } else { "release" };
+    let dir = if cfg!(debug_assertions) {
+        "debug"
+    } else {
+        "release"
+    };
     // Cargo prusti
-    let cp = if cfg!(windows) { "cargo-prusti.exe" } else { "cargo-prusti" };
+    let cp = if cfg!(windows) {
+        "cargo-prusti.exe"
+    } else {
+        "cargo-prusti"
+    };
     let cargo_prusti: PathBuf = ["..", "target", dir, cp].iter().collect();
     println!("cargo:rerun-if-changed={}", cargo_prusti.to_string_lossy());
     // Prusti driver
-    let pd = if cfg!(windows) { "prusti-driver.exe" } else { "prusti-driver" };
+    let pd = if cfg!(windows) {
+        "prusti-driver.exe"
+    } else {
+        "prusti-driver"
+    };
     let prusti_driver: PathBuf = ["..", "target", dir, pd].iter().collect();
     println!("cargo:rerun-if-changed={}", prusti_driver.to_string_lossy());
     // Run only if possible
     if cargo_prusti.exists() && prusti_driver.exists() {
-        let args = ["build", "--release", "--features", "prusti"];
+        let args = ["--release", "--features", "prusti"];
         match Command::new(&cargo_prusti)
             .current_dir("../prusti-contracts")
             .args(&args)
-            .output() 
+            .env("CARGO_PRUSTI_COMMAND", "build")
+            .output()
         {
             Ok(output) => {
                 if !output.status.success() {
@@ -33,7 +46,11 @@ fn main() {
                     let stderr = String::from_utf8(output.stderr).unwrap();
                     println!("cargo:warning=Failed to build `prusti-contracts`!");
                     let args = args.iter().fold(String::new(), |acc, a| acc + " " + a);
-                    println!("cargo:warning=`prusti-contracts-build` ran '{}{}'", cargo_prusti.to_string_lossy(), args);
+                    println!(
+                        "cargo:warning=`prusti-contracts-build` ran '{}{}'",
+                        cargo_prusti.to_string_lossy(),
+                        args
+                    );
                     println!("cargo:warning=-------- stdout: --------");
                     for line in stdout.lines() {
                         println!("cargo:warning={}", line);
@@ -42,13 +59,16 @@ fn main() {
                     for line in stderr.lines() {
                         println!("cargo:warning={}", line);
                     }
+                    // Delete files to prevent Catch-22 where these files cannot be rebuilt
+                    std::fs::remove_file(cargo_prusti).ok();
+                    std::fs::remove_file(prusti_driver).ok();
+                    panic!("Fix the above Prusti crash and run build again to rebuild Prusti.")
                 }
-            },
+            }
             Err(e) => {
                 println!("cargo:warning=Failed to build `prusti-contracts`: {}", e);
             }
         }
     } else {
-
     }
 }

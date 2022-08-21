@@ -83,17 +83,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             hir.walk_attributes(&mut spec_collector);
 
             let mut def_spec = spec_collector.build_def_specs();
-            // Set by passing the `--out-dir` flag to rustc. For `cargo-prusti` cargo sets
-            // this automatically to point to './target/*/deps/'. In `prusti-rustc` only
-            // builds prusti-rustc sets this flag manually to point to the pre-built dir at
-            // '**/prusti-dev/prusti-contracts/target/verify/release/deps/'
-            if let Some(build_output_dir) = compiler.output_dir() {
-                CrossCrateSpecs::import_export_cross_crate(
-                    &mut env,
-                    &mut def_spec,
-                    build_output_dir,
-                );
-            }
+            CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
             if config::print_typeckd_specs() {
                 for value in def_spec.all_values_debug(config::hide_uuids()) {
                     println!("{}", value);
