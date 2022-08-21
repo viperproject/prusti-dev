@@ -4034,7 +4034,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 );
                 let mut assertion_lhs = if let Some(body_lhs) = body_lhs {
                     self.encoder.encode_assertion(
-                        &body_lhs,
+                        body_lhs,
                         Some(pre_label),
                         &encoded_args,
                         Some(&encoded_return),
