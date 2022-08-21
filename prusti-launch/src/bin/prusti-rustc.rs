@@ -52,9 +52,9 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
 
     // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
     // We're invoking the compiler programmatically, so we ignore this
-    let rustc_pos = args.iter().position(|arg|
-        Path::new(arg).file_stem() == Some("rustc".as_ref())
-    );
+    let rustc_pos = args
+        .iter()
+        .position(|arg| Path::new(arg).file_stem() == Some("rustc".as_ref()));
     let cargo_invoked = rustc_pos.is_some();
     if let Some(rustc_pos) = rustc_pos {
         args.drain(0..=rustc_pos);

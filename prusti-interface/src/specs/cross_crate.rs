@@ -29,7 +29,7 @@ impl CrossCrateSpecs {
         // If we run `rustc` without the `--out-dir` flag set, then don't export specs
         if outputs.out_directory.to_string_lossy() == "" { return; }
         let target_filename = outputs.out_directory.join(&format!("lib{}.specs", env.name.local_crate_filename()));
-        if let Err(e) = Self::write_into_file(env, &def_spec, &target_filename) {
+        if let Err(e) = Self::write_into_file(env, def_spec, &target_filename) {
             PrustiError::internal(
                 format!(
                     "error exporting specs to file \"{}\": {}",

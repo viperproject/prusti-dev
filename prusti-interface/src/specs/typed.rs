@@ -90,7 +90,7 @@ impl DefSpecificationMap {
                 }
             }
         }
-        for (_, spec) in &self.type_specs {
+        for spec in self.type_specs.values() {
             if let Some(invariants) = spec.invariant.extract_with_selective_replacement() {
                 specs.extend(invariants);
             }
