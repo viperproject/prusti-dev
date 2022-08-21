@@ -31,6 +31,8 @@ fn main() {
     };
     let prusti_driver: PathBuf = ["..", "target", dir, pd].iter().collect();
     println!("cargo:rerun-if-changed={}", prusti_driver.to_string_lossy());
+    // Rerun if running with e.g. cargo clippy
+    println!("cargo:rerun-if-env-changed=RUSTC_WORKSPACE_WRAPPER");
     // Run only if possible
     if cargo_prusti.exists() && prusti_driver.exists() {
         let args = ["--release", "--features", "prusti"];
