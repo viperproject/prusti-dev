@@ -66,7 +66,7 @@ impl IllegalPredicateUsagesChecker {
     }
 
     /// Span of use and definition of predicates used outside of specifications, collected in the second pass.
-    fn collect_illegal_predicate_usages<'tcx>(&self, predicates: HashMap<DefId, Span>, env_query: EnvQuery<'tcx>) -> Vec<(Span, Span)> {
+    fn collect_illegal_predicate_usages(&self, predicates: HashMap<DefId, Span>, env_query: EnvQuery) -> Vec<(Span, Span)> {
         let mut visit = CheckPredicatesVisitor {
             env_query,
             predicates,
