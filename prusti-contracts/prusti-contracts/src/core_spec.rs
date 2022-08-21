@@ -6,4 +6,3 @@ impl<T> ::core::option::Option<T> {
     #[ensures(result == matches!(self, Some(_)))]
     fn is_some(&self) -> bool;
 }
-

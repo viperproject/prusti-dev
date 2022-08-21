@@ -66,4 +66,8 @@ impl<'tcx> EnvName<'tcx> {
         self.tcx.def_path_str(def_id)
         // self.tcx().item_path_str(def_id)
     }
+
+    pub fn local_crate_filename(&self) -> String {
+        format!("{}{}", self.local_crate_name(), self.tcx.sess.opts.cg.extra_filename)
+    }
 }

@@ -26,6 +26,12 @@ pub fn get_current_executable_dir() -> PathBuf {
         .to_path_buf()
 }
 
+pub fn get_prusti_contracts_dir(exe_dir: PathBuf) -> PathBuf {
+    let mut prusti_dir = exe_dir.parent().unwrap().parent().unwrap().to_path_buf();
+    prusti_dir.extend(["prusti-contracts", "target", "verify", "release"]);
+    prusti_dir
+}
+
 /// Append paths to the loader environment variable
 pub fn add_to_loader_path(paths: Vec<PathBuf>, cmd: &mut Command) {
     #[cfg(target_os = "windows")]

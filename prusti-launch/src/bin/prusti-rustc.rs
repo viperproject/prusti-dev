@@ -6,7 +6,9 @@
 
 #[cfg(target_family = "unix")]
 use nix::unistd::{setpgid, Pid};
-use prusti_launch::{add_to_loader_path, get_current_executable_dir, sigint_handler};
+use prusti_launch::{
+    add_to_loader_path, get_current_executable_dir, get_prusti_contracts_dir, sigint_handler,
+};
 use std::{
     env,
     io::Write,
@@ -50,7 +52,8 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
 
     // Setting RUSTC_WRAPPER causes Cargo to pass 'rustc' as the first argument.
     // We're invoking the compiler programmatically, so we ignore this
-    let cargo_invoked = !args.is_empty() && Path::new(&args[0]).file_stem() == Some("rustc".as_ref());
+    let cargo_invoked =
+        !args.is_empty() && Path::new(&args[0]).file_stem() == Some("rustc".as_ref());
     if cargo_invoked {
         args.remove(0);
     }
@@ -59,19 +62,23 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     // should always be with `cargo` anyway (i.e. cargo_invoked == true)
     if !cargo_invoked {
         // Need to give references to standard prusti libraries
-        let target_dir = prusti_home.parent().unwrap().parent().unwrap()
-            .join("prusti-contracts").join("target").join("verify").join("release");
-        let target_dir = target_dir.as_os_str().to_str().expect("the prusti-contracts path contains invalid UTF-8");
+        let target_dir = get_prusti_contracts_dir(prusti_home);
+        let target_dir = target_dir.to_string_lossy();
 
-        args.extend([
-            // This is where Prusti looks for exported specs atm (we may want to change this)
-            "--out-dir", &format!("{target_dir}/deps"),
-            // This is where the files we'll link against live
-            "-L", &format!("dependency={target_dir}/deps"),
-            // These are the libraries that files compiled with prusti-rustc get
-            "--extern", &format!("prusti_contracts={target_dir}/libprusti_contracts.rlib"),
-            "--extern", &format!("prusti_contracts_std={target_dir}/libprusti_contracts_std.rlib"),
-        ].into_iter().map(String::from));
+        args.extend(
+            [
+                // This is where the files we'll link against live
+                "-L",
+                &format!("dependency={target_dir}/deps"),
+                // These are the libraries that files compiled with prusti-rustc get
+                "--extern",
+                &format!("prusti_contracts={target_dir}/libprusti_contracts.rlib"),
+                "--extern",
+                &format!("prusti_contracts_std={target_dir}/libprusti_contracts_std.rlib"),
+            ]
+            .into_iter()
+            .map(String::from),
+        );
     }
     cmd.args(&args);
 
