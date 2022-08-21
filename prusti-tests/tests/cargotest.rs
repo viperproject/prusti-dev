@@ -162,11 +162,6 @@ fn test_local_project_with_dependencies<T: Into<PathBuf>>(project_name: T, depen
 
     // Fetch dependencies using the same target folder of cargo-prusti
     let project = project_builder.build();
-    project
-        .process("cargo")
-        .arg("build")
-        .env("CARGO_TARGET_DIR", "target/verify")
-        .run();
 
     // Set the expected exit status, stdout and stderr
     let mut test_builder = project.process(cargo_prusti_path());
