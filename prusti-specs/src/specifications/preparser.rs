@@ -413,7 +413,7 @@ impl PrustiTokenStream {
                 other => error(self.source_span, format!("unexpected nested spec type: {}", other).as_ref()),
             }
         } else {
-            error(self.source_span, "expected identifier").into()
+            error(self.source_span, "expected identifier")
         }
     }
 
