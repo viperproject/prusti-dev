@@ -19,7 +19,7 @@ use crate::{
     common::add_phantom_data_for_generic_params,
     user_provided_type_params::{
         UserAnnotatedTypeParam, UserAnnotatedTypeParamParser, UserAnnotatedTypeParamParserError,
-    },
+    }, SPECS_VERSION,
 };
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
@@ -190,6 +190,7 @@ fn create_model_impl(
 
     Ok(parse_quote_spanned! {item_struct.span()=>
         #[prusti::type_models_to_model_impl]
+        #[prusti::specs_version = #SPECS_VERSION]
         impl<#(#generic_params),*> #to_model_trait_path for #impl_path {
             #[trusted]
             #[pure]

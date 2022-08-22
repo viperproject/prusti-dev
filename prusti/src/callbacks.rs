@@ -72,7 +72,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     ) -> Compilation {
         compiler.session().abort_if_errors();
         queries.global_ctxt().unwrap().peek_mut().enter(|tcx| {
-            let mut env = Environment::new(tcx);
+            let mut env = Environment::new(tcx, env!("CARGO_PKG_VERSION"));
             let spec_checker = specs::checker::SpecChecker::new();
             spec_checker.check(&env);
             compiler.session().abort_if_errors();
