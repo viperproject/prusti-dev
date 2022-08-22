@@ -167,7 +167,8 @@ impl PrustiTokenStream {
     {
         let result = f(&mut self)?;
         if !self.is_empty() {
-            return error(self.source_span, "unexpected extra tokens");
+            let error_span = self.tokens.front().unwrap().span().join(self.tokens.back().unwrap().span()).unwrap();
+            return error(error_span, "unexpected extra tokens");
         }
         Ok(result)
     }
