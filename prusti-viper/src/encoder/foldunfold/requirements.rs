@@ -52,6 +52,7 @@ impl RequiredStmtPermissionsGetter for vir::Stmt {
         match self {
             &vir::Stmt::Comment(_) | &vir::Stmt::Label(_) => FxHashSet::default(),
 
+            &vir::Stmt::Assume(vir::Assume { ref expr, .. }) |
             &vir::Stmt::Inhale(vir::Inhale { ref expr }) => perm_difference(
                 expr.get_required_stmt_permissions(predicates),
                 expr.get_footprint(predicates),

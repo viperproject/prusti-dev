@@ -83,6 +83,16 @@ impl<'a> AstFactory<'a> {
         )
     }
 
+    pub fn assume(&self, expr: Expr, pos: Position) -> Stmt<'a> {
+        let obj = self.jni.unwrap_result(ast::Assume::with(self.env).new(
+            expr.to_jobject(),
+            pos.to_jobject(),
+            self.no_info(),
+            self.no_trafos(),
+        ));
+        Stmt::new(obj)
+    }
+
     pub fn exhale(&self, expr: Expr, pos: Position) -> Stmt<'a> {
         let obj = self.jni.unwrap_result(ast::Exhale::with(self.env).new(
             expr.to_jobject(),

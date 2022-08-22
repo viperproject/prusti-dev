@@ -67,6 +67,10 @@ impl ApplyOnState for vir::Stmt {
                 inhale_expr(expr, state, predicates)?;
             }
 
+            &vir::Stmt::Assume(vir::Assume { ref expr, .. }) => {
+                inhale_expr(expr, state, predicates)?;
+            }
+
             &vir::Stmt::Exhale(vir::Exhale { ref expr, .. }) => {
                 exhale_expr(expr, state, predicates)?;
             }

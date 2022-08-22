@@ -22,6 +22,7 @@ pub enum Stmt {
     Inhale(Expr),
     Exhale(Expr, Position),
     Assert(Expr, Position),
+    Assume(Expr, Position),
     /// MethodCall: method_name, args, targets
     MethodCall(String, Vec<Expr>, Vec<LocalVar>),
     /// Target, source, kind
@@ -83,6 +84,7 @@ impl Hash for Stmt {
             Stmt::Inhale(e) => e.hash(state),
             Stmt::Exhale(e, p) => (e, p).hash(state),
             Stmt::Assert(e, p) => (e, p).hash(state),
+            Stmt::Assume(e, p) => (e, p).hash(state),
             Stmt::MethodCall(s, v1, v2) => (s, v1, v2).hash(state),
             Stmt::Assign(e1, e2, ak) => (e1, e2, ak).hash(state),
             Stmt::Fold(s, v, pa, mevi, p) => (s, v, pa, mevi, p).hash(state),
@@ -131,6 +133,9 @@ impl fmt::Display for Stmt {
             Stmt::Exhale(ref expr, _) => write!(f, "exhale {}", expr),
             Stmt::Assert(ref expr, _) => {
                 write!(f, "assert {}", expr)
+            }
+            Stmt::Assume(ref expr, _) => {
+                write!(f, "assume {}", expr)
             }
             Stmt::MethodCall(ref name, ref args, ref vars) => write!(
                 f,
@@ -339,6 +344,7 @@ pub trait StmtFolder {
             Stmt::Inhale(expr) => self.fold_inhale(expr),
             Stmt::Exhale(e, p) => self.fold_exhale(e, p),
             Stmt::Assert(expr, pos) => self.fold_assert(expr, pos),
+            Stmt::Assume(expr, pos) => self.fold_assume(expr, pos),
             Stmt::MethodCall(s, ve, vv) => self.fold_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.fold_assign(p, e, k),
             Stmt::Fold(s, ve, perm, variant, p) => self.fold_fold(s, ve, perm, variant, p),
@@ -377,6 +383,10 @@ pub trait StmtFolder {
 
     fn fold_assert(&mut self, expr: Expr, pos: Position) -> Stmt {
         Stmt::Assert(self.fold_expr(expr), pos)
+    }
+
+    fn fold_assume(&mut self, expr: Expr, pos: Position) -> Stmt {
+        Stmt::Assume(self.fold_expr(expr), pos)
     }
 
     fn fold_method_call(&mut self, name: String, args: Vec<Expr>, targets: Vec<LocalVar>) -> Stmt {
@@ -487,6 +497,7 @@ pub trait FallibleStmtFolder {
             Stmt::Inhale(expr) => self.fallible_fold_inhale(expr),
             Stmt::Exhale(e, p) => self.fallible_fold_exhale(e, p),
             Stmt::Assert(expr, pos) => self.fallible_fold_assert(expr, pos),
+            Stmt::Assume(expr, pos) => self.fallible_fold_assume(expr, pos),
             Stmt::MethodCall(s, ve, vv) => self.fallible_fold_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.fallible_fold_assign(p, e, k),
             Stmt::Fold(s, ve, perm, variant, p) => self.fallible_fold_fold(s, ve, perm, variant, p),
@@ -527,6 +538,10 @@ pub trait FallibleStmtFolder {
 
     fn fallible_fold_assert(&mut self, expr: Expr, pos: Position) -> Result<Stmt, Self::Error> {
         Ok(Stmt::Assert(self.fallible_fold_expr(expr)?, pos))
+    }
+
+    fn fallible_fold_assume(&mut self, expr: Expr, pos: Position) -> Result<Stmt, Self::Error> {
+        Ok(Stmt::Assume(self.fallible_fold_expr(expr)?, pos))
     }
 
     fn fallible_fold_method_call(
@@ -679,6 +694,7 @@ pub trait StmtWalker {
             Stmt::Inhale(expr) => self.walk_inhale(expr),
             Stmt::Exhale(e, p) => self.walk_exhale(e, p),
             Stmt::Assert(expr, pos) => self.walk_assert(expr, pos),
+            Stmt::Assume(expr, pos) => self.walk_assume(expr, pos),
             Stmt::MethodCall(s, ve, vv) => self.walk_method_call(s, ve, vv),
             Stmt::Assign(p, e, k) => self.walk_assign(p, e, k),
             Stmt::Fold(s, ve, perm, variant, pos) => self.walk_fold(s, ve, perm, variant, pos),
@@ -712,6 +728,10 @@ pub trait StmtWalker {
     }
 
     fn walk_assert(&mut self, expr: &Expr, _pos: &Position) {
+        self.walk_expr(expr);
+    }
+
+    fn walk_assume(&mut self, expr: &Expr, _pos: &Position) {
         self.walk_expr(expr);
     }
 
