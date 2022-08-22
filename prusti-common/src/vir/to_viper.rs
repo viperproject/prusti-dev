@@ -172,6 +172,12 @@ impl<'v> ToViper<'v, viper::Stmt<'v>> for Stmt {
             Stmt::Assert(ref expr, ref pos) => {
                 ast.assert(expr.to_viper(context, ast), pos.to_viper(context, ast))
             }
+            Stmt::Assume(ref expr, ref pos) => {
+                // For some reason encoding this as an `assert` causes Silicon to raise
+                // an error at this location:
+                // https://github.com/viperproject/silicon/blob/e4c03a5064c90f3dc2477bf2cd66c7d9ee89b6a6/src/main/scala/rules/Executor.scala#L570
+                ast.inhale(expr.to_viper(context, ast), pos.to_viper(context, ast))
+            }
             Stmt::MethodCall(ref method_name, ref args, ref targets) => {
                 let fake_position = Position::default();
                 ast.method_call(
