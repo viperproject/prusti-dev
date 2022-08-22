@@ -486,17 +486,6 @@ impl PrustiTokenStream {
     }
 }
 
-trait AsPrustiTokenStream {
-    fn as_pts(&self) -> PrustiTokenStream;
-}
-
-// bridge between syn parse streams and prusti token streams
-impl AsPrustiTokenStream for ParseStream<'_> {
-    fn as_pts(&self) -> PrustiTokenStream {
-        PrustiTokenStream::new(self.parse().unwrap())
-    }
-}
-
 // TODO: is there a better place for this type and its logic?
 
 #[derive(Debug)]
@@ -511,7 +500,8 @@ impl Parse for GhostConstraint {
         Ok(GhostConstraint {
             trait_bounds: parse_trait_bounds(input)?,
             comma: input.parse()?,
-            specs: input.as_pts().parse_rest(|pts| pts.pop_group_of_nested_specs(input.span()))?,
+            specs: PrustiTokenStream::new(input.parse().unwrap())
+                .parse_rest(|pts| pts.pop_group_of_nested_specs(input.span()))?,
         })
     }
 }
