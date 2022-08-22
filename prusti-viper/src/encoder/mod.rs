@@ -34,3 +34,4 @@ mod purifier;
 pub mod counterexample;
 pub mod counterexample_translation;
 mod definition_collector;
+mod specification_blocks;
