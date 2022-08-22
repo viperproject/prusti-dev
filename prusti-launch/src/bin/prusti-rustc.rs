@@ -8,6 +8,7 @@
 use nix::unistd::{setpgid, Pid};
 use prusti_launch::{
     add_to_loader_path, get_current_executable_dir, get_prusti_contracts_dir, sigint_handler,
+    PRUSTI_LIBS,
 };
 use std::{
     env,
@@ -67,20 +68,27 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
         let target_dir = get_prusti_contracts_dir(prusti_home);
         let target_dir = target_dir.to_string_lossy();
 
-        args.extend(
-            [
-                // This is where the files we'll link against live
-                "-L",
-                &format!("dependency={target_dir}/deps"),
-                // These are the libraries that files compiled with prusti-rustc get
-                "--extern",
-                &format!("prusti_contracts={target_dir}/libprusti_contracts.rlib"),
-                "--extern",
-                &format!("prusti_contracts_std={target_dir}/libprusti_contracts_std.rlib"),
-            ]
-            .into_iter()
-            .map(String::from),
-        );
+        // This is where the files we'll link against live
+        args.push("-L".into());
+        args.push(format!("dependency={target_dir}/deps"));
+
+        for prusti_lib in PRUSTI_LIBS.map(|c| c.replace('-', "_")) {
+            if let Some(illegal_arg) = args
+                .windows(2)
+                .find(|p| p[0] == "--extern" && p[1].starts_with(&format!("{prusti_lib}=")))
+            {
+                panic!(
+                    "Running `prusti-rustc` with the flag '{} {}' is not supported! \
+                    The crate `{prusti_lib}` is an internal Prusti crate and will be linked automatically. \
+                    If you encounter this error running with `cargo(-prusti)` please file a bug report.",
+                    illegal_arg[0],
+                    illegal_arg[1],
+                );
+            }
+            // These are the libraries that files compiled with prusti-rustc get
+            args.push("--extern".into());
+            args.push(format!("{prusti_lib}={target_dir}/lib{prusti_lib}.rlib"));
+        }
     }
     cmd.args(&args);
 

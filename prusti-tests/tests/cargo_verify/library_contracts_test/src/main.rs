@@ -1,6 +1,6 @@
 // `extern crate` is required to force the crate to be used
 // otherwise Rust ignores it as it isn't used
-extern crate prusti_contracts_std;
+extern crate prusti_contracts;
 extern crate library_contracts_extern_specs;
 use library_contracts_lib::Opt;
 
