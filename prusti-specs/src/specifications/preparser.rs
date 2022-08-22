@@ -161,7 +161,7 @@ impl PrustiTokenStream {
         self.tokens.is_empty()
     }
 
-    fn as_single<T, F>(mut self, f: F) -> syn::Result<T>
+    fn parse_rest<T, F>(mut self, f: F) -> syn::Result<T>
     where
         F: FnOnce(&mut Self) -> syn::Result<T>,
     {
@@ -423,7 +423,7 @@ impl PrustiTokenStream {
         let parsed = group_of_specs
             .split(PrustiBinaryOp::Rust(RustOp::Comma), true)
             .into_iter()
-            .map(|stream| stream.as_single(|stream| stream.pop_single_nested_spec()))
+            .map(|stream| stream.parse_rest(|stream| stream.pop_single_nested_spec()))
             .map(|stream| stream.and_then(|s| s.parse()))
             .collect::<syn::Result<Vec<NestedSpec<TokenStream>>>>()?;
         Ok(parsed)
@@ -510,7 +510,7 @@ impl Parse for GhostConstraint {
         Ok(GhostConstraint {
             trait_bounds: parse_trait_bounds(input)?,
             comma: input.parse()?,
-            specs: input.as_pts().as_single(|pts| pts.pop_group_of_nested_specs(input.span()))?,
+            specs: input.as_pts().parse_rest(|pts| pts.pop_group_of_nested_specs(input.span()))?,
         })
     }
 }
