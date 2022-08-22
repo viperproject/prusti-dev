@@ -66,11 +66,19 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
     if !cargo_invoked {
         // Need to give references to standard prusti libraries
         let target_dir = get_prusti_contracts_dir(prusti_home);
-        let target_dir = target_dir.to_string_lossy();
+        if target_dir.to_str().is_none() {
+            panic!(
+                "Path to '{}' is not a valid utf-8 string!",
+                target_dir.to_string_lossy()
+            );
+        }
 
         // This is where the files we'll link against live
         args.push("-L".into());
-        args.push(format!("dependency={target_dir}/deps"));
+        args.push(format!(
+            "dependency={}",
+            target_dir.join("deps").to_str().unwrap()
+        ));
 
         for prusti_lib in PRUSTI_LIBS.map(|c| c.replace('-', "_")) {
             if let Some(illegal_arg) = args
@@ -87,7 +95,11 @@ fn process(mut args: Vec<String>) -> Result<(), i32> {
             }
             // These are the libraries that files compiled with prusti-rustc get
             args.push("--extern".into());
-            args.push(format!("{prusti_lib}={target_dir}/lib{prusti_lib}.rlib"));
+            let lib_file = format!("lib{prusti_lib}.rlib");
+            args.push(format!(
+                "{prusti_lib}={}",
+                target_dir.join(lib_file).to_str().unwrap()
+            ));
         }
     }
     cmd.args(&args);
