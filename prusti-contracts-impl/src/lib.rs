@@ -72,8 +72,8 @@ pub fn model(_attr: TokenStream, _tokens: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn ghost_constraint(_attr: TokenStream, _tokens: TokenStream) -> TokenStream {
-    TokenStream::new()
+pub fn ghost_constraint(_attr: TokenStream, tokens: TokenStream) -> TokenStream {
+    tokens
 }
 
 #[proc_macro]
