@@ -953,6 +953,8 @@ mod tests {
     }
 
     mod ghost_constraints {
+        use std::assert_matches::assert_matches;
+
         use super::*;
 
         #[test]
@@ -969,7 +971,7 @@ mod tests {
 
         #[test]
         fn multiple_bounds_multiple_specs() {
-            let constraint = parse_ghost_constraint(quote!{ T: A+B+Foo<i32>, [requires(true), ensures(false)]}).unwrap();
+            let constraint = parse_ghost_constraint(quote!{ T: A+B+Foo<i32>, [requires(true), ensures(false), pure]}).unwrap();
 
             assert_bounds_eq(constraint.trait_bounds, quote!{ T : A + B + Foo < i32 > });
             match &constraint.specs[0] {
@@ -980,12 +982,14 @@ mod tests {
                 NestedSpec::Ensures(ts) => assert_eq!(ts.to_string(), "false"),
                 _ => panic!(),
             }
+            assert_matches!(&constraint.specs[2], NestedSpec::Pure);
+            assert_eq!(constraint.specs.len(), 3);
         }
 
         #[test]
         fn no_specs() {
+            // TODO: does it even make sense to compare parsed quotes like this? feels a bit like saying 2 = 2
             let constraint = parse_ghost_constraint(quote!{ T: A, []}).unwrap();
-            //assert_eq!(constraint.trait_bounds.to_string(), "T : A");
             assert_bounds_eq(constraint.trait_bounds, quote!{ T : A });
             assert!(constraint.specs.is_empty());
         }
@@ -994,6 +998,15 @@ mod tests {
         fn fully_qualified_trait_path() {
             let constraint = parse_ghost_constraint(quote!{ T: path::to::A, [requires(true)]}).unwrap();
             assert_bounds_eq(constraint.trait_bounds, quote!{ T : path :: to :: A });
+        }
+        
+        #[test]
+        fn tuple_generics() {
+            // just check that parsing succeeds
+            let _ = parse_ghost_constraint(quote!{ T: Fn<(i32,), Output = i32>, []}).unwrap();
+            let _ = parse_ghost_constraint(quote!{ T: Fn<(i32,)>, []}).unwrap();
+            let _ = parse_ghost_constraint(quote!{ T: Fn<(i32, bool)>, []}).unwrap();
+            let _ = parse_ghost_constraint(quote!{ T: Fn<(i32, bool,)>, []}).unwrap();
         }
         
         fn assert_bounds_eq(parsed: syn::PredicateType, quote: TokenStream) {

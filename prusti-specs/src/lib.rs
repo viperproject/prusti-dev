@@ -4,6 +4,7 @@
 #![feature(box_syntax)]
 #![feature(proc_macro_span)]
 #![feature(if_let_guard)]
+#![feature(assert_matches)]
 // This Clippy chcek seems to be always wrong.
 #![allow(clippy::iter_with_drain)]
 
