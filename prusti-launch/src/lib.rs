@@ -18,6 +18,14 @@ use std::{
     process::Command,
 };
 
+pub const PRUSTI_HELPERS: [&str; 4] = [
+    "prusti-contracts-internal",
+    "prusti-contracts-impl",
+    "prusti-specs",
+    "prusti-utils",
+];
+pub const PRUSTI_LIBS: [&str; 2] = ["prusti-contracts", "prusti-contracts-std"];
+
 pub fn get_current_executable_dir() -> PathBuf {
     env::current_exe()
         .expect("current executable path invalid")

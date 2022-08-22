@@ -4046,7 +4046,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                     true.into()
                 };
                 let mut assertion_rhs = self.encoder.encode_assertion(
-                    &body_rhs,
+                    body_rhs,
                     Some(pre_label),
                     &encoded_args,
                     Some(&encoded_return),

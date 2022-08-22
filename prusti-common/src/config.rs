@@ -10,7 +10,7 @@ pub mod commandline;
 use self::commandline::CommandLine;
 use ::config::{Config, Environment, File};
 use log::warn;
-use prusti_launch::{get_current_executable_dir, find_viper_home};
+use prusti_launch::{get_current_executable_dir, find_viper_home, PRUSTI_HELPERS, PRUSTI_LIBS};
 use serde::Deserialize;
 use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
@@ -474,6 +474,18 @@ pub fn check_timeout() -> Option<u32> {
 /// `--enableMoreCompleteExhale`.
 pub fn use_more_complete_exhale() -> bool {
     read_setting("use_more_complete_exhale")
+}
+
+pub fn is_prusti_helper_crate() -> bool {
+    env::var("CARGO_PKG_NAME")
+        .map(|name| PRUSTI_HELPERS.contains(&name.as_str()))
+        .unwrap_or(false)
+}
+
+pub fn is_prusti_lib_crate() -> bool {
+    env::var("CARGO_PKG_NAME")
+        .map(|name| PRUSTI_LIBS.contains(&name.as_str()))
+        .unwrap_or(false)
 }
 
 /// When enabled, prints the items collected for verification.
