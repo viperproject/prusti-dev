@@ -1004,10 +1004,10 @@ mod tests {
         #[test]
         fn tuple_generics() {
             // just check that parsing succeeds
-            let _ = parse_ghost_constraint(quote!{ T: Fn<(i32,), Output = i32>, []}).unwrap();
-            let _ = parse_ghost_constraint(quote!{ T: Fn<(i32,)>, []}).unwrap();
-            let _ = parse_ghost_constraint(quote!{ T: Fn<(i32, bool)>, []}).unwrap();
-            let _ = parse_ghost_constraint(quote!{ T: Fn<(i32, bool,)>, []}).unwrap();
+            assert!(parse_ghost_constraint(quote!{ T: Fn<(i32,), Output = i32>, []}).is_ok());
+            assert!(parse_ghost_constraint(quote!{ T: Fn<(i32,)>, []}).is_ok());
+            assert!(parse_ghost_constraint(quote!{ T: Fn<(i32, bool)>, []}).is_ok());
+            assert!(parse_ghost_constraint(quote!{ T: Fn<(i32, bool,)>, []}).is_ok());
         }
         
         fn assert_bounds_eq(parsed: syn::PredicateType, quote: TokenStream) {
