@@ -498,6 +498,7 @@ impl AsPrustiTokenStream for ParseStream<'_> {
 
 // TODO: is there a better place for this type and its logic?
 
+#[derive(Debug)]
 pub struct GhostConstraint {
     pub trait_bounds: syn::PredicateType,
     pub comma: syn::token::Comma,
@@ -509,7 +510,7 @@ impl Parse for GhostConstraint {
         Ok(GhostConstraint {
             trait_bounds: parse_trait_bounds(input)?,
             comma: input.parse()?,
-            specs: input.as_pts().pop_group_of_nested_specs(input.span())?,
+            specs: input.as_pts().as_single(|pts| pts.pop_group_of_nested_specs(input.span()))?,
         })
     }
 }
@@ -956,26 +957,26 @@ mod tests {
 
         #[test]
         fn invalid_args() {
-            let err_invalid_arguments = "Invalid use of macro. Two arguments expected (a trait bound `T: A + B` and multiple specifications `[requires(...), ensures(...), ...]`)";
-            assert_error!(parse_ghost_constraint(quote!{ [requires(false)] }), err_invalid_arguments);
-            assert_error!(parse_ghost_constraint(quote!{ }), err_invalid_arguments);
-            assert_error!(parse_ghost_constraint(quote!{T: A }), err_invalid_arguments);
-            assert_error!(parse_ghost_constraint(quote!{T: A, [requires(false)], "nope" }), "expected nested specification in brackets");
-            assert_error!(parse_ghost_constraint(quote!{[requires(false)], T: A }), "expected nested specification in brackets");
+            let err_invalid_bounds = "expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime";
+            assert_error!(parse_ghost_constraint(quote!{ [requires(false)] }), err_invalid_bounds);
+            assert_error!(parse_ghost_constraint(quote!{ }), format!("unexpected end of input, {}", err_invalid_bounds));
+            assert_error!(parse_ghost_constraint(quote!{T: A }), "expected `,`");
+            assert_error!(parse_ghost_constraint(quote!{T: A, [requires(false)], "nope" }), "unexpected extra tokens");
+            assert_error!(parse_ghost_constraint(quote!{[requires(false)], T: A }), err_invalid_bounds);
             assert_error!(parse_ghost_constraint(quote!{T: A,  }), "expected nested specification in brackets");
             assert_error!(parse_ghost_constraint(quote!{T: A, {} }), "expected nested specification in brackets");
         }
 
         #[test]
         fn multiple_bounds_multiple_specs() {
-            let (bounds, nested_specs) = parse_ghost_constraint(quote!{ T: A+B+Foo<i32>, [requires(true), ensures(false)]}).unwrap();
+            let constraint = parse_ghost_constraint(quote!{ T: A+B+Foo<i32>, [requires(true), ensures(false)]}).unwrap();
 
-            assert_eq!(bounds.to_string(), "T : A + B + Foo < i32 >");
-            match &nested_specs[0] {
+            assert_bounds_eq(constraint.trait_bounds, quote!{ T : A + B + Foo < i32 > });
+            match &constraint.specs[0] {
                 NestedSpec::Requires(ts) => assert_eq!(ts.to_string(), "true"),
                 _ => panic!(),
             }
-            match &nested_specs[1] {
+            match &constraint.specs[1] {
                 NestedSpec::Ensures(ts) => assert_eq!(ts.to_string(), "false"),
                 _ => panic!(),
             }
@@ -983,15 +984,20 @@ mod tests {
 
         #[test]
         fn no_specs() {
-            let (bounds, nested_specs) = parse_ghost_constraint(quote!{ T: A, []}).unwrap();
-            assert_eq!(bounds.to_string(), "T : A");
-            assert!(nested_specs.is_empty());
+            let constraint = parse_ghost_constraint(quote!{ T: A, []}).unwrap();
+            //assert_eq!(constraint.trait_bounds.to_string(), "T : A");
+            assert_bounds_eq(constraint.trait_bounds, quote!{ T : A });
+            assert!(constraint.specs.is_empty());
         }
 
         #[test]
         fn fully_qualified_trait_path() {
-            let (bounds, _) = parse_ghost_constraint(quote!{ T: path::to::A, [requires(true)]}).unwrap();
-            assert_eq!(bounds.to_string(), "T : path :: to :: A");
+            let constraint = parse_ghost_constraint(quote!{ T: path::to::A, [requires(true)]}).unwrap();
+            assert_bounds_eq(constraint.trait_bounds, quote!{ T : path :: to :: A });
+        }
+        
+        fn assert_bounds_eq(parsed: syn::PredicateType, quote: TokenStream) {
+            assert_eq!(syn::WherePredicate::Type(parsed), syn::parse_quote!{ #quote });
         }
     }
 }
