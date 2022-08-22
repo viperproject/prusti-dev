@@ -37,6 +37,7 @@ impl<'v, 'tcx: 'v> MidCoreProofEncoderInterface<'tcx> for super::super::super::E
             );
             return Ok(());
         }
+        eprintln!("CORE encode lifetimes");
         let procedure = self.encode_procedure_core_proof(proc_def_id, check_mode)?;
         let super::lowerer::LoweringResult {
             procedure,

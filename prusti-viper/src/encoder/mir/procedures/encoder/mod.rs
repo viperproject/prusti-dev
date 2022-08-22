@@ -70,6 +70,7 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     def_id: DefId,
     check_mode: CheckMode,
 ) -> SpannedEncodingResult<vir_high::ProcedureDecl> {
+    eprintln!("CORE encode_procedure");
     let procedure = Procedure::new(encoder.env(), def_id);
     let tcx = encoder.env().tcx();
     let (mir, lifetimes) = self::elaborate_drops::elaborate_drops(encoder, def_id, &procedure)?;
@@ -158,6 +159,7 @@ struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
 
 impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     fn encode(&mut self) -> SpannedEncodingResult<vir_high::ProcedureDecl> {
+        eprintln!("CORE procedureencoder encode");
         let name = format!(
             "{}${}",
             self.encoder.encode_item_name(self.def_id),
@@ -439,6 +441,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
         procedure_builder: &mut ProcedureBuilder,
     ) -> SpannedEncodingResult<()> {
+        eprintln!("CORE encode body");
         let entry_label = vir_high::BasicBlockId::new("label_entry".to_string());
         let mut block_builder = procedure_builder.create_basic_block_builder(entry_label.clone());
         if self.mir.basic_blocks().is_empty() {
@@ -1826,6 +1829,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_specification_blocks(&mut self) -> SpannedEncodingResult<()> {
+        eprintln!("CORE encode spec blocks");
         // Collect the entry points into the specification blocks.
         let mut entry_points: BTreeMap<_, _> = self
             .specification_blocks
@@ -1866,6 +1870,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         bb: mir::BasicBlock,
         encoded_statements: &mut Vec<vir_high::Statement>,
     ) -> SpannedEncodingResult<()> {
+        eprintln!("CORE ENCODE SPEC BLOCK");
         let block = &self.mir[bb];
         if false
             || self.try_encode_assert(bb, block, encoded_statements)?
@@ -1891,6 +1896,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
             )) = stmt.kind
             {
+                eprintln!("CORE get assertion");
                 let assertion = match self.encoder.get_prusti_assertion(cl_def_id.to_def_id()) {
                     Some(spec) => spec,
                     None => return Ok(false),
