@@ -1,8 +1,8 @@
 // `extern crate` is required to force the crate to be used
 // otherwise Rust ignores it as it isn't used
-extern crate prusti_contracts;
 extern crate library_contracts_extern_specs;
 use library_contracts_lib::Opt;
+use prusti_contracts::*;
 
 // Demonstrating library contracts: specification is imported
 // and thus corresponding #[extern_spec] blocks are not needed
@@ -33,17 +33,10 @@ fn test_extern_specs() {
 
 fn test_builtin_extern_specs() {
     // Verifying extern specs imported from `prusti_contracts`.
-    // The following extern spec block is not needed:
-    /*
-    #[extern_spec]
-    impl<T> Option<T> {
-        #[ensures(matches!(*self, Some(_)) == result)]
-        fn is_some(&self) -> bool;
-    }
-    */
+    let _ = divide(10).unwrap();
+}
 
-    let c = Some(42);
-    let d = None::<i32>;
-    assert!(c.is_some() == true);
-    assert!(d.is_some() == false);
+#[ensures((arg % 2 == 0) == result.is_ok())]
+fn divide(arg: i32) -> Result<i32, ()> {
+    if arg % 2 == 0 { Ok(arg/2) } else { Err(()) }
 }
