@@ -234,7 +234,9 @@ impl<'tcx> EnvBody<'tcx> {
     /// Ensures that the MIR body of a local spec is cached. This must be called on all specs,
     /// prior to requesting their bodies with `get_spec_body_subs` or exporting with `CrossCrateBodies::from`!
     pub(crate) fn load_spec_body(&mut self, def_id: LocalDefId) {
-        assert!(!self.specs.local.contains_key(&def_id));
+        // The same `def_id` may be referenced twice, e.g. see fn `constrained_contract_inherits_posts` in
+        // the `ghost-constraints-extend-base-attributes.rs` test case
+        if self.specs.local.contains_key(&def_id) { return; }
         self.specs.local.insert(def_id, Self::raw_load_local_mir(self.tcx, def_id).body);
     }
     pub(crate) fn load_predicate_body(&mut self, def_id: LocalDefId) {
