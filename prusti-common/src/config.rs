@@ -123,6 +123,7 @@ lazy_static::lazy_static! {
         settings.set_default("enable_type_invariants", false).unwrap();
         settings.set_default("use_new_encoder", true).unwrap();
         settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
+        settings.set_default::<Option<String>>("min_prusti_version", None).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -842,6 +843,11 @@ pub fn use_new_encoder() -> bool {
 /// How many parallel verifiers Silicon should use.
 pub fn number_of_parallel_verifiers() -> Option<u8> {
     read_setting("number_of_parallel_verifiers")
+}
+
+/// Throw a compilation error if using a lower prusti version.
+pub fn min_prusti_version() -> Option<String> {
+    read_setting("min_prusti_version")
 }
 
 /// The given basic blocks will be replaced with `assume false`.

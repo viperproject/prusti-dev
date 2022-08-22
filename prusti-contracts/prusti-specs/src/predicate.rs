@@ -1,6 +1,6 @@
 //! Predicate parsing
 
-use crate::{rewriter, SpecificationId};
+use crate::{rewriter, SpecificationId, SPECS_VERSION};
 use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 use syn::{parse::Parse, parse_quote_spanned, spanned::Spanned};
@@ -114,6 +114,7 @@ fn parse_predicate_internal(
         let signature = input.fn_sig;
         let patched_function = parse_quote_spanned!(span=>
             #[prusti::abstract_predicate]
+            #[prusti::specs_version = #SPECS_VERSION]
             #signature;
         );
 
@@ -135,6 +136,7 @@ fn patch_predicate_macro_body<R: Parse>(
     parse_quote_spanned!(input_span=>
         #[allow(unused_must_use, unused_variables, dead_code)]
         #[prusti::pred_spec_id_ref = #spec_id_str]
+        #[prusti::specs_version = #SPECS_VERSION]
         #visibility #signature {
             unimplemented!("predicate")
         }

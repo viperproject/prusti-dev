@@ -38,6 +38,8 @@ use prusti_utils::force_matches;
 pub use spec_attribute_kind::SpecAttributeKind;
 use specifications::{common::SpecificationId, untyped};
 
+pub const SPECS_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 macro_rules! handle_result {
     ($parse_result: expr) => {
         match $parse_result {
@@ -126,6 +128,7 @@ pub fn rewrite_prusti_attributes(
     quote_spanned! {item.span()=>
         #(#generated_spec_items)*
         #(#generated_attributes)*
+        #[prusti::specs_version = #SPECS_VERSION]
         #item
     }
 }
@@ -287,6 +290,7 @@ fn generate_expression_closure(
     let callsite_span = Span::call_site();
     quote_spanned! {callsite_span=>
         #[allow(unused_must_use, unused_variables, unused_braces, unused_parens)]
+        #[prusti::specs_version = #SPECS_VERSION]
         if false {
             #closure
         }
@@ -369,6 +373,7 @@ pub fn closure(tokens: TokenStream, drop_spec: bool) -> TokenStream {
         {
             #[allow(unused_variables, unused_braces, unused_parens)]
             #[prusti::closure]
+            #[prusti::specs_version = #SPECS_VERSION]
             #cl_annotations #attrs_ts
             let _prusti_closure =
                 #asyncness #movability #capture
@@ -474,6 +479,7 @@ pub fn refine_trait_spec(_attr: TokenStream, tokens: TokenStream) -> TokenStream
     impl_block.items = new_items;
     quote_spanned! {impl_block.span()=>
         #(#generated_spec_items)*
+        #[prusti::specs_version = #SPECS_VERSION]
         #impl_block
     }
 }
@@ -560,6 +566,7 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
             }
         };
         quote_spanned! { item_span =>
+            #[prusti::specs_version = #SPECS_VERSION]
             #item
             #item_impl
         }
@@ -611,6 +618,7 @@ pub fn invariant(attr: TokenStream, tokens: TokenStream) -> TokenStream {
         }
     };
     quote_spanned! { item_span =>
+        #[prusti::specs_version = #SPECS_VERSION]
         #item
         #item_impl
     }
@@ -757,6 +765,7 @@ pub fn ghost(tokens: TokenStream) -> TokenStream {
         quote_spanned! {callsite_span=>
             {
                 #begin
+                #[prusti::specs_version = #SPECS_VERSION]
                 let ghost_result = Ghost::new(#tokens);
                 #end
                 ghost_result

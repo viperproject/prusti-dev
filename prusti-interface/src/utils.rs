@@ -13,6 +13,7 @@ use prusti_rustc_interface::middle::{
     mir,
     ty::TyCtxt,
 };
+use std::borrow::Borrow;
 
 /// Check if the place `potential_prefix` is a prefix of `place`. For example:
 ///
@@ -232,6 +233,10 @@ pub fn read_extern_spec_attr(attrs: &[ast::Attribute]) -> Option<String> {
     read_prusti_attr("extern_spec", attrs)
 }
 
+pub fn read_specs_version_attr(attr: &ast::Attribute) -> Option<String> {
+    read_prusti_attr("specs_version", &[attr])
+}
+
 pub fn has_to_model_fn_attr(attrs: &[ast::Attribute]) -> bool {
     has_prusti_attr(attrs, "type_models_to_model_fn")
 }
@@ -249,7 +254,7 @@ pub fn has_abstract_predicate_attr(attrs: &[ast::Attribute]) -> bool {
 }
 
 /// Read the value stored in a Prusti attribute (e.g. `prusti::<attr_name>="...")`.
-pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<String> {
+pub fn read_prusti_attrs<T: Borrow<ast::Attribute>>(attr_name: &str, attrs: &[T]) -> Vec<String> {
     let mut strings = vec![];
     for attr in attrs {
         if let ast::AttrKind::Normal(
@@ -264,7 +269,7 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
                 tokens: _,
             },
             _,
-        ) = &attr.kind
+        ) = &attr.borrow().kind
         {
             // Skip attributes whose path don't match with "prusti::<attr_name>"
             if !(segments.len() == 2
@@ -283,6 +288,6 @@ pub fn read_prusti_attrs(attr_name: &str, attrs: &[ast::Attribute]) -> Vec<Strin
 }
 
 /// Read the value stored in a single Prusti attribute (e.g. `prusti::<attr_name>="...")`.
-pub fn read_prusti_attr(attr_name: &str, attrs: &[ast::Attribute]) -> Option<String> {
+pub fn read_prusti_attr<T: Borrow<ast::Attribute>>(attr_name: &str, attrs: &[T]) -> Option<String> {
     read_prusti_attrs(attr_name, attrs).pop()
 }

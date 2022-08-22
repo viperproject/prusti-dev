@@ -3,10 +3,12 @@
 mod common;
 mod type_model_checks;
 mod predicate_checks;
+mod version_checks;
 
 use common::*;
 use type_model_checks::{IllegalModelUsagesChecker, ModelDefinedOnTypeWithoutFields};
 use predicate_checks::IllegalPredicateUsagesChecker;
+use version_checks::MismatchedVersionsChecker;
 use crate::environment::Environment;
 
 /// Checker visitor for the specifications.
@@ -25,9 +27,10 @@ impl<'tcx> SpecChecker<'tcx> {
     pub fn new() -> Self {
         Self {
             checks: vec![
+                Box::new(MismatchedVersionsChecker {}),
                 Box::new(IllegalPredicateUsagesChecker {}),
                 Box::new(IllegalModelUsagesChecker {}),
-                Box::new(ModelDefinedOnTypeWithoutFields {})
+                Box::new(ModelDefinedOnTypeWithoutFields {}),
             ]
         }
     }
