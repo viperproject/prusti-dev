@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["TaskLocalFuture","A future that sets a value `T` of a task local for the future `F` during its execution."]]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Verifier","A verifier is an object for verifying a single crate, potentially many times."]]};

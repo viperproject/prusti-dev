@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["Expr",""],["RuleType",""]],"struct":[["ExprTopDownIterator",""],["Rule",""]]};

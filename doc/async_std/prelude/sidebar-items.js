@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"trait":[["FutureExt","Extension methods for `Future`."],["StreamExt","Extension methods for `Stream`."]]};

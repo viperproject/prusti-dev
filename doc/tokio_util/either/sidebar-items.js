@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["Either","Combines two different futures, streams, or sinks having the same associated types into a single type."]]};

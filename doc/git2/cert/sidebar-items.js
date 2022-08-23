@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Cert","A certificate for a remote connection, viewable as one of `CertHostkey` or `CertX509` currently."],["CertHostkey","Hostkey information taken from libssh2"],["CertX509","X.509 certificate information"]]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["exact","Creates a `Filter` that requires a specific authority (target server’s host and port) in the request."],["optional","Creates a `Filter` that looks for an authority (target server’s host and port) in the request."]],"struct":[["Authority","Represents the authority component of a URI."]]};

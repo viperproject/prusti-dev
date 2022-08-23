@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["RichLocation",""]],"mod":[["patch",""],["validation",""]],"struct":[["BorrowckFacts",""],["LocationTable",""]],"type":[["AllInputFacts",""],["AllOutputFacts",""],["Loan",""],["Path",""],["Point",""],["Region",""],["Variable",""]]};

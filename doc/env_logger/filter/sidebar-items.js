@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Builder","A builder for a log filter."],["Filter","A log filter."]]};

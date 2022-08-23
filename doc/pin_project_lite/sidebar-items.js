@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"macro":[["pin_project","A macro that creates a projection type covering all the fields of struct."]]};

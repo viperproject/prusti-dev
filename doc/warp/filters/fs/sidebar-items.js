@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["dir","Creates a `Filter` that serves a directory at the base `path` joined by the request path."],["file","Creates a `Filter` that serves a File at the `path`."]],"struct":[["File","A file response."]]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["new","Create a new non-blocking Unix pipe."]],"struct":[["Receiver","Receiving end of an Unix pipe."],["Sender","Sending end of an Unix pipe."]]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["cors","Create a wrapping filter that exposes CORS behavior for a wrapped filter."]],"struct":[["Builder","A constructed via `warp::cors()`."],["Cors","A wrapping filter constructed via `warp::cors()`."],["CorsForbidden","An error used to reject requests that are forbidden by a `cors` filter."]]};

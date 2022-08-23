@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"trait":[["NonBlockingError","Non-blocking IO handling."],["NonBlockingResult","Non-blocking IO wrapper."]]};

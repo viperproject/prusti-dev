@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["immutable",""],["mutable",""]],"struct":[["Iterable",""],["Seq",""]]};

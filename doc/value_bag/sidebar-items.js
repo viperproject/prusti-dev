@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["fill","Deferred value initialization."],["visit","Value inspection."]],"struct":[["Error","An error encountered while working with structured data."],["ValueBag","A dynamic structured value."]]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["PointType","The type of the point. Either the start of a statement or in the middle of it."]],"struct":[["BorrowckFacts",""],["Interner",""],["Point","A program point used in the borrow checker analysis."]],"type":[["AllInputFacts",""],["AllOutputFacts",""],["Loan",""],["Path",""],["PointIndex",""],["Region",""],["Variable",""]]};

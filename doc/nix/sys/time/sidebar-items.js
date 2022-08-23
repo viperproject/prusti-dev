@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["TimeSpec",""],["TimeVal",""]],"trait":[["TimeValLike",""]],"type":[["suseconds_t",""],["time_t",""]]};

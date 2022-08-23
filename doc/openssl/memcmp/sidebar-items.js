@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["eq","Returns `true` iff `a` and `b` contain the same bytes."]]};

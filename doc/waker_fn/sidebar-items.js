@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["waker_fn","Converts a closure into a [`Waker`]."]]};

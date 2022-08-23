@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["pthread_kill","Send a signal to a thread (see `pthread_kill(3)`)."],["pthread_self","Obtain ID of the calling thread (see `pthread_self(3)`"]],"type":[["Pthread","Identifies an individual thread."]]};

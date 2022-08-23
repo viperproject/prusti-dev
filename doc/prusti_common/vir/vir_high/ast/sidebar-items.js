@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["Expression",""],["Statement",""],["TypeDecl",""]],"mod":[["expression",""],["field",""],["function",""],["position",""],["predicate",""],["rvalue",""],["statement",""],["ty",""],["type_decl",""],["variable",""]],"struct":[["FunctionDecl",""]]};

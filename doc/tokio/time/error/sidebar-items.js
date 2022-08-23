@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Elapsed","Errors returned by `Timeout`."],["Error","Errors encountered by the timer implementation."]]};

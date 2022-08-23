@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["Error",""]],"struct":[["Decoder","Used together with the `decode!` macro"]]};

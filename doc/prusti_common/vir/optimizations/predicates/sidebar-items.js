@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["delete_unused_predicates","Delete all unused predicates and eliminate bodies of predicates that are never folded or unfolded"]]};

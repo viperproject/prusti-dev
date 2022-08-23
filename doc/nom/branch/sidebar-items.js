@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["alt","Tests a list of parsers one by one until one succeeds."],["permutation","Applies a list of parsers in any order."]],"trait":[["Alt","Helper trait for the [alt()] combinator."],["Permutation","Helper trait for the [permutation()] combinator."]]};

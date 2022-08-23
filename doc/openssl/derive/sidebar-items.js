@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Deriver","A type used to derive a shared secret between two keys."]]};

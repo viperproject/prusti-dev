@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Converter",""],["ExtractedHeap",""],["ExtractedModel",""],["ExtractedModelEntry",""],["FieldHeapEntry",""],["HeapEntry",""],["LitBoolEntry",""],["LitIntEntry",""],["LitPermEntry",""],["NullRefEntry",""],["OtherEntry",""],["PredHeapEntry",""],["RecursiveRefEntry",""],["RefEntry",""],["SeqEntry",""],["VarEntry",""]]};

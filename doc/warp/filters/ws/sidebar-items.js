@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["ws","Creates a Websocket Filter."]],"struct":[["Message","A WebSocket message."],["MissingConnectionUpgrade","Connection header did not include ‘upgrade’"],["WebSocket","A websocket `Stream` and `Sink`, provided to `ws` filters."],["Ws","Extracted by the `ws` filter, and used to finish an upgrade."]]};

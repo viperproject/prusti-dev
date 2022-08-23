@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["CSVReporter",""],["NoopReporter_object",""]]};

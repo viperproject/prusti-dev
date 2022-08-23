@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["Error","Ctrl-C error."],["SignalType","A cross-platform way to represent Ctrl-C or program termination signal. Other signals/events are supported via `Other`-variant."]],"fn":[["set_handler","Register signal handler for Ctrl-C."]],"type":[["Signal","Platform specific signal type"]]};

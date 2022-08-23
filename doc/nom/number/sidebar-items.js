@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["Endianness","Configurable endianness"]],"mod":[["complete","Parsers recognizing numbers, complete input version"],["streaming","Parsers recognizing numbers, streaming version"]]};

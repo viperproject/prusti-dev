@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["compact","Serialize a `Uuid` as a `[u8; 16]`."]]};

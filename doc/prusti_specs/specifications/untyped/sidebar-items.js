@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["AnyFnItem","An abstraction over all kinds of function items."]]};

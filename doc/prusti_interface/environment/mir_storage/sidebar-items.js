@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":[["SHARED_STATE",""]],"fn":[["store_mir_body","Safety"]]};

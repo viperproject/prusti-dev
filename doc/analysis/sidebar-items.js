@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["AnalysisError",""]],"mod":[["abstract_interpretation",""],["domains",""],["mir_utils","Various helper functions for working with `mir` types. copied from prusti-interface/utils"]],"struct":[["PointwiseState","Records the state of the analysis at every program point and CFG edge of `mir`."]]};

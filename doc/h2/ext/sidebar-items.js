@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Protocol","Represents the `:protocol` pseudo-header used by the Extended CONNECT Protocol."]]};
