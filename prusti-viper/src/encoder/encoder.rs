@@ -483,7 +483,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// does this also for pure functions.
     pub fn encode_procedure(&self, def_id: ProcedureDefId) -> SpannedEncodingResult<()> {
         debug!("encode_procedure({:?})", def_id);
-        eprintln!("OLD encode procedure");
         assert!(
             !self.is_trusted(def_id, None),
             "procedure is marked as trusted: {:?}",
@@ -675,7 +674,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             info!("Encoding: {} ({})", proc_name, proc_def_path);
             assert!(substs.is_empty());
 
-            eprintln!("IN encoding queue");
             if config::unsafe_core_proof() {
                 if self.env.is_unsafe_function(proc_def_id) {
                     if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::Both) {
@@ -690,7 +688,6 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                         }
                     }
                     if config::verify_specifications() {
-                        eprintln!("CORE verify specifications");
                         let check_mode = if config::verify_specifications_with_core_proof() {
                             CheckMode::Both
                         } else {

@@ -197,7 +197,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     fn encode_specification_blocks(&mut self) -> SpannedEncodingResult<()> {
-        eprintln!("OLD encode spec blocks");
         // Collect the entry points into the specification blocks.
         let mut entry_points: BTreeMap<_, _> = self
             .specification_blocks
@@ -221,7 +220,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         bb: mir::BasicBlock,
         encoded_statements: &mut Vec<vir::Stmt>,
     ) -> SpannedEncodingResult<()> {
-        eprintln!("NEW ENCODE SPEC BLOCK");
         let block = &self.mir[bb];
         if false
             || self.try_encode_assert(bb, block, encoded_statements)?
@@ -285,7 +283,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
             )) = stmt.kind
             {
-                eprintln!("NEW get assertion");
                 let assertion = match self.encoder.get_prusti_assertion(cl_def_id.to_def_id()) {
                     Some(spec) => spec,
                     None => return Ok(false),
@@ -377,7 +374,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
     }
 
     pub fn encode(mut self) -> SpannedEncodingResult<vir::CfgMethod> {
-        eprintln!("OLD Encode procecdure 2");
         trace!("Encode procedure {}", self.cfg_method.name());
         let mir_span = self.mir.span;
 
@@ -1361,7 +1357,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let index = location.statement_index;
         let stmts_succ_res = if index < bb_data.statements.len() {
             let mir_stmt = &bb_data.statements[index];
-            eprintln!("MIR STMT {:?}", mir_stmt);
             self.encode_statement(mir_stmt, location)
                 .map(|stmts| (stmts, None))
         } else {
@@ -1369,7 +1364,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             self.encode_terminator(mir_term, location)
                 .map(|(stmts, succ)| (stmts, Some(succ)))
         };
-        eprintln!("OLD ENCODING A STMT {:?}", stmts_succ_res);
 
         // Intercept encoding error caused by an unsupported feature
         let (stmts, successor) = match stmts_succ_res {
@@ -2217,7 +2211,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         term: &mir::Terminator<'tcx>,
         location: mir::Location,
     ) -> SpannedEncodingResult<(Vec<vir::Stmt>, MirSuccessor)> {
-        eprintln!("OLD ENCODE TERMINATOR");
         debug!(
             "Encode terminator '{:?}', span: {:?}",
             term.kind, term.source_info.span
@@ -2245,7 +2238,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 ref discr,
                 ref targets,
             } => {
-                eprintln!("IN SWITCHINT");
                 trace!(
                     "SwitchInt ty '{:?}', discr '{:?}', targets '{:?}'",
                     switch_ty,
@@ -2261,7 +2253,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                             .iter()
                             .position(|target| self.procedure.is_spec_block(*target))
                         {
-                            eprintln!("NEW FOUND A SPEC BLOCK");
                             let real_target = all_targets[(spec + 1) % 2];
                             let spec_target = all_targets[spec];
                             stmts.push(
