@@ -361,7 +361,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         let invariant = run_backward_interpretation_point_to_point(
             mir,
             &interpreter,
-            predecessor,
+            invariant_block,
             invariant_block,
             inv_loc + 1, // include the closure assign itself
             crate::encoder::mir_interpreter::ExprBackwardInterpreterState::new_defined(
