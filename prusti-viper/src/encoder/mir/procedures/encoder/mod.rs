@@ -63,7 +63,7 @@ mod initialisation;
 mod lifetimes;
 mod loops;
 mod scc;
-mod specification_blocks;
+pub mod specification_blocks;
 
 pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     encoder: &mut Encoder<'v, 'tcx>,
@@ -77,7 +77,7 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     let move_env = self::initialisation::create_move_data_param_env(tcx, mir, def_id);
     let init_data = InitializationData::new(tcx, mir, &move_env);
     let locals_without_explicit_allocation: BTreeSet<_> = mir.vars_and_temps_iter().collect();
-    let specification_blocks = SpecificationBlocks::build(tcx, mir, &procedure);
+    let specification_blocks = SpecificationBlocks::build(tcx, mir, &procedure, true);
     let initialization = compute_definitely_initialized(def_id, mir, encoder.env().tcx());
     let allocation = compute_definitely_allocated(def_id, mir);
     let lifetime_count = lifetimes.lifetime_count();
