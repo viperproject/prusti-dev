@@ -1,0 +1,75 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Test utilities to test your filters."><meta name="keywords" content="rust, rustlang, rust-lang, test"><title>warp::test - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../warp/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"><a href="#">Module test</a></h2><div class="sidebar-elems"><section><div class="block"><ul><li><a href="#structs">Structs</a></li><li><a href="#functions">Functions</a></li></ul></div></section></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../warp/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn"><span class="in-band">Module <a href="../index.html">warp</a>::<wbr><a class="mod" href="#">test</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../src/warp/test.rs.html#1-764">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Test utilities to test your filters.</p>
+<p><a href="../trait.Filter.html"><code>Filter</code></a>s can be easily tested without starting up an HTTP
+server, by making use of the <a href="./struct.RequestBuilder.html"><code>RequestBuilder</code></a> in this
+module.</p>
+<h2 id="testing-filters"><a href="#testing-filters">Testing Filters</a></h2>
+<p>It’s easy to test filters, especially if smaller filters are used to build
+up your full set. Consider these example filters:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">warp::Filter</span>;
+
+<span class="kw">fn</span> <span class="ident">sum</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> (<span class="ident">u32</span>,), <span class="ident">Error</span> <span class="op">=</span> <span class="ident">warp::Rejection</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Copy</span> {
+    <span class="ident">warp::path::param</span>()
+        .<span class="ident">and</span>(<span class="ident">warp::path::param</span>())
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span>: <span class="ident">u32</span>, <span class="ident">y</span>: <span class="ident">u32</span><span class="op">|</span> {
+            <span class="ident">x</span> <span class="op">+</span> <span class="ident">y</span>
+        })
+}
+
+<span class="kw">fn</span> <span class="ident">math</span>() -&gt; <span class="kw">impl</span> <span class="ident">Filter</span><span class="op">&lt;</span><span class="ident">Extract</span> <span class="op">=</span> (<span class="ident">String</span>,), <span class="ident">Error</span> <span class="op">=</span> <span class="ident">warp::Rejection</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Copy</span> {
+    <span class="ident">warp::post</span>()
+        .<span class="ident">and</span>(<span class="ident">sum</span>())
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">z</span>: <span class="ident">u32</span><span class="op">|</span> {
+            <span class="macro">format!</span>(<span class="string">&quot;Sum = {}&quot;</span>, <span class="ident">z</span>)
+        })
+}</code></pre></div>
+<p>We can test some requests against the <code>sum</code> filter like this:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">tokio::test</span>]</span>
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">test_sum</span>() {
+    <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">sum</span>();
+
+    <span class="comment">// Execute `sum` and get the `Extract` back.</span>
+    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">warp::test::request</span>()
+        .<span class="ident">path</span>(<span class="string">&quot;/1/2&quot;</span>)
+        .<span class="ident">filter</span>(<span class="kw-2">&amp;</span><span class="ident">filter</span>)
+        .<span class="kw">await</span>
+        .<span class="ident">unwrap</span>();
+    <span class="macro">assert_eq!</span>(<span class="ident">value</span>, <span class="number">3</span>);
+
+    <span class="comment">// Or simply test if a request matches (doesn&#39;t reject).</span>
+    <span class="macro">assert!</span>(
+        <span class="op">!</span><span class="ident">warp::test::request</span>()
+            .<span class="ident">path</span>(<span class="string">&quot;/1/-5&quot;</span>)
+            .<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">filter</span>)
+            .<span class="kw">await</span>
+    );
+}</code></pre></div>
+<p>If the filter returns something that implements <code>Reply</code>, and thus can be
+turned into a response sent back to the client, we can test what exact
+response is returned. The <code>math</code> filter uses the <code>sum</code> filter, but returns
+a <code>String</code> that can be turned into a response.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">test</span>]</span>
+<span class="kw">fn</span> <span class="ident">test_math</span>() {
+    <span class="kw">let</span> <span class="ident">filter</span> <span class="op">=</span> <span class="ident">math</span>();
+
+    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">warp::test::request</span>()
+        .<span class="ident">path</span>(<span class="string">&quot;/1/2&quot;</span>)
+        .<span class="ident">reply</span>(<span class="kw-2">&amp;</span><span class="ident">filter</span>);
+    <span class="macro">assert_eq!</span>(<span class="ident">res</span>.<span class="ident">status</span>(), <span class="number">405</span>, <span class="string">&quot;GET is not allowed&quot;</span>);
+
+    <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">warp::test::request</span>()
+        .<span class="ident">method</span>(<span class="string">&quot;POST&quot;</span>)
+        .<span class="ident">path</span>(<span class="string">&quot;/1/2&quot;</span>)
+        .<span class="ident">reply</span>(<span class="kw-2">&amp;</span><span class="ident">filter</span>);
+    <span class="macro">assert_eq!</span>(<span class="ident">res</span>.<span class="ident">status</span>(), <span class="number">200</span>);
+    <span class="macro">assert_eq!</span>(<span class="ident">res</span>.<span class="ident">body</span>(), <span class="string">&quot;Sum is 3&quot;</span>);
+}</code></pre></div>
+</div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.RequestBuilder.html" title="warp::test::RequestBuilder struct">RequestBuilder</a></div><div class="item-right docblock-short"><p>A request builder for testing filters.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.WsBuilder.html" title="warp::test::WsBuilder struct">WsBuilder</a></div><div class="item-right docblock-short"><p>A Websocket builder for testing filters.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.WsClient.html" title="warp::test::WsClient struct">WsClient</a></div><div class="item-right docblock-short"><p>A test client for Websocket filters.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.WsError.html" title="warp::test::WsError struct">WsError</a></div><div class="item-right docblock-short"><p>An error from Websocket filter tests.</p>
+</div></div></div><h2 id="functions" class="small-section-header"><a href="#functions">Functions</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.request.html" title="warp::test::request fn">request</a></div><div class="item-right docblock-short"><p>Starts a new test <code>RequestBuilder</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.ws.html" title="warp::test::ws fn">ws</a></div><div class="item-right docblock-short"><p>Starts a new test <code>WsBuilder</code>.</p>
+</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="warp" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

@@ -1,0 +1,872 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/verifier.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>verifier.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../prusti_viper/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
+<span class="comment">//</span>
+<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
+<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
+<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+
+<span class="kw">use</span> <span class="ident">prusti_common::vir</span>::{<a class="ident" href="../../prusti_common/vir/optimizations/fn.optimize_program.html">optimizations::optimize_program</a>};
+<span class="kw">use</span> <span class="ident">prusti_common</span>::{
+    <a class="ident" href="../../prusti_common/config/index.html">config</a>, <a class="ident" href="../../prusti_common/report/log/index.html">report::log</a>, <a class="ident" href="../../prusti_common/stopwatch/struct.Stopwatch.html">Stopwatch</a>, <a class="ident" href="../../prusti_common/vir/program/enum.Program.html">vir::program::Program</a>,
+};
+<span class="kw">use</span> <a class="ident" href="../../vir/common/check_mode/enum.CheckMode.html">vir_crate::common::check_mode::CheckMode</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#65"><span class="kw">crate</span>::encoder::Encoder</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/prusti_viper/encoder/mod.rs.html#35"><span class="kw">crate</span>::encoder::counterexample_translation</a>;
+<span class="comment">// use prusti_filter::validators::Validator;</span>
+<span class="kw">use</span> <a class="ident" href="../../prusti_interface/data/enum.VerificationResult.html">prusti_interface::data::VerificationResult</a>;
+<span class="kw">use</span> <a class="ident" href="../../prusti_interface/data/struct.VerificationTask.html">prusti_interface::data::VerificationTask</a>;
+<span class="kw">use</span> <a class="ident" href="../../prusti_interface/environment/struct.Environment.html">prusti_interface::environment::Environment</a>;
+<span class="kw">use</span> <a class="ident" href="../../prusti_interface/prusti_error/struct.PrustiError.html">prusti_interface::PrustiError</a>;
+<span class="comment">// use prusti_interface::specifications::TypedSpecificationMap;</span>
+
+<span class="kw">use</span> <span class="ident">viper</span>::{<a class="self" href="../../viper/index.html">self</a>, <a class="ident" href="../../viper/cache/struct.PersistentCache.html">PersistentCache</a>, <a class="ident" href="../../viper/viper/struct.Viper.html">Viper</a>};
+
+
+
+<span class="kw">use</span> <a class="ident" href="../../prusti_interface/specs/typed/index.html">prusti_interface::specs::typed</a>;
+<span class="kw">use</span> <span class="ident">::log</span>::{<a class="ident" href="../../log/macro.info.html">info</a>, <a class="ident" href="../../log/macro.debug.html">debug</a>, <a class="ident" href="../../log/macro.error.html">error</a>};
+<span class="kw">use</span> <span class="ident">prusti_server</span>::{<a class="ident" href="../../prusti_server/verification_request/struct.VerificationRequest.html">VerificationRequest</a>, <a class="ident" href="../../prusti_server/client/struct.PrustiClient.html">PrustiClient</a>, <a class="ident" href="../../prusti_server/process_verification/fn.process_verification_request.html">process_verification_request</a>, <a class="ident" href="../../prusti_server/server/fn.spawn_server_thread.html">spawn_server_thread</a>, <a class="ident" href="../../prusti_server/verification_request/struct.ViperBackendConfig.html">ViperBackendConfig</a>};
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/span_encoding/constant.DUMMY_SP.html">prusti_rustc_interface::span::DUMMY_SP</a>;
+<span class="kw">use</span> <a class="ident" href="../../tokio/runtime/builder/struct.Builder.html">prusti_server::tokio::runtime::Builder</a>;
+
+<span class="comment">// /// A verifier builder is an object that lives entire program&#39;s</span>
+<span class="comment">// /// lifetime, has no mutable state, and is responsible for constructing</span>
+<span class="comment">// /// verification context instances. The user of this interface is supposed</span>
+<span class="comment">// /// to create a new verifier for each crate he or she wants to verify.</span>
+<span class="comment">// /// The main motivation for having a builder is to be able to cache the JVM</span>
+<span class="comment">// /// initialization.</span>
+<span class="comment">// pub struct VerifierBuilder {</span>
+<span class="comment">//     viper: Viper,</span>
+<span class="comment">// }</span>
+
+<span class="comment">// impl VerifierBuilder {</span>
+<span class="comment">//     pub fn new() -&gt; Self {</span>
+<span class="comment">//         VerifierBuilder {</span>
+<span class="comment">//             viper: Viper::new_with_args(</span>
+<span class="comment">//                 config::extra_jvm_args(),</span>
+<span class="comment">//                 VerificationBackend::from_str(&amp;config::viper_backend())</span>
+<span class="comment">//             ),</span>
+<span class="comment">//         }</span>
+<span class="comment">//     }</span>
+
+<span class="comment">//     pub fn new_verification_context(&amp;self) -&gt; VerificationContext {</span>
+<span class="comment">//         let verification_ctx = self.viper.new_verification_context();</span>
+<span class="comment">//         VerificationContext::new(verification_ctx)</span>
+<span class="comment">//     }</span>
+<span class="comment">// }</span>
+
+<span class="comment">// impl Default for VerifierBuilder {</span>
+<span class="comment">//     fn default() -&gt; Self {</span>
+<span class="comment">//         VerifierBuilder::new()</span>
+<span class="comment">//     }</span>
+<span class="comment">// }</span>
+
+<span class="comment">// /// A verification context is an object that lives entire verification&#39;s lifetime.</span>
+<span class="comment">// /// Its main purpose is to build verifiers.</span>
+<span class="comment">// /// The main motivation for having a verification context is to be able to detach the current</span>
+<span class="comment">// /// thread from the JVM when the verification context goes out of scope.</span>
+<span class="comment">// pub struct VerificationContext&lt;&#39;v&gt; {</span>
+<span class="comment">//     verification_ctx: viper::VerificationContext&lt;&#39;v&gt;,</span>
+<span class="comment">// }</span>
+
+<span class="comment">// impl&lt;&#39;v, &#39;r, &#39;a, &#39;tcx&gt; VerificationContext&lt;&#39;v&gt;</span>
+<span class="comment">//     where</span>
+<span class="comment">//         &#39;r: &#39;v,</span>
+<span class="comment">//         &#39;a: &#39;r,</span>
+<span class="comment">//         &#39;tcx: &#39;a,</span>
+<span class="comment">// {</span>
+<span class="comment">//     fn new(verification_ctx: viper::VerificationContext&lt;&#39;v&gt;) -&gt; Self {</span>
+<span class="comment">//         VerificationContext { verification_ctx }</span>
+<span class="comment">//     }</span>
+
+<span class="comment">//     pub fn new_verifier(</span>
+<span class="comment">//         &amp;&#39;v self,</span>
+<span class="comment">//         env: &amp;&#39;v Environment&lt;&#39;tcx&gt;,</span>
+<span class="comment">//         spec: &amp;&#39;v typed::SpecificationMap&lt;&#39;tcx&gt;,</span>
+<span class="comment">//     ) -&gt; Verifier&lt;&#39;v, &#39;tcx&gt; {</span>
+<span class="comment">//         let backend = VerificationBackend::from_str(&amp;config::viper_backend());</span>
+
+<span class="comment">//         let mut verifier_args: Vec&lt;String&gt; = vec![];</span>
+<span class="comment">//         let log_path: PathBuf = config::log_dir().join(&quot;viper_tmp&quot;);</span>
+<span class="comment">//         fs::create_dir_all(&amp;log_path).unwrap();</span>
+<span class="comment">//         let report_path: PathBuf = log_path.join(&quot;report.csv&quot;);</span>
+<span class="comment">//         let log_dir_str = log_path.to_str().unwrap();</span>
+<span class="comment">//         if let VerificationBackend::Silicon = backend {</span>
+<span class="comment">//             if config::use_more_complete_exhale() {</span>
+<span class="comment">//                 verifier_args.push(&quot;--enableMoreCompleteExhale&quot;.to_string()); // Buggy :(</span>
+<span class="comment">//             }</span>
+<span class="comment">//             verifier_args.extend(vec![</span>
+<span class="comment">//                 &quot;--assertTimeout&quot;.to_string(),</span>
+<span class="comment">//                 config::assert_timeout().to_string(),</span>
+<span class="comment">//                 &quot;--tempDirectory&quot;.to_string(),</span>
+<span class="comment">//                 log_dir_str.to_string(),</span>
+<span class="comment">//                 //&quot;--logLevel&quot;.to_string(), &quot;WARN&quot;.to_string(),</span>
+<span class="comment">//             ]);</span>
+<span class="comment">//         } else {</span>
+<span class="comment">//             verifier_args.extend(vec![</span>
+<span class="comment">//                 &quot;--disableAllocEncoding&quot;.to_string(),</span>
+<span class="comment">//                 &quot;--boogieOpt&quot;.to_string(),</span>
+<span class="comment">//                 format!(&quot;/logPrefix {}&quot;, log_dir_str),</span>
+<span class="comment">//             ]);</span>
+<span class="comment">//         }</span>
+<span class="comment">//         if config::dump_debug_info() {</span>
+<span class="comment">//             if let VerificationBackend::Silicon = backend {</span>
+<span class="comment">//                 verifier_args.extend(vec![</span>
+<span class="comment">//                     &quot;--printMethodCFGs&quot;.to_string(),</span>
+<span class="comment">//                     &quot;--logLevel&quot;.to_string(),</span>
+<span class="comment">//                     &quot;INFO&quot;.to_string(),</span>
+<span class="comment">//                     //&quot;--printTranslatedProgram&quot;.to_string(),</span>
+<span class="comment">//                 ]);</span>
+<span class="comment">//             } else {</span>
+<span class="comment">//                 verifier_args.extend::&lt;Vec&lt;_&gt;&gt;(vec![</span>
+<span class="comment">//                     //&quot;--print&quot;.to_string(), &quot;./log/boogie_program/program.bpl&quot;.to_string(),</span>
+<span class="comment">//                 ]);</span>
+<span class="comment">//             }</span>
+<span class="comment">//         }</span>
+<span class="comment">//         verifier_args.extend(config::extra_verifier_args());</span>
+<span class="comment">//         Verifier::new(</span>
+<span class="comment">//             self.verification_ctx.new_ast_utils(),</span>
+<span class="comment">//             self.verification_ctx.new_ast_factory(),</span>
+<span class="comment">//             self.verification_ctx</span>
+<span class="comment">//                 .new_verifier_with_args(backend, verifier_args, Some(report_path)),</span>
+<span class="comment">//             env,</span>
+<span class="comment">//             spec,</span>
+<span class="comment">//         )</span>
+<span class="comment">//     }</span>
+<span class="comment">// }</span>
+
+<span class="doccomment">/// A verifier is an object for verifying a single crate, potentially</span>
+<span class="doccomment">/// many times.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;v</span>,
+{
+    <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    <span class="ident">encoder</span>: <span class="ident">Encoder</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
+        <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v</span> <span class="ident">Environment</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+        <span class="ident">def_spec</span>: <a class="ident" href="../../prusti_interface/specs/typed/struct.DefSpecificationMap.html">typed::DefSpecificationMap</a>,
+    ) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#139">Verifier</a> {
+            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#149">env</a>,
+            <span class="ident">encoder</span>: <span class="ident">Encoder::new</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#149">env</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#150">def_spec</a>),
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verify</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">task</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../prusti_interface/data/struct.VerificationTask.html">VerificationTask</a>) -&gt; <a class="ident" href="../../prusti_interface/data/enum.VerificationResult.html">VerificationResult</a> {
+        <a class="macro" href="../../log/macro.info.html">info!</a>(
+            <span class="string">&quot;Received {} functions to be verified:&quot;</span>,
+            <span class="ident">task</span>.<span class="ident">procedures</span>.<span class="ident">len</span>()
+        );
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch::start</span>(<span class="string">&quot;prusti-viper&quot;</span>, <span class="string">&quot;encoding to Viper&quot;</span>);
+
+        <span class="comment">// Dump the configuration</span>
+        <span class="kw">if</span> <span class="ident">config::dump_debug_info</span>() {
+            <span class="ident">log::report</span>(<span class="string">&quot;config&quot;</span>, <span class="string">&quot;prusti&quot;</span>, <span class="ident">config::dump</span>());
+        }
+
+        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">proc_id</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">task</span>.<span class="ident">procedures</span> {
+            <span class="kw">let</span> <span class="ident">proc_name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">env</span>.<span class="ident">get_absolute_item_name</span>(<span class="ident">proc_id</span>);
+            <span class="kw">let</span> <span class="ident">proc_def_path</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">env</span>.<span class="ident">get_item_def_path</span>(<span class="ident">proc_id</span>);
+            <span class="kw">let</span> <span class="ident">proc_span</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">env</span>.<span class="ident">get_def_span</span>(<span class="ident">proc_id</span>);
+            <span class="macro">info!</span>(<span class="string">&quot; - {} ({})&quot;</span>, <span class="ident">proc_name</span>, <span class="ident">proc_def_path</span>);
+            <span class="macro">info!</span>(<span class="string">&quot;   Source: {:?}&quot;</span>, <span class="ident">proc_span</span>);
+        }
+
+        <span class="comment">// // Check support status, and queue encoding</span>
+        <span class="comment">// let validator = Validator::new(self.env.tcx());</span>
+
+        <span class="comment">// let report_support_status = config::report_support_status();</span>
+        <span class="comment">// let skip_unsupported_features = config::skip_unsupported_features();</span>
+        <span class="comment">// let error_on_partially_supported = config::error_on_partially_supported();</span>
+        <span class="comment">// let mut skipped_functions_count = 0;</span>
+
+        <span class="comment">// for &amp;proc_id in &amp;task.procedures {</span>
+        <span class="comment">//     let proc_name = self.env.get_absolute_item_name(proc_id);</span>
+        <span class="comment">//     let proc_span = self.env.get_def_span(proc_id);</span>
+        <span class="comment">//     let is_pure_function = self.env.has_prusti_attribute(proc_id, &quot;pure&quot;);</span>
+
+        <span class="comment">//     let support_status = if is_pure_function {</span>
+        <span class="comment">//         validator.pure_function_support_status(proc_id)</span>
+        <span class="comment">//     } else {</span>
+        <span class="comment">//         validator.procedure_support_status(proc_id)</span>
+        <span class="comment">//     };</span>
+
+        <span class="comment">//     if report_support_status {</span>
+        <span class="comment">//         support_status.report_support_status(</span>
+        <span class="comment">//             &amp;self.env,</span>
+        <span class="comment">//             is_pure_function,</span>
+        <span class="comment">//             // true ==&gt; raise compiler errors for partially supported functions</span>
+        <span class="comment">//             error_on_partially_supported,</span>
+        <span class="comment">//             // true ==&gt; raise compiler errors for unsupported functions</span>
+        <span class="comment">//             error_on_partially_supported || !skip_unsupported_features,</span>
+        <span class="comment">//         );</span>
+        <span class="comment">//     }</span>
+
+        <span class="comment">//     if !support_status.is_supported() &amp;&amp; skip_unsupported_features {</span>
+        <span class="comment">//         warn!(</span>
+        <span class="comment">//             &quot;Skip verification of {}, as it is not fully supported.&quot;,</span>
+        <span class="comment">//             proc_name</span>
+        <span class="comment">//         );</span>
+        <span class="comment">//         self.env.span_warn_with_help_and_note(</span>
+        <span class="comment">//             proc_span,</span>
+        <span class="comment">//             &amp;format!(</span>
+        <span class="comment">//                 &quot;this function will be ignored because it is not fully supported by \</span>
+        <span class="comment">//                 Prusti: {}&quot;,</span>
+        <span class="comment">//                 proc_name</span>
+        <span class="comment">//             ),</span>
+        <span class="comment">//             &amp;Some(if report_support_status {</span>
+        <span class="comment">//                 &quot;Disable the SKIP_UNSUPPORTED_FEATURES configuration flag to verify \</span>
+        <span class="comment">//                     this function anyway.&quot;</span>
+        <span class="comment">//                     .to_string()</span>
+        <span class="comment">//             } else {</span>
+        <span class="comment">//                 &quot;Enable the REPORT_SUPPORT_STATUS configuration flag for more details \</span>
+        <span class="comment">//                     on why the function is not fully supported, or disable \</span>
+        <span class="comment">//                     SKIP_UNSUPPORTED_FEATURES to verify this function anyway.&quot;</span>
+        <span class="comment">//                     .to_string()</span>
+        <span class="comment">//             }),</span>
+        <span class="comment">//             &amp;None,</span>
+        <span class="comment">//         );</span>
+        <span class="comment">//         skipped_functions_count += 1;</span>
+        <span class="comment">//     } else {</span>
+        <span class="comment">//         self.encoder.queue_procedure_encoding(proc_id);</span>
+        <span class="comment">//     }</span>
+        <span class="comment">// }</span>
+        <span class="comment">// info!(</span>
+        <span class="comment">//     &quot;Out of {} functions, {} are not fully supported and have been skipped.&quot;,</span>
+        <span class="comment">//     task.procedures.len(),</span>
+        <span class="comment">//     skipped_functions_count,</span>
+        <span class="comment">// );</span>
+
+        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">proc_id</span> <span class="kw">in</span> <span class="ident">task</span>.<span class="ident">procedures</span>.<span class="ident">iter</span>().<span class="ident">rev</span>() {
+            <span class="comment">// FIXME: Use the loop above.</span>
+            <span class="self">self</span>.<span class="ident">encoder</span>.<span class="ident">queue_procedure_encoding</span>(<span class="ident">proc_id</span>);
+        }
+        <a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#666">process_encoding_queue</a>();
+
+        <span class="kw">let</span> <span class="ident">encoding_errors_count</span> <span class="op">=</span> <a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#238">count_encoding_errors</a>();
+
+        <span class="kw">let</span> <span class="ident">polymorphic_programs</span> <span class="op">=</span> <a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#221">get_viper_programs</a>();
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">programs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../prusti_common/vir/program/enum.Program.html">Program</a><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">config::simplify_encoding</span>() {
+            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#164">stopwatch</a>.<span class="ident">start_next</span>(<span class="string">&quot;optimizing Viper program&quot;</span>);
+            <span class="kw">let</span> <span class="ident">source_file_name</span> <span class="op">=</span> <a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#208">env</a>().<span class="ident">source_file_name</span>();
+            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#252">polymorphic_programs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
+                <span class="op">|</span><span class="ident">program</span><span class="op">|</span> <span class="ident">Program::Legacy</span>(<a class="ident" href="../../prusti_common/vir/optimizations/fn.optimize_program.html">optimize_program</a>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#258">program</a>, <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#256">source_file_name</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            ).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        } <span class="kw">else</span> {
+            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#252">polymorphic_programs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(
+                <span class="op">|</span><span class="ident">program</span><span class="op">|</span> <span class="ident">Program::Legacy</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#262">program</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>())
+            ).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+        };
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#254">programs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#225">get_core_proof_programs</a>());
+
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#164">stopwatch</a>.<span class="ident">start_next</span>(<span class="string">&quot;verifying Viper program&quot;</span>);
+        <span class="kw">let</span> <span class="ident">verification_results</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#365-366">verify_programs</a>(<a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.<span class="ident">env</span>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#254">programs</a>);
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#164">stopwatch</a>.<span class="ident">finish</span>();
+
+        <span class="comment">// Group verification results</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">verification_errors</span> : <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">consistency_errors</span> : <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">java_exceptions</span> : <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+        <span class="kw">for</span> (<span class="ident">method_name</span>, <span class="ident">result</span>) <span class="kw">in</span> <span class="ident">verification_results</span>.<span class="ident">into_iter</span>() {
+            <span class="kw">match</span> <span class="ident">result</span> {
+                <span class="ident">viper::VerificationResult::Success</span> =&gt; {}
+                <span class="ident">viper::VerificationResult::ConsistencyErrors</span>(<span class="ident">errors</span>) =&gt; {
+                    <span class="kw">for</span> <span class="ident">error</span> <span class="kw">in</span> <span class="ident">errors</span>.<span class="ident">into_iter</span>() {
+                        <span class="ident">consistency_errors</span>.<span class="ident">push</span>((<span class="ident">method_name</span>.<span class="ident">clone</span>(), <span class="ident">error</span>));
+                    }
+                }
+                <span class="ident">viper::VerificationResult::Failure</span>(<span class="ident">errors</span>) =&gt; {
+                    <span class="kw">for</span> <span class="ident">error</span> <span class="kw">in</span> <span class="ident">errors</span>.<span class="ident">into_iter</span>() {
+                        <span class="ident">verification_errors</span>.<span class="ident">push</span>((<span class="ident">method_name</span>.<span class="ident">clone</span>(), <span class="ident">error</span>));
+                    }
+                }
+                <span class="ident">viper::VerificationResult::JavaException</span>(<span class="ident">exception</span>) =&gt; {
+                    <span class="ident">java_exceptions</span>.<span class="ident">push</span>((<span class="ident">method_name</span>, <span class="ident">exception</span>));
+                }
+            }
+        }
+
+        <span class="comment">// Convert verification results to Prusti errors</span>
+        <span class="kw">let</span> <span class="ident">error_manager</span> <span class="op">=</span> <a class="self" href="../../src/prusti_viper/verifier.rs.html#158">self</a>.<span class="ident">encoder</span>.<a class="ident" href="../../src/prusti_viper/encoder/encoder.rs.html#212">error_manager</a>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">VerificationResult::Success</span>;
+
+        <span class="kw">for</span> (<span class="ident">method</span>, <span class="ident">error</span>) <span class="kw">in</span> <span class="ident">consistency_errors</span>.<span class="ident">into_iter</span>() {
+            <span class="ident">PrustiError::internal</span>(
+                <span class="macro">format!</span>(<span class="string">&quot;consistency error in {}: {}&quot;</span>, <span class="ident">method</span>, <span class="ident">error</span>), <span class="ident">DUMMY_SP</span>.<span class="ident">into</span>()
+            ).<span class="ident">emit</span>(<span class="self">self</span>.<span class="ident">env</span>);
+            <span class="ident">result</span> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
+        }
+
+        <span class="kw">for</span> (<span class="ident">method</span>, <span class="ident">exception</span>) <span class="kw">in</span> <span class="ident">java_exceptions</span>.<span class="ident">into_iter</span>() {
+            <span class="macro">error!</span>(<span class="string">&quot;Java exception: {}&quot;</span>, <span class="ident">exception</span>.<span class="ident">get_stack_trace</span>());
+            <span class="ident">PrustiError::internal</span>(
+                <span class="macro">format!</span>(<span class="string">&quot;in {}: {}&quot;</span>, <span class="ident">method</span>, <span class="ident">exception</span>), <span class="ident">DUMMY_SP</span>.<span class="ident">into</span>()
+            ).<span class="ident">emit</span>(<span class="self">self</span>.<span class="ident">env</span>);
+            <span class="ident">result</span> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
+        }
+
+        <span class="comment">// Report verification errors</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prusti_errors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
+        <span class="kw">for</span> (<span class="ident">method</span>, <span class="ident">verification_error</span>) <span class="kw">in</span> <span class="ident">verification_errors</span>.<span class="ident">into_iter</span>() {
+            <span class="macro">debug!</span>(<span class="string">&quot;Verification error in {}: {:?}&quot;</span>, <span class="ident">method</span>, <span class="ident">verification_error</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prusti_error</span> <span class="op">=</span> <span class="ident">error_manager</span>.<span class="ident">translate_verification_error</span>(<span class="kw-2">&amp;</span><span class="ident">verification_error</span>);
+
+            <span class="comment">// annotate with counterexample, if requested</span>
+            <span class="kw">if</span> <span class="ident">config::counterexample</span>() {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">silicon_counterexample</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">verification_error</span>.<span class="ident">counterexample</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">def_id</span>) <span class="op">=</span> <span class="ident">error_manager</span>.<span class="ident">get_def_id</span>(<span class="kw-2">&amp;</span><span class="ident">verification_error</span>) {
+                        <span class="kw">let</span> <span class="ident">counterexample</span> <span class="op">=</span> <span class="ident">counterexample_translation::backtranslate</span>(
+                            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">encoder</span>,
+                            <span class="ident">def_id</span>,
+                            <span class="ident">silicon_counterexample</span>,
+                        );
+                        <span class="ident">prusti_error</span> <span class="op">=</span> <span class="ident">counterexample</span>.<span class="ident">annotate_error</span>(<span class="ident">prusti_error</span>);
+                    } <span class="kw">else</span> {
+                        <span class="ident">prusti_error</span> <span class="op">=</span> <span class="ident">prusti_error</span>.<span class="ident">add_note</span>(
+                            <span class="macro">format!</span>(
+                                <span class="string">&quot;the verifier produced a counterexample for {}, but it could not be mapped to source code&quot;</span>,
+                                <span class="ident">method</span>
+                            ),
+                            <span class="prelude-val">None</span>,
+                        );
+                    }
+                }
+            }
+
+            <span class="ident">prusti_errors</span>.<span class="ident">push</span>(<span class="ident">prusti_error</span>);
+        }
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#314">prusti_errors</a>.<span class="ident">sort</span>();
+
+        <span class="kw">for</span> <span class="ident">prusti_error</span> <span class="kw">in</span> <span class="ident">prusti_errors</span> {
+            <span class="macro">debug!</span>(<span class="string">&quot;Prusti error: {:?}&quot;</span>, <span class="ident">prusti_error</span>);
+            <span class="kw">if</span> <span class="ident">prusti_error</span>.<span class="ident">is_disabled</span>() {
+                <span class="ident">prusti_error</span>.<span class="ident">cancel</span>();
+            } <span class="kw">else</span> {
+                <span class="ident">prusti_error</span>.<span class="ident">emit</span>(<span class="self">self</span>.<span class="ident">env</span>);
+            }
+            <span class="ident">result</span> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
+        }
+
+        <span class="kw">if</span> <span class="ident">encoding_errors_count</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#296">result</a> <span class="op">=</span> <span class="ident">VerificationResult::Failure</span>;
+        }
+
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#296">result</a>
+    }
+}
+
+<span class="doccomment">/// Verify a list of programs.</span>
+<span class="doccomment">/// Returns a list of (program_name, verification_result) tuples.</span>
+<span class="kw">fn</span> <span class="ident">verify_programs</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../prusti_interface/environment/struct.Environment.html">Environment</a>, <span class="ident">programs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="../../prusti_common/vir/program/enum.Program.html">Program</a><span class="op">&gt;</span>)
+    -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="../../viper/verification_result/enum.VerificationResult.html">viper::VerificationResult</a>)<span class="op">&gt;</span>
+{
+    <span class="kw">let</span> <span class="ident">source_path</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#365">env</a>.<span class="ident">source_path</span>();
+    <span class="kw">let</span> <span class="ident">rust_program_name</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#368">source_path</a>
+        .<span class="ident">file_name</span>()
+        .<span class="ident">unwrap</span>()
+        .<span class="ident">to_str</span>()
+        .<span class="ident">unwrap</span>()
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>();
+    <span class="kw">let</span> <span class="ident">verification_requests</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#365">programs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="kw-2">mut</span> <span class="ident">program</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">program_name</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#375">program</a>.<span class="ident">get_name</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>();
+        <span class="kw">let</span> <span class="ident">check_mode</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#375">program</a>.<span class="ident">get_check_mode</span>();
+        <span class="comment">// Prepend the Rust file name to the program.</span>
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#375">program</a>.<span class="ident">set_name</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}_{}&quot;</span>, <span class="ident">rust_program_name</span>, <span class="ident">program_name</span>));
+        <span class="kw">let</span> <span class="ident">backend</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">check_mode</span> <span class="op">==</span> <span class="ident">CheckMode::Specifications</span> {
+            <span class="ident">config::verify_specifications_backend</span>()
+        } <span class="kw">else</span> {
+            <span class="ident">config::viper_backend</span>()
+        };
+        <span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <a class="ident" href="../../prusti_server/verification_request/struct.VerificationRequest.html">VerificationRequest</a> {
+            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#375">program</a>,
+            <span class="ident">backend_config</span>: <span class="ident">ViperBackendConfig::new</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#380">backend</a>),
+        };
+        (<a class="ident" href="../../src/prusti_viper/verifier.rs.html#376">program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#385">request</a>)
+    });
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">server_address</span>) <span class="op">=</span> <span class="ident">config::server_address</span>() {
+        <span class="kw">let</span> <span class="ident">server_address</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">server_address</span> <span class="op">==</span> <span class="string">&quot;MOCK&quot;</span> {
+            <a class="ident" href="../../prusti_server/server/fn.spawn_server_thread.html">spawn_server_thread</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()
+        } <span class="kw">else</span> {
+            <a class="ident" href="../../src/prusti_viper/verifier.rs.html#391">server_address</a>
+        };
+        <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Connecting to Prusti server at {}&quot;</span>, <span class="ident">server_address</span>);
+        <span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">PrustiClient::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#392">server_address</a>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
+                <span class="string">&quot;Could not parse server address ({}) due to {:?}&quot;</span>,
+                <span class="ident">server_address</span>, <span class="ident">error</span>
+            )
+        });
+        <span class="comment">// Here we construct a Tokio runtime to block until completion of the futures returned by</span>
+        <span class="comment">// `client.verify`. However, to report verification errors as early as possible,</span>
+        <span class="comment">// `verify_programs` should return an asynchronous stream of verification results.</span>
+        <span class="kw">let</span> <span class="ident">runtime</span> <span class="op">=</span> <span class="ident">Builder::new_current_thread</span>()
+            .<span class="ident">thread_name</span>(<span class="string">&quot;prusti-viper&quot;</span>)
+            .<span class="ident">enable_all</span>()
+            .<span class="ident">build</span>()
+            .<span class="ident">expect</span>(<span class="string">&quot;failed to construct Tokio runtime&quot;</span>);
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#375">verification_requests</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">program_name</span>, <span class="ident">request</span>)<span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">remote_result</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#407">runtime</a>.<span class="ident">block_on</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#398">client</a>.<span class="ident">verify</span>(<a class="ident" href="../../src/prusti_viper/verifier.rs.html#412">request</a>));
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#413">remote_result</a>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">error</span><span class="op">|</span> {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.panic.html">panic!</a>(
+                    <span class="string">&quot;Verification request of program {} failed: {:?}&quot;</span>,
+                    <span class="ident">program_name</span>,
+                    <span class="ident">error</span>
+                )
+            });
+            (<a class="ident" href="../../src/prusti_viper/verifier.rs.html#412">program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#414">result</a>)
+        }).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+    } <span class="kw">else</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch::start</span>(<span class="string">&quot;prusti-viper&quot;</span>, <span class="string">&quot;JVM startup&quot;</span>);
+        <span class="kw">let</span> <span class="ident">viper</span> <span class="op">=</span> <span class="ident">Viper::new_with_args</span>(<span class="kw-2">&amp;</span><span class="ident">config::viper_home</span>(), <span class="ident">config::extra_jvm_args</span>());
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#424">stopwatch</a>.<span class="ident">start_next</span>(<span class="string">&quot;attach current thread to the JVM&quot;</span>);
+        <span class="kw">let</span> <span class="ident">viper_thread</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#425">viper</a>.<span class="ident">attach_current_thread</span>();
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#424">stopwatch</a>.<span class="ident">finish</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span> <span class="op">=</span> <span class="ident">PersistentCache::load_cache</span>(<span class="ident">config::cache_path</span>());
+        <a class="ident" href="../../src/prusti_viper/verifier.rs.html#375">verification_requests</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>(<span class="ident">program_name</span>, <span class="ident">request</span>)<span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../prusti_server/process_verification/fn.process_verification_request.html">process_verification_request</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_viper/verifier.rs.html#427">viper_thread</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#430">request</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/prusti_viper/verifier.rs.html#429">cache</a>);
+            (<a class="ident" href="../../src/prusti_viper/verifier.rs.html#430">program_name</a>, <a class="ident" href="../../src/prusti_viper/verifier.rs.html#431">result</a>)
+        }).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+    }
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

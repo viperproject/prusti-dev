@@ -1,0 +1,142 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/high/types/fields.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fields.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../storage.js"></script><script defer src="../../../../../source-script.js"></script><script defer src="../../../../../source-files.js"></script><script defer src="../../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Helper functions for creating fields.</span>
+
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder::errors</span>::{<a class="ident" href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#15">EncodingError</a>, <a class="ident" href="../../../../../src/prusti_viper/encoder/errors/encoding_error.rs.html#20">EncodingResult</a>};
+<span class="kw">use</span> <a class="ident" href="../../../../../log/macro.trace.html">log::trace</a>;
+
+<span class="kw">use</span> <a class="ident" href="../../../../../vir/high/index.html">vir_crate::high</a> <span class="kw">as</span> <span class="ident">vir</span>;
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_value_field</span>(<span class="ident">ty</span>: <a class="ident" href="../../../../../vir/gen/high/ast/ty/enum.Type.html">vir::Type</a>) -&gt; <span class="ident">EncodingResult</span><span class="op">&lt;</span><a class="ident" href="../../../../../vir/gen/high/ast/field/struct.FieldDecl.html">vir::FieldDecl</a><span class="op">&gt;</span> {
+    <a class="macro" href="../../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Encode value field for type &#39;{:?}&#39;&quot;</span>, <span class="ident">ty</span>);
+    <span class="kw">let</span> <span class="ident">field_decl</span> <span class="op">=</span> <span class="kw">match</span> <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#8">ty</a> {
+        <span class="ident">vir::Type::Bool</span> =&gt; <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_bool&quot;</span>, <span class="number">0usize</span>, <span class="ident">vir::Type::MBool</span>),
+
+        <span class="ident">vir::Type::Int</span>(<span class="kw">_</span>) =&gt; <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_int&quot;</span>, <span class="number">0usize</span>, <span class="ident">vir::Type::MInt</span>),
+
+        <span class="ident">vir::Type::Float</span>(<span class="ident">vir::ty::Float::F32</span>) =&gt; {
+            <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_float32&quot;</span>, <span class="number">0usize</span>, <span class="ident">vir::Type::MFloat32</span>)
+        }
+        <span class="ident">vir::Type::Float</span>(<span class="ident">vir::ty::Float::F64</span>) =&gt; {
+            <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_float64&quot;</span>, <span class="number">0usize</span>, <span class="ident">vir::Type::MFloat64</span>)
+        }
+
+        <span class="ident">vir::Type::Sequence</span>(<span class="kw-2">ref</span> <span class="ident">_seq</span>) =&gt; <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_seq&quot;</span>, <span class="number">0usize</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#8">ty</a>),
+
+        <span class="ident">vir::Type::Map</span>(<span class="kw-2">ref</span> <span class="ident">_map</span>) =&gt; <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_map&quot;</span>, <span class="number">0usize</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#8">ty</a>),
+
+        <span class="comment">// For composed data structures, we typically use a snapshot rather than a field.</span>
+        <span class="comment">// To unify how parameters are passed to functions, we treat them like a reference.</span>
+        <span class="ident">vir::Type::Tuple</span>(<span class="kw">_</span>)
+        <span class="op">|</span> <span class="ident">vir::Type::Trusted</span>(<span class="kw">_</span>)
+        <span class="op">|</span> <span class="ident">vir::Type::Struct</span>(<span class="kw">_</span>)
+        <span class="op">|</span> <span class="ident">vir::Type::Enum</span>(<span class="kw">_</span>)
+        <span class="op">|</span> <span class="ident">vir::Type::Closure</span>(<span class="kw">_</span>)
+        <span class="op">|</span> <span class="ident">vir::Type::FunctionDef</span>(<span class="kw">_</span>)
+        <span class="op">|</span> <span class="ident">vir::Type::FnPointer</span>
+        <span class="op">|</span> <span class="ident">vir::Type::TypeVar</span>(<span class="kw">_</span>) =&gt; <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_ref&quot;</span>, <span class="number">0usize</span>, <a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#8">ty</a>),
+
+        <span class="ident">vir::Type::Reference</span>(<a class="ident" href="../../../../../vir/gen/high/ast/ty/struct.Reference.html">vir::ty::Reference</a> { <span class="ident">target_type</span>, .. }) =&gt; {
+            <span class="ident">vir::FieldDecl::new</span>(<span class="string">&quot;val_ref&quot;</span>, <span class="number">0usize</span>, (<span class="kw-2">*</span><a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#37">target_type</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>())
+        }
+
+        <span class="ident">vir::Type::Array</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">vir::Type::Slice</span>(<span class="kw">_</span>) =&gt; {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">EncodingError::internal</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                <span class="string">&quot;create_value_field should not be called for {}&quot;</span>,
+                <span class="ident">ty</span>
+            )));
+        }
+
+        <span class="ident">vir::Type::Union</span>(<span class="kw">_</span>)
+        <span class="op">|</span> <span class="ident">vir::Type::Pointer</span>(<span class="kw">_</span>)
+        <span class="op">|</span> <span class="ident">vir::Type::Never</span>
+        <span class="op">|</span> <span class="ident">vir::Type::Str</span>
+        <span class="op">|</span> <span class="ident">vir::Type::Projection</span>(<span class="kw">_</span>)
+        <span class="op">|</span> <span class="ident">vir::Type::Unsupported</span>(<span class="kw">_</span>) =&gt; {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">EncodingError::unsupported</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+                <span class="string">&quot;{} type is not supported&quot;</span>,
+                <span class="ident">ty</span>
+            )));
+        }
+
+        <span class="ident">vir::Type::MBool</span>
+        <span class="op">|</span> <span class="ident">vir::Type::MInt</span>
+        <span class="op">|</span> <span class="ident">vir::Type::MFloat32</span>
+        <span class="op">|</span> <span class="ident">vir::Type::MFloat64</span>
+        <span class="op">|</span> <span class="ident">vir::Type::MPerm</span>
+        <span class="op">|</span> <span class="ident">vir::Type::Lifetime</span> =&gt; {
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>()
+        }
+    };
+    <span class="prelude-val">Ok</span>(<a class="ident" href="../../../../../src/prusti_viper/encoder/high/types/fields.rs.html#10">field_decl</a>)
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="The asymmetric encryption context."><meta name="keywords" content="rust, rustlang, rust-lang, pkey_ctx"><title>openssl::pkey_ctx - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"><a href="#">Module pkey_ctx</a></h2><div class="sidebar-elems"><section><div class="block"><ul><li><a href="#structs">Structs</a></li></ul></div></section></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../openssl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn"><span class="in-band">Module <a href="../index.html">openssl</a>::<wbr><a class="mod" href="#">pkey_ctx</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../src/openssl/pkey_ctx.rs.html#1-760">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The asymmetric encryption context.</p>
+<h2 id="examples"><a href="#examples">Examples</a></h2>
+<p>Encrypt data with RSA</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">openssl::rsa::Rsa</span>;
+<span class="kw">use</span> <span class="ident">openssl::pkey::PKey</span>;
+<span class="kw">use</span> <span class="ident">openssl::pkey_ctx::PkeyCtx</span>;
+
+<span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">Rsa::generate</span>(<span class="number">4096</span>).<span class="ident">unwrap</span>();
+<span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">PKey::from_rsa</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
+
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">PkeyCtx::new</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">unwrap</span>();
+<span class="ident">ctx</span>.<span class="ident">encrypt_init</span>().<span class="ident">unwrap</span>();
+
+<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="string">b&quot;Some Crypto Text&quot;</span>;
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ciphertext</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+<span class="ident">ctx</span>.<span class="ident">encrypt_to_vec</span>(<span class="ident">data</span>, <span class="kw-2">&amp;mut</span> <span class="ident">ciphertext</span>).<span class="ident">unwrap</span>();</code></pre></div>
+<p>Generate a CMAC key</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">openssl::pkey_ctx::PkeyCtx</span>;
+<span class="kw">use</span> <span class="ident">openssl::pkey::Id</span>;
+<span class="kw">use</span> <span class="ident">openssl::cipher::Cipher</span>;
+
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">PkeyCtx::new_id</span>(<span class="ident">Id::CMAC</span>).<span class="ident">unwrap</span>();
+<span class="ident">ctx</span>.<span class="ident">keygen_init</span>().<span class="ident">unwrap</span>();
+<span class="ident">ctx</span>.<span class="ident">set_keygen_cipher</span>(<span class="ident">Cipher::aes_128_cbc</span>()).<span class="ident">unwrap</span>();
+<span class="ident">ctx</span>.<span class="ident">set_keygen_mac_key</span>(<span class="string">b&quot;0123456789abcdef&quot;</span>).<span class="ident">unwrap</span>();
+<span class="kw">let</span> <span class="ident">cmac_key</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">keygen</span>().<span class="ident">unwrap</span>();</code></pre></div>
+<p>Sign and verify data with RSA</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">openssl::pkey_ctx::PkeyCtx</span>;
+<span class="kw">use</span> <span class="ident">openssl::pkey::PKey</span>;
+<span class="kw">use</span> <span class="ident">openssl::rsa::Rsa</span>;
+
+<span class="comment">// Generate a random RSA key.</span>
+<span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">Rsa::generate</span>(<span class="number">4096</span>).<span class="ident">unwrap</span>();
+<span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">PKey::from_rsa</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>();
+
+<span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="string">b&quot;Some Crypto Text&quot;</span>;
+
+<span class="comment">// Create the signature.</span>
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">PkeyCtx::new</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">unwrap</span>();
+<span class="ident">ctx</span>.<span class="ident">sign_init</span>().<span class="ident">unwrap</span>();
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">signature</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+<span class="ident">ctx</span>.<span class="ident">sign_to_vec</span>(<span class="ident">text</span>, <span class="kw-2">&amp;mut</span> <span class="ident">signature</span>).<span class="ident">unwrap</span>();
+
+<span class="comment">// Verify the signature.</span>
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">PkeyCtx::new</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>).<span class="ident">unwrap</span>();
+<span class="ident">ctx</span>.<span class="ident">verify_init</span>().<span class="ident">unwrap</span>();
+<span class="kw">let</span> <span class="ident">valid</span> <span class="op">=</span> <span class="ident">ctx</span>.<span class="ident">verify</span>(<span class="ident">text</span>, <span class="kw-2">&amp;</span><span class="ident">signature</span>).<span class="ident">unwrap</span>();
+<span class="macro">assert!</span>(<span class="ident">valid</span>);</code></pre></div>
+</div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.HkdfMode.html" title="openssl::pkey_ctx::HkdfMode struct">HkdfMode</a></div><div class="item-right docblock-short"><p>HKDF modes of operation.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.PkeyCtx.html" title="openssl::pkey_ctx::PkeyCtx struct">PkeyCtx</a></div><div class="item-right docblock-short"><p>A context object which can perform asymmetric cryptography operations.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.PkeyCtxRef.html" title="openssl::pkey_ctx::PkeyCtxRef struct">PkeyCtxRef</a></div><div class="item-right docblock-short"><p>A reference to a <a href="struct.PkeyCtx.html" title="PkeyCtx"><code>PkeyCtx</code></a>.</p>
+</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

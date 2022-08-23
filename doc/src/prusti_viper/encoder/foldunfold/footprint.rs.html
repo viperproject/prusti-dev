@@ -1,0 +1,556 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/foldunfold/footprint.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>footprint.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
+<span class="comment">//</span>
+<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
+<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
+<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+
+<span class="kw">use</span> <span class="kw">super</span>::{
+    <span class="ident">places_utils</span>::{<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/places_utils.rs.html#87">union</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/places_utils.rs.html#92-96">union3</a>},
+    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40">Predicates</a>,
+};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::encoder::foldunfold::perm</span>::{<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a>::<span class="kw-2">*</span>, <span class="kw-2">*</span>};
+<span class="kw">use</span> <a class="ident" href="../../../../log/macro.trace.html">log::trace</a>;
+<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<a class="ident" href="../../../../rustc_hash/type.FxHashMap.html">FxHashMap</a>, <a class="ident" href="../../../../rustc_hash/type.FxHashSet.html">FxHashSet</a>};
+
+<span class="kw">use</span> <span class="ident">vir_crate::polymorphic</span>::{<a class="self" href="../../../../vir/polymorphic/index.html">self</a> <span class="kw">as</span> <span class="ident">vir</span>, <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/enum.PermAmount.html">PermAmount</a>};
+
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ExprFootprintGetter</span> {
+    <span class="doccomment">/// Returns the precise footprint of an expression, that is the permissions that must be</span>
+    <span class="doccomment">/// added/removed when executing an `inhale/exhale expr` statement.</span>
+    <span class="kw">fn</span> <span class="ident">get_footprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">predicates</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40">Predicates</a>) -&gt; <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a><span class="op">&gt;</span>;
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#17">ExprFootprintGetter</a> <span class="kw">for</span> <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> {
+    <span class="kw">fn</span> <span class="ident">get_footprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">predicates</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/mod.rs.html#40">Predicates</a>) -&gt; <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a><span class="op">&gt;</span> {
+        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;get_footprint {}&quot;</span>, <span class="self">self</span>);
+        <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">self</a> {
+            <span class="ident">vir::Expr::Local</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">vir::Expr::Field</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">vir::Expr::Variant</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">vir::Expr::AddrOf</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">vir::Expr::LabelledOld</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">vir::Expr::Const</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">vir::Expr::FuncApp</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">vir::Expr::DomainFuncApp</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">vir::Expr::InhaleExhale</span>(<span class="kw">_</span>) =&gt; <span class="ident">FxHashSet::default</span>(),
+
+            <span class="ident">vir::Expr::Unfolding</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Unfolding.html">vir::Unfolding</a> {
+                <span class="ident">arguments</span>,
+                <span class="ident">base</span>,
+                <span class="ident">permission</span>,
+                <span class="ident">variant</span>,
+                ..
+            }) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert_eq.html">assert_eq!</a>(<span class="ident">arguments</span>.<span class="ident">len</span>(), <span class="number">1</span>);
+                <span class="kw">let</span> <span class="ident">place</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#38">arguments</a>[<span class="number">0</span>];
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">place</span>.<span class="ident">is_place</span>());
+
+                <span class="comment">// We want to temporarly unfold place</span>
+                <span class="kw">let</span> <span class="ident">predicate_type</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#45">place</a>.<span class="ident">get_type</span>();
+                <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>.<span class="ident">get</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#49">predicate_type</a>).<span class="ident">unwrap</span>();
+
+                <span class="kw">let</span> <span class="ident">pred_self_place</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#50">predicate</a>.<span class="ident">self_place</span>();
+                <span class="kw">let</span> <span class="ident">places_in_pred</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#50">predicate</a>
+                    .<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#191">get_body_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#41">variant</a>)
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>()
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">aop</span><span class="op">|</span> {
+                        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#56">aop</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#65-67">map_place</a>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#57">p</a>.<span class="ident">replace_place</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#52">pred_self_place</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#45">place</a>))
+                            .<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#79">init_perm_amount</a>(<span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#40">permission</a>)
+                    })
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+
+                <span class="comment">// Simulate temporary unfolding of `place`</span>
+                <span class="kw">let</span> <span class="ident">expr_access_places</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#39">base</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>);
+
+                <span class="comment">// inhaled = inhaled in body - unfolding</span>
+                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#226">perm_difference</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#63">expr_access_places</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#53">places_in_pred</a>)
+            }
+
+            <span class="ident">vir::Expr::UnaryOp</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.UnaryOp.html">vir::UnaryOp</a> { <span class="ident">argument</span>, .. }) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#69">argument</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+
+            <span class="ident">vir::Expr::BinOp</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.BinOp.html">vir::BinOp</a> {
+                <span class="kw">box</span> <span class="ident">left</span>,
+                <span class="kw">box</span> <span class="ident">right</span>,
+                ..
+            }) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/places_utils.rs.html#87">union</a>(
+                <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#72">left</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+                <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#73">right</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+            ),
+
+            <span class="ident">vir::Expr::ContainerOp</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.ContainerOp.html">vir::ContainerOp</a> {
+                <span class="kw">box</span> <span class="ident">left</span>,
+                <span class="kw">box</span> <span class="ident">right</span>,
+                ..
+            }) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/places_utils.rs.html#87">union</a>(
+                <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#81">left</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+                <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#82">right</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+            ),
+
+            <span class="ident">vir::Expr::Seq</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Seq.html">vir::Seq</a> { <span class="ident">elements</span>, .. }) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#89">elements</a>
+                .<span class="ident">iter</span>()
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#91">e</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>))
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<span class="ident">FxHashSet::default</span>(), <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">hs</span>, <span class="ident">fp</span><span class="op">|</span> {
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#92">hs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#92">fp</a>);
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#92">hs</a>
+                }),
+
+            <span class="ident">vir::Expr::Map</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Map.html">vir::Map</a> { <span class="ident">elements</span>, .. }) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#97">elements</a>
+                .<span class="ident">iter</span>()
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#99">e</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>))
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">fold</a>(<span class="ident">FxHashSet::default</span>(), <span class="op">|</span><span class="kw-2">mut</span> <span class="ident">hs</span>, <span class="ident">fp</span><span class="op">|</span> {
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#100">hs</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#100">fp</a>);
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#100">hs</a>
+                }),
+
+            <span class="ident">vir::Expr::Cond</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Cond.html">vir::Cond</a> {
+                <span class="kw">box</span> <span class="ident">guard</span>,
+                <span class="kw">box</span> <span class="ident">then_expr</span>,
+                <span class="kw">box</span> <span class="ident">else_expr</span>,
+                ..
+            }) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/places_utils.rs.html#92-96">union3</a>(
+                <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#106">guard</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+                <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#107">then_expr</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+                <span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#108">else_expr</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+            ),
+
+            <span class="ident">vir::Expr::ForAll</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.ForAll.html">vir::ForAll</a> {
+                <span class="ident">variables</span>,
+                <span class="kw">box</span> <span class="ident">body</span>,
+                ..
+            })
+            <span class="op">|</span> <span class="ident">vir::Expr::Exists</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Exists.html">vir::Exists</a> {
+                <span class="ident">variables</span>,
+                <span class="kw">box</span> <span class="ident">body</span>,
+                ..
+            }) =&gt; {
+                <span class="kw">let</span> <span class="ident">vars_places</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#117">variables</a>
+                    .<span class="ident">iter</span>()
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span><span class="ident">var</span><span class="op">|</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#15">Acc</a>(<span class="ident">vir::Expr::local</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#128">var</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()), <span class="ident">PermAmount::Write</span>))
+                    .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#226">perm_difference</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#118">body</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>), <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#126">vars_places</a>)
+            }
+
+            <span class="ident">vir::Expr::PredicateAccessPredicate</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.PredicateAccessPredicate.html">vir::PredicateAccessPredicate</a> {
+                <span class="kw">box</span> <span class="kw-2">ref</span> <span class="ident">argument</span>,
+                <span class="ident">permission</span>,
+                ..
+            }) =&gt; {
+                <span class="kw">let</span> <span class="ident">opt_perm</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">argument</span>.<span class="ident">is_place</span>() {
+                    <span class="prelude-val">Some</span>(<span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#134">argument</a>.<span class="ident">get_label</span>() {
+                        <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#16">Perm::Pred</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#134">argument</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#135">permission</a>),
+                        <span class="prelude-val">Some</span>(<span class="ident">label</span>) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#16">Perm::Pred</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#134">argument</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">old</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#141">label</a>), <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#135">permission</a>),
+                    })
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">None</span>
+                };
+
+                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#138">opt_perm</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+            }
+
+            <span class="ident">vir::Expr::FieldAccessPredicate</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.FieldAccessPredicate.html">vir::FieldAccessPredicate</a> {
+                <span class="kw">box</span> <span class="kw-2">ref</span> <span class="ident">base</span>,
+                <span class="ident">permission</span>,
+                ..
+            }) =&gt; {
+                <span class="comment">// In Prusti we assume to have only places here</span>
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">base</span>.<span class="ident">is_place</span>());
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.debug_assert.html">debug_assert!</a>(<span class="ident">base</span>.<span class="ident">is_curr</span>());
+
+                <span class="kw">let</span> <span class="ident">perm</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#15">Acc</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#151">base</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(), <span class="kw-2">*</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#152">permission</a>);
+
+                <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#159">perm</a>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.IntoIterator.html">into_iter</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>()
+            }
+
+            <span class="ident">vir::Expr::MagicWand</span>(<span class="kw">_</span>) =&gt; {
+                <span class="comment">// We don&#39;t track magic wands resources</span>
+                <span class="ident">FxHashSet::default</span>()
+            }
+
+            <span class="ident">vir::Expr::LetExpr</span>(<span class="kw">_</span>) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.unreachable.html">unreachable!</a>(<span class="string">&quot;Let expressions should be introduced after fold/unfold.&quot;</span>);
+            }
+
+            <span class="ident">vir::Expr::Downcast</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.DowncastExpr.html">vir::DowncastExpr</a> { <span class="kw-2">ref</span> <span class="ident">base</span>, .. }) =&gt; {
+                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#173">base</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>)
+            }
+
+            <span class="ident">vir::Expr::SnapApp</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.SnapApp.html">vir::SnapApp</a> { <span class="kw-2">ref</span> <span class="ident">base</span>, .. }) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#177">base</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+
+            <span class="ident">vir::Expr::Cast</span>(<a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/struct.Cast.html">vir::Cast</a> { <span class="kw-2">ref</span> <span class="ident">base</span>, .. }) =&gt; <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#179">base</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#24">predicates</a>),
+        };
+        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;get_footprint {} = {:?}&quot;</span>, <span class="self">self</span>, <span class="ident">res</span>);
+        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#26">res</a>
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PredicateFootprintGetter</span> {
+    <span class="doccomment">/// Returns the footprint of the body of a predicate, that is the permissions that must be</span>
+    <span class="doccomment">/// added/removed when executing a `fold/unfold pred` statement.</span>
+    <span class="doccomment">/// When the method is called on a predicate encoding an enumeration and `maybe_variant` is</span>
+    <span class="doccomment">/// `None` then the result is an under-approximation. The result is precise in all other cases.</span>
+    <span class="kw">fn</span> <span class="ident">get_body_footprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">maybe_variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/predicate/type.MaybeEnumVariantIndex.html">vir::MaybeEnumVariantIndex</a>) -&gt; <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a><span class="op">&gt;</span>;
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#186">PredicateFootprintGetter</a> <span class="kw">for</span> <a class="ident" href="../../../../vir/gen/polymorphic/ast/predicate/enum.Predicate.html">vir::Predicate</a> {
+    <span class="kw">fn</span> <span class="ident">get_body_footprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">maybe_variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/predicate/type.MaybeEnumVariantIndex.html">vir::MaybeEnumVariantIndex</a>) -&gt; <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#195">self</a> {
+            <span class="ident">vir::Predicate::Struct</span>(<span class="ident">p</span>) =&gt; {
+                <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">maybe_variant</span>.<span class="ident">is_none</span>());
+                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#197">p</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#222">get_body_footprint</a>()
+            }
+            <span class="ident">vir::Predicate::Enum</span>(<span class="ident">p</span>) =&gt; {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">variant</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#195">maybe_variant</a> {
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#201">p</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#241">get_body_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#202">variant</a>)
+                } <span class="kw">else</span> {
+                    <span class="comment">// This case happens when Prusti unfolds an enumeration without statically</span>
+                    <span class="comment">// knowing the variant. For example, when encoding the lookup of a</span>
+                    <span class="comment">// discriminant *before* entering a match expression.</span>
+                    <span class="comment">// Under-approximating is better than over-approximating because it preserves</span>
+                    <span class="comment">// the invariant that permissions in the fold-unfold state are an</span>
+                    <span class="comment">// under-approximation of the permissions actually available in Viper.</span>
+                    <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#201">p</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#247">get_underapproximated_body_footprint</a>()
+                }
+            }
+            <span class="ident">vir::Predicate::Bodyless</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="ident">FxHashSet::default</span>(),
+        }
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StructPredicateFootprintGetter</span> {
+    <span class="doccomment">/// Returns the footprint of the body of a predicate encoding a structure, that is the</span>
+    <span class="doccomment">/// permissions that must be added/removed when executing a `fold/unfold pred` statement.</span>
+    <span class="kw">fn</span> <span class="ident">get_body_footprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a><span class="op">&gt;</span>;
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#219">StructPredicateFootprintGetter</a> <span class="kw">for</span> <a class="ident" href="../../../../vir/gen/polymorphic/ast/predicate/struct.StructPredicate.html">vir::StructPredicate</a> {
+    <span class="kw">fn</span> <span class="ident">get_body_footprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#226">self</a>.<span class="ident">body</span> {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">body</span>) =&gt; {
+                <span class="comment">// A predicate body should not contain unfolding expression</span>
+                <span class="kw">let</span> <span class="ident">predicates</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
+                <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#228">body</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#20">get_footprint</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#230">predicates</a>)
+            }
+            <span class="prelude-val">None</span> =&gt; <span class="ident">FxHashSet::default</span>(),
+        }
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">EnumPredicateFootprintGetter</span> {
+    <span class="doccomment">/// Returns the footprint of the body of a predicate encoding an enumeration, that is the</span>
+    <span class="doccomment">/// permissions that must be added/removed when executing a `fold/unfold pred` statement.</span>
+    <span class="kw">fn</span> <span class="ident">get_body_footprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/predicate/struct.EnumVariantIndex.html">vir::EnumVariantIndex</a>) -&gt; <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a><span class="op">&gt;</span>;
+
+    <span class="doccomment">/// Returns the footprint coontribution of a given variant of an enumeration.</span>
+    <span class="kw">fn</span> <span class="ident">get_variant_footprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/predicate/struct.EnumVariantIndex.html">vir::EnumVariantIndex</a>) -&gt; <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a><span class="op">&gt;</span>;
+
+    <span class="doccomment">/// Returns the intersection of `get_body_footprint` called on each possible variant.</span>
+    <span class="kw">fn</span> <span class="ident">get_underapproximated_body_footprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a><span class="op">&gt;</span>;
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#238">EnumPredicateFootprintGetter</a> <span class="kw">for</span> <a class="ident" href="../../../../vir/gen/polymorphic/ast/predicate/struct.EnumPredicate.html">vir::EnumPredicate</a> {
+    <span class="kw">fn</span> <span class="ident">get_body_footprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/predicate/struct.EnumVariantIndex.html">vir::EnumVariantIndex</a>) -&gt; <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">perms</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#251">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#247">get_underapproximated_body_footprint</a>();
+        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#252">perms</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#251">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#244">get_variant_footprint</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#251">variant</a>));
+        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#252">perms</a>
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_variant_footprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">variant</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../../vir/gen/polymorphic/ast/predicate/struct.EnumVariantIndex.html">vir::EnumVariantIndex</a>) -&gt; <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">perms</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
+        <span class="kw">let</span> <span class="ident">this</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/expr/enum.Expr.html">vir::Expr</a> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#257">self</a>.<span class="ident">this</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let</span> <span class="ident">variant_name</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#257">variant</a>.<span class="ident">get_variant_name</span>();
+        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#258">perms</a>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#15">Perm::Acc</a>(
+            <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#259">this</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>().<span class="ident">variant</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#260">variant_name</a>),
+            <span class="ident">PermAmount::Write</span>,
+        ));
+        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#258">perms</a>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#16">Perm::Pred</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#259">this</a>.<span class="ident">variant</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#260">variant_name</a>), <span class="ident">PermAmount::Write</span>));
+        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#258">perms</a>
+    }
+
+    <span class="kw">fn</span> <span class="ident">get_underapproximated_body_footprint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">FxHashSet</span><span class="op">&lt;</span><a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#14">Perm</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">perms</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
+        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#270">perms</a>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/perm.rs.html#15">Perm::Acc</a>(
+            <span class="ident">vir::Expr::from</span>(<a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#269">self</a>.<span class="ident">this</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()).<span class="ident">field</span>(<a class="self" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#269">self</a>.<span class="ident">discriminant_field</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>()),
+            <span class="ident">PermAmount::Write</span>,
+        ));
+        <a class="ident" href="../../../../src/prusti_viper/encoder/foldunfold/footprint.rs.html#270">perms</a>
+    }
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

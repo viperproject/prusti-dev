@@ -1,0 +1,1666 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/color-backtrace-0.5.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../color_backtrace/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../color_backtrace/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../color_backtrace/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
+<span id="716">716</span>
+<span id="717">717</span>
+<span id="718">718</span>
+<span id="719">719</span>
+<span id="720">720</span>
+<span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Colorful and clean backtraces on panic.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This library aims to make panics a little less painful by nicely colorizing</span>
+<span class="doccomment">//! them, skipping over frames of functions called after the panic was already</span>
+<span class="doccomment">//! initiated and printing relevant source snippets. Frames of functions in your</span>
+<span class="doccomment">//! application are colored in a different color (red) than those of</span>
+<span class="doccomment">//! dependencies (green).</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ### Screenshot</span>
+<span class="doccomment">//! ![Screenshot](https://i.imgur.com/jLznHxp.png)</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ### Features</span>
+<span class="doccomment">//! - Colorize backtraces to be easier on the eyes</span>
+<span class="doccomment">//! - Show source snippets if source files are found on disk</span>
+<span class="doccomment">//! - Print frames of application code vs dependencies in different color</span>
+<span class="doccomment">//! - Hide all the frames after the panic was already initiated</span>
+<span class="doccomment">//! - Hide language runtime initialization frames</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ### Installing the panic handler</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! In your main function, just insert the following snippet. That&#39;s it!</span>
+<span class="doccomment">//! ```rust</span>
+<span class="doccomment">//! color_backtrace::install();</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! If you want to customize some settings, you can instead do:</span>
+<span class="doccomment">//! ```rust</span>
+<span class="doccomment">//! use color_backtrace::{default_output_stream, BacktracePrinter};</span>
+<span class="doccomment">//! BacktracePrinter::new().message(&quot;Custom message!&quot;).install(default_output_stream());</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ### Controlling verbosity</span>
+<span class="doccomment">//! The default verbosity is configured via the `RUST_BACKTRACE` environment</span>
+<span class="doccomment">//! variable. An unset `RUST_BACKTRACE` corresponds to</span>
+<span class="doccomment">//! [minimal](Verbosity::Minimal), `RUST_BACKTRACE=1` to</span>
+<span class="doccomment">//! [medium](Verbosity::Medium) and `RUST_BACKTRACE=full` to</span>
+<span class="doccomment">//! [full](Verbosity::Full) verbosity levels.</span>
+
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/macro.env.html">std::env</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/struct.File.html">std::fs::File</a>;
+<span class="kw">use</span> <span class="ident">std::io</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">BufRead</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/buffered/bufreader/struct.BufReader.html">BufReader</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/enum.ErrorKind.html">ErrorKind</a>};
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/panic/panic_info/struct.PanicInfo.html">std::panic::PanicInfo</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">std::path::PathBuf</a>;
+<span class="kw">use</span> <span class="ident">std::sync</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">Arc</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/sync/mutex/struct.Mutex.html">Mutex</a>};
+<span class="kw">use</span> <span class="ident">termcolor</span>::{<a class="ident" href="../../termcolor/struct.Ansi.html">Ansi</a>, <a class="ident" href="../../termcolor/enum.Color.html">Color</a>, <a class="ident" href="../../termcolor/enum.ColorChoice.html">ColorChoice</a>, <a class="ident" href="../../termcolor/struct.ColorSpec.html">ColorSpec</a>, <a class="ident" href="../../termcolor/struct.StandardStream.html">StandardStream</a>, <a class="ident" href="../../termcolor/trait.WriteColor.html">WriteColor</a>};
+
+<span class="comment">// Re-export termcolor so users don&#39;t have to depend on it themselves.</span>
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../termcolor/index.html">termcolor</a>;
+
+<span class="comment">// ============================================================================================== //</span>
+<span class="comment">// [Result / Error types]                                                                         //</span>
+<span class="comment">// ============================================================================================== //</span>
+
+<span class="kw">type</span> <span class="ident">IOResult</span><span class="op">&lt;</span><span class="ident">T</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/io/error/struct.Error.html">std::io::Error</a><span class="op">&gt;</span>;
+
+<span class="comment">// ============================================================================================== //</span>
+<span class="comment">// [Verbosity management]                                                                         //</span>
+<span class="comment">// ============================================================================================== //</span>
+
+<span class="doccomment">/// Defines how verbose the backtrace is supposed to be.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Verbosity</span> {
+    <span class="doccomment">/// Print a small message including the panic payload and the panic location.</span>
+    <span class="ident">Minimal</span>,
+    <span class="doccomment">/// Everything in `Minimal` and additionally print a backtrace.</span>
+    <span class="ident">Medium</span>,
+    <span class="doccomment">/// Everything in `Medium` plus source snippets for all backtrace locations.</span>
+    <span class="ident">Full</span>,
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#62">Verbosity</a> {
+    <span class="doccomment">/// Get the verbosity level from `RUST_BACKTRACE` env variable.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_env</span>() -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::convert_env</span>(<span class="ident">env::var</span>(<span class="string">&quot;RUST_BACKTRACE&quot;</span>).<span class="ident">ok</span>())
+    }
+
+    <span class="doccomment">/// Get the verbosity level from `RUST_LIB_BACKTRACE` env variable,</span>
+    <span class="doccomment">/// falling back to the `RUST_BACKTRACE`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lib_from_env</span>() -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::convert_env</span>(
+            <span class="ident">env::var</span>(<span class="string">&quot;RUST_LIB_BACKTRACE&quot;</span>)
+                .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">env::var</span>(<span class="string">&quot;RUST_BACKTRACE&quot;</span>))
+                .<span class="ident">ok</span>(),
+        )
+    }
+
+    <span class="kw">fn</span> <span class="ident">convert_env</span>(<span class="ident">env</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">match</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#87">env</a> {
+            <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) <span class="kw">if</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#89">x</a> <span class="op">==</span> <span class="string">&quot;full&quot;</span> =&gt; <a class="ident" href="../../src/color_backtrace/lib.rs.html#68">Verbosity::Full</a>,
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <a class="ident" href="../../src/color_backtrace/lib.rs.html#66">Verbosity::Medium</a>,
+            <span class="prelude-val">None</span> =&gt; <a class="ident" href="../../src/color_backtrace/lib.rs.html#64">Verbosity::Minimal</a>,
+        }
+    }
+}
+
+<span class="comment">// ============================================================================================== //</span>
+<span class="comment">// [Panic handler and install logic]                                                              //</span>
+<span class="comment">// ============================================================================================== //</span>
+
+<span class="doccomment">/// Install a `BacktracePrinter` handler with `::default()` settings.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This currently is a convenience shortcut for writing</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```rust</span>
+<span class="doccomment">/// use color_backtrace::{BacktracePrinter, default_output_stream};</span>
+<span class="doccomment">/// BacktracePrinter::default().install(default_output_stream())</span>
+<span class="doccomment">/// ```</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">install</span>() {
+    <span class="ident">BacktracePrinter::default</span>().<a class="ident" href="../../src/color_backtrace/lib.rs.html#636">install</a>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#116">default_output_stream</a>());
+}
+
+<span class="doccomment">/// Create the default output stream.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// If stderr is attached to a tty, this is a colorized stderr, else it&#39;s</span>
+<span class="doccomment">/// a plain (colorless) stderr.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_output_stream</span>() -&gt; <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../termcolor/struct.StandardStream.html">StandardStream</a><span class="op">&gt;</span> {
+    <span class="ident">Box::new</span>(<span class="ident">StandardStream::stderr</span>(<span class="kw">if</span> <span class="ident">atty::is</span>(<span class="ident">atty::Stream::Stderr</span>) {
+        <span class="ident">ColorChoice::Always</span>
+    } <span class="kw">else</span> {
+        <span class="ident">ColorChoice::Never</span>
+    }))
+}
+
+<span class="attribute">#[<span class="ident">deprecated</span>(
+    <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.4.0&quot;</span>,
+    <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use `BacktracePrinter::into_panic_handler()` instead.&quot;</span>
+)]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_panic_handler</span>(
+    <span class="ident">printer</span>: <a class="ident" href="../../src/color_backtrace/lib.rs.html#507">BacktracePrinter</a>,
+) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">PanicInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">out_stream_mutex</span> <span class="op">=</span> <span class="ident">Mutex::new</span>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#116">default_output_stream</a>());
+    <span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">pi</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#131">out_stream_mutex</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#129">printer</a>.<a class="ident" href="../../src/color_backtrace/lib.rs.html#740">print_panic_info</a>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#132">pi</a>, <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../src/color_backtrace/lib.rs.html#133">lock</a>) {
+            <span class="comment">// Panicking while handling a panic would send us into a deadlock,</span>
+            <span class="comment">// so we just print the error to stderr instead.</span>
+            <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.eprintln.html">eprintln!</a>(<span class="string">&quot;Error while printing panic: {:?}&quot;</span>, <span class="ident">e</span>);
+        }
+    })
+}
+
+<span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.4.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use `BacktracePrinter::install()` instead.&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">install_with_settings</span>(<span class="ident">printer</span>: <a class="ident" href="../../src/color_backtrace/lib.rs.html#507">BacktracePrinter</a>) {
+    <span class="ident">std::panic::set_hook</span>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#143">printer</a>.<a class="ident" href="../../src/color_backtrace/lib.rs.html#643-646">into_panic_handler</a>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#116">default_output_stream</a>()))
+}
+
+<span class="comment">// ============================================================================================== //</span>
+<span class="comment">// [Backtrace frame]                                                                              //</span>
+<span class="comment">// ============================================================================================== //</span>
+
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">FilterCallback</span> <span class="op">=</span> <span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/color_backtrace/lib.rs.html#154">Frame</a><span class="op">&gt;</span>) <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Frame</span> {
+    <span class="kw">pub</span> <span class="ident">n</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="kw">pub</span> <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">lineno</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">filename</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a><span class="op">&gt;</span>,
+    <span class="kw">pub</span> <span class="ident">ip</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="ident">_private_ctor</span>: (),
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#154">Frame</a> {
+    <span class="doccomment">/// Heuristically determine whether the frame is likely to be part of a</span>
+    <span class="doccomment">/// dependency.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If it fails to detect some patterns in your code base, feel free to drop</span>
+    <span class="doccomment">/// an issue / a pull request!</span>
+    <span class="kw">fn</span> <span class="ident">is_dependency_code</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">const</span> <span class="ident">SYM_PREFIXES</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+            <span class="string">&quot;std::&quot;</span>,
+            <span class="string">&quot;core::&quot;</span>,
+            <span class="string">&quot;backtrace::backtrace::&quot;</span>,
+            <span class="string">&quot;_rust_begin_unwind&quot;</span>,
+            <span class="string">&quot;color_traceback::&quot;</span>,
+            <span class="string">&quot;__rust_&quot;</span>,
+            <span class="string">&quot;___rust_&quot;</span>,
+            <span class="string">&quot;__pthread&quot;</span>,
+            <span class="string">&quot;_main&quot;</span>,
+            <span class="string">&quot;main&quot;</span>,
+            <span class="string">&quot;__scrt_common_main_seh&quot;</span>,
+            <span class="string">&quot;BaseThreadInitThunk&quot;</span>,
+            <span class="string">&quot;_start&quot;</span>,
+            <span class="string">&quot;__libc_start_main&quot;</span>,
+            <span class="string">&quot;start_thread&quot;</span>,
+        ];
+
+        <span class="comment">// Inspect name.</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">name</span>) <span class="op">=</span> <a class="self" href="../../src/color_backtrace/lib.rs.html#169">self</a>.<span class="ident">name</span> {
+            <span class="kw">if</span> <span class="ident">SYM_PREFIXES</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">name</span>.<span class="ident">starts_with</span>(<span class="ident">x</span>)) {
+                <span class="kw">return</span> <span class="bool-val">true</span>;
+            }
+        }
+
+        <span class="kw">const</span> <span class="ident">FILE_PREFIXES</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+            <span class="string">&quot;/rustc/&quot;</span>,
+            <span class="string">&quot;src/libstd/&quot;</span>,
+            <span class="string">&quot;src/libpanic_unwind/&quot;</span>,
+            <span class="string">&quot;src/libtest/&quot;</span>,
+        ];
+
+        <span class="comment">// Inspect filename.</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">filename</span>) <span class="op">=</span> <a class="self" href="../../src/color_backtrace/lib.rs.html#169">self</a>.<span class="ident">filename</span> {
+            <span class="kw">let</span> <span class="ident">filename</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#203">filename</a>.<span class="ident">to_string_lossy</span>();
+            <span class="kw">if</span> <span class="ident">FILE_PREFIXES</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">filename</span>.<span class="ident">starts_with</span>(<span class="ident">x</span>))
+                <span class="op">|</span><span class="op">|</span> <span class="ident">filename</span>.<span class="ident">contains</span>(<span class="string">&quot;/.cargo/registry/src/&quot;</span>)
+            {
+                <span class="kw">return</span> <span class="bool-val">true</span>;
+            }
+        }
+
+        <span class="bool-val">false</span>
+    }
+
+    <span class="doccomment">/// Heuristically determine whether a frame is likely to be a post panic</span>
+    <span class="doccomment">/// frame.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Post panic frames are frames of a functions called after the actual panic</span>
+    <span class="doccomment">/// is already in progress and don&#39;t contain any useful information for a</span>
+    <span class="doccomment">/// reader of the backtrace.</span>
+    <span class="kw">fn</span> <span class="ident">is_post_panic_code</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">const</span> <span class="ident">SYM_PREFIXES</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+            <span class="string">&quot;_rust_begin_unwind&quot;</span>,
+            <span class="string">&quot;rust_begin_unwind&quot;</span>,
+            <span class="string">&quot;core::result::unwrap_failed&quot;</span>,
+            <span class="string">&quot;core::option::expect_none_failed&quot;</span>,
+            <span class="string">&quot;core::panicking::panic_fmt&quot;</span>,
+            <span class="string">&quot;color_backtrace::create_panic_handler&quot;</span>,
+            <span class="string">&quot;std::panicking::begin_panic&quot;</span>,
+            <span class="string">&quot;begin_panic_fmt&quot;</span>,
+            <span class="string">&quot;backtrace::capture&quot;</span>,
+        ];
+
+        <span class="kw">match</span> <a class="self" href="../../src/color_backtrace/lib.rs.html#221">self</a>.<span class="ident">name</span>.<span class="ident">as_ref</span>() {
+            <span class="prelude-val">Some</span>(<span class="ident">name</span>) =&gt; <a class="ident" href="../../src/color_backtrace/lib.rs.html#222">SYM_PREFIXES</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#235">name</a>.<span class="ident">starts_with</span>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#235">x</a>)),
+            <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
+        }
+    }
+
+    <span class="doccomment">/// Heuristically determine whether a frame is likely to be part of language</span>
+    <span class="doccomment">/// runtime.</span>
+    <span class="kw">fn</span> <span class="ident">is_runtime_init_code</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">const</span> <span class="ident">SYM_PREFIXES</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+            <span class="string">&quot;std::rt::lang_start::&quot;</span>,
+            <span class="string">&quot;test::run_test::run_test_inner::&quot;</span>,
+            <span class="string">&quot;std::sys_common::backtrace::__rust_begin_short_backtrace&quot;</span>,
+        ];
+
+        <span class="kw">let</span> (<span class="ident">name</span>, <span class="ident">file</span>) <span class="op">=</span> <span class="kw">match</span> (<a class="self" href="../../src/color_backtrace/lib.rs.html#242">self</a>.<span class="ident">name</span>.<span class="ident">as_ref</span>(), <a class="self" href="../../src/color_backtrace/lib.rs.html#242">self</a>.<span class="ident">filename</span>.<span class="ident">as_ref</span>()) {
+            (<span class="prelude-val">Some</span>(<span class="ident">name</span>), <span class="prelude-val">Some</span>(<span class="ident">filename</span>)) =&gt; (<a class="ident" href="../../src/color_backtrace/lib.rs.html#250">name</a>, <a class="ident" href="../../src/color_backtrace/lib.rs.html#250">filename</a>.<span class="ident">to_string_lossy</span>()),
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
+        };
+
+        <span class="kw">if</span> <span class="ident">SYM_PREFIXES</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">name</span>.<span class="ident">starts_with</span>(<span class="ident">x</span>)) {
+            <span class="kw">return</span> <span class="bool-val">true</span>;
+        }
+
+        <span class="comment">// For Linux, this is the best rule for skipping test init I found.</span>
+        <span class="kw">if</span> <span class="ident">name</span> <span class="op">==</span> <span class="string">&quot;{{closure}}&quot;</span> <span class="op">&amp;&amp;</span> <span class="ident">file</span> <span class="op">==</span> <span class="string">&quot;src/libtest/lib.rs&quot;</span> {
+            <span class="kw">return</span> <span class="bool-val">true</span>;
+        }
+
+        <span class="bool-val">false</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">print_source_if_avail</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">out</span>: <span class="kw">impl</span> <a class="ident" href="../../termcolor/trait.WriteColor.html">WriteColor</a>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/color_backtrace/lib.rs.html#507">BacktracePrinter</a>) -&gt; <a class="ident" href="../../src/color_backtrace/lib.rs.html#54">IOResult</a> {
+        <span class="kw">let</span> (<span class="ident">lineno</span>, <span class="ident">filename</span>) <span class="op">=</span> <span class="kw">match</span> (<a class="self" href="../../src/color_backtrace/lib.rs.html#266">self</a>.<span class="ident">lineno</span>, <a class="self" href="../../src/color_backtrace/lib.rs.html#266">self</a>.<span class="ident">filename</span>.<span class="ident">as_ref</span>()) {
+            (<span class="prelude-val">Some</span>(<span class="ident">a</span>), <span class="prelude-val">Some</span>(<span class="ident">b</span>)) =&gt; (<a class="ident" href="../../src/color_backtrace/lib.rs.html#268">a</a>, <a class="ident" href="../../src/color_backtrace/lib.rs.html#268">b</a>),
+            <span class="comment">// Without a line number and file name, we can&#39;t sensibly proceed.</span>
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
+        };
+
+        <span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">File::open</span>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#267">filename</a>) {
+            <span class="prelude-val">Ok</span>(<span class="ident">file</span>) =&gt; <a class="ident" href="../../src/color_backtrace/lib.rs.html#274">file</a>,
+            <span class="prelude-val">Err</span>(<span class="kw-2">ref</span> <span class="ident">e</span>) <span class="kw">if</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#275">e</a>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">ErrorKind::NotFound</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
+            <span class="ident">e</span> @ <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="ident">e</span><span class="question-mark">?</span>,
+        };
+
+        <span class="comment">// Extract relevant lines.</span>
+        <span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#273">file</a>);
+        <span class="kw">let</span> <span class="ident">start_line</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#267">lineno</a> <span class="op">-</span> <span class="number">2</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#267">lineno</a> <span class="op">-</span> <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">surrounding_src</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#280">reader</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/std/io/trait.BufRead.html">lines</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">skip</a>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#281">start_line</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">-</span> <span class="number">1</span>).<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">take</a>(<span class="number">5</span>);
+        <span class="kw">for</span> (<span class="ident">line</span>, <span class="ident">cur_line_no</span>) <span class="kw">in</span> <span class="ident">surrounding_src</span>.<span class="ident">zip</span>(<span class="ident">start_line</span>..) {
+            <span class="kw">if</span> <span class="ident">cur_line_no</span> <span class="op">==</span> <span class="ident">lineno</span> {
+                <span class="comment">// Print actual source line with brighter color.</span>
+                <span class="ident">out</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">colors</span>.<span class="ident">selected_src_ln</span>)<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(<span class="ident">out</span>, <span class="string">&quot;{:&gt;8} &gt; {}&quot;</span>, <span class="ident">cur_line_no</span>, <span class="ident">line</span><span class="question-mark">?</span>)<span class="question-mark">?</span>;
+                <span class="ident">out</span>.<span class="ident">reset</span>()<span class="question-mark">?</span>;
+            } <span class="kw">else</span> {
+                <span class="macro">writeln!</span>(<span class="ident">out</span>, <span class="string">&quot;{:&gt;8} │ {}&quot;</span>, <span class="ident">cur_line_no</span>, <span class="ident">line</span><span class="question-mark">?</span>)<span class="question-mark">?</span>;
+            }
+        }
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Get the module&#39;s name by walking /proc/self/maps</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;resolve-modules&quot;</span>,
+        <span class="ident">unix</span>,
+        <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>))
+    ))]</span>
+    <span class="kw">fn</span> <span class="ident">module_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">String</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
+        <span class="kw">use</span> <span class="ident">regex::Regex</span>;
+        <span class="kw">use</span> <span class="ident">std::path::Path</span>;
+        <span class="kw">let</span> <span class="ident">re</span> <span class="op">=</span> <span class="ident">Regex::new</span>(
+            <span class="string">r&quot;(?x)
+                ^
+                (?P&lt;start&gt;[0-9a-f]{8,16})
+                -
+                (?P&lt;end&gt;[0-9a-f]{8,16})
+                \s
+                (?P&lt;perm&gt;[-rwxp]{4})
+                \s
+                (?P&lt;offset&gt;[0-9a-f]{8})
+                \s
+                [0-9a-f]+:[0-9a-f]+
+                \s
+                [0-9]+
+                \s+
+                (?P&lt;path&gt;.*)
+                $
+            &quot;</span>,
+        )
+        .<span class="ident">unwrap</span>();
+
+        <span class="kw">let</span> <span class="ident">mapsfile</span> <span class="op">=</span> <span class="ident">File::open</span>(<span class="string">&quot;/proc/self/maps&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;Unable to open /proc/self/maps&quot;</span>);
+
+        <span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">BufReader::new</span>(<span class="ident">mapsfile</span>).<span class="ident">lines</span>() {
+            <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">unwrap</span>();
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">caps</span>) <span class="op">=</span> <span class="ident">re</span>.<span class="ident">captures</span>(<span class="kw-2">&amp;</span><span class="ident">line</span>) {
+                <span class="kw">let</span> (<span class="ident">start</span>, <span class="ident">end</span>, <span class="ident">path</span>) <span class="op">=</span> (
+                    <span class="ident">usize::from_str_radix</span>(<span class="ident">caps</span>.<span class="ident">name</span>(<span class="string">&quot;start&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>(), <span class="number">16</span>).<span class="ident">unwrap</span>(),
+                    <span class="ident">usize::from_str_radix</span>(<span class="ident">caps</span>.<span class="ident">name</span>(<span class="string">&quot;end&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>(), <span class="number">16</span>).<span class="ident">unwrap</span>(),
+                    <span class="ident">caps</span>.<span class="ident">name</span>(<span class="string">&quot;path&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">as_str</span>().<span class="ident">to_string</span>(),
+                );
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">ip</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">start</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ip</span> <span class="op">&lt;</span> <span class="ident">end</span> {
+                    <span class="kw">return</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">filename</span>) <span class="op">=</span> <span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="ident">path</span>).<span class="ident">file_name</span>() {
+                        <span class="prelude-val">Some</span>((<span class="ident">filename</span>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>().<span class="ident">to_string</span>(), <span class="ident">start</span>))
+                    } <span class="kw">else</span> {
+                        <span class="prelude-val">None</span>
+                    };
+                }
+            }
+        }
+
+        <span class="prelude-val">None</span>
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;resolve-modules&quot;</span>,
+        <span class="ident">unix</span>,
+        <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>))
+    )))]</span>
+    <span class="kw">fn</span> <span class="ident">module_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>)<span class="op">&gt;</span> {
+        <span class="prelude-val">None</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">print</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">i</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <a class="ident" href="../../termcolor/trait.WriteColor.html">WriteColor</a>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../src/color_backtrace/lib.rs.html#507">BacktracePrinter</a>) -&gt; <a class="ident" href="../../src/color_backtrace/lib.rs.html#54">IOResult</a> {
+        <span class="kw">let</span> <span class="ident">is_dependency_code</span> <span class="op">=</span> <a class="self" href="../../src/color_backtrace/lib.rs.html#359">self</a>.<a class="ident" href="../../src/color_backtrace/lib.rs.html#169">is_dependency_code</a>();
+
+        <span class="comment">// Print frame index.</span>
+        <span class="macro">write!</span>(<span class="ident">out</span>, <span class="string">&quot;{:&gt;2}: &quot;</span>, <span class="ident">i</span>)<span class="question-mark">?</span>;
+
+        <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">should_print_addresses</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">module_name</span>, <span class="ident">module_base</span>)) <span class="op">=</span> <a class="self" href="../../src/color_backtrace/lib.rs.html#359">self</a>.<a class="ident" href="../../src/color_backtrace/lib.rs.html#355">module_info</a>() {
+                <span class="macro">write!</span>(<span class="ident">out</span>, <span class="string">&quot;{}:0x{:08x} - &quot;</span>, <span class="ident">module_name</span>, <span class="self">self</span>.<span class="ident">ip</span> <span class="op">-</span> <span class="ident">module_base</span>)<span class="question-mark">?</span>;
+            } <span class="kw">else</span> {
+                <span class="macro">write!</span>(<span class="ident">out</span>, <span class="string">&quot;0x{:016x} - &quot;</span>, <span class="self">self</span>.<span class="ident">ip</span>)<span class="question-mark">?</span>;
+            }
+        }
+
+        <span class="comment">// Does the function have a hash suffix?</span>
+        <span class="comment">// (dodging a dep on the regex crate here)</span>
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <a class="self" href="../../src/color_backtrace/lib.rs.html#359">self</a>
+            .<span class="ident">name</span>
+            .<span class="ident">as_ref</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#378">s</a>.<span class="ident">as_str</span>())
+            .<span class="ident">unwrap_or</span>(<span class="string">&quot;&lt;unknown&gt;&quot;</span>);
+        <span class="kw">let</span> <span class="ident">has_hash_suffix</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#375">name</a>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">19</span>
+            <span class="op">&amp;&amp;</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/color_backtrace/lib.rs.html#375">name</a>[<a class="ident" href="../../src/color_backtrace/lib.rs.html#375">name</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">19</span>..<a class="ident" href="../../src/color_backtrace/lib.rs.html#375">name</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">16</span>] <span class="op">==</span> <span class="string">&quot;::h&quot;</span>
+            <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#375">name</a>[<a class="ident" href="../../src/color_backtrace/lib.rs.html#375">name</a>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">16</span>..].<span class="ident">chars</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">all</a>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#382">x</a>.<span class="ident">is_digit</span>(<span class="number">16</span>));
+
+        <span class="comment">// Print function name.</span>
+        <span class="ident">out</span>.<span class="ident">set_color</span>(<span class="kw">if</span> <span class="ident">is_dependency_code</span> {
+            <span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">colors</span>.<span class="ident">dependency_code</span>
+        } <span class="kw">else</span> {
+            <span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">colors</span>.<span class="ident">crate_code</span>
+        })<span class="question-mark">?</span>;
+
+        <span class="kw">if</span> <span class="ident">has_hash_suffix</span> {
+            <span class="macro">write!</span>(<span class="ident">out</span>, <span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>[..<span class="ident">name</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">19</span>])<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">strip_function_hash</span> {
+                <span class="macro">writeln!</span>(<span class="ident">out</span>)<span class="question-mark">?</span>;
+            } <span class="kw">else</span> {
+                <span class="ident">out</span>.<span class="ident">set_color</span>(<span class="kw">if</span> <span class="ident">is_dependency_code</span> {
+                    <span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">colors</span>.<span class="ident">dependency_code_hash</span>
+                } <span class="kw">else</span> {
+                    <span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">colors</span>.<span class="ident">crate_code_hash</span>
+                })<span class="question-mark">?</span>;
+                <span class="macro">writeln!</span>(<span class="ident">out</span>, <span class="string">&quot;{}&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>[<span class="ident">name</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">19</span>..])<span class="question-mark">?</span>;
+            }
+        } <span class="kw">else</span> {
+            <span class="macro">writeln!</span>(<span class="ident">out</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">name</span>)<span class="question-mark">?</span>;
+        }
+
+        <span class="ident">out</span>.<span class="ident">reset</span>()<span class="question-mark">?</span>;
+
+        <span class="comment">// Print source location, if known.</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">file</span>) <span class="op">=</span> <a class="self" href="../../src/color_backtrace/lib.rs.html#359">self</a>.<span class="ident">filename</span> {
+            <span class="kw">let</span> <span class="ident">filestr</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#410">file</a>.<span class="ident">to_str</span>().<span class="ident">unwrap_or</span>(<span class="string">&quot;&lt;bad utf8&gt;&quot;</span>);
+            <span class="kw">let</span> <span class="ident">lineno</span> <span class="op">=</span> <a class="self" href="../../src/color_backtrace/lib.rs.html#359">self</a>
+                .<span class="ident">lineno</span>
+                .<span class="ident">map_or</span>(<span class="string">&quot;&lt;unknown line&gt;&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(), <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#414">x</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+            <span class="macro">writeln!</span>(<span class="ident">out</span>, <span class="string">&quot;    at {}:{}&quot;</span>, <span class="ident">filestr</span>, <span class="ident">lineno</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else</span> {
+            <span class="macro">writeln!</span>(<span class="ident">out</span>, <span class="string">&quot;    at &lt;unknown source file&gt;&quot;</span>)<span class="question-mark">?</span>;
+        }
+
+        <span class="comment">// Maybe print source.</span>
+        <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">current_verbosity</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">Verbosity::Full</span> {
+            <span class="self">self</span>.<span class="ident">print_source_if_avail</span>(<span class="ident">out</span>, <span class="ident">s</span>)<span class="question-mark">?</span>;
+        }
+
+        <span class="prelude-val">Ok</span>(())
+    }
+}
+
+<span class="doccomment">/// The default frame filter. Heuristically determines whether a frame is likely to be an</span>
+<span class="doccomment">/// uninteresting frame. This filters out post panic frames and runtime init frames and dependency</span>
+<span class="doccomment">/// code.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default_frame_filter</span>(<span class="ident">frames</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="../../src/color_backtrace/lib.rs.html#154">Frame</a><span class="op">&gt;</span>) {
+    <span class="kw">let</span> <span class="ident">top_cutoff</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#432">frames</a>
+        .<span class="ident">iter</span>()
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">rposition</a>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#435">x</a>.<a class="ident" href="../../src/color_backtrace/lib.rs.html#221">is_post_panic_code</a>())
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#436">x</a> <span class="op">+</span> <span class="number">2</span>) <span class="comment">// indices are 1 based</span>
+        .<span class="ident">unwrap_or</span>(<span class="number">0</span>);
+
+    <span class="kw">let</span> <span class="ident">bottom_cutoff</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#432">frames</a>
+        .<span class="ident">iter</span>()
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">position</a>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#441">x</a>.<a class="ident" href="../../src/color_backtrace/lib.rs.html#242">is_runtime_init_code</a>())
+        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#432">frames</a>.<span class="ident">len</span>());
+
+    <span class="kw">let</span> <span class="ident">rng</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#433">top_cutoff</a>..<span class="op">=</span><a class="ident" href="../../src/color_backtrace/lib.rs.html#439">bottom_cutoff</a>;
+    <a class="ident" href="../../src/color_backtrace/lib.rs.html#432">frames</a>.<span class="ident">retain</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#444">rng</a>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/color_backtrace/lib.rs.html#445">x</a>.<span class="ident">n</span>))
+}
+
+<span class="comment">// ============================================================================================== //</span>
+<span class="comment">// [BacktracePrinter]                                                                             //</span>
+<span class="comment">// ============================================================================================== //</span>
+
+<span class="doccomment">/// Color scheme definition.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ColorScheme</span> {
+    <span class="kw">pub</span> <span class="ident">frames_omitted_msg</span>: <a class="ident" href="../../termcolor/struct.ColorSpec.html">ColorSpec</a>,
+    <span class="kw">pub</span> <span class="ident">header</span>: <a class="ident" href="../../termcolor/struct.ColorSpec.html">ColorSpec</a>,
+    <span class="kw">pub</span> <span class="ident">msg_loc_prefix</span>: <a class="ident" href="../../termcolor/struct.ColorSpec.html">ColorSpec</a>,
+    <span class="kw">pub</span> <span class="ident">src_loc</span>: <a class="ident" href="../../termcolor/struct.ColorSpec.html">ColorSpec</a>,
+    <span class="kw">pub</span> <span class="ident">src_loc_separator</span>: <a class="ident" href="../../termcolor/struct.ColorSpec.html">ColorSpec</a>,
+    <span class="kw">pub</span> <span class="ident">env_var</span>: <a class="ident" href="../../termcolor/struct.ColorSpec.html">ColorSpec</a>,
+    <span class="kw">pub</span> <span class="ident">dependency_code</span>: <a class="ident" href="../../termcolor/struct.ColorSpec.html">ColorSpec</a>,
+    <span class="kw">pub</span> <span class="ident">dependency_code_hash</span>: <a class="ident" href="../../termcolor/struct.ColorSpec.html">ColorSpec</a>,
+    <span class="kw">pub</span> <span class="ident">crate_code</span>: <a class="ident" href="../../termcolor/struct.ColorSpec.html">ColorSpec</a>,
+    <span class="kw">pub</span> <span class="ident">crate_code_hash</span>: <a class="ident" href="../../termcolor/struct.ColorSpec.html">ColorSpec</a>,
+    <span class="kw">pub</span> <span class="ident">selected_src_ln</span>: <a class="ident" href="../../termcolor/struct.ColorSpec.html">ColorSpec</a>,
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#454">ColorScheme</a> {
+    <span class="doccomment">/// Helper to create a new `ColorSpec` &amp; set a few properties in one wash.</span>
+    <span class="kw">fn</span> <span class="ident">cs</span>(<span class="ident">fg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../termcolor/enum.Color.html">Color</a><span class="op">&gt;</span>, <span class="ident">intense</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>, <span class="ident">bold</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <a class="ident" href="../../termcolor/struct.ColorSpec.html">ColorSpec</a> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cs</span> <span class="op">=</span> <span class="ident">ColorSpec::new</span>();
+        <a class="ident" href="../../src/color_backtrace/lib.rs.html#471">cs</a>.<span class="ident">set_fg</span>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#470">fg</a>);
+        <a class="ident" href="../../src/color_backtrace/lib.rs.html#471">cs</a>.<span class="ident">set_bold</span>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#470">bold</a>);
+        <a class="ident" href="../../src/color_backtrace/lib.rs.html#471">cs</a>.<span class="ident">set_intense</span>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#470">intense</a>);
+        <a class="ident" href="../../src/color_backtrace/lib.rs.html#471">cs</a>
+    }
+
+    <span class="doccomment">/// The classic `color-backtrace` scheme, as shown in the screenshots.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">classic</span>() -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">frames_omitted_msg</span>: <span class="ident"><span class="self">Self</span>::cs</span>(<span class="prelude-val">Some</span>(<span class="ident">Color::Cyan</span>), <span class="bool-val">true</span>, <span class="bool-val">false</span>),
+            <span class="ident">header</span>: <span class="ident"><span class="self">Self</span>::cs</span>(<span class="prelude-val">Some</span>(<span class="ident">Color::Red</span>), <span class="bool-val">false</span>, <span class="bool-val">false</span>),
+            <span class="ident">msg_loc_prefix</span>: <span class="ident"><span class="self">Self</span>::cs</span>(<span class="prelude-val">Some</span>(<span class="ident">Color::Cyan</span>), <span class="bool-val">false</span>, <span class="bool-val">false</span>),
+            <span class="ident">src_loc</span>: <span class="ident"><span class="self">Self</span>::cs</span>(<span class="prelude-val">Some</span>(<span class="ident">Color::Magenta</span>), <span class="bool-val">false</span>, <span class="bool-val">false</span>),
+            <span class="ident">src_loc_separator</span>: <span class="ident"><span class="self">Self</span>::cs</span>(<span class="prelude-val">Some</span>(<span class="ident">Color::White</span>), <span class="bool-val">false</span>, <span class="bool-val">false</span>),
+            <span class="ident">env_var</span>: <span class="ident"><span class="self">Self</span>::cs</span>(<span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>),
+            <span class="ident">dependency_code</span>: <span class="ident"><span class="self">Self</span>::cs</span>(<span class="prelude-val">Some</span>(<span class="ident">Color::Green</span>), <span class="bool-val">false</span>, <span class="bool-val">false</span>),
+            <span class="ident">dependency_code_hash</span>: <span class="ident"><span class="self">Self</span>::cs</span>(<span class="prelude-val">Some</span>(<span class="ident">Color::Black</span>), <span class="bool-val">true</span>, <span class="bool-val">false</span>),
+            <span class="ident">crate_code</span>: <span class="ident"><span class="self">Self</span>::cs</span>(<span class="prelude-val">Some</span>(<span class="ident">Color::Red</span>), <span class="bool-val">true</span>, <span class="bool-val">false</span>),
+            <span class="ident">crate_code_hash</span>: <span class="ident"><span class="self">Self</span>::cs</span>(<span class="prelude-val">Some</span>(<span class="ident">Color::Black</span>), <span class="bool-val">true</span>, <span class="bool-val">false</span>),
+            <span class="ident">selected_src_ln</span>: <span class="ident"><span class="self">Self</span>::cs</span>(<span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#454">ColorScheme</a> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::classic</span>()
+    }
+}
+
+<span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.4.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use `BacktracePrinter` instead.&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Settings</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#507">BacktracePrinter</a>;
+
+<span class="doccomment">/// Pretty-printer for backtraces and [`PanicInfo`](PanicInfo) structs.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BacktracePrinter</span> {
+    <span class="ident">message</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a>,
+    <span class="ident">verbosity</span>: <a class="ident" href="../../src/color_backtrace/lib.rs.html#62">Verbosity</a>,
+    <span class="ident">lib_verbosity</span>: <a class="ident" href="../../src/color_backtrace/lib.rs.html#62">Verbosity</a>,
+    <span class="ident">strip_function_hash</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="ident">is_panic_handler</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="ident">colors</span>: <a class="ident" href="../../src/color_backtrace/lib.rs.html#454">ColorScheme</a>,
+    <span class="ident">filters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Arc</span><span class="op">&lt;</span><a class="ident" href="../../src/color_backtrace/lib.rs.html#151">FilterCallback</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">should_print_addresses</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+}
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/default/trait.Default.html">Default</a> <span class="kw">for</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#507">BacktracePrinter</a> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">verbosity</span>: <span class="ident">Verbosity::from_env</span>(),
+            <span class="ident">lib_verbosity</span>: <span class="ident">Verbosity::lib_from_env</span>(),
+            <span class="ident">message</span>: <span class="string">&quot;The application panicked (crashed).&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>(),
+            <span class="ident">strip_function_hash</span>: <span class="bool-val">false</span>,
+            <span class="ident">colors</span>: <span class="ident">ColorScheme::classic</span>(),
+            <span class="ident">is_panic_handler</span>: <span class="bool-val">false</span>,
+            <span class="ident">filters</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="ident">Arc::new</span>(<span class="ident">default_frame_filter</span>)],
+            <span class="ident">should_print_addresses</span>: <span class="bool-val">false</span>,
+        }
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/trait.Debug.html">std::fmt::Debug</a> <span class="kw">for</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#507">BacktracePrinter</a> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/struct.Formatter.html">std::fmt::Formatter</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/core/fmt/type.Result.html">std::fmt::Result</a> {
+        <a class="ident" href="../../src/color_backtrace/lib.rs.html#534">fmt</a>.<span class="ident">debug_struct</span>(<span class="string">&quot;Settings&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;message&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/color_backtrace/lib.rs.html#534">self</a>.<span class="ident">message</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;verbosity&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/color_backtrace/lib.rs.html#534">self</a>.<span class="ident">verbosity</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;lib_verbosity&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/color_backtrace/lib.rs.html#534">self</a>.<span class="ident">lib_verbosity</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;strip_function_hash&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/color_backtrace/lib.rs.html#534">self</a>.<span class="ident">strip_function_hash</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;is_panic_handler&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/color_backtrace/lib.rs.html#534">self</a>.<span class="ident">is_panic_handler</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;print_addresses&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/color_backtrace/lib.rs.html#534">self</a>.<span class="ident">should_print_addresses</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;colors&quot;</span>, <span class="kw-2">&amp;</span><a class="self" href="../../src/color_backtrace/lib.rs.html#534">self</a>.<span class="ident">colors</span>)
+            .<span class="ident">finish</span>()
+    }
+}
+
+<span class="doccomment">/// Builder functions.</span>
+<span class="kw">impl</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#507">BacktracePrinter</a> {
+    <span class="doccomment">/// Alias for `BacktracePrinter::default`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::default</span>()
+    }
+
+    <span class="doccomment">/// Alter the color scheme.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Defaults to `ColorScheme::classic()`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">color_scheme</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">colors</span>: <a class="ident" href="../../src/color_backtrace/lib.rs.html#454">ColorScheme</a>) -&gt; <span class="self">Self</span> {
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#557">self</a>.<span class="ident">colors</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#557">colors</a>;
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#557">self</a>
+    }
+
+    <span class="doccomment">/// Controls the &quot;greeting&quot; message of the panic.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Defaults to `&quot;The application panicked (crashed)&quot;`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">message</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#565">self</a>.<span class="ident">message</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#565">message</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#565">self</a>
+    }
+
+    <span class="doccomment">/// Controls the verbosity level used when installed as panic handler.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Defaults to `Verbosity::from_env()`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">verbosity</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">v</span>: <a class="ident" href="../../src/color_backtrace/lib.rs.html#62">Verbosity</a>) -&gt; <span class="self">Self</span> {
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#573">self</a>.<span class="ident">verbosity</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#573">v</a>;
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#573">self</a>
+    }
+
+    <span class="doccomment">/// Controls the lib verbosity level used when formatting user provided traces.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Defaults to `Verbosity::lib_from_env()`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lib_verbosity</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">v</span>: <a class="ident" href="../../src/color_backtrace/lib.rs.html#62">Verbosity</a>) -&gt; <span class="self">Self</span> {
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#581">self</a>.<span class="ident">lib_verbosity</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#581">v</a>;
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#581">self</a>
+    }
+
+    <span class="doccomment">/// Controls whether the hash part of functions is stripped.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Defaults to `false`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strip_function_hash</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">strip</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self</span> {
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#589">self</a>.<span class="ident">strip_function_hash</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#589">strip</a>;
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#589">self</a>
+    }
+
+    <span class="doccomment">/// Controls whether addresses (or module offsets if available) should be printed.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Defaults to `false`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print_addresses</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">val</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>) -&gt; <span class="self">Self</span> {
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#597">self</a>.<span class="ident">should_print_addresses</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#597">val</a>;
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#597">self</a>
+    }
+
+    <span class="doccomment">/// Add a custom filter to the set of frame filters</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Filters are run in the order they are added.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// use color_backtrace::{default_output_stream, BacktracePrinter};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// BacktracePrinter::new()</span>
+    <span class="doccomment">///     .add_frame_filter(Box::new(|frames| {</span>
+    <span class="doccomment">///         frames.retain(|x| matches!(&amp;x.name, Some(n) if !n.starts_with(&quot;blabla&quot;)))</span>
+    <span class="doccomment">///     }))</span>
+    <span class="doccomment">///     .install(default_output_stream());</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_frame_filter</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">filter</span>: <span class="ident">Box</span><span class="op">&lt;</span><a class="ident" href="../../src/color_backtrace/lib.rs.html#151">FilterCallback</a><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#617">self</a>.<span class="ident">filters</span>.<span class="ident">push</span>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#617">filter</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>());
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#617">self</a>
+    }
+
+    <span class="doccomment">/// Clears all filters associated with this printer, including the default filter</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_frame_filters</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#623">self</a>.<span class="ident">filters</span>.<span class="ident">clear</span>();
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#623">self</a>
+    }
+}
+
+<span class="doccomment">/// Routines for putting the panic printer to use.</span>
+<span class="kw">impl</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#507">BacktracePrinter</a> {
+    <span class="doccomment">/// Install the `color_backtrace` handler with default settings.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Output streams can be created via `default_output_stream()` or</span>
+    <span class="doccomment">/// using any other stream that implements</span>
+    <span class="doccomment">/// [`termcolor::WriteColor`](termcolor::WriteColor).</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">install</span>(<span class="self">self</span>, <span class="ident">out</span>: <span class="kw">impl</span> <a class="ident" href="../../termcolor/trait.WriteColor.html">WriteColor</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>) {
+        <span class="ident">std::panic::set_hook</span>(<a class="self" href="../../src/color_backtrace/lib.rs.html#636">self</a>.<a class="ident" href="../../src/color_backtrace/lib.rs.html#643-646">into_panic_handler</a>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#636">out</a>))
+    }
+
+    <span class="doccomment">/// Create a `color_backtrace` panic handler from this panic printer.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This can be used if you want to combine the handler with other handlers.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_panic_handler</span>(
+        <span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">out</span>: <span class="kw">impl</span> <a class="ident" href="../../termcolor/trait.WriteColor.html">WriteColor</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    ) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">PanicInfo</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) <span class="op">+</span> <span class="lifetime">&#39;static</span> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html">Sync</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Send.html">Send</a><span class="op">&gt;</span> {
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#644">self</a>.<span class="ident">is_panic_handler</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <span class="kw">let</span> <span class="ident">out_stream_mutex</span> <span class="op">=</span> <span class="ident">Mutex::new</span>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#645">out</a>);
+        <span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">pi</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lock</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#648">out_stream_mutex</a>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <a class="self" href="../../src/color_backtrace/lib.rs.html#644">self</a>.<a class="ident" href="../../src/color_backtrace/lib.rs.html#740">print_panic_info</a>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#649">pi</a>, <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="ident" href="../../src/color_backtrace/lib.rs.html#650">lock</a>) {
+                <span class="comment">// Panicking while handling a panic would send us into a deadlock,</span>
+                <span class="comment">// so we just print the error to stderr instead.</span>
+                <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.eprintln.html">eprintln!</a>(<span class="string">&quot;Error while printing panic: {:?}&quot;</span>, <span class="ident">e</span>);
+            }
+        })
+    }
+
+    <span class="doccomment">/// Pretty-prints a [`backtrace::Backtrace`](backtrace::Backtrace) to an output stream.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print_trace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">trace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../backtrace/capture/struct.Backtrace.html">backtrace::Backtrace</a>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <a class="ident" href="../../termcolor/trait.WriteColor.html">WriteColor</a>) -&gt; <a class="ident" href="../../src/color_backtrace/lib.rs.html#54">IOResult</a> {
+        <span class="macro">writeln!</span>(<span class="ident">out</span>, <span class="string">&quot;{:━^80}&quot;</span>, <span class="string">&quot; BACKTRACE &quot;</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// Collect frame info.</span>
+        <span class="kw">let</span> <span class="ident">frames</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#660">trace</a>
+            .<span class="ident">frames</span>()
+            .<span class="ident">iter</span>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<span class="op">|</span><span class="ident">frame</span><span class="op">|</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#667">frame</a>.<span class="ident">symbols</span>().<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="kw">move</span> <span class="op">|</span><span class="ident">sym</span><span class="op">|</span> (<a class="ident" href="../../src/color_backtrace/lib.rs.html#667">frame</a>.<span class="ident">ip</span>(), <a class="ident" href="../../src/color_backtrace/lib.rs.html#667">sym</a>)))
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">zip</a>(<span class="number">1usize</span>..)
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">map</a>(<span class="op">|</span>((<span class="ident">ip</span>, <span class="ident">sym</span>), <span class="ident">n</span>)<span class="op">|</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#154">Frame</a> {
+                <span class="ident">name</span>: <a class="ident" href="../../src/color_backtrace/lib.rs.html#669">sym</a>.<span class="ident">name</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#670">x</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>()),
+                <span class="ident">lineno</span>: <a class="ident" href="../../src/color_backtrace/lib.rs.html#669">sym</a>.<span class="ident">lineno</span>(),
+                <span class="ident">filename</span>: <a class="ident" href="../../src/color_backtrace/lib.rs.html#669">sym</a>.<span class="ident">filename</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#672">x</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()),
+                <a class="ident" href="../../src/color_backtrace/lib.rs.html#669">n</a>,
+                <span class="ident">ip</span>: <a class="ident" href="../../src/color_backtrace/lib.rs.html#669">ip</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+                <span class="ident">_private_ctor</span>: (),
+            })
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">filtered_frames</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#664">frames</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">match</span> <span class="ident">env::var</span>(<span class="string">&quot;COLORBT_SHOW_HIDDEN&quot;</span>).<span class="ident">ok</span>().<span class="ident">as_deref</span>() {
+            <span class="prelude-val">Some</span>(<span class="string">&quot;1&quot;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&quot;on&quot;</span>) <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="string">&quot;y&quot;</span>) =&gt; (),
+            <span class="kw">_</span> =&gt; {
+                <span class="kw">for</span> <span class="ident">filter</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">filters</span> {
+                    <span class="ident">filter</span>(<span class="kw-2">&amp;mut</span> <span class="ident">filtered_frames</span>);
+                }
+            }
+        }
+
+        <span class="kw">if</span> <span class="ident">filtered_frames</span>.<span class="ident">is_empty</span>() {
+            <span class="comment">// TODO: Would probably look better centered.</span>
+            <span class="kw">return</span> <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.writeln.html">writeln!</a>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#660">out</a>, <span class="string">&quot;&lt;empty backtrace&gt;&quot;</span>);
+        }
+
+        <span class="comment">// Don&#39;t let filters mess with the order.</span>
+        <a class="ident" href="../../src/color_backtrace/lib.rs.html#679">filtered_frames</a>.<span class="ident">sort_by_key</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#695">x</a>.<span class="ident">n</span>);
+
+        <span class="macro">macro_rules!</span> <span class="ident">print_hidden</span> {
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>:<span class="ident">expr</span>) =&gt; {
+                <span class="ident">out</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">colors</span>.<span class="ident">frames_omitted_msg</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>;
+                <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="macro">format!</span>(
+                    <span class="string">&quot;{decorator} {n} frame{plural} hidden {decorator}&quot;</span>,
+                    <span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span>,
+                    <span class="ident">plural</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">1</span> { <span class="string">&quot;&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;s&quot;</span> },
+                    <span class="ident">decorator</span> <span class="op">=</span> <span class="string">&quot;⋮&quot;</span>,
+                );
+                <span class="macro">writeln!</span>(<span class="ident">out</span>, <span class="string">&quot;{:^80}&quot;</span>, <span class="ident">text</span>)<span class="question-mark">?</span>;
+                <span class="ident">out</span>.<span class="ident">reset</span>()<span class="question-mark">?</span>;
+            };
+        }
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_n</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">for</span> <span class="ident">frame</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">filtered_frames</span> {
+            <span class="kw">let</span> <span class="ident">frame_delta</span> <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">n</span> <span class="op">-</span> <span class="ident">last_n</span> <span class="op">-</span> <span class="number">1</span>;
+            <span class="kw">if</span> <span class="ident">frame_delta</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="macro">print_hidden!</span>(<span class="ident">frame_delta</span>);
+            }
+            <span class="ident">frame</span>.<span class="ident">print</span>(<span class="ident">frame</span>.<span class="ident">n</span>, <span class="ident">out</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
+            <span class="ident">last_n</span> <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">n</span>;
+        }
+
+        <span class="kw">let</span> <span class="ident">last_filtered_n</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#679">filtered_frames</a>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">n</span>;
+        <span class="kw">let</span> <span class="ident">last_unfiltered_n</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#664">frames</a>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">n</span>;
+        <span class="kw">if</span> <span class="ident">last_filtered_n</span> <span class="op">&lt;</span> <span class="ident">last_unfiltered_n</span> {
+            <a class="macro" href="../../src/color_backtrace/lib.rs.html#697-710">print_hidden!</a>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#723">last_unfiltered_n</a> <span class="op">-</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#722">last_filtered_n</a>);
+        }
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="doccomment">/// Pretty-print a backtrace to a `String`, using VT100 color codes.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format_trace_to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">trace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../backtrace/capture/struct.Backtrace.html">backtrace::Backtrace</a>) -&gt; <span class="ident">IOResult</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
+        <span class="comment">// TODO: should we implicitly enable VT100 support on Windows here?</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ansi</span> <span class="op">=</span> <span class="ident">Ansi::new</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[]);
+        <span class="self">self</span>.<span class="ident">print_trace</span>(<span class="ident">trace</span>, <span class="kw-2">&amp;mut</span> <span class="ident">ansi</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">String::from_utf8</span>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#734">ansi</a>.<span class="ident">into_inner</span>()).<span class="ident">unwrap</span>())
+    }
+
+    <span class="doccomment">/// Pretty-prints a [`PanicInfo`](PanicInfo) struct to an output stream.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print_panic_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pi</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/panic/panic_info/struct.PanicInfo.html">PanicInfo</a>, <span class="ident">out</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <a class="ident" href="../../termcolor/trait.WriteColor.html">WriteColor</a>) -&gt; <a class="ident" href="../../src/color_backtrace/lib.rs.html#54">IOResult</a> {
+        <span class="ident">out</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">colors</span>.<span class="ident">header</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<span class="ident">out</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">message</span>)<span class="question-mark">?</span>;
+        <span class="ident">out</span>.<span class="ident">reset</span>()<span class="question-mark">?</span>;
+
+        <span class="comment">// Print panic message.</span>
+        <span class="kw">let</span> <span class="ident">payload</span> <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#740">pi</a>
+            .<span class="ident">payload</span>()
+            .<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>()
+            .<span class="ident">map</span>(<span class="ident">String::as_str</span>)
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#740">pi</a>.<span class="ident">payload</span>().<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a><span class="op">&gt;</span>().<span class="ident">cloned</span>())
+            .<span class="ident">unwrap_or</span>(<span class="string">&quot;&lt;non string panic payload&gt;&quot;</span>);
+
+        <span class="macro">write!</span>(<span class="ident">out</span>, <span class="string">&quot;Message:  &quot;</span>)<span class="question-mark">?</span>;
+        <span class="ident">out</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">colors</span>.<span class="ident">msg_loc_prefix</span>)<span class="question-mark">?</span>;
+        <span class="macro">writeln!</span>(<span class="ident">out</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">payload</span>)<span class="question-mark">?</span>;
+        <span class="ident">out</span>.<span class="ident">reset</span>()<span class="question-mark">?</span>;
+
+        <span class="comment">// If known, print panic location.</span>
+        <span class="macro">write!</span>(<span class="ident">out</span>, <span class="string">&quot;Location: &quot;</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">loc</span>) <span class="op">=</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#740">pi</a>.<span class="ident">location</span>() {
+            <span class="ident">out</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">colors</span>.<span class="ident">src_loc</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<span class="ident">out</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">loc</span>.<span class="ident">file</span>())<span class="question-mark">?</span>;
+            <span class="ident">out</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">colors</span>.<span class="ident">src_loc_separator</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<span class="ident">out</span>, <span class="string">&quot;:&quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">out</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">colors</span>.<span class="ident">src_loc</span>)<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(<span class="ident">out</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">loc</span>.<span class="ident">line</span>())<span class="question-mark">?</span>;
+            <span class="ident">out</span>.<span class="ident">reset</span>()<span class="question-mark">?</span>;
+        } <span class="kw">else</span> {
+            <span class="macro">writeln!</span>(<span class="ident">out</span>, <span class="string">&quot;&lt;unknown&gt;&quot;</span>)<span class="question-mark">?</span>;
+        }
+
+        <span class="comment">// Print some info on how to increase verbosity.</span>
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">current_verbosity</span>() <span class="op">==</span> <span class="ident">Verbosity::Minimal</span> {
+            <span class="macro">write!</span>(<span class="ident">out</span>, <span class="string">&quot;\nBacktrace omitted.\n\nRun with &quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">out</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">colors</span>.<span class="ident">env_var</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<span class="ident">out</span>, <span class="string">&quot;RUST_BACKTRACE=1&quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">out</span>.<span class="ident">reset</span>()<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(<span class="ident">out</span>, <span class="string">&quot; environment variable to display it.&quot;</span>)<span class="question-mark">?</span>;
+        } <span class="kw">else</span> {
+            <span class="comment">// This text only makes sense if frames are displayed.</span>
+            <span class="macro">write!</span>(<span class="ident">out</span>, <span class="string">&quot;\nRun with &quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">out</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">colors</span>.<span class="ident">env_var</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<span class="ident">out</span>, <span class="string">&quot;COLORBT_SHOW_HIDDEN=1&quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">out</span>.<span class="ident">reset</span>()<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(<span class="ident">out</span>, <span class="string">&quot; environment variable to disable frame filtering.&quot;</span>)<span class="question-mark">?</span>;
+        }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">current_verbosity</span>() <span class="op">&lt;</span><span class="op">=</span> <span class="ident">Verbosity::Medium</span> {
+            <span class="macro">write!</span>(<span class="ident">out</span>, <span class="string">&quot;Run with &quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">out</span>.<span class="ident">set_color</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">colors</span>.<span class="ident">env_var</span>)<span class="question-mark">?</span>;
+            <span class="macro">write!</span>(<span class="ident">out</span>, <span class="string">&quot;RUST_BACKTRACE=full&quot;</span>)<span class="question-mark">?</span>;
+            <span class="ident">out</span>.<span class="ident">reset</span>()<span class="question-mark">?</span>;
+            <span class="macro">writeln!</span>(<span class="ident">out</span>, <span class="string">&quot; to include source snippets.&quot;</span>)<span class="question-mark">?</span>;
+        }
+
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">current_verbosity</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="ident">Verbosity::Medium</span> {
+            <span class="self">self</span>.<span class="ident">print_trace</span>(<span class="kw-2">&amp;</span><span class="ident">backtrace::Backtrace::new</span>(), <span class="ident">out</span>)<span class="question-mark">?</span>;
+        }
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">fn</span> <span class="ident">current_verbosity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="../../src/color_backtrace/lib.rs.html#62">Verbosity</a> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_panic_handler</span> {
+            <a class="self" href="../../src/color_backtrace/lib.rs.html#802">self</a>.<span class="ident">verbosity</span>
+        } <span class="kw">else</span> {
+            <a class="self" href="../../src/color_backtrace/lib.rs.html#802">self</a>.<span class="ident">lib_verbosity</span>
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">should_print_addresses</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/color_backtrace/lib.rs.html#810">self</a>.<span class="ident">should_print_addresses</span>
+    }
+}
+
+<span class="comment">// ============================================================================================== //</span>
+<span class="comment">// [Deprecated routines for backward compat]                                                      //</span>
+<span class="comment">// ============================================================================================== //</span>
+
+<span class="attribute">#[<span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.4.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use `BacktracePrinter::print_trace` instead`&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print_backtrace</span>(<span class="ident">trace</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../backtrace/capture/struct.Backtrace.html">backtrace::Backtrace</a>, <span class="ident">s</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#507">BacktracePrinter</a>) -&gt; <a class="ident" href="../../src/color_backtrace/lib.rs.html#54">IOResult</a> {
+    <a class="ident" href="../../src/color_backtrace/lib.rs.html#820">s</a>.<a class="ident" href="../../src/color_backtrace/lib.rs.html#660">print_trace</a>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#820">trace</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#116">default_output_stream</a>())
+}
+
+<span class="attribute">#[<span class="ident">deprecated</span>(
+    <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;0.4.0&quot;</span>,
+    <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Use `BacktracePrinter::print_panic_info` instead`&quot;</span>
+)]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print_panic_info</span>(<span class="ident">pi</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/panic/panic_info/struct.PanicInfo.html">PanicInfo</a>, <span class="ident">s</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#507">BacktracePrinter</a>) -&gt; <a class="ident" href="../../src/color_backtrace/lib.rs.html#54">IOResult</a> {
+    <a class="ident" href="../../src/color_backtrace/lib.rs.html#828">s</a>.<a class="ident" href="../../src/color_backtrace/lib.rs.html#740">print_panic_info</a>(<a class="ident" href="../../src/color_backtrace/lib.rs.html#828">pi</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/color_backtrace/lib.rs.html#116">default_output_stream</a>())
+}
+
+<span class="comment">// ============================================================================================== //</span>
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="color_backtrace" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

@@ -1,0 +1,664 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/io/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container">
+                    <img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../async_std/index.html">
+                        <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Traits, helpers, and type definitions for core I/O functionality.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The `async_std::io` module contains a number of common things you&#39;ll need</span>
+<span class="doccomment">//! when doing input and output. The most core part of this module is</span>
+<span class="doccomment">//! the [`Read`] and [`Write`] traits, which provide the</span>
+<span class="doccomment">//! most general interface for reading and writing input and output.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This module is an async version of [`std::io`].</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [`std::io`]: https://doc.rust-lang.org/std/io/index.html</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # Read and Write</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Because they are traits, [`Read`] and [`Write`] are implemented by a number</span>
+<span class="doccomment">//! of other types, and you can implement them for your types too. As such,</span>
+<span class="doccomment">//! you&#39;ll see a few different types of I/O throughout the documentation in</span>
+<span class="doccomment">//! this module: [`File`]s, [`TcpStream`]s, and sometimes even [`Vec&lt;T&gt;`]s. For</span>
+<span class="doccomment">//! example, [`Read`] adds a [`read`][`Read::read`] method, which we can use on</span>
+<span class="doccomment">//! [`File`]s:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```no_run</span>
+<span class="doccomment">//! use async_std::fs::File;</span>
+<span class="doccomment">//! use async_std::prelude::*;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! let mut f = File::open(&quot;foo.txt&quot;).await?;</span>
+<span class="doccomment">//! let mut buffer = [0; 10];</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! // read up to 10 bytes</span>
+<span class="doccomment">//! let n = f.read(&amp;mut buffer).await?;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! println!(&quot;The bytes: {:?}&quot;, &amp;buffer[..n]);</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! # Ok(()) }) }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [`Read`] and [`Write`] are so important, implementors of the two traits have a</span>
+<span class="doccomment">//! nickname: readers and writers. So you&#39;ll sometimes see &#39;a reader&#39; instead</span>
+<span class="doccomment">//! of &#39;a type that implements the [`Read`] trait&#39;. Much easier!</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Seek and BufRead</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Beyond that, there are two important traits that are provided: [`Seek`]</span>
+<span class="doccomment">//! and [`BufRead`]. Both of these build on top of a reader to control</span>
+<span class="doccomment">//! how the reading happens. [`Seek`] lets you control where the next byte is</span>
+<span class="doccomment">//! coming from:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```no_run</span>
+<span class="doccomment">//! use async_std::fs::File;</span>
+<span class="doccomment">//! use async_std::io::SeekFrom;</span>
+<span class="doccomment">//! use async_std::prelude::*;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! let mut f = File::open(&quot;foo.txt&quot;).await?;</span>
+<span class="doccomment">//! let mut buffer = [0; 10];</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! // skip to the last 10 bytes of the file</span>
+<span class="doccomment">//! f.seek(SeekFrom::End(-10)).await?;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! // read up to 10 bytes</span>
+<span class="doccomment">//! let n = f.read(&amp;mut buffer).await?;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! println!(&quot;The bytes: {:?}&quot;, &amp;buffer[..n]);</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! # Ok(()) }) }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [`BufRead`] uses an internal buffer to provide a number of other ways to read, but</span>
+<span class="doccomment">//! to show it off, we&#39;ll need to talk about buffers in general. Keep reading!</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## BufReader and BufWriter</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Byte-based interfaces are unwieldy and can be inefficient, as we&#39;d need to be</span>
+<span class="doccomment">//! making near-constant calls to the operating system. To help with this,</span>
+<span class="doccomment">//! `std::io` comes with two structs, [`BufReader`] and [`BufWriter`], which wrap</span>
+<span class="doccomment">//! readers and writers. The wrapper uses a buffer, reducing the number of</span>
+<span class="doccomment">//! calls and providing nicer methods for accessing exactly what you want.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! For example, [`BufReader`] works with the [`BufRead`] trait to add extra</span>
+<span class="doccomment">//! methods to any reader:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```no_run</span>
+<span class="doccomment">//! use async_std::fs::File;</span>
+<span class="doccomment">//! use async_std::io::BufReader;</span>
+<span class="doccomment">//! use async_std::prelude::*;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! let f = File::open(&quot;foo.txt&quot;).await?;</span>
+<span class="doccomment">//! let mut reader = BufReader::new(f);</span>
+<span class="doccomment">//! let mut buffer = String::new();</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! // read a line into buffer</span>
+<span class="doccomment">//! reader.read_line(&amp;mut buffer).await?;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! println!(&quot;{}&quot;, buffer);</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! # Ok(()) }) }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [`BufWriter`] doesn&#39;t add any new ways of writing; it just buffers every call</span>
+<span class="doccomment">//! to [`write`][`Write::write`]:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```no_run</span>
+<span class="doccomment">//! use async_std::fs::File;</span>
+<span class="doccomment">//! use async_std::io::prelude::*;</span>
+<span class="doccomment">//! use async_std::io::BufWriter;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! let f = File::create(&quot;foo.txt&quot;).await?;</span>
+<span class="doccomment">//! {</span>
+<span class="doccomment">//!     let mut writer = BufWriter::new(f);</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!     // write a byte to the buffer</span>
+<span class="doccomment">//!     writer.write(&amp;[42]).await?;</span>
+<span class="doccomment">//! } // the buffer is flushed once writer goes out of scope</span>
+<span class="doccomment">//! //</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! # Ok(()) }) }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Standard input and output</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! A very common source of input is standard input:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```no_run</span>
+<span class="doccomment">//! use async_std::io;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! let mut input = String::new();</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! io::stdin().read_line(&amp;mut input).await?;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! println!(&quot;You typed: {}&quot;, input.trim());</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! # Ok(()) }) }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Note that you cannot use the [`?` operator] in functions that do not return</span>
+<span class="doccomment">//! a [`Result&lt;T, E&gt;`][`Result`]. Instead, you can call [`.unwrap()`]</span>
+<span class="doccomment">//! or `match` on the return value to catch any possible errors:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```no_run</span>
+<span class="doccomment">//! use async_std::io;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! let mut input = String::new();</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! io::stdin().read_line(&amp;mut input).await.unwrap();</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! # Ok(()) }) }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! And a very common source of output is standard output:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```no_run</span>
+<span class="doccomment">//! use async_std::io;</span>
+<span class="doccomment">//! use async_std::io::prelude::*;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! io::stdout().write(&amp;[42]).await?;</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! # Ok(()) }) }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Of course, using [`io::stdout`] directly is less common than something like</span>
+<span class="doccomment">//! [`println!`].</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Iterator types</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! A large number of the structures provided by `std::io` are for various</span>
+<span class="doccomment">//! ways of iterating over I/O. For example, [`Lines`] is used to split over</span>
+<span class="doccomment">//! lines:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```no_run</span>
+<span class="doccomment">//! use async_std::fs::File;</span>
+<span class="doccomment">//! use async_std::io::BufReader;</span>
+<span class="doccomment">//! use async_std::prelude::*;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! let f = File::open(&quot;foo.txt&quot;).await?;</span>
+<span class="doccomment">//! let reader = BufReader::new(f);</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! let mut lines = reader.lines();</span>
+<span class="doccomment">//! while let Some(line) = lines.next().await {</span>
+<span class="doccomment">//!     println!(&quot;{}&quot;, line?);</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! # Ok(()) }) }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Functions</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! There are a number of [functions][functions-list] that offer access to various</span>
+<span class="doccomment">//! features. For example, we can use three of these functions to copy everything</span>
+<span class="doccomment">//! from standard input to standard output:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```no_run</span>
+<span class="doccomment">//! use async_std::io;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # fn main() -&gt; std::io::Result&lt;()&gt; { async_std::task::block_on(async {</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! io::copy(&amp;mut io::stdin(), &amp;mut io::stdout()).await?;</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! # Ok(()) }) }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [functions-list]: #functions-1</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## io::Result</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Last, but certainly not least, is [`io::Result`]. This type is used</span>
+<span class="doccomment">//! as the return type of many `std::io` functions that can cause an error, and</span>
+<span class="doccomment">//! can be returned from your own functions as well. Many of the examples in this</span>
+<span class="doccomment">//! module use the [`?` operator]:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//! #![allow(dead_code)]</span>
+<span class="doccomment">//! use async_std::io;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! async fn read_input() -&gt; io::Result&lt;()&gt; {</span>
+<span class="doccomment">//!     let mut input = String::new();</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!     io::stdin().read_line(&amp;mut input).await?;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!     println!(&quot;You typed: {}&quot;, input.trim());</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!     Ok(())</span>
+<span class="doccomment">//! }</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The return type of `read_input`, [`io::Result&lt;()&gt;`][`io::Result`], is a very</span>
+<span class="doccomment">//! common type for functions which don&#39;t have a &#39;real&#39; return value, but do want to</span>
+<span class="doccomment">//! return errors if they happen. In this case, the only purpose of this function is</span>
+<span class="doccomment">//! to read the line and print it, so we use `()`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Platform-specific behavior</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Many I/O functions throughout the standard library are documented to indicate</span>
+<span class="doccomment">//! what various library or syscalls they are delegated to. This is done to help</span>
+<span class="doccomment">//! applications both understand what&#39;s happening under the hood as well as investigate</span>
+<span class="doccomment">//! any possibly unclear semantics. Note, however, that this is informative, not a binding</span>
+<span class="doccomment">//! contract. The implementation of many of these functions are subject to change over</span>
+<span class="doccomment">//! time and may call fewer or more syscalls/library functions.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [`Read`]: trait.Read.html</span>
+<span class="doccomment">//! [`Write`]: trait.Write.html</span>
+<span class="doccomment">//! [`Seek`]: trait.Seek.html</span>
+<span class="doccomment">//! [`BufRead`]: trait.BufRead.html</span>
+<span class="doccomment">//! [`File`]: ../fs/struct.File.html</span>
+<span class="doccomment">//! [`TcpStream`]: ../net/struct.TcpStream.html</span>
+<span class="doccomment">//! [`Vec&lt;T&gt;`]: ../vec/struct.Vec.html</span>
+<span class="doccomment">//! [`BufReader`]: struct.BufReader.html</span>
+<span class="doccomment">//! [`BufWriter`]: struct.BufWriter.html</span>
+<span class="doccomment">//! [`Write::write`]: trait.Write.html#tymethod.write</span>
+<span class="doccomment">//! [`io::stdout`]: fn.stdout.html</span>
+<span class="doccomment">//! [`println!`]: ../macro.println.html</span>
+<span class="doccomment">//! [`Lines`]: struct.Lines.html</span>
+<span class="doccomment">//! [`io::Result`]: type.Result.html</span>
+<span class="doccomment">//! [`?` operator]: https://doc.rust-lang.org/stable/book/appendix-02-operators.html</span>
+<span class="doccomment">//! [`Read::read`]: trait.Read.html#tymethod.read</span>
+<span class="doccomment">//! [`Result`]: https://doc.rust-lang.org/std/result/enum.Result.html</span>
+<span class="doccomment">//! [`.unwrap()`]: https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap</span>
+
+<span class="kw">const</span> <span class="ident">DEFAULT_BUF_SIZE</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> <span class="op">=</span> <span class="number">8</span> <span class="op">*</span> <span class="number">1024</span>;
+
+<span class="macro">cfg_std!</span> {
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">std::io</span>::{<a class="ident" href="../../../async_std/io/struct.Error.html">Error</a>, <a class="ident" href="../../../async_std/io/enum.ErrorKind.html">ErrorKind</a>, <a class="ident" href="../../../async_std/io/struct.IoSlice.html">IoSlice</a>, <a class="ident" href="../../../async_std/io/struct.IoSliceMut.html">IoSliceMut</a>, <span class="prelude-ty">Result</span>, <a class="ident" href="../../../async_std/io/enum.SeekFrom.html">SeekFrom</a>};
+
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">buf_read</span>::{<a class="ident" href="../../../async_std/io/trait.BufRead.html">BufRead</a>, <a class="ident" href="../../../src/async_std/io/buf_read/lines.rs.html#12-30">Lines</a>, <a class="ident" href="../../../src/async_std/io/buf_read/split.rs.html#11-29">Split</a>};
+    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/io/buf_reader.rs.html#10-53">buf_reader::BufReader</a>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">buf_writer</span>::{<a class="ident" href="../../../src/async_std/io/buf_writer.rs.html#10-90">BufWriter</a>, <a class="ident" href="../../../src/async_std/io/buf_writer.rs.html#117">IntoInnerError</a>};
+    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/io/copy.rs.html#135-138">copy::copy</a>;
+    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/io/cursor.rs.html#25">cursor::Cursor</a>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">empty</span>::{<a class="ident" href="../../../src/async_std/io/empty.rs.html#25">empty</a>, <a class="ident" href="../../../src/async_std/io/empty.rs.html#35">Empty</a>};
+    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/io/mod.rs.html#293">read</a>::<span class="kw-2">*</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">repeat</span>::{<a class="ident" href="../../../src/async_std/io/repeat.rs.html#26">repeat</a>, <a class="ident" href="../../../src/async_std/io/repeat.rs.html#36">Repeat</a>};
+    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../async_std/io/trait.Seek.html">seek::Seek</a>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sink</span>::{<a class="ident" href="../../../src/async_std/io/sink.rs.html#22">sink</a>, <a class="ident" href="../../../src/async_std/io/sink.rs.html#32">Sink</a>};
+    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/io/mod.rs.html#295">write</a>::<span class="kw-2">*</span>;
+
+    <span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/prelude.rs.html#1-27">prelude</a>;
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/buf_read/mod.rs.html#1-266">buf_read</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/read/mod.rs.html#1-412">read</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/seek/mod.rs.html#1-50">seek</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/write/mod.rs.html#1-187">write</a>;
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/utils.rs.html#1-42">utils</a>;
+
+    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/buf_reader.rs.html#1-335">buf_reader</a>;
+    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/buf_writer.rs.html#1-351">buf_writer</a>;
+    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/copy.rs.html#1-182">copy</a>;
+    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/cursor.rs.html#1-261">cursor</a>;
+    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/empty.rs.html#1-67">empty</a>;
+    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/repeat.rs.html#1-58">repeat</a>;
+    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/sink.rs.html#1-61">sink</a>;
+}
+
+<span class="macro">cfg_default!</span> {
+    <span class="comment">// For use in the print macros.</span>
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>))]</span>
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">stdio</span>::{<a class="ident" href="../../../src/async_std/io/stdio.rs.html#17">_eprint</a>, <a class="ident" href="../../../src/async_std/io/stdio.rs.html#10">_print</a>};
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>))]</span>
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">stderr</span>::{<a class="ident" href="../../../src/async_std/io/stderr.rs.html#33">stderr</a>, <a class="ident" href="../../../src/async_std/io/stderr.rs.html#54">Stderr</a>};
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>))]</span>
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">stdin</span>::{<a class="ident" href="../../../src/async_std/io/stdin.rs.html#35">stdin</a>, <a class="ident" href="../../../src/async_std/io/stdin.rs.html#57">Stdin</a>};
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>))]</span>
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">stdout</span>::{<a class="ident" href="../../../src/async_std/io/stdout.rs.html#33">stdout</a>, <a class="ident" href="../../../src/async_std/io/stdout.rs.html#54">Stdout</a>};
+    <span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/io/timeout.rs.html#35-37">timeout::timeout</a>;
+
+    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/timeout.rs.html#1-80">timeout</a>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>))]</span>
+    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/stderr.rs.html#1-193">stderr</a>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>))]</span>
+    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/stdin.rs.html#1-219">stdin</a>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>))]</span>
+    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/stdio.rs.html#1-21">stdio</a>;
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>))]</span>
+    <span class="kw">mod</span> <a class="ident" href="../../../src/async_std/io/stdout.rs.html#1-193">stdout</a>;
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Generate and parse universally unique identifiers (UUIDs)."><meta name="keywords" content="rust, rustlang, rust-lang, uuid"><title>uuid - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script defer src="../crates.js"></script><script defer src="../main.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../uuid/index.html"><div class="logo-container"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../uuid/index.html"><div class="logo-container">
+                    <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div></a><h2 class="location"><a href="#">Crate uuid</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 1.1.2</li><li><a id="all-types" href="all.html">All Items</a></li></ul></div><section><div class="block"><ul><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#types">Type Definitions</a></li></ul></div></section></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../uuid/index.html">
+                        <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">uuid</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/uuid/lib.rs.html#12-1433">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Generate and parse universally unique identifiers (UUIDs).</p>
+<p>Here’s an example of a UUID:</p>
+<div class="example-wrap"><pre class="language-text"><code>67e55044-10b1-426f-9247-bb680e5fe0c8</code></pre></div>
+<p>A UUID is a unique 128-bit value, stored as 16 octets, and regularly
+formatted as a hex string in five groups. UUIDs are used to assign unique
+identifiers to entities without requiring a central allocating authority.</p>
+<p>They are particularly useful in distributed systems, though can be used in
+disparate areas, such as databases and network protocols.  Typically a UUID
+is displayed in a readable string form as a sequence of hexadecimal digits,
+separated into groups by hyphens.</p>
+<p>The uniqueness property is not strictly guaranteed, however for all
+practical purposes, it can be assumed that an unintentional collision would
+be extremely unlikely.</p>
+<h2 id="getting-started"><a href="#getting-started">Getting started</a></h2>
+<p>Add the following to your <code>Cargo.toml</code>:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies.uuid]
+version = &quot;1.1.2&quot;
+features = [
+    &quot;v4&quot;,                # Lets you generate random UUIDs
+    &quot;fast-rng&quot;,          # Use a faster (but still sufficiently random) RNG
+    &quot;macro-diagnostics&quot;, # Enable better diagnostics for compile-time UUIDs
+]</code></pre></div>
+<p>When you want a UUID, you can generate one:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">uuid::Uuid</span>;
+
+<span class="kw">let</span> <span class="ident">id</span> <span class="op">=</span> <span class="ident">Uuid::new_v4</span>();</code></pre></div>
+<p>If you have a UUID value, you can use its string literal form inline:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">uuid</span>::{<span class="ident">uuid</span>, <span class="ident">Uuid</span>};
+
+<span class="kw">const</span> <span class="ident">ID</span>: <span class="ident">Uuid</span> <span class="op">=</span> <span class="macro">uuid!</span>(<span class="string">&quot;67e55044-10b1-426f-9247-bb680e5fe0c8&quot;</span>);</code></pre></div>
+<h2 id="dependencies"><a href="#dependencies">Dependencies</a></h2>
+<p>By default, this crate depends on nothing but <code>std</code> and can parse and format
+UUIDs, but cannot generate them. You need to enable the following Cargo
+features to enable various pieces of functionality:</p>
+<ul>
+<li><code>v1</code> - adds the <a href="struct.Uuid.html#method.new_v1"><code>Uuid::new_v1</code></a> function and the ability to create a V1
+UUID using an implementation of <a href="v1/trait.ClockSequence.html"><code>v1::ClockSequence</code></a> (usually
+<a href="v1/struct.Context.html"><code>v1::Context</code></a>) and a UNIX timestamp.</li>
+<li><code>v3</code> - adds the <a href="struct.Uuid.html#method.new_v3"><code>Uuid::new_v3</code></a> function and the ability to create a V3
+UUID based on the MD5 hash of some data.</li>
+<li><code>v4</code> - adds the <a href="struct.Uuid.html#method.new_v4"><code>Uuid::new_v4</code></a> function and the ability to randomly
+generate a UUID.</li>
+<li><code>v5</code> - adds the <a href="struct.Uuid.html#method.new_v5"><code>Uuid::new_v5</code></a> function and the ability to create a V5
+UUID based on the SHA1 hash of some data.</li>
+</ul>
+<p>Other crate features can also be useful beyond the version support:</p>
+<ul>
+<li><code>macro-diagnostics</code> - enhances the diagnostics of <code>uuid!</code> macro.</li>
+<li><code>serde</code> - adds the ability to serialize and deserialize a UUID using
+<code>serde</code>.</li>
+<li><code>arbitrary</code> - adds an <code>Arbitrary</code> trait implementation to <code>Uuid</code> for
+fuzzing.</li>
+<li><code>fast-rng</code> - when combined with <code>v4</code> uses a faster algorithm for
+generating random UUIDs. This feature requires more dependencies to
+compile, but is just as suitable for UUIDs as the default algorithm.</li>
+</ul>
+<h3 id="unstable-features"><a href="#unstable-features">Unstable features</a></h3>
+<p>Some features are unstable. They may be incomplete or depend on other
+unstable libraries. These include:</p>
+<ul>
+<li><code>zerocopy</code> - adds support for zero-copy deserialization using the
+<code>zerocopy</code> library.</li>
+</ul>
+<p>Unstable features may break between minor releases.</p>
+<p>To allow unstable features, you’ll need to enable the Cargo feature as
+normal, but also pass an additional flag through your environment to opt-in
+to unstable <code>uuid</code> features:</p>
+<div class="example-wrap"><pre class="language-text"><code>RUSTFLAGS=&quot;--cfg uuid_unstable&quot;</code></pre></div><h2 id="building-for-other-targets"><a href="#building-for-other-targets">Building for other targets</a></h2><h3 id="webassembly"><a href="#webassembly">WebAssembly</a></h3>
+<p>For WebAssembly, enable the <code>js</code> feature along with <code>v4</code> for a
+source of randomness:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies.uuid]
+version = &quot;1&quot;
+features = [
+    &quot;v4&quot;,
+    &quot;js&quot;,
+]</code></pre></div>
+<p>You don’t need the <code>js</code> feature to use <code>uuid</code> in WebAssembly if you’re
+not also enabling <code>v4</code>.</p>
+<h3 id="embedded"><a href="#embedded">Embedded</a></h3>
+<p>For embedded targets without the standard library, you’ll need to
+disable default features when building <code>uuid</code>:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies.uuid]
+version = &quot;1&quot;
+default-features = false</code></pre></div>
+<p>Some additional features are supported in no-std environments:</p>
+<ul>
+<li><code>v1</code>, <code>v3</code>, and <code>v5</code></li>
+<li><code>serde</code></li>
+</ul>
+<p>If you need to use <code>v4</code> in a no-std environment, you’ll need to
+follow <a href="https://docs.rs/getrandom"><code>getrandom</code>’s docs</a> on configuring a source of randomness
+on currently unsupported targets. Alternatively, you can produce
+random bytes yourself and then pass them to <a href="struct.Builder.html#method.from_random_bytes" title="Builder::from_random_bytes"><code>Builder::from_random_bytes</code></a>
+without enabling the <code>v4</code> feature.</p>
+<h2 id="examples"><a href="#examples">Examples</a></h2>
+<p>To parse a UUID given in the simple format and print it as a urn:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let</span> <span class="ident">my_uuid</span> <span class="op">=</span> <span class="ident">Uuid::parse_str</span>(<span class="string">&quot;a1a2a3a4b1b2c1c2d1d2d3d4d5d6d7d8&quot;</span>)<span class="question-mark">?</span>;
+
+<span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">my_uuid</span>.<span class="ident">urn</span>());</code></pre></div>
+<p>To create a new random (V4) UUID and print it out in hexadecimal form:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="comment">// Note that this requires the `v4` feature to be enabled.</span>
+<span class="kw">let</span> <span class="ident">my_uuid</span> <span class="op">=</span> <span class="ident">Uuid::new_v4</span>();
+
+<span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">my_uuid</span>);</code></pre></div>
+<h2 id="references"><a href="#references">References</a></h2>
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Universally_unique_identifier">Wikipedia: Universally Unique Identifier</a></li>
+<li><a href="http://tools.ietf.org/html/rfc4122">RFC4122: A Universally Unique IDentifier (UUID) URN Namespace</a></li>
+</ul>
+</div></details><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="fmt/index.html" title="uuid::fmt mod">fmt</a></div><div class="item-right docblock-short"><p>Adapters for alternative string formats.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="serde/index.html" title="uuid::serde mod">serde</a></div><div class="item-right docblock-short"><p>Adapters for alternative <code>serde</code> formats.</p>
+</div></div></div><h2 id="macros" class="small-section-header"><a href="#macros">Macros</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.uuid.html" title="uuid::uuid macro">uuid</a></div><div class="item-right docblock-short"><p>Parse <a href="https://docs.rs/uuid/*/uuid/struct.Uuid.html"><code>Uuid</code></a>s from string literals at compile time.</p>
+</div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Builder.html" title="uuid::Builder struct">Builder</a></div><div class="item-right docblock-short"><p>A builder struct for creating a UUID.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Error.html" title="uuid::Error struct">Error</a></div><div class="item-right docblock-short"><p>A general error that can occur when working with UUIDs.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Uuid.html" title="uuid::Uuid struct">Uuid</a></div><div class="item-right docblock-short"><p>A Universally Unique Identifier (UUID).</p>
+</div></div></div><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.Variant.html" title="uuid::Variant enum">Variant</a></div><div class="item-right docblock-short"><p>The reserved variants of UUIDs.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.Version.html" title="uuid::Version enum">Version</a></div><div class="item-right docblock-short"><p>The version of the UUID, denoting the generating algorithm.</p>
+</div></div></div><h2 id="types" class="small-section-header"><a href="#types">Type Definitions</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="type" href="type.Bytes.html" title="uuid::Bytes type">Bytes</a></div><div class="item-right docblock-short"><p>A 128-bit (16 byte) buffer containing the UUID.</p>
+</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="uuid" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

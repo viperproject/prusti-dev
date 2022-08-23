@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":[["CommandExt","Unix-specific extensions to the [`Command`] builder."]]};

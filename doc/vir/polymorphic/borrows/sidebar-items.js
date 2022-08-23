@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Borrow","The method-unique borrow identifier."],["DAG","Reborrowing directed acyclic graph (DAG). It should not be mutated after it is constructed. For construction use `DAGBuilder`."],["DAGBuilder","A struct for constructing the reborrowing DAG."],["Node","Node of the reborrowing DAG."]]};

@@ -1,0 +1,618 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `analysis/src/bin/analysis-driver.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>analysis-driver.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../analysis_driver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../analysis_driver/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../analysis_driver/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+</pre><pre class="rust"><code><span class="attribute">#![<span class="ident">feature</span>(<span class="ident">rustc_private</span>)]</span>
+
+<span class="comment">// Sources:</span>
+<span class="comment">// https://github.com/rust-lang/miri/blob/master/benches/helpers/miri_helper.rs</span>
+<span class="comment">// https://github.com/rust-lang/rust/blob/master/src/test/run-make-fulldeps/obtain-borrowck/driver.rs</span>
+
+<span class="kw">use</span> <span class="ident">analysis</span>::{
+    <a class="ident" href="../../analysis/abstract_interpretation/fixpoint_engine/trait.FixpointEngine.html">abstract_interpretation::FixpointEngine</a>,
+    <span class="ident">domains</span>::{
+        <a class="ident" href="../../analysis/domains/definitely_accessible/analysis/struct.DefinitelyAccessibleAnalysis.html">DefinitelyAccessibleAnalysis</a>, <a class="ident" href="../../analysis/domains/definitely_initialized/analysis/struct.DefinitelyInitializedAnalysis.html">DefinitelyInitializedAnalysis</a>, <a class="ident" href="../../analysis/domains/framing/analysis/struct.FramingAnalysis.html">FramingAnalysis</a>,
+        <a class="ident" href="../../analysis/domains/maybe_borrowed/analysis/struct.MaybeBorrowedAnalysis.html">MaybeBorrowedAnalysis</a>, <a class="ident" href="../../analysis/domains/reaching_definitions/analysis/struct.ReachingDefsAnalysis.html">ReachingDefsAnalysis</a>,
+    },
+};
+<span class="kw">use</span> <span class="ident">prusti_rustc_interface</span>::{
+    <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/index.html">ast::ast</a>,
+    <span class="ident">borrowck::BodyWithBorrowckFacts</span>,
+    <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/enum.Compilation.html">driver::Compilation</a>,
+    <span class="ident">hir::def_id</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>},
+    <span class="ident">interface</span>::{<span class="ident">interface</span>, <span class="ident">Config</span>, <span class="ident">Queries</span>},
+    <span class="ident">middle</span>::{
+        <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">ty</a>,
+        <span class="ident">ty::query</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/query/query_values/type.mir_borrowck.html">query_values::mir_borrowck</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/query/struct.ExternProviders.html">ExternProviders</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/query/struct.Providers.html">Providers</a>},
+    },
+    <span class="ident">polonius_engine</span>::{<span class="ident">Algorithm</span>, <span class="ident">Output</span>},
+    <span class="ident">session</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">Attribute</a>, <span class="ident">Session</span>},
+};
+<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.RefCell.html">cell::RefCell</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/collections/hash/map/struct.HashMap.html">collections::HashMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/rc/struct.Rc.html">rc::Rc</a>};
+
+<span class="kw">struct</span> <span class="ident">OurCompilerCalls</span> {
+    <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span>,
+}
+
+<span class="kw">fn</span> <span class="ident">get_attributes</span>(
+    <span class="ident">tcx</span>: <span class="ident">ty::TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+    <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">prusti_rustc_interface::ast::ast::Attribute</a>] {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">local_def_id</span>) <span class="op">=</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#35">def_id</a>.<span class="ident">as_local</span>() {
+        <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#34">tcx</a>.<span class="ident">hir</span>()
+            .<span class="ident">attrs</span>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#34">tcx</a>.<span class="ident">hir</span>().<span class="ident">local_def_id_to_hir_id</span>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#37">local_def_id</a>))
+    } <span class="kw">else</span> {
+        <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#34">tcx</a>.<span class="ident">item_attrs</span>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#35">def_id</a>)
+    }
+}
+
+<span class="kw">fn</span> <span class="ident">get_attribute</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
+    <span class="ident">tcx</span>: <span class="ident">ty::TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>,
+    <span class="ident">segment1</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    <span class="ident">segment2</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">Attribute</a><span class="op">&gt;</span> {
+    <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#33-36">get_attributes</a>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#46">tcx</a>, <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#47">def_id</a>)
+        .<span class="ident">iter</span>()
+        .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">find</a>(<span class="op">|</span><span class="ident">attr</span><span class="op">|</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#53">attr</a>.<span class="ident">kind</span> {
+            <span class="ident">ast::AttrKind::Normal</span>(
+                <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.AttrItem.html">ast::AttrItem</a> {
+                    <span class="ident">path</span>:
+                        <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Path.html">ast::Path</a> {
+                            <span class="ident">span</span>: <span class="kw">_</span>,
+                            <span class="ident">segments</span>,
+                            <span class="ident">tokens</span>: <span class="kw">_</span>,
+                        },
+                    <span class="ident">args</span>: <span class="ident">ast::MacArgs::Empty</span>,
+                    <span class="ident">tokens</span>: <span class="kw">_</span>,
+                },
+                <span class="kw">_</span>,
+            ) =&gt; {
+                <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#59">segments</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span>
+                    <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#59">segments</a>[<span class="number">0</span>].<span class="ident">ident</span>.<span class="ident">as_str</span>() <span class="op">==</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#48">segment1</a>
+                    <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#59">segments</a>[<span class="number">1</span>].<span class="ident">ident</span>.<span class="ident">as_str</span>() <span class="op">==</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#49">segment2</a>
+            }
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+        })
+}
+
+<span class="kw">mod</span> <span class="ident">mir_storage</span> {
+    <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+
+    <span class="comment">// Since mir_borrowck does not have access to any other state, we need to use a</span>
+    <span class="comment">// thread-local for storing the obtained MIR bodies.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Note: We are using &#39;static lifetime here, which is in general unsound.</span>
+    <span class="comment">// Unfortunately, that is the only lifetime allowed here. Our use is safe</span>
+    <span class="comment">// because we cast it back to `&#39;tcx` before using.</span>
+    <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.thread_local.html">thread_local!</a> {
+        <span class="kw">static</span> <span class="ident">MIR_BODIES</span>:
+            <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">LocalDefId</span>, <span class="ident">BodyWithBorrowckFacts</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
+            <span class="ident">RefCell::new</span>(<span class="ident">HashMap::new</span>());
+    }
+
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">store_mir_body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
+        <span class="ident">_tcx</span>: <span class="ident">ty::TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+        <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>,
+        <span class="ident">body_with_facts</span>: <span class="ident">BodyWithBorrowckFacts</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    ) {
+        <span class="comment">// SAFETY: See the module level comment.</span>
+        <span class="kw">let</span> <span class="ident">body_with_facts</span>: <span class="ident">BodyWithBorrowckFacts</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::mem::transmute</span>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#93">body_with_facts</a>);
+        <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#84-88">MIR_BODIES</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#97">state</a>.<span class="ident">borrow_mut</span>();
+            <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">def_id</span>, <span class="ident">body_with_facts</span>).<span class="ident">is_none</span>());
+        });
+    }
+
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::needless_lifetimes</span>)]</span> <span class="comment">// We want to be very explicit about lifetimes here.</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">retrieve_mir_body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
+        <span class="ident">_tcx</span>: <span class="ident">ty::TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+        <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>,
+    ) -&gt; <span class="ident">BodyWithBorrowckFacts</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">body_with_facts</span>: <span class="ident">BodyWithBorrowckFacts</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#84-88">MIR_BODIES</a>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#108">state</a>.<span class="ident">borrow_mut</span>();
+            <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#109">map</a>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#106">def_id</a>).<span class="ident">unwrap</span>()
+        });
+        <span class="comment">// SAFETY: See the module level comment.</span>
+        <span class="ident">std::mem::transmute</span>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#108">body_with_facts</a>)
+    }
+}
+
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::needless_lifetimes</span>)]</span>
+<span class="kw">fn</span> <span class="ident">mir_borrowck</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(<span class="ident">tcx</span>: <span class="ident">ty::TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>) -&gt; <span class="ident">mir_borrowck</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">body_with_facts</span> <span class="op">=</span> <span class="ident">prusti_rustc_interface::borrowck::consumers::get_body_with_borrowck_facts</span>(
+        <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#118">tcx</a>,
+        <span class="ident">ty::WithOptConstParam::unknown</span>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#118">def_id</a>),
+    );
+    <span class="comment">// SAFETY: This is safe because we are feeding in the same `tcx` that is</span>
+    <span class="comment">// going to be used as a witness when pulling out the data.</span>
+    <span class="kw">unsafe</span> {
+        <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#90-94">mir_storage::store_mir_body</a>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#118">tcx</a>, <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#118">def_id</a>, <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#119">body_with_facts</a>);
+    }
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">providers</span> <span class="op">=</span> <span class="ident">Providers::default</span>();
+    <span class="ident">prusti_rustc_interface::borrowck::provide</span>(<span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#128">providers</a>);
+    <span class="kw">let</span> <span class="ident">original_mir_borrowck</span> <span class="op">=</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#128">providers</a>.<span class="ident">mir_borrowck</span>;
+    <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#130">original_mir_borrowck</a>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#118">tcx</a>, <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#118">def_id</a>)
+}
+
+<span class="kw">fn</span> <span class="ident">override_queries</span>(<span class="ident">_session</span>: <span class="kw-2">&amp;</span><span class="ident">Session</span>, <span class="ident">local</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/query/struct.Providers.html">Providers</a>, <span class="ident">_external</span>: <span class="kw-2">&amp;mut</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/query/struct.ExternProviders.html">ExternProviders</a>) {
+    <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#134">local</a>.<span class="ident">mir_borrowck</span> <span class="op">=</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#118">mir_borrowck</a>;
+}
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/trait.Callbacks.html">prusti_rustc_interface::driver::Callbacks</a> <span class="kw">for</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#29">OurCompilerCalls</a> {
+    <span class="comment">// In this callback we override the mir_borrowck query.</span>
+    <span class="kw">fn</span> <span class="ident">config</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">config</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Config</span>) {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">config</span>.<span class="ident">override_queries</span>.<span class="ident">is_none</span>());
+        <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#140">config</a>.<span class="ident">override_queries</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#134">override_queries</a>);
+    }
+
+    <span class="kw">fn</span> <span class="ident">after_analysis</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">compiler</span>: <span class="kw-2">&amp;</span><span class="ident">interface::Compiler</span>,
+        <span class="ident">queries</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <span class="ident">Queries</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    ) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_driver/enum.Compilation.html">Compilation</a> {
+        <span class="kw">let</span> <span class="ident">session</span> <span class="op">=</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#147">compiler</a>.<span class="ident">session</span>();
+        <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#150">session</a>.<span class="ident">abort_if_errors</span>();
+
+        <span class="kw">let</span> <span class="ident">abstract_domain</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a> <span class="op">=</span> <a class="self" href="../../src/analysis_driver/analysis-driver.rs.html#146">self</a>
+            .<span class="ident">args</span>
+            .<span class="ident">iter</span>()
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#156">a</a>.<span class="ident">starts_with</span>(<span class="string">&quot;--analysis&quot;</span>))
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">flat_map</a>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#157">a</a>.<span class="ident">rsplit</span>(<span class="string">&#39;=&#39;</span>))
+            .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">next</a>()
+            .<span class="ident">expect</span>(<span class="string">&quot;Please add --analysis=&lt;DOMAIN&gt;&quot;</span>);
+
+        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.println.html">println!</a>(
+            <span class="string">&quot;Analyzing file {} using {}...&quot;</span>,
+            <span class="ident">compiler</span>.<span class="ident">input</span>().<span class="ident">source_name</span>().<span class="ident">prefer_local</span>(),
+            <span class="ident">abstract_domain</span>
+        );
+
+        <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#148">queries</a>.<span class="ident">global_ctxt</span>().<span class="ident">unwrap</span>().<span class="ident">peek_mut</span>().<span class="ident">enter</span>(<span class="op">|</span><span class="ident">tcx</span><span class="op">|</span> {
+            <span class="comment">// collect all functions with attribute #[analyzer::run]</span>
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">local_def_ids</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#167">tcx</a>
+                .<span class="ident">mir_keys</span>(())
+                .<span class="ident">iter</span>()
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">filter</a>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#45-50">get_attribute</a>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#167">tcx</a>, <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#172">id</a>.<span class="ident">to_def_id</span>(), <span class="string">&quot;analyzer&quot;</span>, <span class="string">&quot;run&quot;</span>).<span class="ident">is_some</span>())
+                .<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+
+            <span class="comment">// sort according to argument span to ensure deterministic output</span>
+            <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#169">local_def_ids</a>.<span class="ident">sort_unstable_by_key</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> {
+                <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#45-50">get_attribute</a>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#167">tcx</a>, <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#176">id</a>.<span class="ident">to_def_id</span>(), <span class="string">&quot;analyzer&quot;</span>, <span class="string">&quot;run&quot;</span>)
+                    .<span class="ident">unwrap</span>()
+                    .<span class="ident">span</span>
+            });
+
+            <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">local_def_id</span> <span class="kw">in</span> <span class="ident">local_def_ids</span> {
+                <span class="macro">println!</span>(
+                    <span class="string">&quot;Result for function {}():&quot;</span>,
+                    <span class="ident">tcx</span>.<span class="ident">item_name</span>(<span class="ident">local_def_id</span>.<span class="ident">to_def_id</span>())
+                );
+
+                <span class="comment">// SAFETY: This is safe because we are feeding in the same `tcx`</span>
+                <span class="comment">// that was used to store the data.</span>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body_with_facts</span> <span class="op">=</span>
+                    <span class="kw">unsafe</span> { <span class="ident"><span class="self">self</span>::mir_storage::retrieve_mir_body</span>(<span class="ident">tcx</span>, <span class="ident">local_def_id</span>) };
+                <span class="ident">body_with_facts</span>.<span class="ident">output_facts</span> <span class="op">=</span> <span class="ident">Rc::new</span>(<span class="ident">Output::compute</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">body_with_facts</span>.<span class="ident">input_facts</span>,
+                    <span class="ident">Algorithm::Naive</span>,
+                    <span class="bool-val">true</span>,
+                ));
+                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">body_with_facts</span>.<span class="ident">input_facts</span>.<span class="ident">cfg_edge</span>.<span class="ident">is_empty</span>());
+                <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">body_with_facts</span>.<span class="ident">body</span>;
+
+                <span class="kw">match</span> <span class="ident">abstract_domain</span> {
+                    <span class="string">&quot;ReachingDefsAnalysis&quot;</span> =&gt; {
+                        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">ReachingDefsAnalysis::new</span>(<span class="ident">tcx</span>, <span class="ident">local_def_id</span>.<span class="ident">to_def_id</span>(), <span class="ident">body</span>)
+                            .<span class="ident">run_fwd_analysis</span>();
+                        <span class="kw">match</span> <span class="ident">result</span> {
+                            <span class="prelude-val">Ok</span>(<span class="ident">state</span>) =&gt; {
+                                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">serde_json::to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>).<span class="ident">unwrap</span>())
+                            }
+                            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">eprintln!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>.<span class="ident">to_pretty_str</span>(<span class="ident">body</span>)),
+                        }
+                    }
+                    <span class="string">&quot;DefinitelyInitializedAnalysis&quot;</span> =&gt; {
+                        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span>
+                            <span class="ident">DefinitelyInitializedAnalysis::new</span>(<span class="ident">tcx</span>, <span class="ident">local_def_id</span>.<span class="ident">to_def_id</span>(), <span class="ident">body</span>)
+                                .<span class="ident">run_fwd_analysis</span>();
+                        <span class="kw">match</span> <span class="ident">result</span> {
+                            <span class="prelude-val">Ok</span>(<span class="ident">state</span>) =&gt; {
+                                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">serde_json::to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>).<span class="ident">unwrap</span>())
+                            }
+                            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">eprintln!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>.<span class="ident">to_pretty_str</span>(<span class="ident">body</span>)),
+                        }
+                    }
+                    <span class="string">&quot;RelaxedDefinitelyInitializedAnalysis&quot;</span> =&gt; {
+                        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">DefinitelyInitializedAnalysis::new_relaxed</span>(
+                            <span class="ident">tcx</span>,
+                            <span class="ident">local_def_id</span>.<span class="ident">to_def_id</span>(),
+                            <span class="ident">body</span>,
+                        )
+                        .<span class="ident">run_fwd_analysis</span>();
+                        <span class="kw">match</span> <span class="ident">result</span> {
+                            <span class="prelude-val">Ok</span>(<span class="ident">state</span>) =&gt; {
+                                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">serde_json::to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>).<span class="ident">unwrap</span>())
+                            }
+                            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">eprintln!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>.<span class="ident">to_pretty_str</span>(<span class="ident">body</span>)),
+                        }
+                    }
+                    <span class="string">&quot;MaybeBorrowedAnalysis&quot;</span> =&gt; {
+                        <span class="kw">let</span> <span class="ident">analyzer</span> <span class="op">=</span> <span class="ident">MaybeBorrowedAnalysis::new</span>(<span class="ident">tcx</span>, <span class="kw-2">&amp;</span><span class="ident">body_with_facts</span>);
+                        <span class="kw">match</span> <span class="ident">analyzer</span>.<span class="ident">run_analysis</span>() {
+                            <span class="prelude-val">Ok</span>(<span class="ident">state</span>) =&gt; {
+                                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">serde_json::to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>).<span class="ident">unwrap</span>())
+                            }
+                            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">eprintln!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>.<span class="ident">to_pretty_str</span>(<span class="ident">body</span>)),
+                        }
+                    }
+                    <span class="string">&quot;DefinitelyAccessibleAnalysis&quot;</span> =&gt; {
+                        <span class="kw">let</span> <span class="ident">analyzer</span> <span class="op">=</span> <span class="ident">DefinitelyAccessibleAnalysis::new</span>(
+                            <span class="ident">tcx</span>,
+                            <span class="ident">local_def_id</span>.<span class="ident">to_def_id</span>(),
+                            <span class="kw-2">&amp;</span><span class="ident">body_with_facts</span>,
+                        );
+                        <span class="kw">match</span> <span class="ident">analyzer</span>.<span class="ident">run_analysis</span>() {
+                            <span class="prelude-val">Ok</span>(<span class="ident">state</span>) =&gt; {
+                                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">serde_json::to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>).<span class="ident">unwrap</span>());
+                            }
+                            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">eprintln!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>.<span class="ident">to_pretty_str</span>(<span class="ident">body</span>)),
+                        }
+                    }
+                    <span class="string">&quot;FramingAnalysis&quot;</span> =&gt; {
+                        <span class="kw">let</span> <span class="ident">analyzer</span> <span class="op">=</span>
+                            <span class="ident">FramingAnalysis::new</span>(<span class="ident">tcx</span>, <span class="ident">local_def_id</span>.<span class="ident">to_def_id</span>(), <span class="kw-2">&amp;</span><span class="ident">body_with_facts</span>);
+                        <span class="kw">match</span> <span class="ident">analyzer</span>.<span class="ident">run_analysis</span>() {
+                            <span class="prelude-val">Ok</span>(<span class="ident">state</span>) =&gt; {
+                                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">serde_json::to_string_pretty</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>).<span class="ident">unwrap</span>());
+                            }
+                            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="macro">eprintln!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">e</span>.<span class="ident">to_pretty_str</span>(<span class="ident">body</span>)),
+                        }
+                    }
+                    <span class="kw">_</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unknown domain argument: {}&quot;</span>, <span class="ident">abstract_domain</span>),
+                }
+            }
+        });
+
+        <span class="ident">Compilation::Stop</span>
+    }
+}
+
+<span class="doccomment">/// Run an analysis by calling like it rustc</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Give arguments to the analyzer by prefixing them with &#39;--analysis&#39;</span>
+<span class="doccomment">/// A abstract domain has to be provided by using &#39;--analysis=&#39; (without spaces), e.g.:</span>
+<span class="doccomment">/// --analysis=ReachingDefsState or --analysis=DefinitelyInitializedAnalysis</span>
+<span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="ident">env_logger::init</span>();
+    <span class="ident">prusti_rustc_interface::driver::init_rustc_env_logger</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">compiler_args</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">callback_args</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">std::env::args</span>() {
+        <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">starts_with</span>(<span class="string">&quot;--analysis&quot;</span>) {
+            <span class="ident">callback_args</span>.<span class="ident">push</span>(<span class="ident">arg</span>);
+        } <span class="kw">else</span> {
+            <span class="ident">compiler_args</span>.<span class="ident">push</span>(<span class="ident">arg</span>);
+        }
+    }
+
+    <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#285">compiler_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zpolonius&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+    <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#285">compiler_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zalways-encode-mir&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+    <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#285">compiler_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zcrate-attr=feature(register_tool)&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+    <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#285">compiler_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zcrate-attr=register_tool(analyzer)&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">callbacks</span> <span class="op">=</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#29">OurCompilerCalls</a> {
+        <span class="ident">args</span>: <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#286">callback_args</a>,
+    };
+    <span class="comment">// Invoke compiler, and handle return code.</span>
+    <span class="kw">let</span> <span class="ident">exit_code</span> <span class="op">=</span> <span class="ident">prusti_rustc_interface::driver::catch_with_exit_code</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
+        <span class="ident">prusti_rustc_interface::driver::RunCompiler::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#285">compiler_args</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#300">callbacks</a>).<span class="ident">run</span>()
+    });
+    <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/fn.exit.html">std::process::exit</a>(<a class="ident" href="../../src/analysis_driver/analysis-driver.rs.html#304">exit_code</a>)
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="analysis_driver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

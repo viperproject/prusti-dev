@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["spawn","Creates a new task."],["spawn_local","Creates a new thread-local task."],["spawn_unchecked","Creates a new task without [`Send`], [`Sync`], and `'static` bounds."]],"struct":[["FallibleTask","A spawned task with a fallible response."],["Runnable","A handle to a runnable task."],["Task","A spawned task."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["SrtpProfileId","An identifier of an SRTP protection profile."],["SrtpProtectionProfile",""],["SrtpProtectionProfileRef","Reference to `SrtpProtectionProfile`."]]};

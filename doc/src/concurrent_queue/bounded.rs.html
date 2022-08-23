@@ -1,0 +1,642 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/concurrent-queue-1.2.4/src/bounded.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bounded.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../concurrent_queue/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../concurrent_queue/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cell/struct.UnsafeCell.html">std::cell::UnsafeCell</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/mem/maybe_uninit/union.MaybeUninit.html">std::mem::MaybeUninit</a>;
+<span class="kw">use</span> <span class="ident">std::sync::atomic</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/enum.Ordering.html">Ordering</a>};
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/thread/index.html">std::thread</a>;
+
+<span class="kw">use</span> <a class="ident" href="../../cache_padded/struct.CachePadded.html">cache_padded::CachePadded</a>;
+
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/concurrent_queue/lib.rs.html#344">PopError</a>, <a class="ident" href="../../src/concurrent_queue/lib.rs.html#392">PushError</a>};
+
+<span class="doccomment">/// A slot in a queue.</span>
+<span class="kw">struct</span> <span class="ident">Slot</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// The current stamp.</span>
+    <span class="ident">stamp</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a>,
+
+    <span class="doccomment">/// The value in this slot.</span>
+    <span class="ident">value</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+}
+
+<span class="doccomment">/// A bounded queue.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Bounded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// The head of the queue.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This value is a &quot;stamp&quot; consisting of an index into the buffer, a mark bit, and a lap, but</span>
+    <span class="doccomment">/// packed into a single `usize`. The lower bits represent the index, while the upper bits</span>
+    <span class="doccomment">/// represent the lap. The mark bit in the head is always zero.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Values are popped from the head of the queue.</span>
+    <span class="ident">head</span>: <span class="ident">CachePadded</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// The tail of the queue.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This value is a &quot;stamp&quot; consisting of an index into the buffer, a mark bit, and a lap, but</span>
+    <span class="doccomment">/// packed into a single `usize`. The lower bits represent the index, while the upper bits</span>
+    <span class="doccomment">/// represent the lap. The mark bit indicates that the queue is closed.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Values are pushed into the tail of the queue.</span>
+    <span class="ident">tail</span>: <span class="ident">CachePadded</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/sync/atomic/struct.AtomicUsize.html">AtomicUsize</a><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// The buffer holding slots.</span>
+    <span class="ident">buffer</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Slot</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>]<span class="op">&gt;</span>,
+
+    <span class="doccomment">/// A stamp with the value of `{ lap: 1, mark: 0, index: 0 }`.</span>
+    <span class="ident">one_lap</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+
+    <span class="doccomment">/// If this bit is set in the tail, that means the queue is closed.</span>
+    <span class="ident">mark_bit</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Bounded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Creates a new bounded queue.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">cap</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="ident">Bounded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="ident">cap</span> <span class="op">&gt;</span> <span class="number">0</span>, <span class="string">&quot;capacity must be positive&quot;</span>);
+
+        <span class="comment">// Head is initialized to `{ lap: 0, mark: 0, index: 0 }`.</span>
+        <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="comment">// Tail is initialized to `{ lap: 0, mark: 0, index: 0 }`.</span>
+        <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="number">0</span>;
+
+        <span class="comment">// Allocate a buffer of `cap` slots initialized with stamps.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<a class="ident" href="../../src/concurrent_queue/bounded.rs.html#51">cap</a>);
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">cap</span> {
+            <span class="comment">// Set the stamp to `{ lap: 0, mark: 0, index: i }`.</span>
+            <span class="ident">buffer</span>.<span class="ident">push</span>(<span class="ident">Slot</span> {
+                <span class="ident">stamp</span>: <span class="ident">AtomicUsize::new</span>(<span class="ident">i</span>),
+                <span class="ident">value</span>: <span class="ident">UnsafeCell::new</span>(<span class="ident">MaybeUninit::uninit</span>()),
+            });
+        }
+
+        <span class="comment">// Compute constants `mark_bit` and `one_lap`.</span>
+        <span class="kw">let</span> <span class="ident">mark_bit</span> <span class="op">=</span> (<a class="ident" href="../../src/concurrent_queue/bounded.rs.html#51">cap</a> <span class="op">+</span> <span class="number">1</span>).<span class="ident">next_power_of_two</span>();
+        <span class="kw">let</span> <span class="ident">one_lap</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#70">mark_bit</a> <span class="op">*</span> <span class="number">2</span>;
+
+        <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#20">Bounded</a> {
+            <span class="ident">buffer</span>: <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#60">buffer</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>(),
+            <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#71">one_lap</a>,
+            <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#70">mark_bit</a>,
+            <span class="ident">head</span>: <span class="ident">CachePadded::new</span>(<span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../src/concurrent_queue/bounded.rs.html#55">head</a>)),
+            <span class="ident">tail</span>: <span class="ident">CachePadded::new</span>(<span class="ident">AtomicUsize::new</span>(<a class="ident" href="../../src/concurrent_queue/bounded.rs.html#57">tail</a>)),
+        }
+    }
+
+    <span class="doccomment">/// Attempts to push an item into the queue.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">push</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">PushError</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#83">self</a>.<span class="ident">tail</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
+
+        <span class="kw">loop</span> {
+            <span class="comment">// Check if the queue is closed.</span>
+            <span class="kw">if</span> <span class="ident">tail</span> <span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">mark_bit</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/concurrent_queue/lib.rs.html#397">PushError::Closed</a>(<a class="ident" href="../../src/concurrent_queue/bounded.rs.html#83">value</a>));
+            }
+
+            <span class="comment">// Deconstruct the tail.</span>
+            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#84">tail</a> <span class="op">&amp;</span> (<a class="self" href="../../src/concurrent_queue/bounded.rs.html#83">self</a>.<span class="ident">mark_bit</span> <span class="op">-</span> <span class="number">1</span>);
+            <span class="kw">let</span> <span class="ident">lap</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#84">tail</a> <span class="op">&amp;</span> <span class="op">!</span>(<a class="self" href="../../src/concurrent_queue/bounded.rs.html#83">self</a>.<span class="ident">one_lap</span> <span class="op">-</span> <span class="number">1</span>);
+
+            <span class="comment">// Inspect the corresponding slot.</span>
+            <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/concurrent_queue/bounded.rs.html#83">self</a>.<span class="ident">buffer</span>[<a class="ident" href="../../src/concurrent_queue/bounded.rs.html#93">index</a>];
+            <span class="kw">let</span> <span class="ident">stamp</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#97">slot</a>.<span class="ident">stamp</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+
+            <span class="comment">// If the tail and the stamp match, we may attempt to push.</span>
+            <span class="kw">if</span> <span class="ident">tail</span> <span class="op">==</span> <span class="ident">stamp</span> {
+                <span class="kw">let</span> <span class="ident">new_tail</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">index</span> <span class="op">+</span> <span class="number">1</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">len</span>() {
+                    <span class="comment">// Same lap, incremented index.</span>
+                    <span class="comment">// Set to `{ lap: lap, mark: 0, index: index + 1 }`.</span>
+                    <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#84">tail</a> <span class="op">+</span> <span class="number">1</span>
+                } <span class="kw">else</span> {
+                    <span class="comment">// One lap forward, index wraps around to zero.</span>
+                    <span class="comment">// Set to `{ lap: lap.wrapping_add(1), mark: 0, index: 0 }`.</span>
+                    <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#94">lap</a>.<span class="ident">wrapping_add</span>(<a class="self" href="../../src/concurrent_queue/bounded.rs.html#83">self</a>.<span class="ident">one_lap</span>)
+                };
+
+                <span class="comment">// Try moving the tail.</span>
+                <span class="kw">match</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#83">self</a>.<span class="ident">tail</span>.<span class="ident">compare_exchange_weak</span>(
+                    <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#84">tail</a>,
+                    <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#102">new_tail</a>,
+                    <span class="ident">Ordering::SeqCst</span>,
+                    <span class="ident">Ordering::Relaxed</span>,
+                ) {
+                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
+                        <span class="comment">// Write the value into the slot and update the stamp.</span>
+                        <span class="kw">unsafe</span> {
+                            <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#97">slot</a>.<span class="ident">value</span>.<span class="ident">get</span>().<span class="ident">write</span>(<span class="ident">MaybeUninit::new</span>(<a class="ident" href="../../src/concurrent_queue/bounded.rs.html#83">value</a>));
+                        }
+                        <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#97">slot</a>.<span class="ident">stamp</span>.<span class="ident">store</span>(<a class="ident" href="../../src/concurrent_queue/bounded.rs.html#84">tail</a> <span class="op">+</span> <span class="number">1</span>, <span class="ident">Ordering::Release</span>);
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+                    }
+                    <span class="prelude-val">Err</span>(<span class="ident">t</span>) =&gt; {
+                        <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#84">tail</a> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#127">t</a>;
+                    }
+                }
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">stamp</span>.<span class="ident">wrapping_add</span>(<span class="self">self</span>.<span class="ident">one_lap</span>) <span class="op">==</span> <span class="ident">tail</span> <span class="op">+</span> <span class="number">1</span> {
+                <a class="ident" href="../../src/concurrent_queue/lib.rs.html#448"><span class="kw">crate</span>::full_fence</a>();
+                <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#83">self</a>.<span class="ident">head</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
+
+                <span class="comment">// If the head lags one lap behind the tail as well...</span>
+                <span class="kw">if</span> <span class="ident">head</span>.<span class="ident">wrapping_add</span>(<span class="self">self</span>.<span class="ident">one_lap</span>) <span class="op">==</span> <span class="ident">tail</span> {
+                    <span class="comment">// ...then the queue is full.</span>
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/concurrent_queue/lib.rs.html#394">PushError::Full</a>(<a class="ident" href="../../src/concurrent_queue/bounded.rs.html#83">value</a>));
+                }
+
+                <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#84">tail</a> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#83">self</a>.<span class="ident">tail</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
+            } <span class="kw">else</span> {
+                <span class="comment">// Yield because we need to wait for the stamp to get updated.</span>
+                <span class="ident">thread::yield_now</span>();
+                <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#84">tail</a> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#83">self</a>.<span class="ident">tail</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
+            }
+        }
+    }
+
+    <span class="doccomment">/// Attempts to pop an item from the queue.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">pop</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <a class="ident" href="../../src/concurrent_queue/lib.rs.html#344">PopError</a><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#151">self</a>.<span class="ident">head</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
+
+        <span class="kw">loop</span> {
+            <span class="comment">// Deconstruct the head.</span>
+            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#152">head</a> <span class="op">&amp;</span> (<a class="self" href="../../src/concurrent_queue/bounded.rs.html#151">self</a>.<span class="ident">mark_bit</span> <span class="op">-</span> <span class="number">1</span>);
+            <span class="kw">let</span> <span class="ident">lap</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#152">head</a> <span class="op">&amp;</span> <span class="op">!</span>(<a class="self" href="../../src/concurrent_queue/bounded.rs.html#151">self</a>.<span class="ident">one_lap</span> <span class="op">-</span> <span class="number">1</span>);
+
+            <span class="comment">// Inspect the corresponding slot.</span>
+            <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <span class="kw-2">&amp;</span><a class="self" href="../../src/concurrent_queue/bounded.rs.html#151">self</a>.<span class="ident">buffer</span>[<a class="ident" href="../../src/concurrent_queue/bounded.rs.html#156">index</a>];
+            <span class="kw">let</span> <span class="ident">stamp</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#160">slot</a>.<span class="ident">stamp</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
+
+            <span class="comment">// If the the stamp is ahead of the head by 1, we may attempt to pop.</span>
+            <span class="kw">if</span> <span class="ident">head</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">stamp</span> {
+                <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">index</span> <span class="op">+</span> <span class="number">1</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">len</span>() {
+                    <span class="comment">// Same lap, incremented index.</span>
+                    <span class="comment">// Set to `{ lap: lap, mark: 0, index: index + 1 }`.</span>
+                    <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#152">head</a> <span class="op">+</span> <span class="number">1</span>
+                } <span class="kw">else</span> {
+                    <span class="comment">// One lap forward, index wraps around to zero.</span>
+                    <span class="comment">// Set to `{ lap: lap.wrapping_add(1), mark: 0, index: 0 }`.</span>
+                    <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#157">lap</a>.<span class="ident">wrapping_add</span>(<a class="self" href="../../src/concurrent_queue/bounded.rs.html#151">self</a>.<span class="ident">one_lap</span>)
+                };
+
+                <span class="comment">// Try moving the head.</span>
+                <span class="kw">match</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#151">self</a>.<span class="ident">head</span>.<span class="ident">compare_exchange_weak</span>(
+                    <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#152">head</a>,
+                    <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#165">new</a>,
+                    <span class="ident">Ordering::SeqCst</span>,
+                    <span class="ident">Ordering::Relaxed</span>,
+                ) {
+                    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {
+                        <span class="comment">// Read the value from the slot and update the stamp.</span>
+                        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">unsafe</span> { <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#160">slot</a>.<span class="ident">value</span>.<span class="ident">get</span>().<span class="ident">read</span>().<span class="ident">assume_init</span>() };
+                        <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#160">slot</a>.<span class="ident">stamp</span>
+                            .<span class="ident">store</span>(<a class="ident" href="../../src/concurrent_queue/bounded.rs.html#152">head</a>.<span class="ident">wrapping_add</span>(<a class="self" href="../../src/concurrent_queue/bounded.rs.html#151">self</a>.<span class="ident">one_lap</span>), <span class="ident">Ordering::Release</span>);
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<a class="ident" href="../../src/concurrent_queue/bounded.rs.html#184">value</a>);
+                    }
+                    <span class="prelude-val">Err</span>(<span class="ident">h</span>) =&gt; {
+                        <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#152">head</a> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#189">h</a>;
+                    }
+                }
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">stamp</span> <span class="op">==</span> <span class="ident">head</span> {
+                <a class="ident" href="../../src/concurrent_queue/lib.rs.html#448"><span class="kw">crate</span>::full_fence</a>();
+                <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#151">self</a>.<span class="ident">tail</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
+
+                <span class="comment">// If the tail equals the head, that means the queue is empty.</span>
+                <span class="kw">if</span> (<span class="ident">tail</span> <span class="op">&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">mark_bit</span>) <span class="op">==</span> <span class="ident">head</span> {
+                    <span class="comment">// Check if the queue is closed.</span>
+                    <span class="kw">if</span> <span class="ident">tail</span> <span class="op">&amp;</span> <span class="self">self</span>.<span class="ident">mark_bit</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/concurrent_queue/lib.rs.html#349">PopError::Closed</a>);
+                    } <span class="kw">else</span> {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<a class="ident" href="../../src/concurrent_queue/lib.rs.html#346">PopError::Empty</a>);
+                    }
+                }
+
+                <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#152">head</a> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#151">self</a>.<span class="ident">head</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
+            } <span class="kw">else</span> {
+                <span class="comment">// Yield because we need to wait for the stamp to get updated.</span>
+                <span class="ident">thread::yield_now</span>();
+                <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#152">head</a> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#151">self</a>.<span class="ident">head</span>.<span class="ident">load</span>(<span class="ident">Ordering::Relaxed</span>);
+            }
+        }
+    }
+
+    <span class="doccomment">/// Returns the number of items in the queue.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <span class="kw">loop</span> {
+            <span class="comment">// Load the tail, then load the head.</span>
+            <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#217">self</a>.<span class="ident">tail</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
+            <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#217">self</a>.<span class="ident">head</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
+
+            <span class="comment">// If the tail didn&#39;t change, we&#39;ve got consistent values to work with.</span>
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">tail</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) <span class="op">==</span> <span class="ident">tail</span> {
+                <span class="kw">let</span> <span class="ident">hix</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#221">head</a> <span class="op">&amp;</span> (<a class="self" href="../../src/concurrent_queue/bounded.rs.html#217">self</a>.<span class="ident">mark_bit</span> <span class="op">-</span> <span class="number">1</span>);
+                <span class="kw">let</span> <span class="ident">tix</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#220">tail</a> <span class="op">&amp;</span> (<a class="self" href="../../src/concurrent_queue/bounded.rs.html#217">self</a>.<span class="ident">mark_bit</span> <span class="op">-</span> <span class="number">1</span>);
+
+                <span class="kw">return</span> <span class="kw">if</span> <span class="ident">hix</span> <span class="op">&lt;</span> <span class="ident">tix</span> {
+                    <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#226">tix</a> <span class="op">-</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#225">hix</a>
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">hix</span> <span class="op">&gt;</span> <span class="ident">tix</span> {
+                    <a class="self" href="../../src/concurrent_queue/bounded.rs.html#217">self</a>.<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="op">-</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#225">hix</a> <span class="op">+</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#226">tix</a>
+                } <span class="kw">else</span> <span class="kw">if</span> (<span class="ident">tail</span> <span class="op">&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">mark_bit</span>) <span class="op">==</span> <span class="ident">head</span> {
+                    <span class="number">0</span>
+                } <span class="kw">else</span> {
+                    <a class="self" href="../../src/concurrent_queue/bounded.rs.html#217">self</a>.<span class="ident">buffer</span>.<span class="ident">len</span>()
+                };
+            }
+        }
+    }
+
+    <span class="doccomment">/// Returns `true` if the queue is empty.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#242">self</a>.<span class="ident">head</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
+        <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#242">self</a>.<span class="ident">tail</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
+
+        <span class="comment">// Is the tail equal to the head?</span>
+        <span class="comment">//</span>
+        <span class="comment">// Note: If the head changes just before we load the tail, that means there was a moment</span>
+        <span class="comment">// when the queue was not empty, so it is safe to just return `false`.</span>
+        (<a class="ident" href="../../src/concurrent_queue/bounded.rs.html#244">tail</a> <span class="op">&amp;</span> <span class="op">!</span><a class="self" href="../../src/concurrent_queue/bounded.rs.html#242">self</a>.<span class="ident">mark_bit</span>) <span class="op">==</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#243">head</a>
+    }
+
+    <span class="doccomment">/// Returns `true` if the queue is full.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_full</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#254">self</a>.<span class="ident">tail</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
+        <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#254">self</a>.<span class="ident">head</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>);
+
+        <span class="comment">// Is the head lagging one lap behind tail?</span>
+        <span class="comment">//</span>
+        <span class="comment">// Note: If the tail changes just before we load the head, that means there was a moment</span>
+        <span class="comment">// when the queue was not full, so it is safe to just return `false`.</span>
+        <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#256">head</a>.<span class="ident">wrapping_add</span>(<a class="self" href="../../src/concurrent_queue/bounded.rs.html#254">self</a>.<span class="ident">one_lap</span>) <span class="op">==</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#255">tail</a> <span class="op">&amp;</span> <span class="op">!</span><a class="self" href="../../src/concurrent_queue/bounded.rs.html#254">self</a>.<span class="ident">mark_bit</span>
+    }
+
+    <span class="doccomment">/// Returns the capacity of the queue.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">capacity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../src/concurrent_queue/bounded.rs.html#266">self</a>.<span class="ident">buffer</span>.<span class="ident">len</span>()
+    }
+
+    <span class="doccomment">/// Closes the queue.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns `true` if this call closed the queue.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">close</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#273">self</a>.<span class="ident">tail</span>.<span class="ident">fetch_or</span>(<a class="self" href="../../src/concurrent_queue/bounded.rs.html#273">self</a>.<span class="ident">mark_bit</span>, <span class="ident">Ordering::SeqCst</span>);
+        <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#274">tail</a> <span class="op">&amp;</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#273">self</a>.<span class="ident">mark_bit</span> <span class="op">==</span> <span class="number">0</span>
+    }
+
+    <span class="doccomment">/// Returns `true` if the queue is closed.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_closed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <a class="self" href="../../src/concurrent_queue/bounded.rs.html#279">self</a>.<span class="ident">tail</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>) <span class="op">&amp;</span> <a class="self" href="../../src/concurrent_queue/bounded.rs.html#279">self</a>.<span class="ident">mark_bit</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <span class="ident">Bounded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <span class="comment">// Get the index of the head.</span>
+        <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../src/concurrent_queue/bounded.rs.html#285">self</a>.<span class="ident">head</span>.<span class="ident">get_mut</span>();
+        <span class="kw">let</span> <span class="ident">tail</span> <span class="op">=</span> <span class="kw-2">*</span><a class="self" href="../../src/concurrent_queue/bounded.rs.html#285">self</a>.<span class="ident">tail</span>.<span class="ident">get_mut</span>();
+
+        <span class="kw">let</span> <span class="ident">hix</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#287">head</a> <span class="op">&amp;</span> (<a class="self" href="../../src/concurrent_queue/bounded.rs.html#285">self</a>.<span class="ident">mark_bit</span> <span class="op">-</span> <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">tix</span> <span class="op">=</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#288">tail</a> <span class="op">&amp;</span> (<a class="self" href="../../src/concurrent_queue/bounded.rs.html#285">self</a>.<span class="ident">mark_bit</span> <span class="op">-</span> <span class="number">1</span>);
+
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">hix</span> <span class="op">&lt;</span> <span class="ident">tix</span> {
+            <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#291">tix</a> <span class="op">-</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#290">hix</a>
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">hix</span> <span class="op">&gt;</span> <span class="ident">tix</span> {
+            <a class="self" href="../../src/concurrent_queue/bounded.rs.html#285">self</a>.<span class="ident">buffer</span>.<span class="ident">len</span>() <span class="op">-</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#290">hix</a> <span class="op">+</span> <a class="ident" href="../../src/concurrent_queue/bounded.rs.html#291">tix</a>
+        } <span class="kw">else</span> <span class="kw">if</span> (<span class="ident">tail</span> <span class="op">&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">mark_bit</span>) <span class="op">==</span> <span class="ident">head</span> {
+            <span class="number">0</span>
+        } <span class="kw">else</span> {
+            <a class="self" href="../../src/concurrent_queue/bounded.rs.html#285">self</a>.<span class="ident">buffer</span>.<span class="ident">len</span>()
+        };
+
+        <span class="comment">// Loop over all slots that hold a value and drop them.</span>
+        <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">len</span> {
+            <span class="comment">// Compute the index of the next slot holding a value.</span>
+            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">hix</span> <span class="op">+</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">len</span>() {
+                <span class="ident">hix</span> <span class="op">+</span> <span class="ident">i</span>
+            } <span class="kw">else</span> {
+                <span class="ident">hix</span> <span class="op">+</span> <span class="ident">i</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">len</span>()
+            };
+
+            <span class="comment">// Drop the value in the slot.</span>
+            <span class="kw">let</span> <span class="ident">slot</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">buffer</span>[<span class="ident">index</span>];
+            <span class="kw">unsafe</span> {
+                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><span class="ident">slot</span>.<span class="ident">value</span>.<span class="ident">get</span>();
+                <span class="ident">value</span>.<span class="ident">as_mut_ptr</span>().<span class="ident">drop_in_place</span>();
+            }
+        }
+    }
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="concurrent_queue" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["MirPlace",""],["RealEdges","A data structure to store the non-virtual CFG edges of a MIR body."]],"trait":[["AllPlaces",""],["ArgsForMir",""],["SliceOrArrayRef",""],["SplitAggregateAssignment",""],["StatementAsAssign",""],["StatementAt",""],["TupleItemsForTy",""],["TyAsRef",""]]};

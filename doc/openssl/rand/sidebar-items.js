@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["keep_random_devices_open","Controls random device file descriptor behavior."],["rand_bytes","Fill buffer with cryptographically strong pseudo-random bytes."]]};

@@ -1,0 +1,146 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `analysis/src/abstract_interpretation/abstract_state.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>abstract_state.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../analysis/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../analysis/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../analysis/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+</pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich</span>
+<span class="comment">//</span>
+<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
+<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
+<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+
+<span class="kw">use</span> <a class="ident" href="../../../serde_derive/derive.Serialize.html">serde::Serialize</a>;
+
+<span class="doccomment">/// Trait to be used to define an abstract domain by defining the type of its elements.</span>
+<span class="doccomment">/// These elements can be used in the ``Analyzer`` to represent an abstraction of the concrete</span>
+<span class="doccomment">/// state at program points.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// To ensure that the analysis is converging to a correct fixed point implementations `S` of this</span>
+<span class="doccomment">/// trait should fulfill the following properties:</span>
+<span class="doccomment">/// * `join()` implicitly defines a partial order of abstraction `&lt;=`, such that</span>
+<span class="doccomment">///   forall x,y: S :: `x &lt;= x.join(y)` &amp;&amp; `y &lt;= x.join(y)`;</span>
+<span class="doccomment">///   i.e. `join()` computes an upper bound in that order, which means it abstracts more (or</span>
+<span class="doccomment">///   equally many) concrete states, in particular it represents all concrete states that were</span>
+<span class="doccomment">///   abstracted by either `x` or `y`.</span>
+<span class="doccomment">/// * `new_bottom()` should return the least element in that order.</span>
+<span class="doccomment">/// * If the &#39;height&#39; of the order, i.e. how many elements can be traversed until a maximum is</span>
+<span class="doccomment">///   reached, is not known to be finite, the following properties should additionally hold for</span>
+<span class="doccomment">///   proper widening:</span>
+<span class="doccomment">///     - exists i: u32 :: `need_to_widen(i) == true`</span>
+<span class="doccomment">///     - forall x,y: S :: `x &lt;= x.widen(y)` &amp;&amp; `y &lt;= x.widen(y)`</span>
+<span class="doccomment">///     - for every ascending chain of domain elements x_i the ascending chain y_i defined as</span>
+<span class="doccomment">///       y_0 := x_0, y_(i+1) := x_i.widen(y_i)</span>
+<span class="doccomment">///       reaches a fixed-point after a finite number of steps</span>
+<span class="doccomment">/// * The &#39;abstract transformers&#39; `apply_statement_effect` and `apply_terminator_effect`</span>
+<span class="doccomment">///   should correctly abstract the concrete semantics of the given operation,</span>
+<span class="doccomment">///   i.e. the resulting abstraction should represent a superset of the possible concrete states</span>
+<span class="doccomment">///   after applying the statement or terminator to any of the concrete states represented by the</span>
+<span class="doccomment">///   abstraction before.</span>
+<span class="doccomment">///   (If an operation is not supported an `AnalysisError::UnsupportedStatement` can be returned.)</span>
+<span class="doccomment">/// * `apply_terminator_effect` should assign an abstract state to every successor basic block,</span>
+<span class="doccomment">///   otherwise `NoStateAfterSuccessor` error will be returned by the analysis.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// To get a result that is as precise as possible implementers probably also want to fulfill the</span>
+<span class="doccomment">/// following properties:</span>
+<span class="doccomment">/// * `join()` should return the **least** least upper bound. In particular it should hold:</span>
+<span class="doccomment">///    forall x: S :: `x.join(S::new_bottom(_)) == x` &amp;&amp; `S::new_bottom(_).join(x) == x`.</span>
+<span class="doccomment">/// * The &#39;abstract transformers&#39; `apply_statement_effect` and `apply_terminator_effect`</span>
+<span class="doccomment">///   should abstract the concrete semantics as precise as possible.</span>
+<span class="comment">// Sized needed for apply_terminator_effect&#39;s return type</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AbstractState</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">Clone</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Eq.html">Eq</a> <span class="op">+</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/marker/trait.Sized.html">Sized</a> <span class="op">+</span> <a class="ident" href="../../../serde/ser/trait.Serialize.html">Serialize</a> {
+    <span class="comment">//fn make_top(&amp;mut self) -&gt; Self;</span>
+    <span class="comment">//fn make_bottom(&amp;mut self) -&gt; Self;</span>
+
+    <span class="doccomment">/// Checks if the current state corresponds to the bottom element in the lattice</span>
+    <span class="kw">fn</span> <span class="ident">is_bottom</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>;
+
+    <span class="comment">//fn new_top(&amp;self) -&gt; Self;</span>
+    <span class="comment">//fn is_top(&amp;self) -&gt; bool;</span>
+
+    <span class="comment">//fn less_equal(&amp;self, other: &amp;Self) -&gt; bool;</span>
+
+    <span class="doccomment">/// Lattice operation to join `other` into this state, producing the (least) upper bound</span>
+    <span class="kw">fn</span> <span class="ident">join</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>);
+
+    <span class="doccomment">/// Lattice operation to join all `others` into this state, producing the (least) upper bound</span>
+    <span class="kw">fn</span> <span class="ident">join_all</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">others</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="self">Self</span>]) {
+        <span class="kw">for</span> <span class="ident">other</span> <span class="kw">in</span> <span class="ident">others</span>.<span class="ident">iter</span>() {
+            <span class="self">self</span>.<span class="ident">join</span>(<span class="ident">other</span>)
+        }
+    }
+
+    <span class="comment">//fn meet(&amp;mut self, other: &amp;Self) -&gt; Self;</span>
+
+    <span class="doccomment">/// Make the state less precise to make the iteration stop by using the difference to the state</span>
+    <span class="doccomment">/// from the previous iteration given in `previous`.</span>
+    <span class="kw">fn</span> <span class="ident">widen</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">previous</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>);
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="analysis" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

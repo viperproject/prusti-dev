@@ -1,0 +1,115 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Drop-in replacements for buffered I/O types in `std::io`."><meta name="keywords" content="rust, rustlang, rust-lang, buf_redux"><title>buf_redux - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script defer src="../crates.js"></script><script defer src="../main.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../buf_redux/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../buf_redux/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div></a><h2 class="location"><a href="#">Crate buf_redux</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.8.4</li><li><a id="all-types" href="all.html">All Items</a></li></ul></div><section><div class="block"><ul><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#functions">Functions</a></li></ul></div></section></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../buf_redux/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">buf_redux</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/buf_redux/lib.rs.html#12-1295">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Drop-in replacements for buffered I/O types in <code>std::io</code>.</p>
+<p>These replacements retain the method names/signatures and implemented traits of their stdlib
+counterparts, making replacement as simple as swapping the import of the type:</p>
+<h5 id="bufreader"><a href="#bufreader"><code>BufReader</code>:</a></h5><div class="example-wrap"><pre class="language-notest"><code>- use std::io::BufReader;
++ use buf_redux::BufReader;</code></pre></div><h5 id="bufwriter"><a href="#bufwriter"><code>BufWriter</code>:</a></h5><div class="example-wrap"><pre class="language-notest"><code>- use std::io::BufWriter;
++ use buf_redux::BufWriter;</code></pre></div><h5 id="linewriter"><a href="#linewriter"><code>LineWriter</code>:</a></h5><div class="example-wrap"><pre class="language-notest"><code>- use std::io::LineWriter;
++ use buf_redux::LineWriter;</code></pre></div><h4 id="more-direct-control"><a href="#more-direct-control">More Direct Control</a></h4>
+<p>All replacement types provide methods to:</p>
+<ul>
+<li>Increase the capacity of the buffer</li>
+<li>Get the number of available bytes as well as the total capacity of the buffer</li>
+<li>Consume the wrapper without losing data</li>
+</ul>
+<p><code>BufReader</code> provides methods to:</p>
+<ul>
+<li>Access the buffer through an <code>&amp;</code>-reference without performing I/O</li>
+<li>Force unconditional reads into the buffer</li>
+<li>Get a <code>Read</code> adapter which empties the buffer and then pulls from the inner reader directly</li>
+<li>Shuffle bytes down to the beginning of the buffer to make room for more reading</li>
+<li>Get inner reader and trimmed buffer with the remaining data</li>
+</ul>
+<p><code>BufWriter</code> and <code>LineWriter</code> provides methods to:</p>
+<ul>
+<li>Flush the buffer and unwrap the inner writer unconditionally.</li>
+<li>Get the inner writer and trimmed buffer with the unflushed data.</li>
+</ul>
+<h4 id="more-sensible-and-customizable-buffering-behavior"><a href="#more-sensible-and-customizable-buffering-behavior">More Sensible and Customizable Buffering Behavior</a></h4>
+<p>Tune the behavior of the buffer to your specific use-case using the types in the
+<a href="policy/index.html"><code>policy</code> module</a>:</p>
+<ul>
+<li>
+<p>Refine <code>BufReader</code>’s behavior by implementing the <a href="policy/trait.ReaderPolicy.html"><code>ReaderPolicy</code> trait</a> or use
+an existing implementation like <a href="policy/struct.MinBuffered.html"><code>MinBuffered</code></a> to ensure the buffer always contains
+a minimum number of bytes (until the underlying reader is empty).</p>
+</li>
+<li>
+<p>Refine <code>BufWriter</code>’s behavior by implementing the [<code>WriterPolicy</code> trait]
+or use an existing implementation like <a href="policy/struct.FlushOn.html"><code>FlushOn</code></a> to flush when a particular byte
+appears in the buffer (used to implement <a href="struct.LineWriter.html"><code>LineWriter</code></a>).</p>
+</li>
+</ul>
+<h4 id="making-room"><a href="#making-room">Making Room</a></h4>
+<p>The buffered types of this crate and their <code>std::io</code> counterparts, by default, use <code>Box&lt;[u8]&gt;</code>
+as their buffer types (<a href="struct.Buffer.html"><code>Buffer</code></a> is included as well since it is used internally
+by the other types in this crate).</p>
+<p>When one of these types inserts bytes into its buffer, via <code>BufRead::fill_buf()</code> (implicitly
+called by <code>Read::read()</code>) in <code>BufReader</code>’s case or <code>Write::write()</code> in <code>BufWriter</code>’s case,
+the entire buffer is provided to be read/written into and the number of bytes written is saved.
+The read/written data then resides in the <code>[0 .. bytes_inserted]</code> slice of the buffer.</p>
+<p>When bytes are consumed from the buffer, via <code>BufRead::consume()</code> or <code>Write::flush()</code>,
+the number of bytes consumed is added to the start of the slice such that the remaining
+data resides in the <code>[bytes_consumed .. bytes_inserted]</code> slice of the buffer.</p>
+<p>The <code>std::io</code> buffered types, and their counterparts in this crate with their default policies,
+don’t have to deal with partially filled buffers as <code>BufReader</code> only reads when empty and
+<code>BufWriter</code> only flushes when full.</p>
+<p>However, because the replacements in this crate are capable of reading on-demand and flushing
+less than a full buffer, they can run out of room in their buffers to read/write data into even
+though there is technically free space, because this free space is at the head of the buffer
+where reading into it would cause the data in the buffer to become non-contiguous.</p>
+<p>This isn’t technically a problem as the buffer could operate like <code>VecDeque</code> in <code>std</code> and return
+both slices at once, but this would not fit all use-cases: the <code>Read::fill_buf()</code> interface only
+allows one slice to be returned at a time so the older data would need to be completely consumed
+before the newer data can be returned; <code>BufWriter</code> could support it as the <code>Write</code> interface
+doesn’t make an opinion on how the buffer works, but because the data would be non-contiguous
+it would require two flushes to get it all, which could degrade performance.</p>
+<p>The obvious solution, then, is to move the existing data down to the beginning of the buffer
+when there is no more room at the end so that more reads/writes into the buffer can be issued.
+This works, and may suit some use-cases where the amount of data left is small and thus copying
+it would be inexpensive, but it is non-optimal. However, this option is provided
+as the <code>.make_room()</code> methods, and is utilized by <a href="policy/struct.MinBuffered.html"><code>policy::MinBuffered</code></a>
+and <a href="policy/struct.FlushExact.html"><code>policy::FlushExact</code></a>.</p>
+<h4 id="ringbuffers--slice-deque-feature"><a href="#ringbuffers--slice-deque-feature">Ringbuffers / <code>slice-deque</code> Feature</a></h4>
+<p>Instead of moving data, however, it is also possible to use virtual-memory tricks to
+allocate a ringbuffer that loops around on itself in memory and thus is always contiguous,
+as described in <a href="https://en.wikipedia.org/wiki/Circular_buffer#Optimization">the Wikipedia article on Ringbuffers</a>.</p>
+<p>This is the exact trick used by <a href="https://crates.io/crates/slice-deque">the <code>slice-deque</code> crate</a>,
+which is now provided as an optional feature <code>slice-deque</code> exposed via the
+<code>new_ringbuf()</code> and <code>with_capacity_ringbuf()</code> constructors added to the buffered types here.
+When a buffered type is constructed using one of these functions, <code>.make_room()</code> is turned into
+a no-op as consuming bytes from the head of the buffer simultaneously makes room at the tail.
+However, this has some caveats:</p>
+<ul>
+<li>
+<p>It is only available on target platforms with virtual memory support, namely fully fledged
+OSes such as Windows and Unix-derivative platforms like Linux, OS X, BSD variants, etc.</p>
+</li>
+<li>
+<p>The default capacity varies based on platform, and custom capacities are rounded up to a
+multiple of their minimum size, typically the page size of the platform.
+Windows’ minimum size is comparably quite large (<strong>64 KiB</strong>) due to some legacy reasons,
+so this may be less optimal than the default capacity for a normal buffer (8 KiB) for some
+use-cases.</p>
+</li>
+<li>
+<p>Due to the nature of the virtual-memory trick, the virtual address space the buffer
+allocates will be double its capacity. This means that your program will <em>appear</em> to use more
+memory than it would if it was using a normal buffer of the same capacity. The physical memory
+usage will be the same in both cases, but if address space is at a premium in your application
+(32-bit targets) then this may be a concern.</p>
+</li>
+</ul>
+</div></details><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="policy/index.html" title="buf_redux::policy mod">policy</a></div><div class="item-right docblock-short"><p>Types which can be used to tune the behavior of <code>BufReader</code> and <code>BufWriter</code>.</p>
+</div></div></div><h2 id="macros" class="small-section-header"><a href="#macros">Macros</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.do_read.html" title="buf_redux::do_read macro">do_read</a></div><div class="item-right docblock-short"><p>Shorthand for <code>return DoRead(bool)</code> or <code>return DoRead(true)</code> (empty invocation)</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.flush_amt.html" title="buf_redux::flush_amt macro">flush_amt</a></div><div class="item-right docblock-short"><p>Shorthand for <code>return FlushAmt(n)</code> or <code>return FlushAmt(0)</code> (empty invocation)</p>
+</div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.BufReader.html" title="buf_redux::BufReader struct">BufReader</a></div><div class="item-right docblock-short"><p>A drop-in replacement for <code>std::io::BufReader</code> with more functionality.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.BufWriter.html" title="buf_redux::BufWriter struct">BufWriter</a></div><div class="item-right docblock-short"><p>A drop-in replacement for <code>std::io::BufWriter</code> with more functionality.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Buffer.html" title="buf_redux::Buffer struct">Buffer</a></div><div class="item-right docblock-short"><p>A deque-like datastructure for managing bytes.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.IntoInnerError.html" title="buf_redux::IntoInnerError struct">IntoInnerError</a></div><div class="item-right docblock-short"><p>The error type for <code>BufWriter::into_inner()</code>,
+contains the <code>BufWriter</code> as well as the error that occurred.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.LineWriter.html" title="buf_redux::LineWriter struct">LineWriter</a></div><div class="item-right docblock-short"><p>A drop-in replacement for <code>std::io::LineWriter</code> with more functionality.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Unbuffer.html" title="buf_redux::Unbuffer struct">Unbuffer</a></div><div class="item-right docblock-short"><p>A <code>Read</code> adapter for a consumed <code>BufReader</code> which will empty bytes from the buffer before
+reading from <code>R</code> directly. Frees the buffer when it has been emptied.</p>
+</div></div></div><h2 id="functions" class="small-section-header"><a href="#functions">Functions</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.copy_buf.html" title="buf_redux::copy_buf fn">copy_buf</a></div><div class="item-right docblock-short"><p>Copy data between a <code>BufRead</code> and a <code>Write</code> without an intermediate buffer.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.set_drop_err_handler.html" title="buf_redux::set_drop_err_handler fn">set_drop_err_handler</a></div><div class="item-right docblock-short"><p>Set a thread-local handler for errors thrown in <code>BufWriter</code>’s <code>Drop</code> impl.</p>
+</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="buf_redux" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

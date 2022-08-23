@@ -1,0 +1,111 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Bindings to OpenSSL"><meta name="keywords" content="rust, rustlang, rust-lang, openssl"><title>openssl - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script defer src="../crates.js"></script><script defer src="../main.js"></script><noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../openssl/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div></a><h2 class="location"><a href="#">Crate openssl</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.10.41</li><li><a id="all-types" href="all.html">All Items</a></li></ul></div><section><div class="block"><ul><li><a href="#modules">Modules</a></li><li><a href="#functions">Functions</a></li></ul></div></section></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../openssl/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="main-heading"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">openssl</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/openssl/lib.rs.html#1-209">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Bindings to OpenSSL</p>
+<p>This crate provides a safe interface to the popular OpenSSL cryptography library. OpenSSL versions 1.0.1 through
+1.1.1 and LibreSSL versions 2.5 through 3.4.1 are supported.</p>
+<h2 id="building"><a href="#building">Building</a></h2>
+<p>Both OpenSSL libraries and headers are required to build this crate. There are multiple options available to locate
+OpenSSL.</p>
+<h3 id="vendored"><a href="#vendored">Vendored</a></h3>
+<p>If the <code>vendored</code> Cargo feature is enabled, the <code>openssl-src</code> crate will be used to compile and statically link to
+a copy of OpenSSL. The build process requires a C compiler, perl (and perl-core), and make. The OpenSSL version will generally track
+the newest OpenSSL release, and changes to the version are <em>not</em> considered breaking changes.</p>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies]
+openssl = { version = &quot;0.10&quot;, features = [&quot;vendored&quot;] }</code></pre></div>
+<p>The vendored copy will not be configured to automatically find the system’s root certificates, but the
+<code>openssl-probe</code> crate can be used to do that instead.</p>
+<h3 id="automatic"><a href="#automatic">Automatic</a></h3>
+<p>The <code>openssl-sys</code> crate will automatically detect OpenSSL installations via Homebrew on macOS and vcpkg on Windows.
+Additionally, it will use <code>pkg-config</code> on Unix-like systems to find the system installation.</p>
+<div class="example-wrap"><pre class="language-not_rust"><code>$ brew install openssl@1.1
+
+$ sudo port install openssl
+
+$ sudo pkgin install openssl
+
+$ sudo pacman -S pkg-config openssl
+
+$ sudo apt-get install pkg-config libssl-dev
+
+$ sudo dnf install pkg-config openssl-devel
+
+$ apk add pkgconfig openssl-dev</code></pre></div><h3 id="manual"><a href="#manual">Manual</a></h3>
+<p>A set of environment variables can be used to point <code>openssl-sys</code> towards an OpenSSL installation. They will
+override the automatic detection logic.</p>
+<ul>
+<li><code>OPENSSL_DIR</code> - If specified, the directory of an OpenSSL installation. The directory should contain <code>lib</code> and
+<code>include</code> subdirectories containing the libraries and headers respectively.</li>
+<li><code>OPENSSL_LIB_DIR</code> and <code>OPENSSL_INCLUDE_DIR</code> - If specified, the directories containing the OpenSSL libraries and
+headers respectively. This can be used if the OpenSSL installation is split in a nonstandard directory layout.</li>
+<li><code>OPENSSL_STATIC</code> - If set, the crate will statically link to OpenSSL rather than dynamically link.</li>
+<li><code>OPENSSL_LIBS</code> - If set, a <code>:</code>-separated list of library names to link to (e.g. <code>ssl:crypto</code>). This can be used
+if nonstandard library names were used for whatever reason.</li>
+<li><code>OPENSSL_NO_VENDOR</code> - If set, always find OpenSSL in the system, even if the <code>vendored</code> feature is enabled.</li>
+</ul>
+<p>Additionally, these variables can be prefixed with the upper-cased target architecture (e.g.
+<code>X86_64_UNKNOWN_LINUX_GNU_OPENSSL_DIR</code>), which can be useful when cross compiling.</p>
+<h2 id="feature-detection"><a href="#feature-detection">Feature Detection</a></h2>
+<p>APIs have been added to and removed from the various supported OpenSSL versions, and this library exposes the
+functionality available in the version being linked against. This means that methods, constants, and even modules
+will be present when building against one version of OpenSSL but not when building against another! APIs will
+document any version-specific availability restrictions.</p>
+<p>A build script can be used to detect the OpenSSL or LibreSSL version at compile time if needed. The <code>openssl-sys</code>
+crate propagates the version via the <code>DEP_OPENSSL_VERSION_NUMBER</code> and <code>DEP_OPENSSL_LIBRESSL_VERSION_NUMBER</code>
+environment variables to build scripts. The version format is a hex-encoding of the OpenSSL release version:
+<code>0xMNNFFPPS</code>. For example, version 1.0.2g’s encoding is <code>0x1_00_02_07_0</code>.</p>
+<p>For example, let’s say we want to adjust the TLSv1.3 cipher suites used by a client, but also want to compile
+against OpenSSL versions that don’t support TLSv1.3:</p>
+<p>Cargo.toml:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[dependencies]
+openssl-sys = &quot;0.9&quot;
+openssl = &quot;0.10&quot;</code></pre></div>
+<p>build.rs:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::env</span>;
+
+<span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>) <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;DEP_OPENSSL_VERSION_NUMBER&quot;</span>) {
+        <span class="kw">let</span> <span class="ident">version</span> <span class="op">=</span> <span class="ident">u64::from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>, <span class="number">16</span>).<span class="ident">unwrap</span>();
+
+        <span class="kw">if</span> <span class="ident">version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0x1_01_01_00_0</span> {
+            <span class="macro">println!</span>(<span class="string">&quot;cargo:rustc-cfg=openssl111&quot;</span>);
+        }
+    }
+}</code></pre></div>
+<p>lib.rs:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">openssl::ssl</span>::{<span class="ident">SslConnector</span>, <span class="ident">SslMethod</span>};
+
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ctx</span> <span class="op">=</span> <span class="ident">SslConnector::builder</span>(<span class="ident">SslMethod::tls</span>()).<span class="ident">unwrap</span>();
+
+<span class="comment">// set_ciphersuites was added in OpenSSL 1.1.1, so we can only call it when linking against that version</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">openssl111</span>)]</span>
+<span class="ident">ctx</span>.<span class="ident">set_ciphersuites</span>(<span class="string">&quot;TLS_AES_256_GCM_SHA384:TLS_AES_128_GCM_SHA256&quot;</span>).<span class="ident">unwrap</span>();</code></pre></div>
+</div></details><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="aes/index.html" title="openssl::aes mod">aes</a></div><div class="item-right docblock-short"><p>Low level AES IGE and key wrapping functionality</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="asn1/index.html" title="openssl::asn1 mod">asn1</a></div><div class="item-right docblock-short"><p>Defines the format of certificates</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="base64/index.html" title="openssl::base64 mod">base64</a></div><div class="item-right docblock-short"><p>Base64 encoding support.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="bn/index.html" title="openssl::bn mod">bn</a></div><div class="item-right docblock-short"><p>BigNum implementation</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="cipher/index.html" title="openssl::cipher mod">cipher</a></div><div class="item-right docblock-short"><p>Symmetric ciphers.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="cipher_ctx/index.html" title="openssl::cipher_ctx mod">cipher_ctx</a></div><div class="item-right docblock-short"><p>The symmetric encryption context.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="cms/index.html" title="openssl::cms mod">cms</a></div><div class="item-right docblock-short"><p>SMIME implementation using CMS</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="conf/index.html" title="openssl::conf mod">conf</a></div><div class="item-right docblock-short"><p>Interface for processing OpenSSL configuration files.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="derive/index.html" title="openssl::derive mod">derive</a></div><div class="item-right docblock-short"><p>Shared secret derivation.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="dh/index.html" title="openssl::dh mod">dh</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="dsa/index.html" title="openssl::dsa mod">dsa</a></div><div class="item-right docblock-short"><p>Digital Signatures</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="ec/index.html" title="openssl::ec mod">ec</a></div><div class="item-right docblock-short"><p>Elliptic Curve</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="ecdsa/index.html" title="openssl::ecdsa mod">ecdsa</a></div><div class="item-right docblock-short"><p>Low level Elliptic Curve Digital Signature Algorithm (ECDSA) functions.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="encrypt/index.html" title="openssl::encrypt mod">encrypt</a></div><div class="item-right docblock-short"><p>Message encryption.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="envelope/index.html" title="openssl::envelope mod">envelope</a></div><div class="item-right docblock-short"><p>Envelope encryption.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="error/index.html" title="openssl::error mod">error</a></div><div class="item-right docblock-short"><p>Errors returned by OpenSSL library.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="ex_data/index.html" title="openssl::ex_data mod">ex_data</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="fips/index.html" title="openssl::fips mod">fips</a></div><div class="item-right docblock-short"><p>FIPS 140-2 support.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="hash/index.html" title="openssl::hash mod">hash</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="md/index.html" title="openssl::md mod">md</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="md_ctx/index.html" title="openssl::md_ctx mod">md_ctx</a></div><div class="item-right docblock-short"><p>The message digest context.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="memcmp/index.html" title="openssl::memcmp mod">memcmp</a></div><div class="item-right docblock-short"><p>Utilities to safely compare cryptographic values.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="nid/index.html" title="openssl::nid mod">nid</a></div><div class="item-right docblock-short"><p>A collection of numerical identifiers for OpenSSL objects.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="ocsp/index.html" title="openssl::ocsp mod">ocsp</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="pkcs5/index.html" title="openssl::pkcs5 mod">pkcs5</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="pkcs7/index.html" title="openssl::pkcs7 mod">pkcs7</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="pkcs12/index.html" title="openssl::pkcs12 mod">pkcs12</a></div><div class="item-right docblock-short"><p>PKCS #12 archives.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="pkey/index.html" title="openssl::pkey mod">pkey</a></div><div class="item-right docblock-short"><p>Public/private key processing.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="pkey_ctx/index.html" title="openssl::pkey_ctx mod">pkey_ctx</a></div><div class="item-right docblock-short"><p>The asymmetric encryption context.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="rand/index.html" title="openssl::rand mod">rand</a></div><div class="item-right docblock-short"><p>Utilities for secure random number generation.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="rsa/index.html" title="openssl::rsa mod">rsa</a></div><div class="item-right docblock-short"><p>Rivest–Shamir–Adleman cryptosystem</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="sha/index.html" title="openssl::sha mod">sha</a></div><div class="item-right docblock-short"><p>The SHA family of hashes.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="sign/index.html" title="openssl::sign mod">sign</a></div><div class="item-right docblock-short"><p>Message signatures.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="srtp/index.html" title="openssl::srtp mod">srtp</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="ssl/index.html" title="openssl::ssl mod">ssl</a></div><div class="item-right docblock-short"><p>SSL/TLS support.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="stack/index.html" title="openssl::stack mod">stack</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="string/index.html" title="openssl::string mod">string</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="symm/index.html" title="openssl::symm mod">symm</a></div><div class="item-right docblock-short"><p>High level interface to certain symmetric ciphers.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="version/index.html" title="openssl::version mod">version</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="x509/index.html" title="openssl::x509 mod">x509</a></div><div class="item-right docblock-short"><p>The standard defining the format of public key certificates.</p>
+</div></div></div><h2 id="functions" class="small-section-header"><a href="#functions">Functions</a></h2><div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.init.html" title="openssl::init fn">init</a></div><div class="item-right docblock-short"></div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="openssl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

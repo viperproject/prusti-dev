@@ -1,0 +1,288 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/futures-util-0.3.21/src/stream/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../futures_util/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../futures_util/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Asynchronous streams.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This module contains:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! - The [`Stream`] trait, for objects that can asynchronously produce a</span>
+<span class="doccomment">//!   sequence of values.</span>
+<span class="doccomment">//! - The [`StreamExt`] and [`TryStreamExt`] trait, which provides adapters for</span>
+<span class="doccomment">//!   chaining and composing streams.</span>
+<span class="doccomment">//! - Top-level stream constructors like [`iter`](iter()) which creates a</span>
+<span class="doccomment">//!   stream from an iterator.</span>
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">futures_core::stream</span>::{<a class="ident" href="../../../futures_util/stream/type.BoxStream.html">BoxStream</a>, <a class="ident" href="../../../futures_util/stream/type.LocalBoxStream.html">LocalBoxStream</a>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">futures_core::stream</span>::{<a class="ident" href="../../../futures_util/stream/trait.FusedStream.html">FusedStream</a>, <a class="ident" href="../../../futures_util/stream/trait.Stream.html">Stream</a>, <a class="ident" href="../../../futures_util/stream/trait.TryStream.html">TryStream</a>};
+
+<span class="comment">// Extension traits and combinators</span>
+
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::module_inception</span>)]</span>
+<span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/stream/mod.rs.html#1-1683">stream</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::stream</span>::{
+    <a class="ident" href="../../../src/futures_util/stream/stream/chain.rs.html#7-17">Chain</a>, <a class="ident" href="../../../src/futures_util/stream/stream/collect.rs.html#9-18">Collect</a>, <a class="ident" href="../../../src/futures_util/stream/stream/concat.rs.html#8-17">Concat</a>, <a class="ident" href="../../../src/futures_util/stream/stream/cycle.rs.html#8-17">Cycle</a>, <a class="ident" href="../../../src/futures_util/stream/stream/enumerate.rs.html#9-18">Enumerate</a>, <a class="ident" href="../../../src/futures_util/stream/stream/filter.rs.html#12-25">Filter</a>, <a class="ident" href="../../../src/futures_util/stream/stream/filter_map.rs.html#12-22">FilterMap</a>, <a class="ident" href="../../../src/futures_util/stream/stream/mod.rs.html#121-126">FlatMap</a>, <a class="ident" href="../../../src/futures_util/stream/stream/mod.rs.html#65-71">Flatten</a>, <a class="ident" href="../../../src/futures_util/stream/stream/fold.rs.html#9-20">Fold</a>, <a class="ident" href="../../../src/futures_util/stream/stream/for_each.rs.html#9-19">ForEach</a>,
+    <a class="ident" href="../../../src/futures_util/stream/stream/fuse.rs.html#9-18">Fuse</a>, <a class="ident" href="../../../src/futures_util/stream/stream/mod.rs.html#110-115">Inspect</a>, <a class="ident" href="../../../src/futures_util/stream/stream/map.rs.html#12-20">Map</a>, <a class="ident" href="../../../src/futures_util/stream/stream/next.rs.html#10">Next</a>, <a class="ident" href="../../../src/futures_util/stream/stream/peek.rs.html#313-319">NextIf</a>, <a class="ident" href="../../../src/futures_util/stream/stream/peek.rs.html#372-379">NextIfEq</a>, <a class="ident" href="../../../src/futures_util/stream/stream/peek.rs.html#229-235">Peek</a>, <a class="ident" href="../../../src/futures_util/stream/stream/peek.rs.html#271-277">PeekMut</a>, <a class="ident" href="../../../src/futures_util/stream/stream/peek.rs.html#14-27">Peekable</a>, <a class="ident" href="../../../src/futures_util/stream/stream/scan.rs.html#16-26">Scan</a>, <a class="ident" href="../../../src/futures_util/stream/stream/select_next_some.rs.html#12">SelectNextSome</a>,
+    <a class="ident" href="../../../src/futures_util/stream/stream/skip.rs.html#9-18">Skip</a>, <a class="ident" href="../../../src/futures_util/stream/stream/skip_while.rs.html#11-23">SkipWhile</a>, <a class="ident" href="../../../src/futures_util/stream/stream/mod.rs.html#249">StreamExt</a>, <a class="ident" href="../../../src/futures_util/stream/stream/into_future.rs.html#11">StreamFuture</a>, <a class="ident" href="../../../src/futures_util/stream/stream/take.rs.html#10-19">Take</a>, <a class="ident" href="../../../src/futures_util/stream/stream/take_until.rs.html#13-28">TakeUntil</a>, <a class="ident" href="../../../src/futures_util/stream/stream/take_while.rs.html#11-23">TakeWhile</a>, <a class="ident" href="../../../src/futures_util/stream/stream/then.rs.html#11-21">Then</a>, <a class="ident" href="../../../src/futures_util/stream/stream/unzip.rs.html#9-19">Unzip</a>, <a class="ident" href="../../../src/futures_util/stream/stream/zip.rs.html#8-20">Zip</a>,
+};
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/futures_util/stream/stream/catch_unwind.rs.html#8-17"><span class="self">self</span>::stream::CatchUnwind</a>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/futures_util/stream/stream/chunks.rs.html#12-22"><span class="self">self</span>::stream::Chunks</a>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/futures_util/stream/stream/ready_chunks.rs.html#11-21"><span class="self">self</span>::stream::ReadyChunks</a>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sink&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sink&quot;</span>)))]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/futures_util/stream/stream/mod.rs.html#89-96"><span class="self">self</span>::stream::Forward</a>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::stream</span>::{<a class="ident" href="../../../src/futures_util/stream/stream/buffer_unordered.rs.html#11-24">BufferUnordered</a>, <a class="ident" href="../../../src/futures_util/stream/stream/buffered.rs.html#12-25">Buffered</a>, <a class="ident" href="../../../src/futures_util/stream/stream/for_each_concurrent.rs.html#10-21">ForEachConcurrent</a>};
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sink&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;sink&quot;</span>)))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::stream</span>::{<a class="ident" href="../../../src/futures_util/stream/stream/split.rs.html#129">ReuniteError</a>, <a class="ident" href="../../../src/futures_util/stream/stream/split.rs.html#47">SplitSink</a>, <a class="ident" href="../../../src/futures_util/stream/stream/split.rs.html#14">SplitStream</a>};
+
+<span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/try_stream/mod.rs.html#1-1069">try_stream</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::try_stream</span>::{
+    <a class="ident" href="../../../src/futures_util/stream/try_stream/try_unfold.rs.html#59-62">try_unfold</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/and_then.rs.html#11-21">AndThen</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/mod.rs.html#28-33">ErrInto</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/mod.rs.html#42-47">InspectErr</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/mod.rs.html#35-40">InspectOk</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/into_stream.rs.html#8-16">IntoStream</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/mod.rs.html#60-65">MapErr</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/mod.rs.html#53-58">MapOk</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/or_else.rs.html#11-21">OrElse</a>,
+    <a class="ident" href="../../../src/futures_util/stream/try_stream/try_collect.rs.html#9-18">TryCollect</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/try_concat.rs.html#8-17">TryConcat</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/try_filter.rs.html#11-25">TryFilter</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/try_filter_map.rs.html#11-22">TryFilterMap</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/try_flatten.rs.html#9-22">TryFlatten</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/try_fold.rs.html#9-20">TryFold</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/try_for_each.rs.html#9-19">TryForEach</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/try_next.rs.html#10">TryNext</a>,
+    <a class="ident" href="../../../src/futures_util/stream/try_stream/try_skip_while.rs.html#11-24">TrySkipWhile</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/mod.rs.html#157">TryStreamExt</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/try_take_while.rs.html#11-27">TryTakeWhile</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/try_unfold.rs.html#67-76">TryUnfold</a>,
+};
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;io&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;io&quot;</span>)))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/futures_util/stream/try_stream/into_async_read.rs.html#14"><span class="self">self</span>::try_stream::IntoAsyncRead</a>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::try_stream</span>::{<a class="ident" href="../../../src/futures_util/stream/try_stream/try_buffer_unordered.rs.html#11-24">TryBufferUnordered</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/try_buffered.rs.html#11-25">TryBuffered</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/try_for_each_concurrent.rs.html#11-23">TryForEachConcurrent</a>};
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::try_stream</span>::{<a class="ident" href="../../../src/futures_util/stream/try_stream/try_chunks.rs.html#13-23">TryChunks</a>, <a class="ident" href="../../../src/futures_util/stream/try_stream/try_chunks.rs.html#116">TryChunksError</a>};
+
+<span class="comment">// Primitive streams</span>
+
+<span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/iter.rs.html#1-49">iter</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::iter</span>::{<a class="ident" href="../../../src/futures_util/stream/iter.rs.html#29-31">iter</a>, <a class="ident" href="../../../src/futures_util/stream/iter.rs.html#9">Iter</a>};
+
+<span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/repeat.rs.html#1-58">repeat</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::repeat</span>::{<a class="ident" href="../../../src/futures_util/stream/repeat.rs.html#27-29">repeat</a>, <a class="ident" href="../../../src/futures_util/stream/repeat.rs.html#9">Repeat</a>};
+
+<span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/repeat_with.rs.html#1-93">repeat_with</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::repeat_with</span>::{<a class="ident" href="../../../src/futures_util/stream/repeat_with.rs.html#91">repeat_with</a>, <a class="ident" href="../../../src/futures_util/stream/repeat_with.rs.html#13">RepeatWith</a>};
+
+<span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/empty.rs.html#1-45">empty</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::empty</span>::{<a class="ident" href="../../../src/futures_util/stream/empty.rs.html#17">empty</a>, <a class="ident" href="../../../src/futures_util/stream/empty.rs.html#10">Empty</a>};
+
+<span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/once.rs.html#1-67">once</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::once</span>::{<a class="ident" href="../../../src/futures_util/stream/once.rs.html#20">once</a>, <a class="ident" href="../../../src/futures_util/stream/once.rs.html#24-32">Once</a>};
+
+<span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/pending.rs.html#1-45">pending</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::pending</span>::{<a class="ident" href="../../../src/futures_util/stream/pending.rs.html#17">pending</a>, <a class="ident" href="../../../src/futures_util/stream/pending.rs.html#10">Pending</a>};
+
+<span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/poll_fn.rs.html#1-57">poll_fn</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::poll_fn</span>::{<a class="ident" href="../../../src/futures_util/stream/poll_fn.rs.html#41-43">poll_fn</a>, <a class="ident" href="../../../src/futures_util/stream/poll_fn.rs.html#11">PollFn</a>};
+
+<span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/poll_immediate.rs.html#1-80">poll_immediate</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::poll_immediate</span>::{<a class="ident" href="../../../src/futures_util/stream/poll_immediate.rs.html#78">poll_immediate</a>, <a class="ident" href="../../../src/futures_util/stream/poll_immediate.rs.html#6-16">PollImmediate</a>};
+
+<span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/select.rs.html#1-117">select</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::select</span>::{<a class="ident" href="../../../src/futures_util/stream/select.rs.html#47-50">select</a>, <a class="ident" href="../../../src/futures_util/stream/select.rs.html#8-16">Select</a>};
+
+<span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#1-229">select_with_strategy</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::select_with_strategy</span>::{<a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#111-120">select_with_strategy</a>, <a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#10">PollNext</a>, <a class="ident" href="../../../src/futures_util/stream/select_with_strategy.rs.html#37-48">SelectWithStrategy</a>};
+
+<span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/unfold.rs.html#1-119">unfold</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::unfold</span>::{<a class="ident" href="../../../src/futures_util/stream/unfold.rs.html#50-53">unfold</a>, <a class="ident" href="../../../src/futures_util/stream/unfold.rs.html#58-66">Unfold</a>};
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#1-220">futures_ordered</a>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/futures_util/stream/futures_ordered.rs.html#95"><span class="self">self</span>::futures_ordered::FuturesOrdered</a>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#1-657">futures_unordered</a>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/futures_util/stream/futures_unordered/mod.rs.html#54"><span class="self">self</span>::futures_unordered::FuturesUnordered</a>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#1-254">select_all</a>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::select_all</span>::{<a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#135-138">select_all</a>, <a class="ident" href="../../../src/futures_util/stream/select_all.rs.html#16-34">SelectAll</a>};
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">mod</span> <a class="ident" href="../../../src/futures_util/stream/abortable.rs.html#1-19">abortable</a>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::abortable</span>::{<a class="ident" href="../../../src/futures_util/abortable.rs.html#83">AbortHandle</a>, <a class="ident" href="../../../src/futures_util/abortable.rs.html#77">AbortRegistration</a>, <a class="ident" href="../../../src/futures_util/abortable.rs.html#11-20">Abortable</a>, <a class="ident" href="../../../src/futures_util/abortable.rs.html#110">Aborted</a>};
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">futures_no_atomic_cas</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/futures_util/stream/abortable.rs.html#12-14">abortable::abortable</a>;
+
+<span class="comment">// Just a helper function to ensure the streams we&#39;re returning all have the</span>
+<span class="comment">// right implementations.</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assert_stream</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">stream</span>: <span class="ident">S</span>) -&gt; <span class="ident">S</span>
+<span class="kw">where</span>
+    <span class="ident">S</span>: <span class="ident">Stream</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
+{
+    <a class="ident" href="../../../src/futures_util/stream/mod.rs.html#138">stream</a>
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="futures_util" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

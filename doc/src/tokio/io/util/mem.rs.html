@@ -1,0 +1,592 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tokio-1.20.1/src/io/util/mem.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mem.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../tokio/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../tokio/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+</pre><pre class="rust"><code><span class="doccomment">//! In-process memory IO types.</span>
+
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::io</span>::{<a class="ident" href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a>, <a class="ident" href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a>, <a class="ident" href="../../../../src/tokio/io/read_buf.rs.html#23">ReadBuf</a>};
+<span class="kw">use</span> <a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#6"><span class="kw">crate</span>::loom::sync::Mutex</a>;
+
+<span class="kw">use</span> <span class="ident">bytes</span>::{<a class="ident" href="../../../../bytes/buf/buf_impl/trait.Buf.html">Buf</a>, <a class="ident" href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>};
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <a class="ident" href="https://doc.rust-lang.org/nightly/core/pin/struct.Pin.html">pin::Pin</a>,
+    <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/sync/struct.Arc.html">sync::Arc</a>,
+    <span class="ident">task</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/std/task/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/poll/enum.Poll.html">Poll</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a>},
+};
+
+<span class="doccomment">/// A bidirectional pipe to read and write bytes in memory.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// A pair of `DuplexStream`s are created together, and they act as a &quot;channel&quot;</span>
+<span class="doccomment">/// that can be used as in-memory IO types. Writing to one of the pairs will</span>
+<span class="doccomment">/// allow that data to be read from the other, and vice versa.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Closing a `DuplexStream`</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// If one end of the `DuplexStream` channel is dropped, any pending reads on</span>
+<span class="doccomment">/// the other side will continue to read data until the buffer is drained, then</span>
+<span class="doccomment">/// they will signal EOF by returning 0 bytes. Any writes to the other side,</span>
+<span class="doccomment">/// including pending ones (that are waiting for free space in the buffer) will</span>
+<span class="doccomment">/// return `Err(BrokenPipe)` immediately.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Example</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// # async fn ex() -&gt; std::io::Result&lt;()&gt; {</span>
+<span class="doccomment">/// # use tokio::io::{AsyncReadExt, AsyncWriteExt};</span>
+<span class="doccomment">/// let (mut client, mut server) = tokio::io::duplex(64);</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// client.write_all(b&quot;ping&quot;).await?;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let mut buf = [0u8; 4];</span>
+<span class="doccomment">/// server.read_exact(&amp;mut buf).await?;</span>
+<span class="doccomment">/// assert_eq!(&amp;buf, b&quot;ping&quot;);</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// server.write_all(b&quot;pong&quot;).await?;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// client.read_exact(&amp;mut buf).await?;</span>
+<span class="doccomment">/// assert_eq!(&amp;buf, b&quot;pong&quot;);</span>
+<span class="doccomment">/// # Ok(())</span>
+<span class="doccomment">/// # }</span>
+<span class="doccomment">/// ```</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;io-util&quot;</span>)))]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DuplexStream</span> {
+    <span class="ident">read</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">write</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Mutex</span><span class="op">&lt;</span><a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a><span class="op">&gt;</span><span class="op">&gt;</span>,
+}
+
+<span class="doccomment">/// A unidirectional IO over a piece of memory.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Data can be written to the pipe, and reading will return that data.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">struct</span> <span class="ident">Pipe</span> {
+    <span class="doccomment">/// The buffer storing the bytes written, also read from.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Using a `BytesMut` because it has efficient `Buf` and `BufMut`</span>
+    <span class="doccomment">/// functionality already. Additionally, it can try to copy data in the</span>
+    <span class="doccomment">/// same buffer if there read index has advanced far enough.</span>
+    <span class="ident">buffer</span>: <a class="ident" href="../../../../bytes/bytes_mut/struct.BytesMut.html">BytesMut</a>,
+    <span class="doccomment">/// Determines if the write side has been closed.</span>
+    <span class="ident">is_closed</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
+    <span class="doccomment">/// The maximum amount of bytes that can be written before returning</span>
+    <span class="doccomment">/// `Poll::Pending`.</span>
+    <span class="ident">max_buf_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>,
+    <span class="doccomment">/// If the `read` side has been polled and is pending, this is the waker</span>
+    <span class="doccomment">/// for that parked task.</span>
+    <span class="ident">read_waker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// If the `write` side has filled the `max_buf_size` and returned</span>
+    <span class="doccomment">/// `Poll::Pending`, this is the waker for that parked task.</span>
+    <span class="ident">write_waker</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/core/task/wake/struct.Waker.html">Waker</a><span class="op">&gt;</span>,
+}
+
+<span class="comment">// ===== impl DuplexStream =====</span>
+
+<span class="doccomment">/// Create a new pair of `DuplexStream`s that act like a pair of connected sockets.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The `max_buf_size` argument is the maximum amount of bytes that can be</span>
+<span class="doccomment">/// written to a side before the write returns `Poll::Pending`.</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">docsrs</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;io-util&quot;</span>)))]</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">duplex</span>(<span class="ident">max_buf_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; (<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a>, <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a>) {
+    <span class="kw">let</span> <span class="ident">one</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="ident">Pipe::new</span>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#85">max_buf_size</a>)));
+    <span class="kw">let</span> <span class="ident">two</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">Mutex::new</span>(<span class="ident">Pipe::new</span>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#85">max_buf_size</a>)));
+
+    (
+        <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a> {
+            <span class="ident">read</span>: <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#86">one</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+            <span class="ident">write</span>: <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#87">two</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>(),
+        },
+        <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a> {
+            <span class="ident">read</span>: <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#87">two</a>,
+            <span class="ident">write</span>: <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#86">one</a>,
+        },
+    )
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a> {
+    <span class="comment">// Previous rustc required this `self` to be `mut`, even though newer</span>
+    <span class="comment">// versions recognize it isn&#39;t needed to call `lock()`. So for</span>
+    <span class="comment">// compatibility, we include the `mut` and `allow` the lint.</span>
+    <span class="comment">//</span>
+    <span class="comment">// See https://github.com/rust-lang/rust/issues/73592</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">poll_read</span>(
+        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
+        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#109">self</a>.<span class="ident">read</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>()).<a class="ident" href="../../../../src/tokio/io/async_read.rs.html#53-57">poll_read</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#110">cx</a>, <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#111">buf</a>)
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a> {
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">poll_write</span>(
+        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
+        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#120">self</a>.<span class="ident">write</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>()).<a class="ident" href="../../../../src/tokio/io/async_write.rs.html#58-62">poll_write</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#121">cx</a>, <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#122">buf</a>)
+    }
+
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">poll_flush</span>(
+        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
+        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#129">self</a>.<span class="ident">write</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>()).<a class="ident" href="../../../../src/tokio/io/async_write.rs.html#73">poll_flush</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#130">cx</a>)
+    }
+
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_mut</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">poll_shutdown</span>(
+        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
+        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">Pin::new</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">*</span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#137">self</a>.<span class="ident">write</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>()).<a class="ident" href="../../../../src/tokio/io/async_write.rs.html#133">poll_shutdown</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#138">cx</a>)
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/ops/drop/trait.Drop.html">Drop</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#49">DuplexStream</a> {
+    <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <span class="comment">// notify the other side of the closure</span>
+        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#145">self</a>.<span class="ident">write</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#165">close_write</a>();
+        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#145">self</a>.<span class="ident">read</span>.<a class="ident" href="../../../../src/tokio/loom/std/mutex.rs.html#16">lock</a>().<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#173">close_read</a>();
+    }
+}
+
+<span class="comment">// ===== impl Pipe =====</span>
+
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">max_buf_size</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a> {
+            <span class="ident">buffer</span>: <span class="ident">BytesMut::new</span>(),
+            <span class="ident">is_closed</span>: <span class="bool-val">false</span>,
+            <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#155">max_buf_size</a>,
+            <span class="ident">read_waker</span>: <span class="prelude-val">None</span>,
+            <span class="ident">write_waker</span>: <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">close_write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#165">self</a>.<span class="ident">is_closed</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <span class="comment">// needs to notify any readers that no more data will come</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#165">self</a>.<span class="ident">read_waker</span>.<span class="ident">take</span>() {
+            <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#168">waker</a>.<span class="ident">wake</span>();
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">close_read</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
+        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#173">self</a>.<span class="ident">is_closed</span> <span class="op">=</span> <span class="bool-val">true</span>;
+        <span class="comment">// needs to notify any writers that they have to abort</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#173">self</a>.<span class="ident">write_waker</span>.<span class="ident">take</span>() {
+            <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#176">waker</a>.<span class="ident">wake</span>();
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">poll_read_internal</span>(
+        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
+        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">buffer</span>.<span class="ident">has_remaining</span>() {
+            <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#182">self</a>.<span class="ident">buffer</span>.<a class="ident" href="../../../../bytes/buf/buf_impl/trait.Buf.html">remaining</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#184">buf</a>.<a class="ident" href="../../../../src/tokio/io/read_buf.rs.html#179">remaining</a>());
+            <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#184">buf</a>.<a class="ident" href="../../../../src/tokio/io/read_buf.rs.html#248">put_slice</a>(<span class="kw-2">&amp;</span><a class="self" href="../../../../src/tokio/io/util/mem.rs.html#182">self</a>.<span class="ident">buffer</span>[..<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#187">max</a>]);
+            <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#182">self</a>.<span class="ident">buffer</span>.<a class="ident" href="../../../../bytes/buf/buf_impl/trait.Buf.html">advance</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#187">max</a>);
+            <span class="kw">if</span> <span class="ident">max</span> <span class="op">&gt;</span> <span class="number">0</span> {
+                <span class="comment">// The passed `buf` might have been empty, don&#39;t wake up if</span>
+                <span class="comment">// no bytes have been moved.</span>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#182">self</a>.<span class="ident">write_waker</span>.<span class="ident">take</span>() {
+                    <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#193">waker</a>.<span class="ident">wake</span>();
+                }
+            }
+            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_closed</span> {
+            <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
+        } <span class="kw">else</span> {
+            <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#182">self</a>.<span class="ident">read_waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#183">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <span class="ident">Poll::Pending</span>
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">poll_write_internal</span>(
+        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
+        <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_closed</span> {
+            <span class="kw">return</span> <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">std::io::ErrorKind::BrokenPipe</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>()));
+        }
+        <span class="kw">let</span> <span class="ident">avail</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#207">self</a>.<span class="ident">max_buf_size</span> <span class="op">-</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#207">self</a>.<span class="ident">buffer</span>.<span class="ident">len</span>();
+        <span class="kw">if</span> <span class="ident">avail</span> <span class="op">==</span> <span class="number">0</span> {
+            <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#207">self</a>.<span class="ident">write_waker</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#208">cx</a>.<span class="ident">waker</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+            <span class="kw">return</span> <span class="ident">Poll::Pending</span>;
+        }
+
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#209">buf</a>.<span class="ident">len</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html">min</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#214">avail</a>);
+        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#207">self</a>.<span class="ident">buffer</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#209">buf</a>[..<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#220">len</a>]);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">waker</span>) <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#207">self</a>.<span class="ident">read_waker</span>.<span class="ident">take</span>() {
+            <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#222">waker</a>.<span class="ident">wake</span>();
+        }
+        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#220">len</a>))
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/io/async_read.rs.html#43">AsyncRead</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a> {
+    <span class="macro">cfg_coop!</span> {
+        <span class="kw">fn</span> <span class="ident">poll_read</span>(
+            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
+            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+            <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="ident"><span class="kw">crate</span>::coop::poll_proceed</span>(<span class="ident">cx</span>));
+
+            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#232">self</a>.<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#181-185">poll_read_internal</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#233">cx</a>, <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#234">buf</a>);
+            <span class="kw">if</span> <span class="ident">ret</span>.<span class="ident">is_ready</span>() {
+                <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#236">coop</a>.<a class="ident" href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
+            }
+            <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#238">ret</a>
+        }
+    }
+
+    <span class="macro">cfg_not_coop!</span> {
+        <span class="kw">fn</span> <span class="ident">poll_read</span>(
+            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
+            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+            <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ReadBuf</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+            <span class="self">self</span>.<span class="ident">poll_read_internal</span>(<span class="ident">cx</span>, <span class="ident">buf</span>)
+        }
+    }
+}
+
+<span class="kw">impl</span> <a class="ident" href="../../../../src/tokio/io/async_write.rs.html#45">AsyncWrite</a> <span class="kw">for</span> <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#58">Pipe</a> {
+    <span class="macro">cfg_coop!</span> {
+        <span class="kw">fn</span> <span class="ident">poll_write</span>(
+            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
+            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+            <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u8.html">u8</a>],
+        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a><span class="op">&gt;</span><span class="op">&gt;</span> {
+            <span class="kw">let</span> <span class="ident">coop</span> <span class="op">=</span> <a class="macro" href="../../../../src/tokio/macros/ready.rs.html#1-8">ready!</a>(<span class="ident"><span class="kw">crate</span>::coop::poll_proceed</span>(<span class="ident">cx</span>));
+
+            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#260">self</a>.<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#206-210">poll_write_internal</a>(<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#261">cx</a>, <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#262">buf</a>);
+            <span class="kw">if</span> <span class="ident">ret</span>.<span class="ident">is_ready</span>() {
+                <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#264">coop</a>.<a class="ident" href="../../../../src/tokio/coop.rs.html#138">made_progress</a>();
+            }
+            <a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#266">ret</a>
+        }
+    }
+
+    <span class="macro">cfg_not_coop!</span> {
+        <span class="kw">fn</span> <span class="ident">poll_write</span>(
+            <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
+            <span class="ident">cx</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+            <span class="ident">buf</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
+        ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+            <span class="self">self</span>.<span class="ident">poll_write_internal</span>(<span class="ident">cx</span>, <span class="ident">buf</span>)
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">poll_flush</span>(<span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
+    }
+
+    <span class="kw">fn</span> <span class="ident">poll_shutdown</span>(
+        <span class="kw-2">mut</span> <span class="self">self</span>: <span class="ident">Pin</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="self">Self</span><span class="op">&gt;</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">task::Context</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">std::io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span><span class="op">&gt;</span> {
+        <a class="self" href="../../../../src/tokio/io/util/mem.rs.html#289">self</a>.<a class="ident" href="../../../../src/tokio/io/util/mem.rs.html#165">close_write</a>();
+        <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(()))
+    }
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="tokio" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

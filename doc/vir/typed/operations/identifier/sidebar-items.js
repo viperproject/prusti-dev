@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["compute_function_identifier",""]],"mod":[["common",""],["expression",""],["function",""],["predicate",""],["rvalue",""]]};

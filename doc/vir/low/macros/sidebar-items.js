@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":[["expr",""],["exprp","An expression with position"],["function",""],["method",""],["method_name",""],["predicate",""],["predicate_name",""],["stmt",""],["stmtp","A statement with position"],["stmts",""],["ty",""],["var",""],["var_decls",""],["vars",""]]};

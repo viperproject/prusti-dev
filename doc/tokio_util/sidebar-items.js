@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["codec","Adaptors from AsyncRead/AsyncWrite to Stream/Sink"],["either","Module defining an Either type."],["sync","Synchronization primitives"]]};

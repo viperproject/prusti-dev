@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["LocalSet","A set of MIR places."]]};

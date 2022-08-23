@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"macro":[["chain_result","Chain a series of results together, with or without previous results."]],"mod":[["server","The server-side abstraction for multipart requests. Enabled with the `server` feature."]]};

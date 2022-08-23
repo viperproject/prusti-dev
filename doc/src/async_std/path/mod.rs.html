@@ -1,0 +1,178 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/async-std-1.12.0/src/path/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container"><img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../async_std/index.html"><div class="logo-container">
+                    <img src="https://async.rs/images/logo--hero.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../async_std/index.html">
+                        <img src="https://async.rs/images/logo--hero.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Cross-platform path manipulation.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This module is an async version of [`std::path`].</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This module provides two types, [`PathBuf`] and [`Path`][`Path`] (akin to [`String`]</span>
+<span class="doccomment">//! and [`str`]), for working with paths abstractly. These types are thin wrappers</span>
+<span class="doccomment">//! around [`OsString`] and [`OsStr`] respectively, meaning that they work directly</span>
+<span class="doccomment">//! on strings according to the local platform&#39;s path syntax.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Paths can be parsed into [`Component`]s by iterating over the structure</span>
+<span class="doccomment">//! returned by the [`components`] method on [`Path`]. [`Component`]s roughly</span>
+<span class="doccomment">//! correspond to the substrings between path separators (`/` or `\`). You can</span>
+<span class="doccomment">//! reconstruct an equivalent path from components with the [`push`] method on</span>
+<span class="doccomment">//! [`PathBuf`]; note that the paths may differ syntactically by the</span>
+<span class="doccomment">//! normalization described in the documentation for the [`components`] method.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [`std::path`]: https://doc.rust-lang.org/std/path/index.html</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Simple usage</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Path manipulation includes both parsing components from slices and building</span>
+<span class="doccomment">//! new owned paths.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! To parse a path, you can create a [`Path`] slice from a [`str`]</span>
+<span class="doccomment">//! slice and start asking questions:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//! use async_std::path::Path;</span>
+<span class="doccomment">//! use std::ffi::OsStr;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! let path = Path::new(&quot;/tmp/foo/bar.txt&quot;);</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! let parent = path.parent();</span>
+<span class="doccomment">//! assert_eq!(parent, Some(Path::new(&quot;/tmp/foo&quot;)));</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! let file_stem = path.file_stem();</span>
+<span class="doccomment">//! assert_eq!(file_stem, Some(OsStr::new(&quot;bar&quot;)));</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! let extension = path.extension();</span>
+<span class="doccomment">//! assert_eq!(extension, Some(OsStr::new(&quot;txt&quot;)));</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! To build or modify paths, use [`PathBuf`]:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//! use async_std::path::PathBuf;</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! // This way works...</span>
+<span class="doccomment">//! let mut path = PathBuf::from(&quot;c:\\&quot;);</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! path.push(&quot;windows&quot;);</span>
+<span class="doccomment">//! path.push(&quot;system32&quot;);</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! path.set_extension(&quot;dll&quot;);</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! // ... but push is best used if you don&#39;t know everything up</span>
+<span class="doccomment">//! // front. If you do, this way is better:</span>
+<span class="doccomment">//! let path: PathBuf = [&quot;c:\\&quot;, &quot;windows&quot;, &quot;system32.dll&quot;].iter().collect();</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [`Component`]: enum.Component.html</span>
+<span class="doccomment">//! [`components`]: struct.Path.html#method.components</span>
+<span class="doccomment">//! [`PathBuf`]: struct.PathBuf.html</span>
+<span class="doccomment">//! [`Path`]: struct.Path.html</span>
+<span class="doccomment">//! [`push`]: struct.PathBuf.html#method.push</span>
+<span class="doccomment">//! [`String`]: https://doc.rust-lang.org/std/string/struct.String.html</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [`str`]: https://doc.rust-lang.org/std/primitive.str.html</span>
+<span class="doccomment">//! [`OsString`]: https://doc.rust-lang.org/std/ffi/struct.OsString.html</span>
+<span class="doccomment">//! [`OsStr`]: https://doc.rust-lang.org/std/ffi/struct.OsStr.html</span>
+
+<span class="kw">mod</span> <a class="ident" href="../../../src/async_std/path/ancestors.rs.html#1-39">ancestors</a>;
+<span class="kw">mod</span> <a class="ident" href="../../../src/async_std/path/components.rs.html#1-82">components</a>;
+<span class="kw">mod</span> <a class="ident" href="../../../src/async_std/path/iter.rs.html#1-82">iter</a>;
+<span class="kw">mod</span> <a class="ident" href="../../../src/async_std/path/path.rs.html#1-1041">path</a>;
+<span class="kw">mod</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#1-377">pathbuf</a>;
+
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">std::path</span>::{
+    <a class="ident" href="../../../async_std/path/fn.is_separator.html">is_separator</a>, <a class="ident" href="../../../async_std/path/enum.Component.html">Component</a>, <a class="ident" href="../../../async_std/path/struct.Display.html">Display</a>, <a class="ident" href="../../../async_std/path/enum.Prefix.html">Prefix</a>, <a class="ident" href="../../../async_std/path/struct.PrefixComponent.html">PrefixComponent</a>, <a class="ident" href="../../../async_std/path/struct.StripPrefixError.html">StripPrefixError</a>, <a class="ident" href="../../../async_std/path/constant.MAIN_SEPARATOR.html">MAIN_SEPARATOR</a>,
+};
+
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/path/ancestors.rs.html#25">ancestors::Ancestors</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/path/components.rs.html#27">components::Components</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/path/iter.rs.html#17">iter::Iter</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/path/path.rs.html#49">path::Path</a>;
+<span class="kw">pub</span> <span class="kw">use</span> <a class="ident" href="../../../src/async_std/path/pathbuf.rs.html#21">pathbuf::PathBuf</a>;
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="async_std" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

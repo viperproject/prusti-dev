@@ -1,0 +1,180 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/errors/position_manager.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>position_manager.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../prusti_viper/index.html"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
+<span class="comment">//</span>
+<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
+<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
+<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+
+<span class="kw">use</span> <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">vir_crate::polymorphic::Position</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../rustc_hash/type.FxHashMap.html">rustc_hash::FxHashMap</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/source_map/struct.SourceMap.html">prusti_rustc_interface::span::source_map::SourceMap</a>;
+<span class="kw">use</span> <span class="ident">prusti_rustc_interface::errors::MultiSpan</span>;
+<span class="kw">use</span> <span class="ident">log</span>::{<a class="ident" href="../../../../log/macro.debug.html">debug</a>, <a class="ident" href="../../../../log/macro.trace.html">trace</a>};
+<span class="kw">use</span> <a class="ident" href="../../../../prusti_interface/data/type.ProcedureDefId.html">prusti_interface::data::ProcedureDefId</a>;
+
+<span class="doccomment">/// Mapping from VIR positions to the source code that generated them.</span>
+<span class="doccomment">/// One VIR position can be involved in multiple errors. If an error needs to refer to a special</span>
+<span class="doccomment">/// span, that should be done by adding the span to `ErrorCtxt`, not by registering a new span.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PositionManager</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+    <span class="ident">codemap</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/source_map/struct.SourceMap.html">SourceMap</a>,
+    <span class="ident">next_pos_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>,
+    <span class="doccomment">/// The def_id of the procedure that generated the given VIR position.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">def_id</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <a class="ident" href="../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a><span class="op">&gt;</span>,
+    <span class="doccomment">/// The span of the source code that generated the given VIR position.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">source_span</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u64.html">u64</a>, <span class="ident">MultiSpan</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">PositionManager</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>
+{
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">codemap</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;tcx</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/source_map/struct.SourceMap.html">SourceMap</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#18">PositionManager</a> {
+            <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#29">codemap</a>,
+            <span class="ident">next_pos_id</span>: <span class="number">1</span>,
+            <span class="ident">def_id</span>: <span class="ident">FxHashMap::default</span>(),
+            <span class="ident">source_span</span>: <span class="ident">FxHashMap::default</span>(),
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_span</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">MultiSpan</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">def_id</span>: <a class="ident" href="../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a>, <span class="ident">span</span>: <span class="ident">T</span>) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
+        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#38">span</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/convert/trait.Into.html">into</a>();
+        <span class="kw">let</span> <span class="ident">pos_id</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#38">self</a>.<span class="ident">next_pos_id</span>;
+        <a class="self" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#38">self</a>.<span class="ident">next_pos_id</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <a class="macro" href="../../../../log/macro.trace.html">trace!</a>(<span class="string">&quot;Register position id {} for span {:?} in {:?}, &quot;</span>, <span class="ident">pos_id</span>, <span class="ident">span</span>, <span class="ident">def_id</span>);
+
+        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">primary_span</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#39">span</a>.<span class="ident">primary_span</span>() {
+            <span class="kw">let</span> <span class="ident">lines_info_res</span> <span class="op">=</span> <a class="self" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#38">self</a>
+                .<span class="ident">codemap</span>
+                .<span class="ident">span_to_lines</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#44">primary_span</a>.<span class="ident">source_callsite</span>());
+            <span class="kw">match</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#45">lines_info_res</a> {
+                <span class="prelude-val">Ok</span>(<span class="ident">lines_info</span>) =&gt; {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first_line_info</span>) <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#49">lines_info</a>.<span class="ident">lines</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+                        <span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#50">first_line_info</a>.<span class="ident">line_index</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> <span class="op">+</span> <span class="number">1</span>;
+                        <span class="kw">let</span> <span class="ident">column</span> <span class="op">=</span> <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#50">first_line_info</a>.<span class="ident">start_col</span>.<span class="number">0</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.i32.html">i32</a> <span class="op">+</span> <span class="number">1</span>;
+                        <span class="ident">Position::new</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#51">line</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#52">column</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#40">pos_id</a>)
+                    } <span class="kw">else</span> {
+                        <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Primary span of position id {} has no lines&quot;</span>, <span class="ident">pos_id</span>);
+                        <span class="ident">Position::new</span>(<span class="number">0</span>, <span class="number">0</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#40">pos_id</a>)
+                    }
+                }
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
+                    <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Error converting primary span of position id {} to lines: {:?}&quot;</span>, <span class="ident">pos_id</span>, <span class="ident">e</span>);
+                    <span class="ident">Position::new</span>(<span class="number">0</span>, <span class="number">0</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#40">pos_id</a>)
+                }
+            }
+        } <span class="kw">else</span> {
+            <a class="macro" href="../../../../log/macro.debug.html">debug!</a>(<span class="string">&quot;Position id {} has no primary span&quot;</span>, <span class="ident">pos_id</span>);
+            <span class="ident">Position::new</span>(<span class="number">0</span>, <span class="number">0</span>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#40">pos_id</a>)
+        };
+
+        <a class="self" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#38">self</a>.<span class="ident">def_id</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#40">pos_id</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#38">def_id</a>);
+        <a class="self" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#38">self</a>.<span class="ident">source_span</span>.<span class="ident">insert</span>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#40">pos_id</a>, <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#39">span</a>);
+        <a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#44">pos</a>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">duplicate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">pos</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>) -&gt; <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a> {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(<span class="op">!</span><span class="ident">pos</span>.<span class="ident">is_default</span>());
+        <a class="self" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#74">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#38">register_span</a>(
+            <a class="self" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#74">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#82">get_def_id</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#74">pos</a>).<span class="ident">unwrap</span>(),
+            <a class="self" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#74">self</a>.<a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#86">get_span</a>(<a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#74">pos</a>).<span class="ident">cloned</span>().<span class="ident">unwrap</span>(),
+        )
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_def_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="../../../../prusti_interface/data/type.ProcedureDefId.html">ProcedureDefId</a><span class="op">&gt;</span> {
+        <a class="self" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#82">self</a>.<span class="ident">def_id</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#82">pos</a>.<span class="ident">id</span>()).<span class="ident">copied</span>()
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_span</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">pos</span>: <a class="ident" href="../../../../vir/gen/polymorphic/ast/common/struct.Position.html">Position</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">MultiSpan</span><span class="op">&gt;</span> {
+        <a class="self" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#86">self</a>.<span class="ident">source_span</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../src/prusti_viper/encoder/errors/position_manager.rs.html#86">pos</a>.<span class="ident">id</span>())
+    }
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

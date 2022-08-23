@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["SpecIdRef","A reference to a procedure specification."],["SpecType","A specification type."],["TryFromStringError","A conversion from string into specification type error."]],"struct":[["SpecificationId","A unique ID of the specification element such as entire precondition or postcondition."]]};

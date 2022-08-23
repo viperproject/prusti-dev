@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["as_list","Visit this source as a list."],["as_map","Visit this source as a map."]],"struct":[["AsList","The result of calling `Source::as_list`"],["AsMap","The result of calling `Source::as_map`."]],"trait":[["Source","A source of key-value pairs."],["Visitor","A visitor for the key-value pairs in a `Source`."]]};

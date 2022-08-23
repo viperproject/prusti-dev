@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["log","This module defines functions for log messages, meant for developers"],["user","This module defines functions for user output: the nice, clean, readable, polished output"]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Mode","Stream mode, either plain TCP or TLS."],["Stream","Stream, either plain TCP or TLS."]],"trait":[["NoDelay","Trait to switch TCP_NODELAY."]]};

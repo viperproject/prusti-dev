@@ -1,0 +1,408 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-server/src/process_verification.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>process_verification.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../prusti_server/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../prusti_server/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../prusti_server/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+</pre><pre class="rust"><code><span class="comment">// © 2021, ETH Zurich</span>
+<span class="comment">//</span>
+<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
+<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
+<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../src/prusti_server/verification_request.rs.html#15">VerificationRequest</a>, <a class="ident" href="../../src/prusti_server/verification_request.rs.html#32">ViperBackendConfig</a>};
+<span class="kw">use</span> <a class="ident" href="../../log/macro.info.html">log::info</a>;
+<span class="kw">use</span> <span class="ident">prusti_common</span>::{
+    <a class="ident" href="../../prusti_common/config/index.html">config</a>,
+    <span class="ident">report::log</span>::{<a class="ident" href="../../prusti_common/report/log/fn.report.html">report</a>, <a class="ident" href="../../prusti_common/report/log/fn.to_legal_file_name.html">to_legal_file_name</a>},
+    <a class="ident" href="../../prusti_common/vir/low_to_viper/trait.ToViper.html">vir::ToViper</a>,
+    <a class="ident" href="../../prusti_common/stopwatch/struct.Stopwatch.html">Stopwatch</a>,
+};
+<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/fn.create_dir_all.html">fs::create_dir_all</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">path::PathBuf</a>};
+<span class="kw">use</span> <span class="ident">viper</span>::{
+    <a class="ident" href="../../viper/smt_manager/struct.SmtManager.html">smt_manager::SmtManager</a>, <a class="ident" href="../../viper/cache/trait.Cache.html">Cache</a>, <a class="ident" href="../../viper/verification_backend/enum.VerificationBackend.html">VerificationBackend</a>, <a class="ident" href="../../viper/verification_context/struct.VerificationContext.html">VerificationContext</a>, <a class="ident" href="../../viper/verification_result/enum.VerificationResult.html">VerificationResult</a>,
+};
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">process_verification_request</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;t</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span>(
+    <span class="ident">verification_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v</span> <span class="ident">VerificationContext</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span>,
+    <span class="ident">request</span>: <a class="ident" href="../../src/prusti_server/verification_request.rs.html#15">VerificationRequest</a>,
+    <span class="ident">cache</span>: <span class="kw">impl</span> <a class="ident" href="../../viper/cache/trait.Cache.html">Cache</a>,
+) -&gt; <a class="ident" href="../../viper/verification_result/enum.VerificationResult.html">viper::VerificationResult</a> {
+    <span class="kw">let</span> <span class="ident">ast_utils</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/process_verification.rs.html#21">verification_context</a>.<span class="ident">new_ast_utils</span>();
+
+    <span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/process_verification.rs.html#22">request</a>.<a class="ident" href="../../src/prusti_server/verification_request.rs.html#21">get_hash</a>();
+    <a class="macro" href="../../log/macro.info.html">info!</a>(
+        <span class="string">&quot;Verification request hash: {} - for program {}&quot;</span>,
+        <span class="ident">hash</span>,
+        <span class="ident">request</span>.<span class="ident">program</span>.<span class="ident">get_name</span>()
+    );
+
+    <span class="kw">let</span> <span class="ident">build_or_dump_viper_program</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch::start</span>(<span class="string">&quot;prusti-server&quot;</span>, <span class="string">&quot;construction of JVM objects&quot;</span>);
+        <span class="kw">let</span> <span class="ident">ast_factory</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/process_verification.rs.html#21">verification_context</a>.<span class="ident">new_ast_factory</span>();
+        <span class="kw">let</span> <span class="ident">viper_program</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/process_verification.rs.html#22">request</a>
+            .<span class="ident">program</span>
+            .<a class="ident" href="../../prusti_common/vir/low_to_viper/trait.ToViper.html">to_viper</a>(<span class="ident">prusti_common::vir::LoweringContext::default</span>(), <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_server/process_verification.rs.html#36">ast_factory</a>);
+
+        <span class="kw">if</span> <span class="ident">config::dump_viper_program</span>() {
+            <a class="ident" href="../../src/prusti_server/process_verification.rs.html#35">stopwatch</a>.<span class="ident">start_next</span>(<span class="string">&quot;dumping viper program&quot;</span>);
+            <a class="ident" href="../../src/prusti_server/process_verification.rs.html#116">dump_viper_program</a>(
+                <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_server/process_verification.rs.html#25">ast_utils</a>,
+                <a class="ident" href="../../src/prusti_server/process_verification.rs.html#37">viper_program</a>,
+                <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_server/process_verification.rs.html#22">request</a>.<span class="ident">program</span>.<span class="ident">get_name_with_check_mode</span>(),
+            );
+        }
+
+        <a class="ident" href="../../src/prusti_server/process_verification.rs.html#37">viper_program</a>
+    };
+
+    <span class="comment">// Print the hash and skip verification. Used for testing.</span>
+    <span class="kw">if</span> <span class="ident">config::print_hash</span>() {
+        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.println.html">println!</a>(
+            <span class="string">&quot;Received verification request for: {}&quot;</span>,
+            <span class="ident">request</span>.<span class="ident">program</span>.<span class="ident">get_name</span>()
+        );
+        <a class="macro" href="https://doc.rust-lang.org/nightly/std/macro.println.html">println!</a>(<span class="string">&quot;Hash of the request is: {}&quot;</span>, <span class="ident">hash</span>);
+        <span class="comment">// Some tests need the dump to report a diff of the Viper programs.</span>
+        <span class="kw">if</span> <span class="ident">config::dump_viper_program</span>() {
+            <a class="ident" href="../../src/prusti_server/process_verification.rs.html#25">ast_utils</a>.<span class="ident">with_local_frame</span>(<span class="number">16</span>, <span class="op">|</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/process_verification.rs.html#34">build_or_dump_viper_program</a>();
+            });
+        }
+        <span class="kw">return</span> <span class="ident">viper::VerificationResult::Success</span>;
+    }
+
+    <span class="comment">// Early return in case of cache hit</span>
+    <span class="kw">if</span> <span class="ident">config::enable_cache</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_server/process_verification.rs.html#23">cache</a>.<a class="ident" href="../../viper/cache/trait.Cache.html">get</a>(<a class="ident" href="../../src/prusti_server/process_verification.rs.html#27">hash</a>) {
+            <span class="kw">if</span> <span class="ident">result</span> <span class="op">!</span><span class="op">=</span> <span class="ident">VerificationResult::Success</span> {
+                <a class="macro" href="../../log/macro.info.html">info!</a>(
+                    <span class="string">&quot;cached result {:?} for program {}&quot;</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">result</span>,
+                    <span class="ident">request</span>.<span class="ident">program</span>.<span class="ident">get_name</span>()
+                );
+            }
+            <span class="kw">if</span> <span class="ident">config::dump_viper_program</span>() {
+                <a class="ident" href="../../src/prusti_server/process_verification.rs.html#25">ast_utils</a>.<span class="ident">with_local_frame</span>(<span class="number">16</span>, <span class="op">|</span><span class="op">|</span> {
+                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/process_verification.rs.html#34">build_or_dump_viper_program</a>();
+                });
+            }
+            <span class="kw">return</span> <a class="ident" href="../../src/prusti_server/process_verification.rs.html#71">result</a>;
+        }
+    };
+
+    <a class="ident" href="../../src/prusti_server/process_verification.rs.html#25">ast_utils</a>.<span class="ident">with_local_frame</span>(<span class="number">16</span>, <span class="op">|</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">viper_program</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/process_verification.rs.html#34">build_or_dump_viper_program</a>();
+        <span class="kw">let</span> <span class="ident">program_name</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/process_verification.rs.html#22">request</a>.<span class="ident">program</span>.<span class="ident">get_name</span>();
+
+        <span class="comment">// Create a new verifier each time.</span>
+        <span class="comment">// Workaround for https://github.com/viperproject/prusti-dev/issues/744</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch::start</span>(<span class="string">&quot;prusti-server&quot;</span>, <span class="string">&quot;verifier startup&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">verifier</span> <span class="op">=</span>
+            <a class="ident" href="../../src/prusti_server/process_verification.rs.html#123-127">new_viper_verifier</a>(<a class="ident" href="../../src/prusti_server/process_verification.rs.html#90">program_name</a>, <a class="ident" href="../../src/prusti_server/process_verification.rs.html#21">verification_context</a>, <a class="ident" href="../../src/prusti_server/process_verification.rs.html#22">request</a>.<span class="ident">backend_config</span>);
+
+        <a class="ident" href="../../src/prusti_server/process_verification.rs.html#94">stopwatch</a>.<span class="ident">start_next</span>(<span class="string">&quot;verification&quot;</span>);
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/process_verification.rs.html#95">verifier</a>.<span class="ident">verify</span>(<a class="ident" href="../../src/prusti_server/process_verification.rs.html#89">viper_program</a>);
+
+        <span class="kw">if</span> <span class="ident">config::enable_cache</span>() {
+            <span class="kw">if</span> <span class="ident">result</span> <span class="op">!</span><span class="op">=</span> <span class="ident">VerificationResult::Success</span> {
+                <a class="macro" href="../../log/macro.info.html">info!</a>(
+                    <span class="string">&quot;storing new cached result {:?} for program {}&quot;</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">result</span>,
+                    <span class="ident">request</span>.<span class="ident">program</span>.<span class="ident">get_name</span>()
+                );
+            }
+            <a class="ident" href="../../src/prusti_server/process_verification.rs.html#23">cache</a>.<a class="ident" href="../../viper/cache/trait.Cache.html">insert</a>(<a class="ident" href="../../src/prusti_server/process_verification.rs.html#27">hash</a>, <a class="ident" href="../../src/prusti_server/process_verification.rs.html#99">result</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/clone/trait.Clone.html">clone</a>());
+        }
+
+        <a class="ident" href="../../src/prusti_server/process_verification.rs.html#99">result</a>
+    })
+}
+
+<span class="kw">fn</span> <span class="ident">dump_viper_program</span>(<span class="ident">ast_utils</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../viper/ast_utils/struct.AstUtils.html">viper::AstUtils</a>, <span class="ident">program</span>: <a class="ident" href="../../viper/ast_factory/structs/struct.Program.html">viper::Program</a>, <span class="ident">program_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) {
+    <span class="kw">let</span> <span class="ident">namespace</span> <span class="op">=</span> <span class="string">&quot;viper_program&quot;</span>;
+    <span class="kw">let</span> <span class="ident">filename</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;{}.vpr&quot;</span>, <span class="ident">program_name</span>);
+    <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Dumping Viper program to &#39;{}/{}&#39;&quot;</span>, <span class="ident">namespace</span>, <span class="ident">filename</span>);
+    <a class="ident" href="../../prusti_common/report/log/fn.report.html">report</a>(<a class="ident" href="../../src/prusti_server/process_verification.rs.html#117">namespace</a>, <a class="ident" href="../../src/prusti_server/process_verification.rs.html#118">filename</a>, <a class="ident" href="../../src/prusti_server/process_verification.rs.html#116">ast_utils</a>.<span class="ident">pretty_print</span>(<a class="ident" href="../../src/prusti_server/process_verification.rs.html#116">program</a>));
+}
+
+<span class="kw">fn</span> <span class="ident">new_viper_verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span>, <span class="lifetime">&#39;t</span>: <span class="lifetime">&#39;v</span><span class="op">&gt;</span>(
+    <span class="ident">program_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>,
+    <span class="ident">verification_context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;v</span> <span class="ident">viper::VerificationContext</span><span class="op">&lt;</span><span class="lifetime">&#39;t</span><span class="op">&gt;</span>,
+    <span class="ident">backend_config</span>: <a class="ident" href="../../src/prusti_server/verification_request.rs.html#32">ViperBackendConfig</a>,
+) -&gt; <span class="ident">viper::Verifier</span><span class="op">&lt;</span><span class="lifetime">&#39;v</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">verifier_args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/process_verification.rs.html#126">backend_config</a>.<span class="ident">verifier_args</span>;
+    <span class="kw">let</span> <span class="ident">report_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/path/struct.PathBuf.html">PathBuf</a><span class="op">&gt;</span>;
+    <span class="kw">if</span> <span class="ident">config::dump_debug_info</span>() {
+        <span class="kw">let</span> <span class="ident">log_path</span> <span class="op">=</span> <span class="ident">config::log_dir</span>()
+            .<span class="ident">join</span>(<span class="string">&quot;viper_tmp&quot;</span>)
+            .<span class="ident">join</span>(<a class="ident" href="../../prusti_common/report/log/fn.to_legal_file_name.html">to_legal_file_name</a>(<a class="ident" href="../../src/prusti_server/process_verification.rs.html#124">program_name</a>));
+        <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/fn.create_dir_all.html">create_dir_all</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_server/process_verification.rs.html#131">log_path</a>).<span class="ident">unwrap</span>();
+        <a class="ident" href="../../src/prusti_server/process_verification.rs.html#129">report_path</a> <span class="op">=</span> <span class="prelude-val">Some</span>(<a class="ident" href="../../src/prusti_server/process_verification.rs.html#131">log_path</a>.<span class="ident">join</span>(<span class="string">&quot;report.csv&quot;</span>));
+        <span class="kw">let</span> <span class="ident">log_dir_str</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_server/process_verification.rs.html#131">log_path</a>.<span class="ident">to_str</span>().<span class="ident">unwrap</span>();
+        <span class="kw">match</span> <a class="ident" href="../../src/prusti_server/process_verification.rs.html#126">backend_config</a>.<span class="ident">backend</span> {
+            <span class="ident">VerificationBackend::Silicon</span> =&gt; {
+                <a class="ident" href="../../src/prusti_server/process_verification.rs.html#128">verifier_args</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
+                    <span class="string">&quot;--tempDirectory&quot;</span>.<span class="ident">to_string</span>(),
+                    <span class="ident">log_dir_str</span>.<span class="ident">to_string</span>(),
+                    <span class="string">&quot;--printMethodCFGs&quot;</span>.<span class="ident">to_string</span>(),
+                    <span class="comment">//&quot;--printTranslatedProgram&quot;.to_string(),</span>
+                ])
+            }
+            <span class="ident">VerificationBackend::Carbon</span> =&gt; <a class="ident" href="../../src/prusti_server/process_verification.rs.html#128">verifier_args</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
+                <span class="string">&quot;--boogieOpt&quot;</span>.<span class="ident">to_string</span>(),
+                <span class="macro">format!</span>(<span class="string">&quot;/logPrefix {}&quot;</span>, <span class="ident">log_dir_str</span>),
+                <span class="comment">//&quot;--print&quot;.to_string(), &quot;./log/boogie_program/program.bpl&quot;.to_string(),</span>
+            ]),
+        }
+    } <span class="kw">else</span> {
+        <a class="ident" href="../../src/prusti_server/process_verification.rs.html#129">report_path</a> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="kw">if</span> <span class="ident">backend_config</span>.<span class="ident">backend</span> <span class="op">==</span> <span class="ident">VerificationBackend::Silicon</span> {
+            <a class="ident" href="../../src/prusti_server/process_verification.rs.html#128">verifier_args</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/collect/trait.Extend.html">extend</a>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[<span class="string">&quot;--disableTempDirectory&quot;</span>.<span class="ident">to_string</span>()]);
+        }
+    }
+    <span class="kw">let</span> (<span class="ident">smt_solver</span>, <span class="ident">smt_manager</span>) <span class="op">=</span> <span class="kw">if</span> <span class="ident">config::use_smt_wrapper</span>() {
+        <span class="ident">std::env::set_var</span>(<span class="string">&quot;PRUSTI_ORIGINAL_SMT_SOLVER_PATH&quot;</span>, <span class="ident">config::smt_solver_path</span>());
+        <span class="kw">let</span> <span class="ident">log_path</span> <span class="op">=</span> <span class="ident">config::log_dir</span>()
+            .<span class="ident">join</span>(<span class="string">&quot;smt&quot;</span>)
+            .<span class="ident">join</span>(<a class="ident" href="../../prusti_common/report/log/fn.to_legal_file_name.html">to_legal_file_name</a>(<a class="ident" href="../../src/prusti_server/process_verification.rs.html#124">program_name</a>));
+        <a class="ident" href="https://doc.rust-lang.org/nightly/std/fs/fn.create_dir_all.html">create_dir_all</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_server/process_verification.rs.html#160">log_path</a>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">smt_manager</span> <span class="op">=</span> <span class="ident">SmtManager::new</span>(
+            <a class="ident" href="../../src/prusti_server/process_verification.rs.html#160">log_path</a>,
+            <span class="ident">config::preserve_smt_trace_files</span>(),
+            <span class="ident">config::write_smt_statistics</span>(),
+            <span class="ident">config::smt_quantifier_instantiations_ignore_builtin</span>(),
+            <span class="ident">config::smt_quantifier_instantiations_bound_global_kind</span>(),
+            <span class="ident">config::smt_quantifier_instantiations_bound_trace</span>(),
+            <span class="ident">config::smt_quantifier_instantiations_bound_trace_kind</span>(),
+            <span class="ident">config::smt_unique_triggers_bound</span>(),
+            <span class="ident">config::smt_unique_triggers_bound_total</span>(),
+        );
+        <span class="ident">std::env::set_var</span>(
+            <span class="string">&quot;PRUSTI_SMT_SOLVER_MANAGER_PORT&quot;</span>,
+            <a class="ident" href="../../src/prusti_server/process_verification.rs.html#164">smt_manager</a>.<span class="ident">port</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+        );
+        <span class="kw">if</span> <span class="ident">config::log_smt_wrapper_interaction</span>() {
+            <span class="ident">std::env::set_var</span>(<span class="string">&quot;PRUSTI_LOG_SMT_INTERACTION&quot;</span>, <span class="string">&quot;true&quot;</span>);
+        }
+        (<span class="ident">config::smt_solver_wrapper_path</span>(), <a class="ident" href="../../src/prusti_server/process_verification.rs.html#164">smt_manager</a>)
+    } <span class="kw">else</span> {
+        (<span class="ident">config::smt_solver_path</span>(), <span class="ident">SmtManager::default</span>())
+    };
+    <span class="kw">let</span> <span class="ident">boogie_path</span> <span class="op">=</span> <span class="ident">config::boogie_path</span>();
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bound</span>) <span class="op">=</span> <span class="ident">config::smt_quantifier_instantiations_bound_global</span>() {
+        <span class="comment">// We need to set the environment variable to reach our Z3 wrapper.</span>
+        <span class="ident">std::env::set_var</span>(
+            <span class="string">&quot;PRUSTI_SMT_QUANTIFIER_INSTANTIATIONS_BOUND_GLOBAL&quot;</span>,
+            <a class="ident" href="../../src/prusti_server/process_verification.rs.html#187">bound</a>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>(),
+        );
+    }
+
+    <a class="ident" href="../../src/prusti_server/process_verification.rs.html#125">verification_context</a>.<span class="ident">new_verifier</span>(
+        <a class="ident" href="../../src/prusti_server/process_verification.rs.html#126">backend_config</a>.<span class="ident">backend</span>,
+        <a class="ident" href="../../src/prusti_server/process_verification.rs.html#128">verifier_args</a>,
+        <a class="ident" href="../../src/prusti_server/process_verification.rs.html#129">report_path</a>,
+        <a class="ident" href="../../src/prusti_server/process_verification.rs.html#158">smt_solver</a>,
+        <a class="ident" href="../../src/prusti_server/process_verification.rs.html#186">boogie_path</a>,
+        <a class="ident" href="../../src/prusti_server/process_verification.rs.html#158">smt_manager</a>,
+    )
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_server" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

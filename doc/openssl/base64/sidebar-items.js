@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["decode_block","Decodes a base64-encoded string to bytes."],["encode_block","Encodes a slice of bytes to a base64 string."]]};

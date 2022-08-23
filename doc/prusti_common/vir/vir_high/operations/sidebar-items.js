@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["constants",""],["expression",""],["function",""],["graphviz",""],["helpers",""],["identifier",""],["lifetimes",""],["position",""],["predicate",""],["procedure",""],["rvalue",""],["special_variables",""],["statement",""],["successor",""],["ty",""],["type_decl",""]]};

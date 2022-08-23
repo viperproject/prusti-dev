@@ -1,0 +1,282 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `prusti-viper/src/encoder/places.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>places.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../prusti_viper/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../prusti_viper/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
+<span class="comment">//</span>
+<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
+<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
+<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">prusti_rustc_interface::middle::mir</a>;
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/struct.Ty.html">prusti_rustc_interface::middle::ty::Ty</a>;
+<span class="kw">use</span> <span class="ident">prusti_rustc_interface::index::vec</span>::{<span class="ident">Idx</span>, <span class="ident">IndexVec</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/index.html">iter</a>};
+
+<span class="doccomment">/// A local variable used as an abstraction over both real Rust MIR local</span>
+<span class="doccomment">/// variables and temporary variables used in encoder.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Local</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>);
+
+<span class="kw">impl</span> <span class="ident">Idx</span> <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#15">Local</a> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">idx</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#15">Local</a>(<a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#18">idx</a> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.u32.html">u32</a>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">index</span>(<span class="self">self</span>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a> {
+        <a class="self" href="../../../src/prusti_viper/encoder/places.rs.html#22">self</a>.<span class="number">0</span> <span class="kw">as</span> <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.usize.html">usize</a>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#15">Local</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident">Local::new</span>(<a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#28">other</a>.<span class="ident">index</span>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#15">Local</a><span class="op">&gt;</span> <span class="kw">for</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">val</span>: <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#15">Local</a>) -&gt; <span class="self">Self</span> {
+        <span class="ident">mir::Local::new</span>(<a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#34">val</a>.<span class="ident">index</span>())
+    }
+}
+
+<span class="doccomment">/// Information about a local variable.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LocalVarData</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+    <span class="ident">RealLocal</span>(<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, <span class="ident">mir::LocalDecl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>),
+    <span class="ident">TempLocal</span> { <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> },
+}
+
+<span class="doccomment">/// Struct that keeps track of all local variables.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LocalVariableManager</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+    <span class="ident">variables</span>: <span class="ident">IndexVec</span><span class="op">&lt;</span><a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#15">Local</a>, <span class="ident">LocalVarData</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">LocalVariableManager</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">real_locals</span>: <span class="kw-2">&amp;</span><span class="ident">IndexVec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.Local.html">mir::Local</a>, <span class="ident">mir::LocalDecl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">manager</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#47">LocalVariableManager</a> {
+            <span class="ident">variables</span>: <span class="ident">IndexVec::new</span>(),
+        };
+        <span class="kw">for</span> (<span class="ident">real_local</span>, <span class="ident">real_local_decl</span>) <span class="kw">in</span> <span class="ident">real_locals</span>.<span class="ident">iter_enumerated</span>() {
+            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">manager</span>
+                .<span class="ident">variables</span>
+                .<span class="ident">push</span>(<span class="ident">LocalVarData::RealLocal</span>(<span class="ident">real_local</span>, <span class="ident">real_local_decl</span>.<span class="ident">clone</span>()));
+            <span class="macro">assert_eq!</span>(<span class="ident">real_local</span>.<span class="ident">index</span>(), <span class="ident">index</span>.<span class="ident">index</span>());
+        }
+        <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#53">manager</a>
+    }
+
+    <span class="doccomment">/// Create a fresh temporary variable of a given type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_fresh</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#15">Local</a> {
+        <a class="self" href="../../../src/prusti_viper/encoder/places.rs.html#66">self</a>.<span class="ident">variables</span>.<span class="ident">push</span>(<a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#43">LocalVarData::TempLocal</a> { <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#66">ty</a> })
+    }
+
+    <span class="comment">// TODO: Can we try to go through MirEncoder::encode_local_var_name?</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local</span>: <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#15">Local</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a> {
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_viper/encoder/places.rs.html#71">self</a>.<span class="ident">variables</span>[<a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#71">local</a>] {
+            <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#42">LocalVarData::RealLocal</a>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;_{}&quot;</span>, <span class="ident">local</span>.<span class="number">0</span>),
+            <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#43">LocalVarData::TempLocal</a> { .. } =&gt; <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;_t{}&quot;</span>, <span class="ident">local</span>.<span class="number">0</span>),
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local</span>: <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#15">Local</a>) -&gt; <span class="ident">Ty</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_viper/encoder/places.rs.html#78">self</a>.<span class="ident">variables</span>[<a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#78">local</a>] {
+            <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#42">LocalVarData::RealLocal</a>(<span class="kw">_</span>, <span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#80">decl</a>.<span class="ident">ty</span>,
+            <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#43">LocalVarData::TempLocal</a> { <span class="ident">ty</span> } =&gt; <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#81">ty</a>,
+        }
+    }
+
+    <span class="doccomment">/// True if the local variable is the formal return of the procedure.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_return</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local</span>: <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#15">Local</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_viper/encoder/places.rs.html#86">self</a>.<span class="ident">variables</span>[<a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#86">local</a>] {
+            <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#42">LocalVarData::RealLocal</a>(<span class="ident">real_local</span>, <span class="kw">_</span>) =&gt; <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#88">real_local</a> <span class="op">==</span> <span class="ident">mir::RETURN_PLACE</span>,
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+        }
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">iter::Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#15">Local</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;tcx</span> {
+        <a class="self" href="../../../src/prusti_viper/encoder/places.rs.html#93">self</a>.<span class="ident">variables</span>.<span class="ident">indices</span>()
+    }
+}
+
+<span class="doccomment">/// This place is a generalisation of mir::Place.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Hash</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// A place that is a MIR place.</span>
+    <span class="ident">NormalPlace</span>(<span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>),
+    <span class="doccomment">/// A place that is a MIR place starting at a specific local variable</span>
+    <span class="doccomment">/// instead of its normal root.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// For example, if `substituted_root = _g5` and</span>
+    <span class="doccomment">/// `place = _3.f`, then in Viper this place would be encoded as</span>
+    <span class="doccomment">/// `_g5.val_ref.T$f.val_ref`</span>
+    <span class="ident">SubstitutedPlace</span> {
+        <span class="ident">substituted_root</span>: <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#15">Local</a>,
+        <span class="ident">place</span>: <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+    },
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;tcx</span>: <span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">mir::Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#102">Place::NormalPlace</a>(<span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#116">other</a>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> <span class="ident">Place</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_root</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">local</span>: <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#15">Local</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
+        <span class="comment">// fn check_if_root(place: mir::Place, local: Local) -&gt; bool {</span>
+        <span class="comment">//     match place {</span>
+        <span class="comment">//         mir::Place::Local(root) =&gt; local.index() == root.index(),</span>
+        <span class="comment">//         mir::Place::Projection(box mir::Projection { ref base, .. }) =&gt; {</span>
+        <span class="comment">//             check_if_root(base, local)</span>
+        <span class="comment">//         }</span>
+        <span class="comment">//         _ =&gt; unimplemented!(),</span>
+        <span class="comment">//     }</span>
+        <span class="comment">// }</span>
+        <span class="kw">match</span> <a class="self" href="../../../src/prusti_viper/encoder/places.rs.html#122">self</a> {
+            <span class="comment">// Place::NormalPlace(ref place) =&gt; check_if_root(place, local),</span>
+            <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#102">Place::NormalPlace</a>(<span class="kw-2">ref</span> <span class="ident">place</span>) =&gt; <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#134">place</a>.<span class="ident">local</span>.<span class="ident">index</span>() <span class="op">==</span> <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#122">local</a>.<span class="ident">index</span>(),
+            <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#109">Place::SubstitutedPlace</a> {
+                <span class="ident">substituted_root</span>, ..
+            } =&gt; <span class="kw-2">*</span><a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#136">substituted_root</a> <span class="op">==</span> <a class="ident" href="../../../src/prusti_viper/encoder/places.rs.html#122">local</a>,
+        }
+    }
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="prusti_viper" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

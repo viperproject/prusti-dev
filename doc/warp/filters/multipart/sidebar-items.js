@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["form","Create a `Filter` to extract a `multipart/form-data` body from a request."]],"struct":[["FormData","A `Stream` of multipart/form-data `Part`s."],["FormOptions","A `Filter` to extract a `multipart/form-data` body from a request."],["Part","A single “part” of a multipart/form-data body."]]};

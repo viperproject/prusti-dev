@@ -1,0 +1,90 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `jni-gen/src/generators/scala_object_getter.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>scala_object_getter.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../jni_gen/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../jni_gen/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../jni_gen/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+</pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
+<span class="comment">//</span>
+<span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
+<span class="comment">// License, v. 2.0. If a copy of the MPL was not distributed with this</span>
+<span class="comment">// file, You can obtain one at http://mozilla.org/MPL/2.0/.</span>
+
+<span class="kw">use</span> <span class="kw">crate</span>::{<a class="ident" href="../../../src/jni_gen/lib.rs.html#7">class_name</a>::<span class="kw-2">*</span>, <a class="ident" href="../../../src/jni_gen/errors.rs.html#11-57">errors::Result</a>};
+<span class="kw">use</span> <a class="ident" href="../../../jni/wrapper/jnienv/struct.JNIEnv.html">jni::JNIEnv</a>;
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_scala_object_getter</span>(<span class="ident">env</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../jni/wrapper/jnienv/struct.JNIEnv.html">JNIEnv</a>, <span class="ident">class_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="../../../src/jni_gen/class_name.rs.html#8">ClassName</a>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
+    <span class="ident">env</span>.<span class="ident">get_static_field_id</span>(
+        <span class="ident">class_name</span>.<span class="ident">path</span>(),
+        <span class="string">&quot;MODULE$&quot;</span>,
+        <span class="macro">format!</span>(<span class="string">&quot;L{};&quot;</span>, <span class="ident">class_name</span>.<span class="ident">path</span>()),
+    )
+    .<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> ())<span class="question-mark">?</span>;
+
+    <span class="prelude-val">Ok</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
+        <span class="macro">format!</span>(
+            <span class="string">&quot;/// Returns the unique instance of the Scala object `{}`.&quot;</span>,
+            <span class="ident">class_name</span>.<span class="ident">full_name</span>()
+        ),
+        <span class="string">&quot;///&quot;</span>.<span class="ident">to_string</span>(),
+        <span class="macro">format!</span>(
+            <span class="string">&quot;/// Return type and Java signature: `JObject`, `L{};`&quot;</span>,
+            <span class="ident">class_name</span>.<span class="ident">path</span>()
+        ),
+        <span class="string">&quot;pub fn singleton(&amp;self) -&gt; JNIResult&lt;JObject&lt;&#39;a&gt;&gt; {&quot;</span>.<span class="ident">to_string</span>(),
+        <span class="macro">format!</span>(
+            <span class="string">&quot;    let class = self.env.find_class(\&quot;{}\&quot;)?;&quot;</span>,
+            <span class="ident">class_name</span>.<span class="ident">path</span>()
+        ),
+        <span class="string">&quot;    let result = self.env.get_static_field(&quot;</span>.<span class="ident">to_string</span>(),
+        <span class="string">&quot;        class,&quot;</span>.<span class="ident">to_string</span>(),
+        <span class="string">&quot;        \&quot;MODULE$\&quot;,&quot;</span>.<span class="ident">to_string</span>(),
+        <span class="macro">format!</span>(<span class="string">&quot;        \&quot;L{};\&quot;,&quot;</span>, <span class="ident">class_name</span>.<span class="ident">path</span>()),
+        <span class="string">&quot;    ).and_then(|x| x.l());&quot;</span>.<span class="ident">to_string</span>(),
+        <span class="string">&quot;    self.env.delete_local_ref(class.into()).unwrap();&quot;</span>.<span class="ident">to_string</span>(),
+        <span class="string">&quot;    result&quot;</span>.<span class="ident">to_string</span>(),
+        <span class="string">&quot;}&quot;</span>.<span class="ident">to_string</span>(),
+    ]
+    .<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>)
+        <span class="op">+</span> <span class="string">&quot;\n&quot;</span>)
+}
+</code></pre></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="jni_gen" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

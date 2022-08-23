@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["request","Starts a new test `RequestBuilder`."],["ws","Starts a new test `WsBuilder`."]],"struct":[["RequestBuilder","A request builder for testing filters."],["WsBuilder","A Websocket builder for testing filters."],["WsClient","A test client for Websocket filters."],["WsError","An error from Websocket filter tests."]]};

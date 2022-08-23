@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"trait":[["Visit","A visitor for a `ValueBag`."]]};

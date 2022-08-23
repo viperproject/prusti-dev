@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Error","An error reported from OpenSSL."],["ErrorStack","Collection of `Error`s from OpenSSL."]]};

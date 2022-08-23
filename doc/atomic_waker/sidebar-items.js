@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["AtomicWaker","A synchronization primitive for task wakeup."]]};

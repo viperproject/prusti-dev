@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["pair","Creates a parker and an associated unparker."]],"struct":[["Parker","Waits for a notification."],["Unparker","Notifies a parker."]]};

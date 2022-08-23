@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Incoming","A stream of incoming Unix domain socket connections."],["SocketAddr","An address associated with a Unix socket."],["UnixDatagram","A Unix datagram socket."],["UnixListener","A Unix domain socket server, listening for connections."],["UnixStream","A Unix stream socket."]]};
