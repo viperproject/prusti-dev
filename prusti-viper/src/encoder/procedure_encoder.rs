@@ -5,7 +5,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::encoder::mir::spans::interface::SpanInterface;
-use crate::encoder::specification_blocks::SpecificationBlocks;
 use crate::encoder::builtin_encoder::{BuiltinMethodKind};
 use crate::encoder::errors::{
     SpannedEncodingError, ErrorCtxt, EncodingError, WithSpan,
@@ -22,6 +21,7 @@ use crate::encoder::mir_successor::MirSuccessor;
 use crate::encoder::places::{Local, LocalVariableManager, Place};
 use crate::encoder::Encoder;
 use crate::encoder::snapshot::interface::SnapshotEncoderInterface;
+use crate::encoder::mir::procedures::encoder::specification_blocks::SpecificationBlocks;
 use prusti_common::{
     config,
     utils::to_string::ToString,
@@ -48,7 +48,7 @@ use prusti_interface::{
     },
     PrustiError,
 };
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap};
 use prusti_interface::utils;
 use prusti_rustc_interface::middle::mir::Mutability;
 use prusti_rustc_interface::middle::mir;
@@ -148,7 +148,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let init_info = InitInfo::new(mir, tcx, proc_def_id, &mir_encoder)
             .with_default_span(procedure.get_span())?;
 
-        let specification_blocks = SpecificationBlocks::build(tcx, mir, &procedure);
+        let specification_blocks = SpecificationBlocks::build(tcx, mir, procedure, false);
 
         let cfg_method = vir::CfgMethod::new(
             // method name
@@ -221,14 +221,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         encoded_statements: &mut Vec<vir::Stmt>,
     ) -> SpannedEncodingResult<()> {
         let block = &self.mir[bb];
-        if false
-            || self.try_encode_assert(bb, block, encoded_statements)?
-            || self.try_encode_assume(bb, block, encoded_statements)?
-        {
-            Ok(())
-        } else {
-            unreachable!()
-        }
+        let _ = self.try_encode_assert(bb, block, encoded_statements)?
+        || self.try_encode_assume(bb, block, encoded_statements)?;
+        Ok(())
     }
 
     fn try_encode_assume(

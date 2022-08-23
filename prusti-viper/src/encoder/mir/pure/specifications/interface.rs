@@ -301,11 +301,6 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         parent_def_id: DefId,
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr> {
-        // identify previous block: there should only be one
-        let predecessors = &mir.basic_blocks.predecessors()[invariant_block];
-        assert_eq!(predecessors.len(), 1);
-        let predecessor = predecessors[0];
-
         // identify closure aggregate assign (the invariant body)
         let closure_assigns = mir.basic_blocks()[invariant_block]
             .statements
