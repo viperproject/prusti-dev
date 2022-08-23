@@ -80,9 +80,10 @@ impl DefSpecificationMap {
                     specs.extend(pledges.iter().filter_map(|pledge| pledge.lhs));
                     specs.extend(pledges.iter().map(|pledge| pledge.rhs));
                 }
-                if spec.kind.is_pure().expect("Expected pure") &&
-                    !spec.trusted.extract_inherit().expect("Expected trusted")
-                {
+                let is_trusted = spec.trusted.extract_inherit().expect("Expected trusted")
+                // It has to be non-extern_spec which is trusted (since extern_specs are always trusted)
+                    && (*def_id == spec.source || !def_id.is_local());
+                if spec.kind.is_pure().expect("Expected pure") && !is_trusted {
                     pure_fns.push(*def_id)
                 }
                 if let Some(ProcedureSpecificationKind::Predicate(Some(def_id))) = spec.kind.extract_with_selective_replacement() {
