@@ -235,24 +235,15 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for stmt in &block.statements {
             if let mir::StatementKind::Assign(box (
                 _,
-                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
+                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(_, cl_substs), _),
             )) = stmt.kind
             {
-                let assumption = match self.encoder.get_prusti_assumption(cl_def_id.to_def_id()) {
-                    Some(spec) => spec,
-                    None => return Ok(false),
-                };
-
-                let span = self
-                    .encoder
-                    .get_definition_span(assumption.assumption.to_def_id());
 
                 let assume_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
 
-                let assume_stmt = vir::Stmt::Assume(
-                    vir::Assume {
-                        expr: assume_expr,
-                        position: self.register_error(span, ErrorCtxt::Panic(PanicCause::Assert))
+                let assume_stmt = vir::Stmt::Inhale(
+                    vir::Inhale {
+                        expr: assume_expr
                     }
                 );
 
