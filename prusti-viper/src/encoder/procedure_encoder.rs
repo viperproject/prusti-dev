@@ -224,8 +224,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         if false
             || self.try_encode_assert(bb, block, encoded_statements)?
             || self.try_encode_assume(bb, block, encoded_statements)?
-            // || self.try_encode_ghost_markers(bb, block, encoded_statements)?
-            // || self.try_encode_specification_function_call(bb, block, encoded_statements)?
         {
             Ok(())
         } else {
@@ -524,7 +522,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         self.cfg_method = self.encoder.patch_snapshots_method(self.cfg_method)
             .with_span(mir_span)?;
 
-
         // Add fold/unfold
         let loan_locations = self
             .polonius_info()
@@ -570,7 +567,6 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 |writer| method_with_fold_unfold.to_graphviz(writer),
             );
         }
-
 
         Ok(method_with_fold_unfold)
     }
