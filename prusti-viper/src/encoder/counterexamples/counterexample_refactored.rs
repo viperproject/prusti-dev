@@ -1,7 +1,6 @@
 use std::fmt;
 use prusti_rustc_interface::errors::MultiSpan;
 use prusti_interface::PrustiError;
-use log::{info};
 
 /// Counterexample information for a single variable.
 #[derive(Debug)]
@@ -87,14 +86,16 @@ pub enum Entry {
     Struct {
         name: String,
         field_entries: Vec<(String, Entry)>,
+        //this vec stores how a sruct should be formated to the user
         custom_print_option: Option<Vec<String>>,
     },
     Enum {
         super_name: String,
         name: String,
-        field_entries: Vec<(String, Entry)>,
         //note: if fields are not named, their order is important!
         //that is why no FxHashMap is used
+        field_entries: Vec<(String, Entry)>,
+        //this vec stores how a enum should be formated to the user
         custom_print_option: Option<Vec<String>>,
     },
     Union {
@@ -143,15 +144,10 @@ impl fmt::Debug for Entry {
                     let mut custom_print_iter = custom_print.iter();
                     let text = custom_print_iter.next().unwrap(); //safe because custom_print has at least one element
                     let mut text_iter = text.split("{}");
-                    info!("text iter: {:?}", text_iter.clone().collect::<Vec<&str>>());
-                    info!("custom print option: {:?}", custom_print_option);
-                    let mut output = text_iter.next().unwrap().to_string(); //safe because split has at least one element
+                    let mut output = text_iter.next().unwrap().to_string(); //safe because text_iter has at least one element
                     while let Some(next) = text_iter.next(){
                         let fieldname = custom_print_iter.next().unwrap(); //safe because of encoding (checked by compiler)
-                        info!("fieldname: {}", fieldname);
-                        info!("fields: {:?}", &field_entries);
                         let field_entry = &field_entries.iter().find(|(name, _) | fieldname == name).unwrap().1; //safe because of encoding (checked by compiler)
-                        info!("field_entry: {:?}", field_entry);
                         output.push_str(&format!("{:#?}", field_entry));
                         output.push_str(next);
                     }
@@ -175,18 +171,14 @@ impl fmt::Debug for Entry {
                 }
             }
             Entry::Struct { name, field_entries , custom_print_option} => {
-                //TODO Catch an error, inform the user and print the normal counterexample
                 if let Some(custom_print) = custom_print_option {
                     let mut custom_print_iter = custom_print.iter();
                     let text = custom_print_iter.next().unwrap(); //safe because custom_print has at least one element
                     let mut text_iter = text.split("{}");
-                    info!("text iter: {:?}", text_iter.clone().collect::<Vec<&str>>());
-                    let mut output = text_iter.next().unwrap().to_string(); //safe because split has at least one element
+                    let mut output = text_iter.next().unwrap().to_string(); //safe because text_iter has at least one element
                     while let Some(next) = text_iter.next(){
                         let fieldname = custom_print_iter.next().unwrap(); //safe because of encoding (checked by compiler)
-                        info!("fieldname: {}", fieldname);
                         let field_entry = &field_entries.iter().find(|(name, _) | fieldname == name).unwrap().1; //safe because of encoding (checked by compiler)
-                        info!("field_entry: {:?}", field_entry);
                         output.push_str(&format!("{:#?}", field_entry));
                         output.push_str(next);
                     }

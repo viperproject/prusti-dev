@@ -60,8 +60,8 @@ use super::mir::{
     }
 };
 use super::high::types::{HighTypeEncoderState, HighTypeEncoderInterface};
-use super::counterexample_snapshot::{MirProcedureMappingInterface, MirProcedureMapping};
-use super::counterexample_snapshot::DiscriminantsState;
+use super::counterexamples::{MirProcedureMappingInterface, MirProcedureMapping};
+use super::counterexamples::DiscriminantsState;
 use super::high::to_typed::types::HighToTypedTypeEncoderState;
 
 pub struct Encoder<'v, 'tcx: 'v> {

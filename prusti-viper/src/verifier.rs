@@ -10,8 +10,8 @@ use prusti_common::{
 };
 use vir_crate::common::check_mode::CheckMode;
 use crate::encoder::Encoder;
-use crate::encoder::counterexample_translation;
-use crate::encoder::counterexample_snapshot::counterexample_translation_snapshot;
+use crate::encoder::counterexamples::counterexample_translation;
+use crate::encoder::counterexamples::counterexample_translation_refactored;
 // use prusti_filter::validators::Validator;
 use prusti_interface::data::VerificationResult;
 use prusti_interface::data::VerificationTask;
@@ -322,7 +322,7 @@ impl<'v, 'tcx> Verifier<'v, 'tcx> {
                 if config::unsafe_core_proof(){
                     if let Some(silicon_counterexample) = &verification_error.counterexample {
                         if let Some(def_id) = error_manager.get_def_id(&verification_error) {
-                            let counterexample = counterexample_translation_snapshot::backtranslate(
+                            let counterexample = counterexample_translation_refactored::backtranslate(
                                 &self.encoder,
                                 error_manager.position_manager(),
                                 def_id,

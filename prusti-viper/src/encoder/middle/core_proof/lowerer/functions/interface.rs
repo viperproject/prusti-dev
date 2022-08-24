@@ -5,7 +5,7 @@ use crate::encoder::{
         function_gas::FunctionGasInterface,
         lowerer::{DomainsLowererInterface, Lowerer},
         snapshots::{
-            IntoPureBoolExpression, IntoPureSnapshot, IntoSnapshot, SnapshotValidityInterface, SnapshotValuesInterface,
+            IntoPureBoolExpression, IntoPureSnapshot, IntoSnapshot, SnapshotValidityInterface,
         },
         types::TypesInterface,
     },
@@ -16,9 +16,6 @@ use vir_crate::{
     low::{self as vir_low},
     middle as vir_mid,
 };
-use log::info;
-use prusti_common::config;
-use crate::encoder::high::types::HighTypeEncoderInterface;
 
 
 #[derive(Default)]
@@ -184,11 +181,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         function_decl.walk_types(|ty| self.ensure_type_definition(ty))
     }
     /*
-    This has not needed at moment, as long as their is an axioms in snapshot domains that compares 
+    This has not needed at moment, as long as there is an axioms in snapshot domains that compares 
     a snapshot variable directly with its constructors/destructors, e.g.
-    forall value: Snap :: valid(value) ==> value == constructor$Snap$$(destructor$Snap$$value(value)))
-
-    Details are found in Markus Limbeck BA
+    forall value: Snap :: valid(value) ==> value == destructor$Snap$$value(constructor$Snap$$(value)))
 
     fn unroll_model(&mut self, typ: vir_mid::Type, expr: vir_low::Expression, bound: usize) -> SpannedEncodingResult<vir_low::Expression>{
         use vir_low::macros::*;

@@ -142,10 +142,8 @@ impl Entry {
                             name: name1.to_string(),
                             field_entries: new_field_entries,
                         };
-                } else {
-                    //impossible to reach
-                    Entry::Unknown
-                }
+                } 
+                self.clone()
             },
             (Entry::Enum { super_name: super_name1, name: name1,  field_entries: field_entries1 },
                 Entry::Enum { super_name: super_name2, name: name2,  field_entries: field_entries2 }) => {
@@ -176,12 +174,11 @@ impl Entry {
                             let next = other_iter.next().unwrap();
                             x.merge(next)
                         }).collect();
-                        Entry::Tuple(new_entries)
-                } else {
-                    self.clone()
-                }
+                        return Entry::Tuple(new_entries);
+                } 
+                self.clone()
             }
-        _ => other.clone(),
+        _ => self.clone(),
         }
     }
 }

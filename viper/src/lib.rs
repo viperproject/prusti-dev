@@ -15,7 +15,6 @@ pub mod utils;
 mod cache;
 mod java_exception;
 pub mod silicon_counterexample;
-pub mod silicon_counterexample_snapshot;
 pub mod smt_manager;
 mod verification_backend;
 mod verification_context;

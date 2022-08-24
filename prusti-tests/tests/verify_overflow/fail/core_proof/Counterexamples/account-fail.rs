@@ -1,6 +1,7 @@
 // compile-flags: -Punsafe_core_proof=true
 
 use prusti_contracts::*;
+
 #[derive(Copy, Clone)]
 pub struct Account {
     balance: i32,
