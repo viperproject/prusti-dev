@@ -499,8 +499,6 @@ impl PrustiTokenStream {
     }
 }
 
-// TODO: is there a better place for this type and its logic?
-
 #[derive(Debug)]
 pub struct GhostConstraint {
     pub trait_bounds: syn::PredicateType,
@@ -992,7 +990,6 @@ mod tests {
 
         #[test]
         fn no_specs() {
-            // TODO: does it even make sense to compare parsed quotes like this? feels a bit like saying 2 = 2
             let constraint = parse_ghost_constraint(quote!{ T: A, []}).unwrap();
             assert_bounds_eq(constraint.trait_bounds, quote!{ T : A });
             assert!(constraint.specs.is_empty());
