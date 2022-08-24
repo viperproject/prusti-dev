@@ -235,10 +235,12 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         for stmt in &block.statements {
             if let mir::StatementKind::Assign(box (
                 _,
-                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(_, cl_substs), _),
+                mir::Rvalue::Aggregate(box mir::AggregateKind::Closure(cl_def_id, cl_substs), _),
             )) = stmt.kind
             {
-
+                if self.encoder.get_prusti_assumption(cl_def_id.to_def_id()).is_none() {
+                    return Ok(false);
+                }
                 let assume_expr = self.encoder.encode_invariant(self.mir, bb, self.proc_def_id, cl_substs)?;
 
                 let assume_stmt = vir::Stmt::Inhale(
@@ -2237,18 +2239,18 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                         {
                             let real_target = all_targets[(spec + 1) % 2];
                             let spec_target = all_targets[spec];
-                            stmts.push(
-                                vir::Stmt::comment(
-                                    format!("Spefication from block: {:?}", spec_target)
-                                )
-                            );
-                            if let Some(statements) = self.specification_block_encoding.remove(&spec_target)
+                            if let Some(statements) = self.specification_block_encoding.remove(&spec_target) && !statements.is_empty()
                             {
+                                stmts.push(
+                                    vir::Stmt::comment(
+                                        format!("Specification from block: {:?}", spec_target)
+                                    )
+                                );
                                 stmts.extend(statements);
+                                return Ok((stmts, MirSuccessor::Goto(
+                                    real_target
+                                )));
                             }
-                            return Ok((stmts, MirSuccessor::Goto(
-                                real_target
-                            )));
                         }
                     }
                 }
