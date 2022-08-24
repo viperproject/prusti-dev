@@ -51,11 +51,7 @@ pub fn parse_prusti_assert_pledge(tokens: TokenStream) -> syn::Result<(TokenStre
 }
 
 pub fn parse_ghost_constraint(tokens: TokenStream) -> syn::Result<GhostConstraint> {
-    syn::parse2(tokens).map_err(|mut err| {
-        err.combine(error(err.span(),
-            "expected a trait bound and specifications in brackets, e.g.: `ghost_constraint(T: A + B + ..., [requires(...), ...])`"));
-        err
-    })
+    syn::parse2(tokens)
 }
 
 /*
@@ -510,7 +506,7 @@ impl Parse for GhostConstraint {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         Ok(GhostConstraint {
             trait_bounds: parse_trait_bounds(input)?,
-            comma: input.parse()?,
+            comma: input.parse().map_err(with_ghost_constraint_example)?,
             specs: PrustiTokenStream::new(input.parse().unwrap())
                 .parse_rest(|pts| pts.pop_group_of_nested_specs(input.span()))?,
         })
@@ -519,7 +515,7 @@ impl Parse for GhostConstraint {
 
 fn parse_trait_bounds(input: ParseStream) -> syn::Result<syn::PredicateType> {
     use syn::WherePredicate::*;
-    let where_predicate: syn::WherePredicate = input.parse()?;
+    let where_predicate: syn::WherePredicate = input.parse().map_err(with_ghost_constraint_example)?;
     match where_predicate {
         Type(type_bound) => {
             validate_trait_bounds(&type_bound)?;
@@ -552,6 +548,11 @@ fn validate_trait_bounds(trait_bounds: &syn::PredicateType) -> syn::Result<()> {
     }
 
     Ok(())
+}
+
+fn with_ghost_constraint_example(mut err: syn::Error) -> syn::Error {
+    err.combine(error(err.span(), "expected a trait bound and specifications in brackets, e.g.: `ghost_constraint(T: A + B + ..., [requires(...), ...])`"));
+    err
 }
 
 /// A specification enclosed in another specification (e.g. in spec entailments or ghost constraints)
