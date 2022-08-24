@@ -76,7 +76,7 @@ use crate::encoder::mir::{
     type_invariants::TypeInvariantEncoderInterface,
 };
 use super::high::generics::HighGenericsEncoderInterface;
-use super::counterexample_snapshot::DiscriminantsStateInterface;
+use super::counterexamples::DiscriminantsStateInterface;
 use prusti_interface::environment::mir_utils::SliceOrArrayRef;
 
 pub struct ProcedureEncoder<'p, 'v: 'p, 'tcx: 'v> {
