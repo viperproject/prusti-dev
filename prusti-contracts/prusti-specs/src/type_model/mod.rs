@@ -374,6 +374,7 @@ mod tests {
         let trait_ident = check_trait_ident(&model, "PrustiFooToModel");
         let expected: syn::ItemImpl = parse_quote!(
             #[prusti::type_models_to_model_impl]
+            #[prusti::specs_version = #SPECS_VERSION]
             impl #trait_ident<> for Foo <> {
                 #[trusted]
                 #[pure]
@@ -403,6 +404,7 @@ mod tests {
         );
         let expected_impl: syn::ItemImpl = parse_quote!(
             #[prusti::type_models_to_model_impl]
+            #[prusti::specs_version = #SPECS_VERSION]
             impl #trait_ident<> for Foo<'_, '_> {
                 #[trusted]
                 #[pure]
@@ -444,6 +446,7 @@ mod tests {
 
         let expected_impl: syn::ItemImpl = parse_quote!(
             #[prusti::type_models_to_model_impl]
+            #[prusti::specs_version = #SPECS_VERSION]
             impl<T, U> #trait_ident<T, U> for Foo<i32, T, usize, U> {
                 #[trusted]
                 #[pure]
