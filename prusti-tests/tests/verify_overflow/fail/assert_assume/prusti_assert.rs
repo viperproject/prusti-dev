@@ -29,10 +29,9 @@ fn implication(arg: i32) {
     prusti_assert!((arg == 0 ==> x > 0) && (arg != 0 ==> x < 0));
 }
 
-//fn quantifiers() {
-//    // FIXME: quantifier lowering isn't implemented with -Punsafe_core_proof
-//    prusti_assert!(forall(|x: u32| x == x));
-//}
+fn quantifiers() {
+   prusti_assert!(forall(|x: u32| x == x));
+}
 
 fn loop_shouldnt_crash() {
     let mut i = 0;
