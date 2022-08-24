@@ -51,7 +51,11 @@ pub fn parse_prusti_assert_pledge(tokens: TokenStream) -> syn::Result<(TokenStre
 }
 
 pub fn parse_ghost_constraint(tokens: TokenStream) -> syn::Result<GhostConstraint> {
-    syn::parse2(tokens)
+    syn::parse2(tokens).map_err(|mut err| {
+        err.combine(syn::Error::new(err.span(),
+            "expected a trait bound `T: A + B` and specifications in brackets `[requires(...), ensures(...), pure, ...]`"));
+        err
+    })
 }
 
 /*
