@@ -28,7 +28,7 @@ pub fn parse_prusti_pledge(tokens: TokenStream) -> syn::Result<TokenStream> {
     let (reference, rhs) = PrustiTokenStream::new(tokens).parse_pledge()?;
     if let Some(reference) = reference {
         if reference.to_string() != "result" {
-            return error(reference.span(), "reference of after_expiry must be \"result\"");
+            return err(reference.span(), "reference of after_expiry must be \"result\"");
         }
     }
     syn::parse2::<syn::Expr>(rhs.clone())?;
@@ -42,7 +42,7 @@ pub fn parse_prusti_assert_pledge(tokens: TokenStream) -> syn::Result<(TokenStre
     let (reference, lhs, rhs) = PrustiTokenStream::new(tokens).parse_assert_pledge()?;
     if let Some(reference) = reference {
         if reference.to_string() != "result" {
-            return error(reference.span(), "reference of assert_on_expiry must be \"result\"");
+            return err(reference.span(), "reference of assert_on_expiry must be \"result\"");
         }
     }
     syn::parse2::<syn::Expr>(lhs.clone())?;
@@ -52,7 +52,7 @@ pub fn parse_prusti_assert_pledge(tokens: TokenStream) -> syn::Result<(TokenStre
 
 pub fn parse_ghost_constraint(tokens: TokenStream) -> syn::Result<GhostConstraint> {
     syn::parse2(tokens).map_err(|mut err| {
-        err.combine(syn::Error::new(err.span(),
+        err.combine(error(err.span(),
             "expected a trait bound `T: A + B` and specifications in brackets `[requires(...), ensures(...), pure, ...]`"));
         err
     })
@@ -76,8 +76,13 @@ Preparsing consists of two stages:
 
 /// The preparser reuses [syn::Result] to integrate with the rest of the specs
 /// library, even though syn is not used here.
-fn error<T>(span: Span, msg: &str) -> syn::Result<T> {
-    syn::Result::Err(syn::parse::Error::new(span, msg))
+fn error(span: Span, msg: &str) -> syn::Error {
+    syn::Error::new(span, msg)
+}
+
+/// Same as `error`, conveniently packaged as `syn::Result::Err`.
+fn err<T>(span: Span, msg: &str) -> syn::Result<T> {
+    Err(error(span, msg))
 }
 
 #[derive(Debug, Clone)]
@@ -176,7 +181,7 @@ impl PrustiTokenStream {
             let span = start.join(end);
             // this is None if the spans are not combinable, which seems to happen when running the cfg(tests) via cargo
             let error_span = span.unwrap_or(start);
-            return error(error_span, "unexpected extra tokens");
+            return err(error_span, "unexpected extra tokens");
         }
         Ok(result)
     }
@@ -196,7 +201,7 @@ impl PrustiTokenStream {
                 PrustiToken::Group(_, _, box stream) => stream.parse_rust_only(),
                 PrustiToken::Token(tree) => Ok(tree.to_token_stream()),
                 PrustiToken::BinOp(span, PrustiBinaryOp::Rust(op)) => Ok(op.to_tokens(span)),
-                _ => error(token.span(), "unexpected Prusti syntax"),
+                _ => err(token.span(), "unexpected Prusti syntax"),
             })
             .collect::<Result<Vec<_>, _>>()?
             .into_iter()))
@@ -214,7 +219,7 @@ impl PrustiTokenStream {
         } else if pledge_ops.len() == 2 {
             Ok((Some(pledge_ops[0].expr_bp(0)?), pledge_ops[1].expr_bp(0)?))
         } else {
-            error(Span::call_site(), "too many arrows in after_expiry")
+            err(Span::call_site(), "too many arrows in after_expiry")
         }
     }
 
@@ -231,13 +236,13 @@ impl PrustiTokenStream {
         } else if pledge_ops.len() == 2 {
             (Some(pledge_ops[0].expr_bp(0)?), pledge_ops.pop().unwrap())
         } else {
-            return error(Span::call_site(), "too many arrows in assert_on_expiry");
+            return err(Span::call_site(), "too many arrows in assert_on_expiry");
         };
         let mut body_parts = body.split(PrustiBinaryOp::Rust(RustOp::Comma), false);
         if body_parts.len() == 2 {
             Ok((reference, body_parts[0].expr_bp(0)?, body_parts[1].expr_bp(0)?))
         } else {
-            error(Span::call_site(), "missing assertion")
+            err(Span::call_site(), "missing assertion")
         }
     }
 
@@ -257,14 +262,14 @@ impl PrustiTokenStream {
             }
             Some(PrustiToken::Outer(span)) => {
                 let _stream = self.pop_group(Delimiter::Parenthesis)
-                    .ok_or_else(|| syn::parse::Error::new(span, "expected parenthesized expression after outer"))?;
+                    .ok_or_else(|| error(span, "expected parenthesized expression after outer"))?;
                 todo!()
             }
             Some(PrustiToken::Quantifier(span, kind)) => {
                 let mut stream = self.pop_group(Delimiter::Parenthesis)
-                    .ok_or_else(|| syn::parse::Error::new(span, "expected parenthesized expression after quantifier"))?;
+                    .ok_or_else(|| error(span, "expected parenthesized expression after quantifier"))?;
                 let args = stream.pop_closure_args()
-                    .ok_or_else(|| syn::parse::Error::new(span, "expected quantifier body"))?;
+                    .ok_or_else(|| error(span, "expected quantifier body"))?;
 
                 {
                     // for quantifiers, argument types must be explicit
@@ -276,14 +281,14 @@ impl PrustiTokenStream {
                     for pat in parsed_cl.inputs {
                         match pat {
                             syn::Pat::Type(_) => {}
-                            _ => return error(pat.span(), "quantifier arguments must have explicit types"),
+                            _ => return err(pat.span(), "quantifier arguments must have explicit types"),
                         }
                     }
                 };
 
                 let triggers = stream.extract_triggers()?;
                 if args.is_empty() {
-                    return error(span, "a quantifier must have at least one argument");
+                    return err(span, "a quantifier must have at least one argument");
                 }
                 let args = args.parse()?;
                 let body = stream.parse()?;
@@ -292,14 +297,14 @@ impl PrustiTokenStream {
 
             Some(PrustiToken::SpecEnt(span, _))
             | Some(PrustiToken::CallDesc(span, _)) =>
-                return error(span, "unexpected operator"),
+                return err(span, "unexpected operator"),
 
             // some Rust binary operators can appear on their own, e.g. `(..)`
             Some(PrustiToken::BinOp(span, PrustiBinaryOp::Rust(op))) =>
                 op.to_tokens(span),
 
             Some(PrustiToken::BinOp(span, _)) =>
-                return error(span, "unexpected binary operator"),
+                return err(span, "unexpected binary operator"),
             Some(PrustiToken::Token(token)) => token.to_token_stream(),
             None => return Ok(TokenStream::new()),
         };
@@ -330,7 +335,7 @@ impl PrustiTokenStream {
                     let once = *once;
                     self.tokens.pop_front();
                     let args = self.pop_closure_args()
-                        .ok_or_else(|| syn::parse::Error::new(span, "expected closure arguments"))?;
+                        .ok_or_else(|| error(span, "expected closure arguments"))?;
                     let nested_closure_specs = self.pop_group_of_nested_specs(span)?;
                     lhs = translate_spec_ent(
                         span,
@@ -350,9 +355,9 @@ impl PrustiTokenStream {
 
                 Some(PrustiToken::BinOp(span, op)) => (*span, *op),
                 Some(PrustiToken::Outer(span)) =>
-                    return error(*span, "unexpected outer"),
+                    return err(*span, "unexpected outer"),
                 Some(PrustiToken::Quantifier(span, _)) =>
-                    return error(*span, "unexpected quantifier"),
+                    return err(*span, "unexpected quantifier"),
 
                 None => break,
             };
@@ -364,7 +369,7 @@ impl PrustiTokenStream {
             let rhs = self.expr_bp(r_bp)?;
             // TODO: explain
             if !matches!(op, PrustiBinaryOp::Rust(_)) && rhs.is_empty() {
-                return error(span, "expected expression");
+                return err(span, "expected expression");
             }
             lhs = op.translate(span, lhs, rhs);
         }
@@ -406,29 +411,29 @@ impl PrustiTokenStream {
             Some(PrustiToken::Group(_span, Delimiter::Parenthesis, box group)) => {
                 Ok(group) // TODO: need to clone()?
             }
-            _ => Err(syn::parse::Error::new(self.source_span, "expected parenthesized group")),
+            _ => Err(error(self.source_span, "expected parenthesized group")),
         }
     }
     
     fn pop_single_nested_spec(&mut self) -> syn::Result<NestedSpec<Self>> {
-        let first = self.tokens.pop_front().map_or_else(|| {
+        let first = self.tokens.pop_front().ok_or_else(|| {
             error(self.source_span, "expected nested spec")
-        }, Ok)?;
+        })?;
         if let PrustiToken::Token(TokenTree::Ident(spec_type)) = first {
             match spec_type.to_string().as_ref() {
                 "requires" => Ok(NestedSpec::Requires(self.pop_parenthesized_group()?)),
                 "ensures" => Ok(NestedSpec::Ensures(self.pop_parenthesized_group()?)),
                 "pure" => Ok(NestedSpec::Pure),
-                other => error(self.source_span, format!("unexpected nested spec type: {}", other).as_ref()),
+                other => err(self.source_span, format!("unexpected nested spec type: {}", other).as_ref()),
             }
         } else {
-            error(self.source_span, "expected identifier")
+            err(self.source_span, "expected identifier")
         }
     }
 
     fn pop_group_of_nested_specs(&mut self, span: Span) -> syn::Result<Vec<NestedSpec<TokenStream>>> {
         let group_of_specs = self.pop_group(Delimiter::Bracket)
-            .ok_or_else(|| syn::parse::Error::new(span, "expected nested specification in brackets"))?;
+            .ok_or_else(|| error(span, "expected nested specification in brackets"))?;
         let parsed = group_of_specs
             .split(PrustiBinaryOp::Rust(RustOp::Comma), true)
             .into_iter()
@@ -480,7 +485,7 @@ impl PrustiTokenStream {
                     .into_iter()
                     .map(|mut stream| stream
                         .pop_group(Delimiter::Parenthesis)
-                        .ok_or_else(|| syn::parse::Error::new(*triggers_span, "trigger sets must be tuples of expressions"))?
+                        .ok_or_else(|| error(*triggers_span, "trigger sets must be tuples of expressions"))?
                         .split(PrustiBinaryOp::Rust(RustOp::Comma), true)
                         .into_iter()
                         .map(|stream| stream.parse())
@@ -523,12 +528,12 @@ fn parse_trait_bounds(input: ParseStream) -> syn::Result<syn::PredicateType> {
             Ok(type_bound)
         }
         Lifetime(lifetime_bound) => disallowed_lifetime_error(lifetime_bound.span()),
-        Eq(eq_bound) => error(eq_bound.span(), "equality predicates are not supported in trait bounds"),
+        Eq(eq_bound) => err(eq_bound.span(), "equality predicates are not supported in trait bounds"),
     }
 }
 
 fn disallowed_lifetime_error<T>(span: Span) -> syn::Result<T> {
-    error(span, "lifetimes are not allowed in ghost constraint trait bounds")
+    err(span, "lifetimes are not allowed in ghost constraint trait bounds")
 }
 
 fn validate_trait_bounds(trait_bounds: &syn::PredicateType) -> syn::Result<()> {
