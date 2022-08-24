@@ -171,7 +171,11 @@ impl PrustiTokenStream {
     {
         let result = f(&mut self)?;
         if !self.is_empty() {
-            let error_span = self.tokens.front().unwrap().span().join(self.tokens.back().unwrap().span()).unwrap();
+            let start = self.tokens.front().unwrap().span();
+            let end = self.tokens.back().unwrap().span();
+            let span = start.join(end);
+            // this is None if the spans are not combinable, which seems to happen when running the cfg(tests) via cargo
+            let error_span = span.unwrap_or(start);
             return error(error_span, "unexpected extra tokens");
         }
         Ok(result)
