@@ -1246,7 +1246,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 {
                     let real_target = all_targets[(spec + 1) % 2];
                     let spec_target = all_targets[spec];
-                    block_builder.add_comment(format!("Spefication from block: {:?}", spec_target));
+                    block_builder
+                        .add_comment(format!("Specification from block: {:?}", spec_target));
                     if let Some(statements) = self.specification_block_encoding.remove(&spec_target)
                     {
                         block_builder.add_statements(statements);
