@@ -155,6 +155,8 @@ fn test_local_project<T: Into<PathBuf>>(project_name: T) {
     let project = project_builder.build();
     project
         .process("cargo")
+        .arg("--config")
+        .arg("net.retry=5")
         .arg("build")
         .env("CARGO_TARGET_DIR", "target/verify")
         .run();
