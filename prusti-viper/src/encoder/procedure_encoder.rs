@@ -148,7 +148,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let init_info = InitInfo::new(mir, tcx, proc_def_id, &mir_encoder)
             .with_default_span(procedure.get_span())?;
 
-        let specification_blocks = SpecificationBlocks::build(tcx, mir, procedure, false);
+        let specification_blocks = SpecificationBlocks::build(encoder.env().query, mir, procedure, false);
 
         let cfg_method = vir::CfgMethod::new(
             // method name
