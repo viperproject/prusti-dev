@@ -7,12 +7,12 @@ function (via an assumption).
 
 ## Assertions
 
-The `prusti_assert!()` macro instructs Prusti to verify that a certain property
+The `prusti_assert!` macro instructs Prusti to verify that a certain property
 holds at a specific point within the body of a function. In contrast to the
-`assert!()` macro, which only accepts Rust expressions, `prusti_assert!()`
-accepts [specification](../syntax.md) expressions as arguments. Therefore,
-quantifiers and `old()` expressions are allowed within a call to
-`prusti_assert!()`, as in the following example:
+`assert!` macro, which only accepts Rust expressions, `prusti_assert!` accepts
+[specification](../syntax.md) expressions as arguments. Therefore, quantifiers
+and `old` expressions are allowed within a call to `prusti_assert!`, as in
+the following example:
 
 ```rust,noplaypen
 #[requires(*x != 2)]
@@ -22,9 +22,18 @@ fn go(x: &mut u32) {
 }
 ```
 
+Note that the expression given to `prusti_assert!` must be side-effect free.
+Therefore, certain calls might work within an `assert!`, but not within a
+`prusti_assert!`. For example:
+
+```rust,noplaypen
+assert!(map.insert(5));
+prusti_assert!(map.insert(5)); // error
+```
+
 ## Assumptions
 
-The `prusti_assume!()` macro instructs Prusti to assume that a certain property
+The `prusti_assume!` macro instructs Prusti to assume that a certain property
 holds at a point within the body of a function. Of course, if used improperly,
 this can be used to introduce unsoundness. For example, Prusti would verify the
 following function:
