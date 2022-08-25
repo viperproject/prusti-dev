@@ -301,11 +301,6 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         parent_def_id: DefId,
         substs: SubstsRef<'tcx>,
     ) -> SpannedEncodingResult<vir_poly::Expr> {
-        // identify previous block: there should only be one
-        let predecessors = &mir.basic_blocks.predecessors()[invariant_block];
-        assert_eq!(predecessors.len(), 1);
-        let predecessor = predecessors[0];
-
         // identify closure aggregate assign (the invariant body)
         let closure_assigns = mir.basic_blocks()[invariant_block]
             .statements
@@ -361,7 +356,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
         let invariant = run_backward_interpretation_point_to_point(
             mir,
             &interpreter,
-            predecessor,
+            invariant_block,
             invariant_block,
             inv_loc + 1, // include the closure assign itself
             crate::encoder::mir_interpreter::ExprBackwardInterpreterState::new_defined(
