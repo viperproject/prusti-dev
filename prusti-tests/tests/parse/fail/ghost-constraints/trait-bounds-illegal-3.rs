@@ -5,7 +5,7 @@ struct MyStruct<T> {
 }
 
 impl<T> MyStruct<T> {
-    #[ghost_constraint(Self: MyStruct<i32> , [ //~ ERROR: expected trait, found struct `MyStruct`
+    #[ghost_constraint(Self: MyStruct<i32>, [ //~ ERROR: expected trait, found struct `MyStruct`
         requires(x > 0)
     ])]
     fn set_x(&mut self, x: T) {
