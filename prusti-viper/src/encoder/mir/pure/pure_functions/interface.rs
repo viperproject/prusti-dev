@@ -338,7 +338,7 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
                 Err(error) => {
                     self.register_encoding_error(error);
                     debug!("Error encoding pure function: {:?}", proc_def_id);
-                    let body = self.env().body.get_pure_fn_body_subs(proc_def_id, substs);
+                    let body = self.env().body.get_pure_fn_body(proc_def_id, substs);
                     // TODO(tymap): does stub encoder need substs?
                     let stub_encoder = StubFunctionEncoder::new(self, proc_def_id, &body, substs);
                     let function = stub_encoder.encode_function()?;

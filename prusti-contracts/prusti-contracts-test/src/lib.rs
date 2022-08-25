@@ -1,7 +1,3 @@
-// TODO: this file has been and is currently ignored
-// maybe it was to serve as a compilation-time check that
-// our procedural macros don't crash? If so then we probably
-// want to move it to `prusti-contracts` somewhere
 use prusti_contracts::*;
 
 #[requires(true)]

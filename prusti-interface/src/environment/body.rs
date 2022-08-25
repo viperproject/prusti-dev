@@ -132,14 +132,14 @@ impl<'tcx> EnvBody<'tcx> {
     }
 
     /// Get the MIR body of a local impure function, without any substitutions.
-    pub fn get_impure_fn_body(&self, def_id: LocalDefId) -> MirBody<'tcx> {
+    pub fn get_impure_fn_body_identity(&self, def_id: LocalDefId) -> MirBody<'tcx> {
         let mut impure = self.local_impure_fns.borrow_mut();
         impure.entry(def_id).or_insert_with(|| Self::raw_load_local_mir(self.tcx, def_id)).body.clone()
     }
 
     /// Get the MIR body of a local impure function, monomorphised
     /// with the given type substitutions.
-    pub fn get_impure_fn_body_subs(
+    pub fn get_impure_fn_body(
         &self,
         def_id: LocalDefId,
         substs: SubstsRef<'tcx>,
@@ -147,18 +147,18 @@ impl<'tcx> EnvBody<'tcx> {
         if let Some(body) = self.get_monomorphised(def_id.to_def_id(), substs) {
             return body;
         }
-        let body = self.get_impure_fn_body(def_id);
+        let body = self.get_impure_fn_body_identity(def_id);
         self.set_monomorphised(def_id.to_def_id(), substs, body)
     }
 
-    fn get_closure_body(&self, def_id: LocalDefId) -> MirBody<'tcx> {
+    fn get_closure_body_identity(&self, def_id: LocalDefId) -> MirBody<'tcx> {
         let mut closures = self.local_closures.borrow_mut();
         closures.entry(def_id).or_insert_with(|| Self::raw_load_local_mir(self.tcx, def_id).body).clone()
     }
 
     /// Get the MIR body of a local closure (e.g. loop invariant or trigger),
     /// monomorphised with the given type substitutions.
-    pub fn get_closure_body_subs(
+    pub fn get_closure_body(
         &self,
         def_id: LocalDefId,
         substs: SubstsRef<'tcx>,
@@ -166,13 +166,13 @@ impl<'tcx> EnvBody<'tcx> {
         if let Some(body) = self.get_monomorphised(def_id.to_def_id(), substs) {
             return body;
         }
-        let body = self.get_closure_body(def_id);
+        let body = self.get_closure_body_identity(def_id);
         self.set_monomorphised(def_id.to_def_id(), substs, body)
     }
 
     /// Get the MIR body of a local or external pure function,
     /// monomorphised with the given type substitutions.
-    pub fn get_pure_fn_body_subs(
+    pub fn get_pure_fn_body(
         &self,
         def_id: DefId,
         substs: SubstsRef<'tcx>,
@@ -186,7 +186,7 @@ impl<'tcx> EnvBody<'tcx> {
 
     /// Get the MIR body of a local or external expression (e.g. any spec or predicate),
     /// monomorphised with the given type substitutions.
-    pub fn get_expression_body_subs(
+    pub fn get_expression_body(
         &self,
         def_id: DefId,
         substs: SubstsRef<'tcx>,
@@ -202,7 +202,7 @@ impl<'tcx> EnvBody<'tcx> {
 
     /// Get the MIR body of a local or external spec (pres/posts/pledges/type-specs),
     /// monomorphised with the given type substitutions.
-    pub fn get_spec_body_subs(
+    pub fn get_spec_body(
         &self,
         def_id: DefId,
         substs: SubstsRef<'tcx>,
@@ -232,7 +232,7 @@ impl<'tcx> EnvBody<'tcx> {
     }
 
     /// Ensures that the MIR body of a local spec is cached. This must be called on all specs,
-    /// prior to requesting their bodies with `get_spec_body_subs` or exporting with `CrossCrateBodies::from`!
+    /// prior to requesting their bodies with `get_spec_body` or exporting with `CrossCrateBodies::from`!
     pub(crate) fn load_spec_body(&mut self, def_id: LocalDefId) {
         // The same `def_id` may be referenced twice, e.g. see fn `constrained_contract_inherits_posts` in
         // the `ghost-constraints-extend-base-attributes.rs` test case

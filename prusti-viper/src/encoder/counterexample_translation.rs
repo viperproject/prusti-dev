@@ -127,7 +127,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
         def_id: ProcedureDefId,
         silicon_counterexample: &'ce SiliconCounterexample,
     ) -> Self {
-        let mir = encoder.env().body.get_impure_fn_body(def_id.expect_local());
+        let mir = encoder.env().body.get_impure_fn_body_identity(def_id.expect_local());
         let var_debug_info = mir.var_debug_info.clone();
         let local_variable_manager = LocalVariableManager::new(&mir.local_decls);
         Self {

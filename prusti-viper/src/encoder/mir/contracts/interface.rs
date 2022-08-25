@@ -150,7 +150,7 @@ fn get_procedure_contract<'p, 'v: 'p, 'tcx: 'v>(
     } else {
         let mir = env
             .body
-            .get_impure_fn_body_subs(proc_def_id.expect_local(), substs);
+            .get_impure_fn_body(proc_def_id.expect_local(), substs);
         // local_decls:
         // _0    - return, with closure's return type
         // _1    - closure's self

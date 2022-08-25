@@ -270,7 +270,7 @@ Maximum allowed length of a log file name. If this is exceeded, the file name is
 
 ## `MIN_PRUSTI_VERSION`
 
-Minimum required version of Prusti that is allowed to run. If Prusti detects that it's own version is lower than this, it will throw an error and refuse to verify files. Generally [set in a `Prusti.toml` file](providing.md#flags-2) of a crate to enforce a minimum Prusti version.
+Minimum required version of Prusti that is allowed to run. If Prusti detects that its own version is lower than this, it will throw an error and refuse to verify files. Generally [set in a `Prusti.toml` file](providing.md#flags-2) of a crate to enforce a minimum Prusti version.
 
 ## `NO_VERIFY`
 
