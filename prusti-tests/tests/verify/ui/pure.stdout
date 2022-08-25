@@ -2,6 +2,7 @@
 // normalize-stdout-test: "[a-z0-9]{32}" -> "$(NUM_UUID)"
 // normalize-stdout-test: "[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}" -> "$(UUID)"
 // normalize-stdout-test: "/[[a-z0-9]{4}/]::" -> "[$(CRATE_ID)]::"
+// normalize-stdout-test: "#/[prusti::specs_version = /x22.+/x22/]" -> "#[prusti::specs_version = $(SPECS_VERSION)]"
 
 
 
@@ -29,6 +30,7 @@ use std::prelude::rust_2018::*;
 extern crate std;
 use prusti_contracts::*;
 #[prusti::pure]
+#[prusti::specs_version = $(SPECS_VERSION)]
 fn identity(x: u32) -> u32 { x }
 fn test_identity1() {
     if !(5 == identity(5)) {
@@ -43,8 +45,10 @@ fn prusti_post_item_test_identity2_$(NUM_UUID)(result:
     !!((6 == identity(6)): bool)
 }
 #[prusti::post_spec_id_ref = "$(NUM_UUID)"]
+#[prusti::specs_version = $(SPECS_VERSION)]
 fn test_identity2() {}
 #[prusti::pure]
+#[prusti::specs_version = $(SPECS_VERSION)]
 fn max(a: i32, b: i32) -> i32 { if a > b { a } else { b } }
 fn test_max1() {
     let a = 5;
@@ -66,6 +70,7 @@ fn prusti_post_item_test_max3_$(NUM_UUID)(result: i32)
     !!((true && ((!(true) || (result == 3))) && (true || false)): bool)
 }
 #[prusti::post_spec_id_ref = "$(NUM_UUID)"]
+#[prusti::specs_version = $(SPECS_VERSION)]
 fn test_max3() -> i32 { let a = 4; let b = 3; max(a, b) }
 #[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
 #[prusti::spec_only]
@@ -83,6 +88,7 @@ fn prusti_post_item_test_max4_$(NUM_UUID)(a: i32, b: i32,
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::post_spec_id_ref = "$(NUM_UUID)"]
+#[prusti::specs_version = $(SPECS_VERSION)]
 fn test_max4(a: i32, b: i32) -> i32 { a }
 #[allow(unused_must_use, unused_parens, unused_variables, dead_code)]
 #[prusti::spec_only]
@@ -100,6 +106,7 @@ fn prusti_post_item_test_max5_$(NUM_UUID)(a: i32, b: i32,
 }
 #[prusti::pre_spec_id_ref = "$(NUM_UUID)"]
 #[prusti::post_spec_id_ref = "$(NUM_UUID)"]
+#[prusti::specs_version = $(SPECS_VERSION)]
 fn test_max5(a: i32, b: i32) -> i32 { a }
 fn main() {}
 ProcedureSpecification { source: DefId(0:11 ~ pure[$(CRATE_ID)]::max), kind: Inherent(Pure), pres: Empty, posts: Empty, pledges: Empty, trusted: Inherent(false) }
