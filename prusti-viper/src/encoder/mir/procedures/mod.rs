@@ -1,6 +1,6 @@
 //! Encoder of procedures with explicit lifetimes.
 
-mod encoder;
+pub mod encoder;
 mod interface;
 mod passes;
 
