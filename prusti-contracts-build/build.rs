@@ -37,7 +37,8 @@ fn main() {
     if exes.iter().all(|exe| exe.exists()) {
         let target = prusti_contrats.join("target").join("verify");
         let modified = modified_times(&exes);
-        let should_write_build_info = check_exes_modified(target.as_path(), &modified).unwrap_or(true);
+        let should_write_build_info =
+            check_exes_modified(target.as_path(), &modified).unwrap_or(true);
         let args = ["--release", "--features", "prusti"];
         match Command::new(&exes[0])
             .current_dir(&prusti_contrats)
