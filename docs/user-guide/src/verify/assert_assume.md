@@ -1,8 +1,5 @@
 # Assertions and Assumptions 
 
-> **Note**: Currently, the  [UNSAFE_CORE_PROOF](https://viperproject.github.io/prusti-dev/dev-guide/config/flags.html#unsafe_core_proof)
-> configuration flag must be enabled to use assertions and assumptions.
-
 You can use Prusti to verify that a certain property holds at a certain point
 within the body of a function (via an assertion). It is also possible to
 instruct Prusti to assume that a property holds at a certain point within a
@@ -15,7 +12,7 @@ holds at a specific point within the body of a function. In contrast to the
 `assert!()` macro, which only accepts Rust expressions, `prusti_assert!()`
 accepts [specification](../syntax.md) expressions as arguments. Therefore,
 quantifiers and `old()` expressions are allowed within a call to
-`prusti_assert()`, as in the following example:
+`prusti_assert!()`, as in the following example:
 
 ```rust,noplaypen
 #[requires(*x != 2)]
@@ -33,11 +30,8 @@ this can be used to introduce unsoundness. For example, Prusti would verify the
 following function:
 
 ```rust,noplaypen
-
 #[ensures(p == np)]
 fn proof(p: u32, np: u32) {
   prusti_assume!(false);
 }
-
 ```
-
