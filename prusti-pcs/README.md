@@ -2,9 +2,11 @@
 
 Run with the feature flag ``dump_operational_pcs`` to compute. 
 
+Details of the free PCS repacking are outlined in ``src/joins/README.md``. 
+
 ## TODO
 
- - [ ] Straight line, unshared code
+ - [x] Straight line, unshared code
     - [x] refactor
     - [x] 1-ary propagation method (repacker)
         - [x] temporaries
@@ -21,7 +23,7 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
     - [ ] graphviz output
     - [ ] test harness
         - [ ] tests
- - [ ] Branches
+ - [x] Branches
     - [x] implement conditional elaboration
         - [x] repacker
             - [x] operational description of conditional joins
@@ -41,9 +43,10 @@ Run with the feature flag ``dump_operational_pcs`` to compute.
     - [ ] refactor joins out from conditional mod
         - [ ] add single packer and single unpacker
         - [ ] add weakeners
- - [ ] Borrows 
-    - [ ] add type dependency to hoare semantics
-    - [ ] ? 
+ - [x] Borrows 
+    - [x] add type dependency to hoare semantics
+    - [ ] refactor the joins/ module (sprint is done)
+    - [ ] finish documenting the rationale for joins 
 
 - Issues
  - [ ] When more than one field of a struct 
