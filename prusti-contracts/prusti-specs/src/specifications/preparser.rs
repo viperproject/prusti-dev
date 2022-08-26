@@ -1,11 +1,11 @@
 /// The preparser processes Prusti syntax into Rust syntax.
 
-use proc_macro2::{Span, TokenStream, TokenTree, Delimiter, Spacing};
+use proc_macro2::{Span, TokenStream, TokenTree, Delimiter};
 use std::collections::VecDeque;
-use quote::{ToTokens, quote, quote_spanned, TokenStreamExt};
+use quote::{ToTokens, quote, quote_spanned};
 use proc_macro2::Punct;
 use proc_macro2::Spacing::*;
-use syn::spanned::Spanned;
+use syn::{parse::{Parse, ParseStream}, spanned::Spanned};
 
 /// The representation of an argument to a quantifier (for example `a: i32`)
 #[derive(Debug, Clone)]
@@ -28,7 +28,7 @@ pub fn parse_prusti_pledge(tokens: TokenStream) -> syn::Result<TokenStream> {
     let (reference, rhs) = PrustiTokenStream::new(tokens).parse_pledge()?;
     if let Some(reference) = reference {
         if reference.to_string() != "result" {
-            return error(reference.span(), "reference of after_expiry must be \"result\"");
+            return err(reference.span(), "reference of after_expiry must be \"result\"");
         }
     }
     syn::parse2::<syn::Expr>(rhs.clone())?;
@@ -42,7 +42,7 @@ pub fn parse_prusti_assert_pledge(tokens: TokenStream) -> syn::Result<(TokenStre
     let (reference, lhs, rhs) = PrustiTokenStream::new(tokens).parse_assert_pledge()?;
     if let Some(reference) = reference {
         if reference.to_string() != "result" {
-            return error(reference.span(), "reference of assert_on_expiry must be \"result\"");
+            return err(reference.span(), "reference of assert_on_expiry must be \"result\"");
         }
     }
     syn::parse2::<syn::Expr>(lhs.clone())?;
@@ -50,9 +50,8 @@ pub fn parse_prusti_assert_pledge(tokens: TokenStream) -> syn::Result<(TokenStre
     Ok((lhs, rhs))
 }
 
-pub fn parse_ghost_constraint(tokens: TokenStream) -> syn::Result<(TokenStream, Vec<NestedSpec<TokenStream>>)> {
-    let pts = PrustiTokenStream::new(tokens);
-    pts.parse_ghost_constraint()
+pub fn parse_ghost_constraint(tokens: TokenStream) -> syn::Result<GhostConstraint> {
+    syn::parse2(tokens)
 }
 
 /*
@@ -73,14 +72,20 @@ Preparsing consists of two stages:
 
 /// The preparser reuses [syn::Result] to integrate with the rest of the specs
 /// library, even though syn is not used here.
-fn error<T>(span: Span, msg: &str) -> syn::Result<T> {
-    syn::Result::Err(syn::parse::Error::new(span, msg))
+fn error(span: Span, msg: &str) -> syn::Error {
+    syn::Error::new(span, msg)
+}
+
+/// Same as `error`, conveniently packaged as `syn::Result::Err`.
+fn err<T>(span: Span, msg: &str) -> syn::Result<T> {
+    Err(error(span, msg))
 }
 
 #[derive(Debug, Clone)]
 struct PrustiTokenStream {
     tokens: VecDeque<PrustiToken>,
     source_span: Span,
+    // TODO: can we somehow update the span after popping stuff?
 }
 
 impl PrustiTokenStream {
@@ -161,6 +166,22 @@ impl PrustiTokenStream {
         self.tokens.is_empty()
     }
 
+    fn parse_rest<T, F>(mut self, f: F) -> syn::Result<T>
+    where
+        F: FnOnce(&mut Self) -> syn::Result<T>,
+    {
+        let result = f(&mut self)?;
+        if !self.is_empty() {
+            let start = self.tokens.front().unwrap().span();
+            let end = self.tokens.back().unwrap().span();
+            let span = start.join(end);
+            // this is None if the spans are not combinable, which seems to happen when running the cfg(tests) via cargo
+            let error_span = span.unwrap_or(start);
+            return err(error_span, "unexpected extra tokens");
+        }
+        Ok(result)
+    }
+
     /// Processes a Prusti token stream back into Rust syntax.
     /// Prusti-specific syntax is allowed and translated.
     fn parse(mut self) -> syn::Result<TokenStream> {
@@ -176,7 +197,7 @@ impl PrustiTokenStream {
                 PrustiToken::Group(_, _, box stream) => stream.parse_rust_only(),
                 PrustiToken::Token(tree) => Ok(tree.to_token_stream()),
                 PrustiToken::BinOp(span, PrustiBinaryOp::Rust(op)) => Ok(op.to_tokens(span)),
-                _ => error(token.span(), "unexpected Prusti syntax"),
+                _ => err(token.span(), "unexpected Prusti syntax"),
             })
             .collect::<Result<Vec<_>, _>>()?
             .into_iter()))
@@ -194,7 +215,7 @@ impl PrustiTokenStream {
         } else if pledge_ops.len() == 2 {
             Ok((Some(pledge_ops[0].expr_bp(0)?), pledge_ops[1].expr_bp(0)?))
         } else {
-            error(Span::call_site(), "too many arrows in after_expiry")
+            err(Span::call_site(), "too many arrows in after_expiry")
         }
     }
 
@@ -211,44 +232,14 @@ impl PrustiTokenStream {
         } else if pledge_ops.len() == 2 {
             (Some(pledge_ops[0].expr_bp(0)?), pledge_ops.pop().unwrap())
         } else {
-            return error(Span::call_site(), "too many arrows in assert_on_expiry");
+            return err(Span::call_site(), "too many arrows in assert_on_expiry");
         };
         let mut body_parts = body.split(PrustiBinaryOp::Rust(RustOp::Comma), false);
         if body_parts.len() == 2 {
             Ok((reference, body_parts[0].expr_bp(0)?, body_parts[1].expr_bp(0)?))
         } else {
-            error(Span::call_site(), "missing assertion")
+            err(Span::call_site(), "missing assertion")
         }
-    }
-
-    fn parse_ghost_constraint(self) -> syn::Result<(TokenStream, Vec<NestedSpec<TokenStream>>)> {
-        let span = self.source_span;
-        let mut arguments = self.split(PrustiBinaryOp::Rust(RustOp::Comma), false);
-        let parsing_error = || {
-            error(span, "Invalid use of macro. Two arguments expected (a trait bound `T: A + B` and multiple specifications `[requires(...), ensures(...), ...]`)")
-        };
-
-        if arguments.len() < 2 {
-            return parsing_error();
-        }
-
-        // We interpret the last element of the arguments as the nested specs and everything before
-        // as the ghost constraints.
-        // This is due to the fact that the prusti token stream also splits on commas
-        // inside the ghost constraint.
-        let nested_specs = arguments
-            .remove(arguments.len() - 1)
-            .pop_group_of_nested_specs(Span::call_site())?;
-
-        let constraint_tokens = arguments.into_iter()
-            .map(|arg| arg.parse_rust_only())
-            .collect::<Result<Vec<TokenStream>, _>>()?;
-
-        let mut trait_bounds_ts = TokenStream::new();
-        trait_bounds_ts.append_separated(constraint_tokens, TokenTree::Punct(Punct::new(',', Spacing::Alone)));
-
-        // let trait_bounds_ts = trait_bounds_ts.parse_rust_only()?;
-        Ok((trait_bounds_ts, nested_specs))
     }
 
     /// The core of the Pratt parser algorithm. [self.tokens] is the source of
@@ -267,14 +258,14 @@ impl PrustiTokenStream {
             }
             Some(PrustiToken::Outer(span)) => {
                 let _stream = self.pop_group(Delimiter::Parenthesis)
-                    .ok_or_else(|| syn::parse::Error::new(span, "expected parenthesized expression after outer"))?;
+                    .ok_or_else(|| error(span, "expected parenthesized expression after outer"))?;
                 todo!()
             }
             Some(PrustiToken::Quantifier(span, kind)) => {
                 let mut stream = self.pop_group(Delimiter::Parenthesis)
-                    .ok_or_else(|| syn::parse::Error::new(span, "expected parenthesized expression after quantifier"))?;
+                    .ok_or_else(|| error(span, "expected parenthesized expression after quantifier"))?;
                 let args = stream.pop_closure_args()
-                    .ok_or_else(|| syn::parse::Error::new(span, "expected quantifier body"))?;
+                    .ok_or_else(|| error(span, "expected quantifier body"))?;
 
                 {
                     // for quantifiers, argument types must be explicit
@@ -286,14 +277,14 @@ impl PrustiTokenStream {
                     for pat in parsed_cl.inputs {
                         match pat {
                             syn::Pat::Type(_) => {}
-                            _ => return error(pat.span(), "quantifier arguments must have explicit types"),
+                            _ => return err(pat.span(), "quantifier arguments must have explicit types"),
                         }
                     }
                 };
 
                 let triggers = stream.extract_triggers()?;
                 if args.is_empty() {
-                    return error(span, "a quantifier must have at least one argument");
+                    return err(span, "a quantifier must have at least one argument");
                 }
                 let args = args.parse()?;
                 let body = stream.parse()?;
@@ -302,14 +293,14 @@ impl PrustiTokenStream {
 
             Some(PrustiToken::SpecEnt(span, _))
             | Some(PrustiToken::CallDesc(span, _)) =>
-                return error(span, "unexpected operator"),
+                return err(span, "unexpected operator"),
 
             // some Rust binary operators can appear on their own, e.g. `(..)`
             Some(PrustiToken::BinOp(span, PrustiBinaryOp::Rust(op))) =>
                 op.to_tokens(span),
 
             Some(PrustiToken::BinOp(span, _)) =>
-                return error(span, "unexpected binary operator"),
+                return err(span, "unexpected binary operator"),
             Some(PrustiToken::Token(token)) => token.to_token_stream(),
             None => return Ok(TokenStream::new()),
         };
@@ -340,7 +331,7 @@ impl PrustiTokenStream {
                     let once = *once;
                     self.tokens.pop_front();
                     let args = self.pop_closure_args()
-                        .ok_or_else(|| syn::parse::Error::new(span, "expected closure arguments"))?;
+                        .ok_or_else(|| error(span, "expected closure arguments"))?;
                     let nested_closure_specs = self.pop_group_of_nested_specs(span)?;
                     lhs = translate_spec_ent(
                         span,
@@ -360,9 +351,9 @@ impl PrustiTokenStream {
 
                 Some(PrustiToken::BinOp(span, op)) => (*span, *op),
                 Some(PrustiToken::Outer(span)) =>
-                    return error(*span, "unexpected outer"),
+                    return err(*span, "unexpected outer"),
                 Some(PrustiToken::Quantifier(span, _)) =>
-                    return error(*span, "unexpected quantifier"),
+                    return err(*span, "unexpected quantifier"),
 
                 None => break,
             };
@@ -374,7 +365,7 @@ impl PrustiTokenStream {
             let rhs = self.expr_bp(r_bp)?;
             // TODO: explain
             if !matches!(op, PrustiBinaryOp::Rust(_)) && rhs.is_empty() {
-                return error(span, "expected expression");
+                return err(span, "expected expression");
             }
             lhs = op.translate(span, lhs, rhs);
         }
@@ -410,44 +401,40 @@ impl PrustiTokenStream {
 
         Some(Self { tokens, source_span: self.source_span })
     }
-
-    fn pop_one_nested_spec(self) -> Option<NestedSpec<Self>> {
-        // TODO: clean up the interface somehow ...
-        if self.tokens.is_empty() {
-            return None;
-        }
-        if self.tokens.len() != 2 {
-            panic!();
-        }
-        match [
-            &self.tokens[0],
-            &self.tokens[1],
-        ] {
-            [
-                PrustiToken::Token(TokenTree::Ident(ident)),
-                PrustiToken::Group(_span, Delimiter::Parenthesis, box group),
-            ] => {
-                if ident == "requires" {
-                    Some(NestedSpec::Requires(group.clone()))
-                } else if ident == "ensures" {
-                    Some(NestedSpec::Ensures(group.clone()))
-                } else {
-                    None
-                }
+    
+    fn pop_parenthesized_group(&mut self) -> syn::Result<Self> {
+        match self.tokens.pop_front() {
+            Some(PrustiToken::Group(_span, Delimiter::Parenthesis, box group)) => {
+                Ok(group) // TODO: need to clone()?
             }
-            _ => None
+            _ => Err(error(self.source_span, "expected parenthesized group")),
+        }
+    }
+    
+    fn pop_single_nested_spec(&mut self) -> syn::Result<NestedSpec<Self>> {
+        let first = self.tokens.pop_front().ok_or_else(|| {
+            error(self.source_span, "expected nested spec")
+        })?;
+        if let PrustiToken::Token(TokenTree::Ident(spec_type)) = first {
+            match spec_type.to_string().as_ref() {
+                "requires" => Ok(NestedSpec::Requires(self.pop_parenthesized_group()?)),
+                "ensures" => Ok(NestedSpec::Ensures(self.pop_parenthesized_group()?)),
+                "pure" => Ok(NestedSpec::Pure),
+                other => err(self.source_span, format!("unexpected nested spec type: {}", other).as_ref()),
+            }
+        } else {
+            err(self.source_span, "expected identifier")
         }
     }
 
     fn pop_group_of_nested_specs(&mut self, span: Span) -> syn::Result<Vec<NestedSpec<TokenStream>>> {
         let group_of_specs = self.pop_group(Delimiter::Bracket)
-            .ok_or_else(|| syn::parse::Error::new(span, "expected nested specification in brackets"))?;
+            .ok_or_else(|| error(span, "expected nested specification in brackets"))?;
         let parsed = group_of_specs
             .split(PrustiBinaryOp::Rust(RustOp::Comma), true)
             .into_iter()
-            .map(|stream| stream.pop_one_nested_spec().unwrap())
-            // TODO: assert empty afterwards ...
-            .map(|stream| stream.parse())
+            .map(|stream| stream.parse_rest(|stream| stream.pop_single_nested_spec()))
+            .map(|stream| stream.and_then(|s| s.parse()))
             .collect::<syn::Result<Vec<NestedSpec<TokenStream>>>>()?;
         Ok(parsed)
     }
@@ -494,7 +481,7 @@ impl PrustiTokenStream {
                     .into_iter()
                     .map(|mut stream| stream
                         .pop_group(Delimiter::Parenthesis)
-                        .ok_or_else(|| syn::parse::Error::new(*triggers_span, "trigger sets must be tuples of expressions"))?
+                        .ok_or_else(|| error(*triggers_span, "trigger sets must be tuples of expressions"))?
                         .split(PrustiBinaryOp::Rust(RustOp::Comma), true)
                         .into_iter()
                         .map(|stream| stream.parse())
@@ -508,11 +495,72 @@ impl PrustiTokenStream {
     }
 }
 
+#[derive(Debug)]
+pub struct GhostConstraint {
+    pub trait_bounds: syn::PredicateType,
+    pub comma: syn::token::Comma,
+    pub specs: Vec<NestedSpec<TokenStream>>,
+}
+
+impl Parse for GhostConstraint {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        Ok(GhostConstraint {
+            trait_bounds: parse_trait_bounds(input)?,
+            comma: input.parse().map_err(with_ghost_constraint_example)?,
+            specs: PrustiTokenStream::new(input.parse().unwrap())
+                .parse_rest(|pts| pts.pop_group_of_nested_specs(input.span()))?,
+        })
+    }
+}
+
+fn parse_trait_bounds(input: ParseStream) -> syn::Result<syn::PredicateType> {
+    use syn::WherePredicate::*;
+    let where_predicate: syn::WherePredicate = input.parse().map_err(with_ghost_constraint_example)?;
+    match where_predicate {
+        Type(type_bound) => {
+            validate_trait_bounds(&type_bound)?;
+            Ok(type_bound)
+        }
+        Lifetime(lifetime_bound) => disallowed_lifetime_error(lifetime_bound.span()),
+        Eq(eq_bound) => err(eq_bound.span(), "equality predicates are not supported in trait bounds"),
+    }
+}
+
+fn disallowed_lifetime_error<T>(span: Span) -> syn::Result<T> {
+    err(span, "lifetimes are not allowed in ghost constraint trait bounds")
+}
+
+fn validate_trait_bounds(trait_bounds: &syn::PredicateType) -> syn::Result<()> {
+    if let Some(lifetimes) = &trait_bounds.lifetimes {
+        return disallowed_lifetime_error(lifetimes.span());
+    }
+    for bound in &trait_bounds.bounds {
+        match bound {
+            syn::TypeParamBound::Lifetime(lt) => {
+                return disallowed_lifetime_error(lt.span());
+            }
+            syn::TypeParamBound::Trait(trait_bound) => {
+                if let Some(lt) = &trait_bound.lifetimes {
+                    return disallowed_lifetime_error(lt.span())
+                }
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn with_ghost_constraint_example(mut err: syn::Error) -> syn::Error {
+    err.combine(error(err.span(), "expected a trait bound and specifications in brackets, e.g.: `ghost_constraint(T: A + B + ..., [requires(...), ...])`"));
+    err
+}
+
 /// A specification enclosed in another specification (e.g. in spec entailments or ghost constraints)
 #[derive(Debug)]
 pub enum NestedSpec<T> {
     Requires(T),
     Ensures(T),
+    Pure,
 }
 
 impl NestedSpec<PrustiTokenStream> {
@@ -520,6 +568,7 @@ impl NestedSpec<PrustiTokenStream> {
         Ok(match self {
             NestedSpec::Requires(stream) => NestedSpec::Requires(stream.parse()?),
             NestedSpec::Ensures(stream) => NestedSpec::Ensures(stream.parse()?),
+            NestedSpec::Pure => NestedSpec::Pure,
         })
     }
 }
@@ -907,46 +956,63 @@ mod tests {
     }
 
     mod ghost_constraints {
+        use std::assert_matches::assert_matches;
+
         use super::*;
 
         #[test]
         fn invalid_args() {
-            let err_invalid_arguments = "Invalid use of macro. Two arguments expected (a trait bound `T: A + B` and multiple specifications `[requires(...), ensures(...), ...]`)";
-            assert_error!(parse_ghost_constraint(quote!{ [requires(false)] }), err_invalid_arguments);
-            assert_error!(parse_ghost_constraint(quote!{ }), err_invalid_arguments);
-            assert_error!(parse_ghost_constraint(quote!{T: A }), err_invalid_arguments);
-            assert_error!(parse_ghost_constraint(quote!{T: A, [requires(false)], "nope" }), "expected nested specification in brackets");
-            assert_error!(parse_ghost_constraint(quote!{[requires(false)], T: A }), "expected nested specification in brackets");
+            let err_invalid_bounds = "expected one of: `for`, parentheses, `fn`, `unsafe`, `extern`, identifier, `::`, `<`, square brackets, `*`, `&`, `!`, `impl`, `_`, lifetime";
+            assert_error!(parse_ghost_constraint(quote!{ [requires(false)] }), err_invalid_bounds);
+            assert_error!(parse_ghost_constraint(quote!{ }), format!("unexpected end of input, {}", err_invalid_bounds));
+            assert_error!(parse_ghost_constraint(quote!{T: A }), "expected `,`");
+            assert_error!(parse_ghost_constraint(quote!{T: A, [requires(false)], "nope" }), "unexpected extra tokens");
+            assert_error!(parse_ghost_constraint(quote!{[requires(false)], T: A }), err_invalid_bounds);
             assert_error!(parse_ghost_constraint(quote!{T: A,  }), "expected nested specification in brackets");
             assert_error!(parse_ghost_constraint(quote!{T: A, {} }), "expected nested specification in brackets");
         }
 
         #[test]
         fn multiple_bounds_multiple_specs() {
-            let (bounds, nested_specs) = parse_ghost_constraint(quote!{ T: A+B+Foo<i32>, [requires(true), ensures(false)]}).unwrap();
+            let constraint = parse_ghost_constraint(quote!{ T: A+B+Foo<i32>, [requires(true), ensures(false), pure]}).unwrap();
 
-            assert_eq!(bounds.to_string(), "T : A + B + Foo < i32 >");
-            match &nested_specs[0] {
+            assert_bounds_eq(constraint.trait_bounds, quote!{ T : A + B + Foo < i32 > });
+            match &constraint.specs[0] {
                 NestedSpec::Requires(ts) => assert_eq!(ts.to_string(), "true"),
                 _ => panic!(),
             }
-            match &nested_specs[1] {
+            match &constraint.specs[1] {
                 NestedSpec::Ensures(ts) => assert_eq!(ts.to_string(), "false"),
                 _ => panic!(),
             }
+            assert_matches!(&constraint.specs[2], NestedSpec::Pure);
+            assert_eq!(constraint.specs.len(), 3);
         }
 
         #[test]
         fn no_specs() {
-            let (bounds, nested_specs) = parse_ghost_constraint(quote!{ T: A, []}).unwrap();
-            assert_eq!(bounds.to_string(), "T : A");
-            assert!(nested_specs.is_empty());
+            let constraint = parse_ghost_constraint(quote!{ T: A, []}).unwrap();
+            assert_bounds_eq(constraint.trait_bounds, quote!{ T : A });
+            assert!(constraint.specs.is_empty());
         }
 
         #[test]
         fn fully_qualified_trait_path() {
-            let (bounds, _) = parse_ghost_constraint(quote!{ T: path::to::A, [requires(true)]}).unwrap();
-            assert_eq!(bounds.to_string(), "T : path :: to :: A");
+            let constraint = parse_ghost_constraint(quote!{ T: path::to::A, [requires(true)]}).unwrap();
+            assert_bounds_eq(constraint.trait_bounds, quote!{ T : path :: to :: A });
+        }
+        
+        #[test]
+        fn tuple_generics() {
+            // just check that parsing succeeds
+            assert!(parse_ghost_constraint(quote!{ T: Fn<(i32,), Output = i32>, []}).is_ok());
+            assert!(parse_ghost_constraint(quote!{ T: Fn<(i32,)>, []}).is_ok());
+            assert!(parse_ghost_constraint(quote!{ T: Fn<(i32, bool)>, []}).is_ok());
+            assert!(parse_ghost_constraint(quote!{ T: Fn<(i32, bool,)>, []}).is_ok());
+        }
+        
+        fn assert_bounds_eq(parsed: syn::PredicateType, quote: TokenStream) {
+            assert_eq!(syn::WherePredicate::Type(parsed), syn::parse_quote!{ #quote });
         }
     }
 }

@@ -1,8 +1,9 @@
 use prusti_contracts::*;
 
-#[ghost_constraint([ //~ ERROR: Invalid use of macro. Two arguments expected (a trait bound `T: A + B` and multiple specifications `[requires(...), ensures(...), ...]`)
-    ensures(result > 0)
+#[ghost_constraint([
+    ensures(result > 0) //~ ERROR: expected `,`
 ])]
+//~| ERROR: expected a trait bound and specifications in brackets, e.g.: `ghost_constraint(T: A + B + ..., [requires(...), ...])`
 fn foo<T>(_x: T) -> i32 {
     42
 }
