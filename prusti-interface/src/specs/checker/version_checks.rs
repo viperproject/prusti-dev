@@ -11,7 +11,6 @@ use prusti_rustc_interface::middle::hir::map::Map;
 use prusti_rustc_interface::ast::ast::Attribute;
 
 /// Checks for mismatched version issues between `prusti` and `prusti-contracts`/`prusti-specs`
-#[derive(Default)]
 pub struct MismatchedVersionsChecker;
 
 impl<'tcx> SpecCheckerStrategy<'tcx> for MismatchedVersionsChecker {
@@ -38,8 +37,9 @@ impl<'tcx> SpecCheckerStrategy<'tcx> for MismatchedVersionsChecker {
     }
 }
 
-/// First predicate checks visitor: collect all function items that originate
-/// from predicates
+/// Finds all `#[prusti::specs_version = "..."]` attributes and compares them
+/// to the version it was compiled with, throwing an error if it was compiled
+/// with a higher version.
 struct CheckVersionVisitor<'tcx> {
     env_query: EnvQuery<'tcx>,
     errors: Vec<PrustiError>,
