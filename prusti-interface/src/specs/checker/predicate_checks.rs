@@ -18,7 +18,6 @@ use log::debug;
 use crate::utils::has_abstract_predicate_attr;
 
 /// Checks for illegal predicate usages
-#[derive(Default)]
 pub struct IllegalPredicateUsagesChecker;
 
 impl<'tcx> SpecCheckerStrategy<'tcx> for IllegalPredicateUsagesChecker {
