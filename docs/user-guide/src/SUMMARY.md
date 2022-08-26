@@ -19,6 +19,7 @@
   - [Absence of panics](verify/panic.md)
   - [Overflow checks](verify/overflow.md)
   - [Pre- and postconditions](verify/prepost.md)
+  - [Assertions and assumptions](verify/assert_assume.md)
   - [Trusted functions](verify/trusted.md)
   - [Pure functions](verify/pure.md)
   - [Predicates](verify/predicate.md)

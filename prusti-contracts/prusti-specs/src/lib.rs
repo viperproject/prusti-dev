@@ -4,6 +4,7 @@
 #![feature(box_syntax)]
 #![feature(proc_macro_span)]
 #![feature(if_let_guard)]
+#![feature(assert_matches)]
 // This Clippy chcek seems to be always wrong.
 #![allow(clippy::iter_with_drain)]
 
@@ -241,6 +242,14 @@ fn generate_for_pure(attr: TokenStream, item: &untyped::AnyFnItem) -> GeneratedR
         ));
     }
 
+    do_generate_for_pure(item)
+}
+
+/// Generate spec items and attributes to typecheck and later retrieve "pure" annotations.
+/// 
+/// This the actual generating logic called by `generate_for_pure` after checking that the body is empty.
+/// It's exposed separately for use in ghost constraints.
+fn do_generate_for_pure(item: &untyped::AnyFnItem) -> GeneratedResult {
     Ok((
         vec![],
         vec![parse_quote_spanned! {item.span()=>
