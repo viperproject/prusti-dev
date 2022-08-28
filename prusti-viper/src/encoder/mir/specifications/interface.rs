@@ -1,5 +1,5 @@
 use crate::encoder::mir::specifications::specs::Specifications;
-use log::{info, trace};
+use log::{trace};
 use prusti_interface::{
     specs::{
         typed,
@@ -20,7 +20,6 @@ pub(crate) struct SpecificationsState<'tcx> {
 
 impl<'tcx> SpecificationsState<'tcx> {
     pub fn new(user_typed_specs: DefSpecificationMap) -> Self {
-        info!("print DefSpecificationMap: {:#?}", user_typed_specs);
         Self {
             specs: RefCell::new(Specifications::new(user_typed_specs)),
         }

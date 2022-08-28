@@ -1,4 +1,4 @@
-use std::convert::TryFrom;
+use std::{convert::TryFrom, cmp::Ordering};
 
 /// This type identifies one of the procedural macro attributes of Prusti
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
@@ -12,6 +12,8 @@ pub enum SpecAttributeKind {
     Predicate,
     Invariant,
     GhostConstraint,
+    Model, 
+    PrintCounterexample,
 }
 
 impl TryFrom<String> for SpecAttributeKind {
@@ -28,7 +30,25 @@ impl TryFrom<String> for SpecAttributeKind {
             "predicate" => Ok(SpecAttributeKind::Predicate),
             "invariant" => Ok(SpecAttributeKind::Invariant),
             "ghost_constraint" => Ok(SpecAttributeKind::GhostConstraint),
+            "model" => Ok(SpecAttributeKind::Model),
+            "print_counterexample" => Ok(SpecAttributeKind::PrintCounterexample),
             _ => Err(name),
         }
+    }
+}
+
+impl Ord for SpecAttributeKind {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match (self, other){
+            (SpecAttributeKind::Model, _) => Ordering::Less,
+            (_, SpecAttributeKind::Model) => Ordering::Greater,
+            _ => Ordering::Equal,
+        }
+    }
+}
+
+impl PartialOrd for SpecAttributeKind {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
