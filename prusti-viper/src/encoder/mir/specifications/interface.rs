@@ -1,5 +1,5 @@
 use crate::encoder::mir::specifications::specs::Specifications;
-use log::{trace};
+use log::trace;
 use prusti_interface::{
     specs::{
         typed,
@@ -127,7 +127,6 @@ pub(crate) trait SpecificationsInterface<'tcx> {
     /// Get the span of the declared specification, if any, or else the span of
     /// the method declaration.
     fn get_spec_span(&self, def_id: DefId) -> Span;
-
 }
 
 impl<'v, 'tcx: 'v> SpecificationsInterface<'tcx> for super::super::super::Encoder<'v, 'tcx> {

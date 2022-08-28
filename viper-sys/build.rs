@@ -747,7 +747,6 @@ fn main() {
                 method!("domains"),
                 method!("nonDomainFunctions"),
                 method!("extractVal", "(Lviper/silicon/reporting/VarEntry;)Lviper/silicon/reporting/ExtractedModelEntry;"),
-            
             ]),
             java_class!("viper.silicon.reporting.DomainEntry", vec![
                 method!("name"),

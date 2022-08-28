@@ -17,7 +17,6 @@ use vir_crate::{
     middle as vir_mid,
 };
 
-
 #[derive(Default)]
 pub(in super::super) struct FunctionsLowererState {
     functions: BTreeMap<String, vir_low::FunctionDecl>,
@@ -80,7 +79,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     if let vir_mid::TypeDecl::Struct(vir_mid::type_decl::Struct{name: _, fields}) = type_decl {
                         for field in fields{
                             let field_snapshot = self.obtain_struct_field_snapshot(&function_decl.return_type, &field, function_call.clone(), Default::default())?;
-                            destructor_calls.push(self.unroll_model(field.ty.clone(), field_snapshot.clone(), config::unroll_model())?);                    
+                            destructor_calls.push(self.unroll_model(field.ty.clone(), field_snapshot.clone(), config::unroll_model())?);
                         }
                     }
                 }
@@ -161,7 +160,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
                     expr! {
                         ([pres.into_iter().conjoin()] ==>
                             ([body] && [posts_expression])) &&
-                        ([call] == [call_without_gas_level]) 
+                        ([call] == [call_without_gas_level])
                         //([destructor_calls.into_iter().fold(true.into(), |acc, x| expr! {[acc] && [x]})])
                     },
                 );
@@ -181,7 +180,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         function_decl.walk_types(|ty| self.ensure_type_definition(ty))
     }
     /*
-    This has not needed at moment; as long as there is an axioms in snapshot domains that compares 
+    This has not needed at moment; as long as there is an axioms in snapshot domains that compares
     a snapshot variable directly with its constructors/destructors, e.g.
     forall value: Snap :: valid(value) ==> value == destructor$Snap$$(constructor$Snap$$(value)))
 
