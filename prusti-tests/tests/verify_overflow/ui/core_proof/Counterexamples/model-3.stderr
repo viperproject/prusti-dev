@@ -1,0 +1,49 @@
+error: [Prusti: verification error] the asserted expression might not hold
+  --> $DIR/model-3.rs:36:5
+   |
+36 |     assert!(v.lookup(0) + v.lookup(1) + v.lookup(2) + v.lookup(3) == 15)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: the failing assertion is here
+  --> $DIR/model-3.rs:36:5
+   |
+36 |     assert!(v.lookup(0) + v.lookup(1) + v.lookup(2) + v.lookup(3) == 15)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: counterexample for "v"
+       value:   ref(VecWrapper_model {
+            values: Seq(4, 5, 7, 3, ),
+        })
+  --> $DIR/model-3.rs:35:10
+   |
+35 | fn test1(v: &VecWrapper<i8>) {
+   |          ^
+   = note: this error originates in the macro `assert` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: [Prusti: verification error] postcondition might not hold.
+  --> $DIR/model-3.rs:40:11
+   |
+40 | #[ensures(v.model().values[0] == 1)]
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: the error originates here
+  --> $DIR/model-3.rs:41:1
+   |
+41 | fn test2(v: VecWrapper<i8>) {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: counterexample for "v"
+       value:   VecWrapper_model {
+            values: Seq(3, ),
+        }
+  --> $DIR/model-3.rs:41:10
+   |
+41 | fn test2(v: VecWrapper<i8>) {}
+   |          ^
+note: counterexample for "result"
+       value:   ()
+  --> $DIR/model-3.rs:41:29
+   |
+41 | fn test2(v: VecWrapper<i8>) {}
+   |                             ^^
+
+error: aborting due to 2 previous errors
+
