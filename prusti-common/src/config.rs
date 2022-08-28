@@ -130,7 +130,9 @@ lazy_static::lazy_static! {
         settings.set_default("counterexample", false).unwrap();
         settings.set_default("print_counterexample_if_model_is_present", false).unwrap();
         /*
-            This has not needed at moment details are found in Markus Limbeck BA
+            this is not needed at the moment; as long as there is an axioms in snapshot domains that compares 
+            a snapshot variable directly with its constructors/destructors, e.g.
+            forall value: Snap :: valid(value) ==> value == destructor$Snap$$(constructor$Snap$$(value)))
             settings.set_default("unroll_model", 3).unwrap();
         */
         settings.set_default("print_hash", false).unwrap();

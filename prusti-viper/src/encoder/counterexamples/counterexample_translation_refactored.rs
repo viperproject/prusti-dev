@@ -140,8 +140,9 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         }
         for pure_fn in relevant_pure_functions{
             let ce_pure_fn = self.process_pure_function(pure_fn, position_manager);
-            let pure_fn_name = pure_fn.name.trim_start_matches("caller_for$m_").trim_end_matches("$"); //FIXME find the correct name
-            entries.push(CounterexampleEntry::new(Some(pure_fn_name.to_string()), vec![ce_pure_fn]));
+            let mut pure_fn_name = format!("{}()", pure_fn.name.trim_start_matches("caller_for$m_").trim_end_matches("$"));
+            pure_fn_name = format!("{}", pure_fn_name.split("$").last().unwrap()); //remove prefix of functions in implementations
+            entries.push(CounterexampleEntry::new(Some(pure_fn_name), vec![ce_pure_fn]));
         }
 
         entries
@@ -162,30 +163,26 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
             } else {
                 &None
             };
-        (self.translate_snapshot_entry(return_value.as_ref(), typ, false), self.get_span(position_manager, &pure_fn.position))
+        (self.translate_snapshot_entry(return_value.as_ref(), typ, true), self.get_span(position_manager, &pure_fn.position))
     }
 
     fn process_entry(&self, trace: &Vec<(String, MultiSpan)>, ty: Ty<'tcx>) -> Vec<(Entry,MultiSpan)> {
         let mut entries = vec![];
         for (snapshot_var, span) in trace{ 
             let model_entry = self.silicon_counterexample.model.entries.get(snapshot_var);
-            let entry = self.translate_snapshot_entry(model_entry, Some(ty), false);
+            let entry = self.translate_snapshot_entry(model_entry, Some(ty), true);
             entries.push((entry, span.clone()));
-            /*if config::print_counterexample_if_model_is_present() {
-
-
-
-            }
-                if let Some(ModelEntry::DomainValue(domain, var)) = model_entry{
-                    match translated_domains.cached_domains.get(&(domain.clone(), var.clone())){
-                        Some(_) => (),
-                        None => {
-                            let entry_wo_model = self.translate_snapshot_entry(model_entry, Some(ty), translated_domains, true);
-                            entries.push((entry_wo_model, span.clone()));
-                        },
-                    }
+            if config::print_counterexample_if_model_is_present() { //if the original type should be part of the counterexample in addition to the model
+                match &ty.kind(){
+                    &ty::TyKind::Adt(adt_def, _) if adt_def.is_struct() => {
+                        if self.encoder.get_type_specs(adt_def.did()).and_then(|p| p.has_model).is_some() {
+                            let entry = self.translate_snapshot_entry(model_entry, Some(ty), false); //extract the counterexample of the original type
+                            entries.push((entry, span.clone()));
+                        }
+                    },
+                    _ => (),
                 }
-            }*/
+            }
         }        
         entries
     }
@@ -212,7 +209,6 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                                     None
                                 }
                             },
-
                             _ => None
                         }
                     }).collect::<Vec<String>>();
@@ -227,7 +223,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
     fn translate_snapshot_entry(&self,
         model_entry: Option<&ModelEntry>,
         typ: Option<Ty<'tcx>>,
-        wo_model: bool, //if we skip models FIXME not finished
+        model: bool, //if false, ignore models
     ) -> Entry {
        match (model_entry, typ.and_then(|x| Some(x.kind()))){
             (Some(ModelEntry::LitInt(string)),Some(ty::TyKind::Char)) => {
@@ -244,7 +240,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                 let sil_fn_name = format!("destructor${}$$target_current", domain_name);
-                Entry::Ref(box self.extract_field_value(&sil_fn_name, Some(typ.clone()), model_entry, sil_domain, wo_model))
+                Entry::Ref(box self.extract_field_value(&sil_fn_name, Some(typ.clone()), model_entry, sil_domain, model))
             },
            (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Tuple(subst))) => {
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
@@ -254,7 +250,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     let field_typ = subst[i];
                     let field_name = format!("tuple_{}", i);
                     let sil_fn_name = format!("destructor${}$${}", domain_name, &field_name);
-                    let field_entry = self.extract_field_value(&sil_fn_name, Some(field_typ), model_entry, sil_domain, wo_model);
+                    let field_entry = self.extract_field_value(&sil_fn_name, Some(field_typ), model_entry, sil_domain, model);
                     fields.push(field_entry);
                 }
                 Entry::Tuple(fields)
@@ -264,7 +260,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                 let sil_fn_name = format!("destructor${}$$val_ref", domain_name);
                 let new_typ = subst.type_at(0);
-                Entry::Box(box self.extract_field_value(&sil_fn_name, Some(new_typ.clone()), model_entry, sil_domain, wo_model))
+                Entry::Box(box self.extract_field_value(&sil_fn_name, Some(new_typ.clone()), model_entry, sil_domain, model))
             },
                 
             (Some(ModelEntry::DomainValue(domain_name, ..)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_struct() => {
@@ -273,13 +269,12 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     let sil_fn_name = format!("destructor${}$$value", domain_name);
                     let variant = adt_def.variants().iter().next().unwrap();
                     let int_typ = Some(variant.fields[0].ty(self.tcx, subst));
-                    return self.extract_field_value(&sil_fn_name, int_typ, model_entry, sil_domain, wo_model);
+                    return self.extract_field_value(&sil_fn_name, int_typ, model_entry, sil_domain, model);
                 }
                 let variant = adt_def.variants().iter().next().unwrap();
                 let struct_name = variant.ident(self.tcx).name.to_ident_string();
-                //check if model should be used
-                if !wo_model{
-                    //check if struct is a model
+                //check if a model should replace the original type in the counterexample
+                if model{
                     if let Some((to_model, model_id), ) = self.encoder.get_type_specs(adt_def.did()).and_then(|p| p.has_model){
                         let entry = self.extract_model(model_entry, domain_name, to_model, model_id);
                         return if let Entry::Struct{field_entries, custom_print_option,..} = entry{
@@ -297,7 +292,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     variant,
                     model_entry,
                     subst,
-                    wo_model, 
+                    model, 
                 );
                 let custom_print_option = self.encoder.get_type_specs(adt_def.did()).and_then(| p | self.custom_print(p.counterexample_print, None));
                 Entry::Struct {
@@ -328,7 +323,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                                 if let Some(ModelEntry::DomainValue(domain_name, _)) = new_model_entry{
                                     let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                                     let sil_fn_name = format!("destructor${}$$value", domain_name);
-                                    let field_entry = self.extract_field_value(&sil_fn_name, field_typ, new_model_entry.as_ref(), sil_domain, wo_model);
+                                    let field_entry = self.extract_field_value(&sil_fn_name, field_typ, new_model_entry.as_ref(), sil_domain, model);
                                     return Entry::Union { 
                                         name: super_name, 
                                         field_entry: (variant_name, box field_entry),
@@ -363,7 +358,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                                 let destructor_sil_name = format!("destructor${}${}$value", domain_name, &variant_name);
                                  if let Some(value_function) = sil_domain.functions.entries.get(&destructor_sil_name){
                                     let domain_entry = value_function.get_function_value(&sil_fn_param);
-                                    let field_entries = self.translate_snapshot_adt_fields(&variant, domain_entry.as_ref(), subst, wo_model);
+                                    let field_entries = self.translate_snapshot_adt_fields(&variant, domain_entry.as_ref(), subst, model);
                                     let custom_print_option = self.encoder.get_type_specs(adt_def.did()).and_then(| p | self.custom_print(p.counterexample_print, Some(variant_name.clone())));
                                     return Entry::Enum {
                                         super_name,
@@ -388,7 +383,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                 let typ = subst.type_at(0);
                 let entries = model_entries.iter().map(|entry| 
                 {
-                    self.translate_snapshot_entry(Some(entry), Some(typ), wo_model)
+                    self.translate_snapshot_entry(Some(entry), Some(typ), model)
                 }).collect();
 
                 Entry::Seq(entries)
@@ -396,7 +391,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
             (Some(ModelEntry::Seq(_, model_entries)), Some(ty::TyKind::Array(typ, _))) => {
                 let entries = model_entries.iter().map(|entry| 
                 {
-                    self.translate_snapshot_entry(Some(entry), Some(typ.clone()), wo_model)
+                    self.translate_snapshot_entry(Some(entry), Some(typ.clone()), model)
                 }).collect();
 
                 Entry::Array(entries)
@@ -406,7 +401,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                 let sil_fn_name = format!("destructor${}$$value", domain_name);
-                self.extract_field_value(&sil_fn_name, typ, model_entry, sil_domain, wo_model)
+                self.extract_field_value(&sil_fn_name, typ, model_entry, sil_domain, model)
             }  
             _ => Entry::Unknown,
         }
@@ -416,7 +411,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
     variant: &ty::VariantDef,
     model_entry: Option<&ModelEntry>,
     subst: ty::subst::SubstsRef<'tcx>,
-    wo_model: bool, //if we skip models
+    model: bool, //if false, ignore models
     ) -> Vec<(String, Entry)> {
         match model_entry {
             Some(ModelEntry::DomainValue(domain_name, _)) => {
@@ -427,7 +422,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                     let field_name = f.ident(self.tcx).name.to_ident_string();
                     let field_typ = f.ty(self.tcx, subst);
                     let sil_fn_name = format!("destructor${}$$f${}", domain_name, &field_name);
-                    let field_entry = self.extract_field_value(&sil_fn_name, Some(field_typ), model_entry, sil_domain, wo_model);
+                    let field_entry = self.extract_field_value(&sil_fn_name, Some(field_typ), model_entry, sil_domain, model);
 
                     fields.push((field_name, field_entry));
                 }
@@ -442,7 +437,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
     field_typ: Option<Ty<'tcx>>,
     model_entry: Option<&ModelEntry>,
     sil_domain: &DomainEntry,
-    wo_model: bool, //if we skip models
+    model: bool, //if false, ignore models
     ) -> Entry {
         let sil_fn_param = vec![model_entry.cloned()];
         let field_value = if let Some(function) = sil_domain.functions.entries.get(sil_fn_name){
@@ -450,7 +445,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         } else {
             &None
         };
-        self.translate_snapshot_entry(field_value.as_ref(), field_typ, wo_model)
+        self.translate_snapshot_entry(field_value.as_ref(), field_typ, model)
     }
 
     fn extract_model(&self,

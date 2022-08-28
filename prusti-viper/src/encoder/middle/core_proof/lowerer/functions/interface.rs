@@ -181,9 +181,9 @@ impl<'p, 'v: 'p, 'tcx: 'v> Private for Lowerer<'p, 'v, 'tcx> {
         function_decl.walk_types(|ty| self.ensure_type_definition(ty))
     }
     /*
-    This has not needed at moment, as long as there is an axioms in snapshot domains that compares 
+    This has not needed at moment; as long as there is an axioms in snapshot domains that compares 
     a snapshot variable directly with its constructors/destructors, e.g.
-    forall value: Snap :: valid(value) ==> value == destructor$Snap$$value(constructor$Snap$$(value)))
+    forall value: Snap :: valid(value) ==> value == destructor$Snap$$(constructor$Snap$$(value)))
 
     fn unroll_model(&mut self, typ: vir_mid::Type, expr: vir_low::Expression, bound: usize) -> SpannedEncodingResult<vir_low::Expression>{
         use vir_low::macros::*;
