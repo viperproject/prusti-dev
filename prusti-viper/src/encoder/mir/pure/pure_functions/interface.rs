@@ -7,7 +7,7 @@ use crate::encoder::{
     snapshot::interface::SnapshotEncoderInterface,
     stub_function_encoder::StubFunctionEncoder,
 };
-use log::{debug, trace, info};
+use log::{debug, info, trace};
 use prusti_common::config;
 use prusti_interface::data::ProcedureDefId;
 use prusti_rustc_interface::middle::ty::subst::SubstsRef;
@@ -157,9 +157,16 @@ pub(crate) trait PureFunctionEncoderInterface<'v, 'tcx> {
 impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
     for crate::encoder::encoder::Encoder<'v, 'tcx>
 {
-    fn get_proc_def_id(&self, identifier: String) -> Option<ProcedureDefId>{
-        info!("function identifier2: {:#?}", self.pure_function_encoder_state.function_proc_ids);
-        self.pure_function_encoder_state.function_proc_ids.borrow().get(&identifier).cloned()
+    fn get_proc_def_id(&self, identifier: String) -> Option<ProcedureDefId> {
+        info!(
+            "function identifier2: {:#?}",
+            self.pure_function_encoder_state.function_proc_ids
+        );
+        self.pure_function_encoder_state
+            .function_proc_ids
+            .borrow()
+            .get(&identifier)
+            .cloned()
     }
 
     fn encode_pure_expression_high(
@@ -486,10 +493,12 @@ impl<'v, 'tcx: 'v> PureFunctionEncoderInterface<'v, 'tcx>
 
             let identifier = function_call_info.get_identifier();
 
-
-            if prusti_common::config::counterexample(){
+            if prusti_common::config::counterexample() {
                 info!("function identifier: {}", identifier.clone());
-                self.pure_function_encoder_state.function_proc_ids.borrow_mut().insert(identifier.clone(), proc_def_id.clone());
+                self.pure_function_encoder_state
+                    .function_proc_ids
+                    .borrow_mut()
+                    .insert(identifier.clone(), proc_def_id.clone());
             }
 
             self.register_function_constructor_mir(

@@ -57,8 +57,9 @@ impl ViperBackendConfig {
                     "--z3ConfigArgs".to_string(),
                     format!(
                         "smt.qi.eager_threshold={} model.partial={}",
-                        config::smt_qi_eager_threshold() , config::counterexample()
-                    ), 
+                        config::smt_qi_eager_threshold(),
+                        config::counterexample()
+                    ),
                     //model.partial changes the default case of functions in counterexamples to #unspecified
                     "--logLevel".to_string(),
                     "ERROR".to_string(),

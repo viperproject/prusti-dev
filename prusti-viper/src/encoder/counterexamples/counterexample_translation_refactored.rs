@@ -135,7 +135,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
 
         for (key, val) in self.var_mapping.pure_functions_mapping.iter(){
             if label_markers.get(key) == Some(&true){
-                relevant_pure_functions.extend(val.clone());
+                relevant_pure_functions.extend(val.iter());
             }
         }
         for pure_fn in relevant_pure_functions{
