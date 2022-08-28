@@ -2,7 +2,7 @@
 
 use prusti_contracts::*;
 
-//#[pure]
+#[pure]
 #[requires(x >= -2)]
 #[ensures(result == (x * (x + 1)) / 2)]
 fn sum(x:i32) -> i32 {

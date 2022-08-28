@@ -23,15 +23,11 @@ impl VecWrapper<i8> {
 
 
 #[requires(v.model().values.len() == Int::new(4))]
-//once -Pcheck_overflows works with sequences these lines can be removed 
-#[requires(v.model().values[Int::new(0)] < 10 )] 
-#[requires(v.model().values[Int::new(0)] > 0 )]
-#[requires(v.model().values[Int::new(1)] < 10 )]
-#[requires(v.model().values[Int::new(1)] > 0 )]
-#[requires(v.model().values[Int::new(2)] < 10 )]
-#[requires(v.model().values[Int::new(2)] > 0 )]
-#[requires(v.model().values[Int::new(3)] < 10 )]
-#[requires(v.model().values[Int::new(3)] > 0 )]
+//force specific counterexample
+#[requires(v.model().values[Int::new(0)] == 9 )] 
+#[requires(v.model().values[Int::new(1)] == 8 )]
+#[requires(v.model().values[Int::new(2)] == 3 )]
+#[requires(v.model().values[Int::new(3)] == 8 )]
 fn test1(v: &VecWrapper<i8>) {
     assert!(v.lookup(0) + v.lookup(1) + v.lookup(2) + v.lookup(3) == 15)
 }
