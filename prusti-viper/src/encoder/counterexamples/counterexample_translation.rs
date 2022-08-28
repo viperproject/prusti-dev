@@ -78,11 +78,8 @@ pub fn backtranslate(
     }
            
     let (silicon_model, opt_sil_entry) = translator.get_silicon_at_label(last_label, &result_sil_name); //We cannot use the "main" model of silicon because of references
-
-    let result_entry_snapshot = translator.translate_silicon_entry_with_snapshot(result_typ.clone(), opt_sil_entry, Some(result_encoded_typ)).unwrap_or_default();    
     
     let result_entry_heap_based = translator.translate_silicon_entry(result_typ, opt_sil_entry, result_sil_name, silicon_model).unwrap_or_default();
-    let result = result_entry_heap_based.merge(&result_entry_snapshot); //We prefer the heap based counterexample over the snapshot one
     
     let mut ce_entries = vec![];
 
@@ -118,7 +115,9 @@ pub fn backtranslate(
     }
 
     // add counterexample note for the return value, if any
-    if !result.is_unit() {
+    if !result_entry_heap_based.is_unit() {
+        let result_entry_snapshot = translator.translate_silicon_entry_with_snapshot(result_typ.clone(), opt_sil_entry, Some(result_encoded_typ)).unwrap_or_default();    
+        let result = result_entry_heap_based.merge(&result_entry_snapshot); //We prefer the heap based counterexample over the snapshot one
         ce_entries.push(CounterexampleEntry::with_one_value(
             result_span,
             None,
@@ -269,6 +268,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 }
                 Entry::Tuple(fields)
             }
+            (ty::TyKind::Tuple(_), _) => Entry::Tuple(vec![]),
             (ty::TyKind::Adt(adt_def, subst),Some(ModelEntry::Ref(_, map))) if adt_def.is_box() => {
                 let new_typ = subst.type_at(0);
                 let entry = self.translate_silicon_entry(new_typ,map.get("val_ref"), format!("{}.val_ref", vir_name), silicon_ce_entries).unwrap_or_default();

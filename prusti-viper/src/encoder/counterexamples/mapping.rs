@@ -167,14 +167,17 @@ impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_re
                 }
             }, 
             //variable assignments of the following form:
-            //inhale destruct_field(_1$snapshot$1) == snapvar_2
+            //inhale destruct_field(_1$snapshot$1) == snapvar_2                     (structs and enums)
+            //inhale destruct_field_value(destruct_field(_1$snapshot$1)) == snapvar_2     (unions)
             vir_low::Expression::DomainFuncApp(DomainFuncApp{domain_name: _, function_name, arguments, .. }) | 
             vir_low::Expression::BinaryOp(BinaryOp{ op_kind:BinaryOpKind::EqCmp ,  left:box vir_low::Expression::DomainFuncApp(DomainFuncApp{domain_name: _, function_name, arguments, .. }), ..}) => {
                 if arguments.len() == 1 && function_name.contains("target_current") && matches!(arguments.first().unwrap(), vir_low::Expression::Local(_)) { //references 
                     self.extract_var_from_assume(&Assume{expression: arguments.first().unwrap().clone(), position: vir_low::Position::default()})
-                } else if arguments.len() == 1 && function_name.contains("destructor") && matches!(arguments.first().unwrap(), vir_low::Expression::Local(_)) { //fields
+                } else if arguments.len() == 1 && function_name.contains("destructor") && matches!(arguments.first().unwrap(), vir_low::Expression::Local(_)) { //fields struct/enum
                     self.extract_var_from_assume(&Assume{expression: arguments.first().unwrap().clone(), position: vir_low::Position::default()})
-                } else {
+                } else if arguments.len() == 1 && function_name.contains("destructor") && matches!(arguments.first().unwrap(), vir_low::Expression::DomainFuncApp(_)) { //fields union
+                    self.extract_var_from_assume(&Assume{expression: arguments.first().unwrap().clone(), position: vir_low::Position::default()})
+                }else {
                     None
                 }
             },
