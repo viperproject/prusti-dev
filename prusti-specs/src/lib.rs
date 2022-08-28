@@ -689,9 +689,9 @@ pub fn rewrite_prusti_attributes_for_types(
         handle_result!(generate_spec_and_assertions_for_types(prusti_attributes, &mut item));
 
     quote_spanned! {item.span()=>
-        #(#generated_spec_items)*
         #(#generated_attributes)*
         #item
+        #(#generated_spec_items)*
     }
 }
 
@@ -826,7 +826,6 @@ fn generate_for_print_counterexample(attr: TokenStream, item: &mut syn::DeriveIn
 }
 
 pub fn type_model(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    let _ = env_logger::try_init();
     if syn::parse2::<syn::DeriveInput>(tokens.clone()).is_ok() {
         rewrite_prusti_attributes_for_types(SpecAttributeKind::Model, attr, tokens)
     } else {
@@ -839,7 +838,6 @@ pub fn type_model(attr: TokenStream, tokens: TokenStream) -> TokenStream {
 }
 
 pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    let _ = env_logger::try_init();
     if syn::parse2::<syn::DeriveInput>(tokens.clone()).is_ok() {
         rewrite_prusti_attributes_for_types(SpecAttributeKind::PrintCounterexample, attr, tokens)
     } else {
