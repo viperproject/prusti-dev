@@ -13,7 +13,7 @@ use crate::{
     },
     PrustiError,
 };
-use log::{debug, info};
+use log::{debug};
 use prusti_rustc_interface::hir::def_id::{DefId, LocalDefId};
 use std::{collections::HashMap, convert::TryInto, fmt::Debug};
 
@@ -404,13 +404,9 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
             if has_prusti_attr(attrs, "counterexample_print"){
                 let self_id = fn_decl.inputs[0].hir_id;
                 let name = read_prusti_attr("counterexample_print", attrs);
-                info!("print self_id: {:?}", self_id);
                 let hir = self.tcx.hir();
-               // info!("print hir: {:?}", hir);
                 let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
-                info!("print impl_id: {:?}", impl_id);
                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
-                info!("print type_id: {:?}", type_id);
                 self.type_specs
                     .entry(type_id.as_local().unwrap())
                     .or_default()
@@ -451,7 +447,6 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
 
             // Collect model type flag
             if  has_to_model_fn_attr(attrs){
-                info!("model found");
                 if let FnRetTy::Return(ty) = fn_decl.output{
                     if let Some(node) = self.tcx.hir().find(ty.hir_id){
                         if let Some(model_ty_id) = get_type_id_from_ty_node(node).and_then(|x| x.as_local()){
@@ -460,10 +455,12 @@ impl<'a, 'tcx> intravisit::Visitor<'tcx> for SpecCollector<'a, 'tcx> {
                                 let hir = self.tcx.hir();
                                 let impl_id = hir.get_parent_node(hir.get_parent_node(self_id));
                                 let type_id = get_type_id_from_impl_node(hir.get(impl_id)).unwrap();
-                                self.type_specs
-                                .entry(type_id.as_local().unwrap())
-                                .or_default()
-                                .has_model = Some((attr, model_ty_id));
+                                if let Some(local_id) = type_id.as_local() {
+                                    self.type_specs
+                                    .entry(local_id)
+                                    .or_default()
+                                    .has_model = Some((attr, model_ty_id));
+                                }
                             }
                         }
                     }

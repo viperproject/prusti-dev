@@ -19,32 +19,19 @@ use crate::{
     common::add_phantom_data_for_generic_params,
     user_provided_type_params::{
         UserAnnotatedTypeParam, UserAnnotatedTypeParamParser, UserAnnotatedTypeParamParserError,
-    }, print_counterexample,
+    },
 };
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
-use syn::{parse_quote, punctuated::Punctuated, spanned::Spanned, Pat, Token};
+use syn::{parse_quote, punctuated::Punctuated, spanned::Spanned};
 use uuid::Uuid;
 
 /// See module level documentation
-pub fn rewrite(item_struct: syn::ItemStruct) -> syn::Result<TokenStream> {
+pub fn rewrite(item_struct: syn::ItemStruct) -> syn::Result<Vec<syn::Item>> {
     let res = rewrite_internal(item_struct.clone());
     match res {
         Ok(result) => {
-            if let Some(attr) = item_struct.attrs.iter().find( |attr| attr.path.get_ident().and_then(| x | Some(x.to_string())) == Some("print_counterexample".to_string())){
-                let parser = Punctuated::<Pat, Token![,]>::parse_terminated; //parse_separated_nonempty;
-                match attr.parse_args_with(parser){
-                    Ok(args) => {
-                        let mut token_stream = print_counterexample(args.into_token_stream(), result.model_struct.into_token_stream());
-                        result.to_model_trait.to_tokens(&mut token_stream);
-                        result.model_impl.to_tokens(&mut token_stream);
-                        Ok(token_stream)
-                    },
-                    Err(err) => Err(err.into()),
-                }
-            } else {
-                Ok(result.into_token_stream())
-            }
+            Ok(vec![syn::Item::Struct(result.model_struct), syn::Item::Trait(result.to_model_trait), syn::Item::Impl(result.model_impl)])
         },
         Err(err) => Err(err.into()),
     }
@@ -388,11 +375,14 @@ mod tests {
 
         let model_ident = check_model_ident(&model, "PrustiFooModel");
         let trait_ident = check_trait_ident(&model, "PrustiFooToModel");
+        let trait_ident_str = trait_ident.to_string();
+
         let expected: syn::ItemImpl = parse_quote!(
             #[prusti::type_models_to_model_impl]
             impl #trait_ident<> for Foo <> {
                 #[trusted]
                 #[pure]
+                #[prusti::type_models_to_model_fn = #trait_ident_str]
                 fn model(&self) -> #model_ident<> {
                     unimplemented!("Models can only be used in specifications")
                 }
@@ -411,6 +401,7 @@ mod tests {
 
         let model_ident = check_model_ident(&model, "PrustiFooModel");
         let trait_ident = check_trait_ident(&model, "PrustiFooToModel");
+        let trait_ident_str = trait_ident.to_string();
 
         let expected_struct: syn::ItemStruct = parse_quote!(
             #[derive(Copy, Clone)]
@@ -422,6 +413,7 @@ mod tests {
             impl #trait_ident<> for Foo<'_, '_> {
                 #[trusted]
                 #[pure]
+                #[prusti::type_models_to_model_fn = #trait_ident_str]
                 fn model(&self) -> #model_ident<> {
                     unimplemented!("Models can only be used in specifications")
                 }
@@ -441,6 +433,7 @@ mod tests {
 
         let model_ident = check_model_ident(&model, "PrustiFooi32TusizeUModel");
         let trait_ident = check_trait_ident(&model, "PrustiFooi32TusizeUToModel");
+        let trait_ident_str = trait_ident.to_string();
 
         let expected_struct: syn::ItemStruct = parse_quote!(
             #[derive(Copy, Clone)]
@@ -463,6 +456,7 @@ mod tests {
             impl<T, U> #trait_ident<T, U> for Foo<i32, T, usize, U> {
                 #[trusted]
                 #[pure]
+                #[prusti::type_models_to_model_fn = #trait_ident_str]
                 fn model(&self) -> #model_ident<T, U> {
                     unimplemented!("Models can only be used in specifications")
                 }

@@ -79,6 +79,8 @@ fn extract_prusti_attributes(
                         attr.tokens
                     }
                     SpecAttributeKind::Invariant => unreachable!("type invariant on function"),
+                    SpecAttributeKind::Model => unreachable!("model on function"),
+                    SpecAttributeKind::PrintCounterexample => unreachable!("print_counterexample on function"),
                 };
                 prusti_attributes.push((attr_kind, tokens));
             } else {
@@ -155,6 +157,8 @@ fn generate_spec_and_assertions(
             SpecAttributeKind::Predicate => unreachable!(),
             SpecAttributeKind::Invariant => unreachable!(),
             SpecAttributeKind::GhostConstraint => ghost_constraints::generate(attr_tokens, item),
+            SpecAttributeKind::Model => unreachable!(),
+            SpecAttributeKind::PrintCounterexample => unreachable!(),
         };
         let (new_items, new_attributes) = rewriting_result?;
         generated_items.extend(new_items);
@@ -261,6 +265,89 @@ fn generate_for_trusted(attr: TokenStream, item: &untyped::AnyFnItem) -> Generat
         vec![parse_quote_spanned! {item.span()=>
             #[prusti::trusted]
         }],
+    ))
+}
+
+/// Generate spec items and attributes to typecheck and later retrieve "trusted" annotations.
+fn generate_for_trusted_for_types(attr: TokenStream, item: &syn::DeriveInput) -> GeneratedResult {
+    if !attr.is_empty() {
+        return Err(syn::Error::new(
+            attr.span(),
+            "the `#[trusted]` attribute does not take parameters",
+        ));
+    }
+    // TODO: reduce duplication with `invariant`
+    let mut rewriter = rewriter::AstRewriter::new();
+    let spec_id = rewriter.generate_spec_id();
+    let spec_id_str = spec_id.to_string();
+
+    let item_span = item.span();
+    let item_ident = item.ident.clone();
+    let item_name = syn::Ident::new(
+        &format!("prusti_trusted_item_{}_{}", item_ident, spec_id),
+        item_span,
+    );
+
+    let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
+        #[allow(unused_variables, dead_code, non_snake_case)]
+        #[prusti::spec_only]
+        #[prusti::trusted_type]
+        #[prusti::spec_id = #spec_id_str]
+        fn #item_name(self) {}
+    };
+
+    let generics = &item.generics;
+    let generics_idents = generics
+        .params
+        .iter()
+        .map(|generic_param| match generic_param {
+            syn::GenericParam::Type(param) => {
+                syn::GenericParam::Type(
+                    syn::TypeParam {
+                        attrs: Vec::new(),
+                        bounds: syn::punctuated::Punctuated::new(),
+                        colon_token: None,
+                        default: None,
+                        eq_token: None,
+                        ident: param.ident.clone(),
+                    }
+                )
+            },
+            syn::GenericParam::Lifetime(param) => {
+                syn::GenericParam::Lifetime(
+                    syn::LifetimeDef {
+                        attrs: Vec::new(),
+                        bounds: syn::punctuated::Punctuated::new(),
+                        colon_token: None,
+                        lifetime: param.lifetime.clone(),
+                    }
+                )
+            },
+            syn::GenericParam::Const(param) => {
+                syn::GenericParam::Const(
+                    syn::ConstParam {
+                        attrs: Vec::new(),
+                        colon_token: param.colon_token,
+                        const_token: param.const_token,
+                        default: None,
+                        eq_token: None,
+                        ident: param.ident.clone(),
+                        ty: param.ty.clone(),
+                    }
+                )
+            }
+        })
+        .collect::<syn::punctuated::Punctuated<_, syn::Token![,]>>();
+    // TODO: similarly to extern_specs, don't generate an actual impl
+    let item_impl: syn::ItemImpl = parse_quote_spanned! {item_span=>
+        impl #generics #item_ident <#generics_idents> {
+            #spec_item
+        }
+    };
+
+    Ok((
+        vec![syn::Item::Impl(item_impl)],
+        vec![],
     ))
 }
 
@@ -491,79 +578,7 @@ pub fn trusted(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     // `#[trusted]` can be applied to both types and to methods, figure out
     // which one by trying to parse a `DeriveInput`.
     if syn::parse2::<syn::DeriveInput>(tokens.clone()).is_ok() {
-        // TODO: reduce duplication with `invariant`
-        let mut rewriter = rewriter::AstRewriter::new();
-        let spec_id = rewriter.generate_spec_id();
-        let spec_id_str = spec_id.to_string();
-
-        let item: syn::DeriveInput = handle_result!(syn::parse2(tokens));
-        let item_span = item.span();
-        let item_ident = item.ident.clone();
-        let item_name = syn::Ident::new(
-            &format!("prusti_trusted_item_{}_{}", item_ident, spec_id),
-            item_span,
-        );
-
-        let spec_item: syn::ItemFn = parse_quote_spanned! {item_span=>
-            #[allow(unused_variables, dead_code, non_snake_case)]
-            #[prusti::spec_only]
-            #[prusti::trusted_type]
-            #[prusti::spec_id = #spec_id_str]
-            fn #item_name(self) {}
-        };
-
-        let generics = &item.generics;
-        let generics_idents = generics
-            .params
-            .iter()
-            .map(|generic_param| match generic_param {
-                syn::GenericParam::Type(param) => {
-                    syn::GenericParam::Type(
-                        syn::TypeParam {
-                            attrs: Vec::new(),
-                            bounds: syn::punctuated::Punctuated::new(),
-                            colon_token: None,
-                            default: None,
-                            eq_token: None,
-                            ident: param.ident.clone(),
-                        }
-                    )
-                },
-                syn::GenericParam::Lifetime(param) => {
-                    syn::GenericParam::Lifetime(
-                        syn::LifetimeDef {
-                            attrs: Vec::new(),
-                            bounds: syn::punctuated::Punctuated::new(),
-                            colon_token: None,
-                            lifetime: param.lifetime.clone(),
-                        }
-                    )
-                },
-                syn::GenericParam::Const(param) => {
-                    syn::GenericParam::Const(
-                        syn::ConstParam {
-                            attrs: Vec::new(),
-                            colon_token: param.colon_token,
-                            const_token: param.const_token,
-                            default: None,
-                            eq_token: None,
-                            ident: param.ident.clone(),
-                            ty: param.ty.clone(),
-                        }
-                    )
-                }
-            })
-            .collect::<syn::punctuated::Punctuated<_, syn::Token![,]>>();
-        // TODO: similarly to extern_specs, don't generate an actual impl
-        let item_impl: syn::ItemImpl = parse_quote_spanned! {item_span=>
-            impl #generics #item_ident <#generics_idents> {
-                #spec_item
-            }
-        };
-        quote_spanned! { item_span =>
-            #item
-            #item_impl
-        }
+        rewrite_prusti_attributes_for_types(SpecAttributeKind::Trusted, attr, tokens)
     } else {
         rewrite_prusti_attributes(SpecAttributeKind::Trusted, attr, tokens)
     }
@@ -643,40 +658,196 @@ pub fn predicate(tokens: TokenStream) -> TokenStream {
     parsed.into_token_stream()
 }
 
+pub fn rewrite_prusti_attributes_for_types(
+    outer_attr_kind: SpecAttributeKind,
+    outer_attr_tokens: TokenStream,
+    item_tokens: TokenStream,
+) -> TokenStream {
+    let mut item: syn::DeriveInput = handle_result!(syn::parse2(item_tokens));
+
+    // Start with the outer attribute
+    let mut prusti_attributes = vec![(outer_attr_kind, outer_attr_tokens)];
+
+    // Collect the remaining Prusti attributes, removing them from `item`.
+    prusti_attributes.extend(extract_prusti_attributes_for_types(&mut item));
+
+    if prusti_attributes.len() > 1 && prusti_attributes
+        .iter()
+        .any(|(ak, _)| ak == &SpecAttributeKind::Trusted)
+    {
+        return syn::Error::new(
+            item.span(),
+            "`trusted!` is incompatible with other Prusti attributes",
+        )
+        .to_compile_error();
+    }
+    
+    //we order die attributes to ensure a model attribute is processed first
+    prusti_attributes.sort_by(|(ak1, _), (ak2, _)| ak1.cmp(ak2));
+
+    let (generated_spec_items, generated_attributes) =
+        handle_result!(generate_spec_and_assertions_for_types(prusti_attributes, &mut item));
+
+    quote_spanned! {item.span()=>
+        #(#generated_spec_items)*
+        #(#generated_attributes)*
+        #item
+    }
+}
+
+
+fn extract_prusti_attributes_for_types(
+    item: &mut syn::DeriveInput,
+) -> Vec<(SpecAttributeKind, TokenStream)> {
+    let mut prusti_attributes = Vec::new();
+    let mut regular_attributes = Vec::new();
+    for attr in (&mut item.attrs).drain(0..) {
+        if attr.path.segments.len() == 1 {
+            if let Ok(attr_kind) = attr.path.segments[0].ident.to_string().try_into() {
+                let tokens = match attr_kind {
+                    SpecAttributeKind::Requires => unreachable!("requires on type"),
+                    SpecAttributeKind::Ensures => unreachable!("ensures on type"),
+                    SpecAttributeKind::AfterExpiry => unreachable!("after_expiry on type"),
+                    SpecAttributeKind::AssertOnExpiry => unreachable!("assert_on_expiry on type"),
+                    SpecAttributeKind::GhostConstraint => unreachable!("ghost_constraint on type"),
+                    SpecAttributeKind::Pure => unreachable!("pure on type"),
+                    SpecAttributeKind::Invariant => unreachable!("invariant on type"),
+                    SpecAttributeKind::Predicate => unreachable!("predicate on type"),
+                    SpecAttributeKind::Trusted |
+                    SpecAttributeKind::Model => {
+                        assert!(attr.tokens.is_empty(), "Unexpected shape of an attribute.");
+                        attr.tokens
+                    }
+                    SpecAttributeKind::PrintCounterexample => {
+                        // We need to drop the surrounding parenthesis to make the
+                        // tokens identical to the ones passed by the native procedural
+                        // macro call.
+                        let mut iter = attr.tokens.into_iter();
+                        let tokens = force_matches!(iter.next().unwrap(), TokenTree::Group(group) => group.stream());
+                        tokens
+                    }
+                };
+                prusti_attributes.push((attr_kind, tokens));
+            } else {
+                regular_attributes.push(attr);
+            }
+        } else {
+            regular_attributes.push(attr);
+        }
+    }
+    *(&mut item.attrs) = regular_attributes;
+    prusti_attributes
+}
+
+/// Generate spec items and attributes for `item` from the Prusti attributes
+fn generate_spec_and_assertions_for_types(
+    mut prusti_attributes: Vec<(SpecAttributeKind, TokenStream)>,
+    item: &mut syn::DeriveInput,
+) -> GeneratedResult {
+    let mut generated_items = vec![];
+    let mut generated_attributes = vec![];
+
+    for (attr_kind, attr_tokens) in prusti_attributes.drain(..) {
+        let rewriting_result = match attr_kind {
+            SpecAttributeKind::Requires => unreachable!(),
+            SpecAttributeKind::Ensures => unreachable!(),
+            SpecAttributeKind::AfterExpiry => unreachable!(),
+            SpecAttributeKind::AssertOnExpiry => unreachable!(),
+            SpecAttributeKind::Pure => unreachable!(),
+            SpecAttributeKind::Predicate => unreachable!(),
+            SpecAttributeKind::Invariant => unreachable!(),
+            SpecAttributeKind::GhostConstraint => unreachable!(),
+            SpecAttributeKind::Trusted => generate_for_trusted_for_types(attr_tokens, item),
+            SpecAttributeKind::Model => generate_for_model(attr_tokens, item),
+            SpecAttributeKind::PrintCounterexample => generate_for_print_counterexample(attr_tokens, item),
+        };
+        let (new_items, new_attributes) = rewriting_result?;
+        generated_items.extend(new_items);
+        generated_attributes.extend(new_attributes);
+    }
+
+    Ok((generated_items, generated_attributes))
+}
+
+/// Generate spec items and attributes to typecheck and later retrieve "model" annotations.
+fn generate_for_model(attr: TokenStream, item: &mut syn::DeriveInput) -> GeneratedResult {
+    match syn::Item::from(item.clone()) {
+        syn::Item::Struct(item_struct) => {
+            match type_model::rewrite(item_struct){
+                Ok(result) => {
+                    match result.first() {
+                        Some(syn::Item::Struct(new_item)) => {
+                            *item = syn::DeriveInput::from(new_item.clone()); //the internal model replaces the original struct
+                            Ok((vec![result[1].clone(), result[2].clone()], vec![]))
+                        }
+                        _ => unreachable!(),
+                    }
+                },
+                Err(err) => Err(err),
+            }
+        }
+        _ => Err(syn::Error::new(
+            attr.span(),
+            "Only structs can be attributed with a type model",
+        )),
+    }
+}
+
+
+/// Generate spec items and attributes to typecheck and later retrieve "print_counterexample" annotations.
+fn generate_for_print_counterexample(attr: TokenStream, item: &mut syn::DeriveInput) -> GeneratedResult {
+    match syn::Item::from(item.clone()) {
+        syn::Item::Struct(item_struct) => {
+            match print_counterexample::rewrite_struct(attr, item_struct){
+                Ok(result) => Ok((result, vec![])), 
+                Err(err) => Err(err),
+            }
+        }
+        syn::Item::Enum(item_enum) => {
+            match print_counterexample::rewrite_enum(attr, item_enum){
+                Ok(result) => {
+                    match result.first() {
+                        Some(syn::Item::Enum(new_item)) => {
+                            *item = syn::DeriveInput::from(new_item.clone()); //print_counterexample removes all attributes inside the enum
+                            Ok((vec![result[1].clone()], vec![]))
+                        },
+                        _ => unreachable!(),
+                    }
+                },
+                Err(err) => Err(err),
+            }
+            
+        }
+        _ => Err(syn::Error::new(
+            attr.span(),
+            "Only structs and enums can be attributed with a custom counterexample print",
+        )),
+    }
+}
+
 pub fn type_model(attr: TokenStream, tokens: TokenStream) -> TokenStream {
     let _ = env_logger::try_init();
-    let item: syn::Item = handle_result!(syn::parse2(tokens));
-    match item {
-        syn::Item::Struct(item_struct) => {
-            handle_result!(type_model::rewrite(item_struct))
-        }
-        _ => syn::Error::new(
+    if syn::parse2::<syn::DeriveInput>(tokens.clone()).is_ok() {
+        rewrite_prusti_attributes_for_types(SpecAttributeKind::Model, attr, tokens)
+    } else {
+        syn::Error::new(
             attr.span(),
             "Only structs can be attributed with a type model",
         )
-        .to_compile_error(),
+        .to_compile_error()
     }
 }
 
 pub fn print_counterexample(attr: TokenStream, tokens: TokenStream) -> TokenStream {
-    //TODO rewrite error messages such that the apper for al arguments at once done
-    //TODO check for multiple print_counterexample, it should be allowed only once, should be fine
-    
     let _ = env_logger::try_init();
-    let item: syn::Item = handle_result!(syn::parse2(tokens));
-    
-    match item {
-        syn::Item::Struct(item_struct) => {
-            handle_result!(print_counterexample::rewrite_struct(attr, item_struct))
-        }
-        syn::Item::Enum(item_enum) => {
-            handle_result!(print_counterexample::rewrite_enum(attr, item_enum))
-        }
-        _ => syn::Error::new(
+    if syn::parse2::<syn::DeriveInput>(tokens.clone()).is_ok() {
+        rewrite_prusti_attributes_for_types(SpecAttributeKind::PrintCounterexample, attr, tokens)
+    } else {
+        syn::Error::new(
             attr.span(),
-            "Only structs and enums can be attributed with a custom counterexample print",
+            "Only structs and enums can be attributed with print_counterexample",
         )
-        .to_compile_error(),
+        .to_compile_error()
     }
 }
 pub fn ghost(tokens: TokenStream) -> TokenStream {

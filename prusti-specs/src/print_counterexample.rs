@@ -1,14 +1,12 @@
 use syn::{punctuated::Punctuated, parse::Parser, Expr, Token, Pat, PatLit, ExprLit, Lit, Fields, parse_quote_spanned, Ident, Generics};
-use log::{error};
 use proc_macro2::{Span, TokenStream};
 use quote::{quote_spanned, ToTokens};
 use super::rewriter::AstRewriter;
 use itertools::Itertools;
-use crate::type_model;
 use syn::spanned::Spanned;
 
 
-pub fn rewrite_struct(attrs: TokenStream, item_struct: syn::ItemStruct) -> syn::Result<TokenStream> {
+pub fn rewrite_struct(attrs: TokenStream, item_struct: syn::ItemStruct) -> syn::Result<Vec<syn::Item>>{
 
     let res = rewrite_internal_struct(attrs, item_struct);
     match res {
@@ -17,7 +15,7 @@ pub fn rewrite_struct(attrs: TokenStream, item_struct: syn::ItemStruct) -> syn::
     }
 }
 
-pub fn rewrite_enum(attrs: TokenStream, item_enum: syn::ItemEnum) -> syn::Result<TokenStream> {
+pub fn rewrite_enum(attrs: TokenStream, item_enum: syn::ItemEnum) -> syn::Result<Vec<syn::Item>> {
 
     let res = rewrite_internal_enum(attrs, item_enum);
     match res {
@@ -66,11 +64,8 @@ impl std::convert::From<TypeCounterexampleError> for syn::Error {
     }
 }
 
-fn rewrite_internal_struct(attr: TokenStream, item_struct: syn::ItemStruct) -> TypeCounterexampleResult<TokenStream> {
-    error!("print attr: {}", attr);
-    let spec_model = check_model(&attr, item_struct.clone())?;
-    if spec_model.is_empty(){
-        let parser = Punctuated::<Pat, Token![,]>::parse_terminated; //parse_separated_nonempty;
+fn rewrite_internal_struct(attr: TokenStream, item_struct: syn::ItemStruct) -> TypeCounterexampleResult<Vec<syn::Item>> {
+    let parser = Punctuated::<Pat, Token![,]>::parse_terminated;
     let attrs = match parser.parse(attr.clone().into()){
         Ok(result) => result,
         Err(err) => return Err(TypeCounterexampleError::ParsingError(err)),
@@ -81,9 +76,7 @@ fn rewrite_internal_struct(attr: TokenStream, item_struct: syn::ItemStruct) -> T
     let mut rewriter = AstRewriter::new();
     let spec_id = rewriter.generate_spec_id();
     let spec_id_str = spec_id.to_string();
-    error!("print spec_id: {:?}", spec_id);
     let item_span = item_struct.span();
-    error!("print span: {:?}", item_span);
     let item_name = syn::Ident::new(
         &format!("prusti_print_counterexample_item_{}_{}", item_struct.ident, spec_id),
         item_span,
@@ -93,7 +86,6 @@ fn rewrite_internal_struct(attr: TokenStream, item_struct: syn::ItemStruct) -> T
     if !args2.empty_or_trailing(){
         args2.push_punct(<syn::Token![,]>::default());
     }
-    error!("print item_name: {:?}", item_name);
     let typ = item_struct.ident.clone();
     let spec_item = match item_struct.fields{
         Fields::Named(_) => {
@@ -151,22 +143,12 @@ fn rewrite_internal_struct(attr: TokenStream, item_struct: syn::ItemStruct) -> T
     };
     
     let item_impl = generate_generics(item_struct.span().clone(), item_struct.ident.clone(), &item_struct.generics, spec_item.into_token_stream());
-    
-    let final_token = quote_spanned! { item_span =>
-        #item_struct
-        #item_impl
-    };
-    error!("print impl: {}", final_token);
-    Ok(final_token)
-    } else {
-        Ok(spec_model)
-    }
+    Ok(vec![syn::Item::Impl(item_impl)])
 }
 
 
-fn rewrite_internal_enum(attr: TokenStream, item_enum: syn::ItemEnum) -> TypeCounterexampleResult<TokenStream> {
-    error!("print attr: {}", attr);
-    let parser = Punctuated::<Pat, Token![,]>::parse_terminated; //parse_separated_nonempty;
+fn rewrite_internal_enum(attr: TokenStream, item_enum: syn::ItemEnum) -> TypeCounterexampleResult<Vec<syn::Item>> {
+    let parser = Punctuated::<Pat, Token![,]>::parse_terminated; 
     let attrs = match parser.parse(attr.clone().into()){
         Ok(result) => result,
         Err(err) => return Err(TypeCounterexampleError::ParsingError(err)),
@@ -183,9 +165,7 @@ fn rewrite_internal_enum(attr: TokenStream, item_enum: syn::ItemEnum) -> TypeCou
     let spec_id_str = spec_id.to_string(); //Does this have to be unique?
     
     for variant in &item_enum.variants{
-        error!("print variant: {:?}", variant);
         if let Some(custom_print) = variant.attrs.iter().find( |attr| attr.path.get_ident().and_then(| x | Some(x.to_string())) == Some("print_counterexample".to_string())){
-            error!("print custom print: {:?}", custom_print);
             let variant_name = variant.ident.clone();
             let item_span = variant.ident.span();
             let item_name = syn::Ident::new(
@@ -200,8 +180,6 @@ fn rewrite_internal_enum(attr: TokenStream, item_enum: syn::ItemEnum) -> TypeCou
             };
 
             let len = attrs.len();
-            error!("print attrs: {:?}", attrs);
-            error!("print length: {:?}", len);
             let (first_arg, args) = process_attr(&attrs, len)?;
                 match &variant.fields{
                     Fields::Named(_) => {
@@ -263,7 +241,6 @@ fn rewrite_internal_enum(attr: TokenStream, item_enum: syn::ItemEnum) -> TypeCou
                 }
         } 
     }
-    error!("print new function: {:?}", spec_items);
     let mut spec_item_as_tokens = TokenStream::new();
     for x in spec_items{
         x.to_tokens(&mut spec_item_as_tokens);
@@ -275,26 +252,7 @@ fn rewrite_internal_enum(attr: TokenStream, item_enum: syn::ItemEnum) -> TypeCou
         //remove all macros inside the enum
         variant.attrs.retain( |attr| attr.path.get_ident().and_then(| x | Some(x.to_string())) != Some("print_counterexample".to_string()));
     }
-
-    let final_token = quote_spanned! { item_span =>
-        #item_enum
-        #item_impl
-    };
-    error!("print impl: {}", final_token);
-    Ok(final_token)
-}
-
-fn check_model(attr: &TokenStream, item_struct: syn::ItemStruct) -> TypeCounterexampleResult<TokenStream>{
-    //check if type is a model
-    if let Some(_) = item_struct.attrs.iter().find( |attr| attr.path.get_ident().and_then(| x | Some(x.to_string())) == Some("model".to_string())){
-        let item_span = item_struct.span();
-        let spec_item: syn::Item = parse_quote_spanned! {item_span=>
-            #[print_counterexample(#attr)]
-            #item_struct
-        };
-        return Ok(type_model(TokenStream::new(), spec_item.into_token_stream()))
-    }
-    Ok(TokenStream::new())
+    Ok(vec![syn::Item::Enum(item_enum) , syn::Item::Impl(item_impl)])
 }
 
 fn process_attr(attrs: &Punctuated::<Pat, Token![,]>, len: usize) -> TypeCounterexampleResult<(TokenStream, TokenStream)>{
@@ -306,9 +264,7 @@ fn process_attr(attrs: &Punctuated::<Pat, Token![,]>, len: usize) -> TypeCounter
         match text {
             Pat::Lit(PatLit { attrs: _, expr: box Expr::Lit(ExprLit { attrs: _, lit: Lit::Str(lit_str) }) }) => {
                 let value = lit_str.value();
-                error!("value of text node: {}", value);
                 let count = value.matches("{}").count();
-                error!("count of {{}} in text node: {}", count);
                 if count != len-1{
                     return Err(TypeCounterexampleError::ArgumentsDoNotMatch(span));
                 }
@@ -343,7 +299,6 @@ fn check_validity_of_args(args: Punctuated<Pat, Token![,]>, len: u32, name: &Str
                 Ok(result) => result,
                 Err(err) => return Err(TypeCounterexampleError::ParsingError(err))
             };
-            error!("print value: {}", value);
             if value >= len {
                 return Err(TypeCounterexampleError::InvalidArgument(arg.span(), name.to_string(), value.to_string()));
             }
