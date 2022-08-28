@@ -72,11 +72,14 @@ fn main() {
                     for line in stderr.lines() {
                         println!("cargo:warning={}", line);
                     }
-                    // Delete files to prevent Catch-22 where these files cannot be rebuilt
-                    for exe in exes {
-                        std::fs::remove_file(exe).ok();
+                    // Only panic when running with `x.py` to avoid errors on the first run
+                    if std::env::var("CARGO_FEATURE_PRUSTI_CONTRACTS_DEP").is_ok() {
+                        // Delete files to prevent Catch-22 where these files cannot be rebuilt
+                        for exe in exes {
+                            std::fs::remove_file(exe).ok();
+                        }
+                        panic!("Fix the above Prusti crash and run build again to rebuild Prusti.")
                     }
-                    panic!("Fix the above Prusti crash and run build again to rebuild Prusti.")
                 }
             }
             Err(e) => {

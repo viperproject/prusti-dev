@@ -313,6 +313,7 @@ def main(argv):
             # First builds `prusti`
             cargo(argv[i:])
             # Second runs build script to build `prusti-contracts`
+            argv.extend(["--features", "prusti-contracts-dep"])
             cargo(argv[i:])
             break
         else:
