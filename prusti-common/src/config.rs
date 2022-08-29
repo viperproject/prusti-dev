@@ -10,7 +10,7 @@ pub mod commandline;
 use self::commandline::CommandLine;
 use ::config::{Config, Environment, File};
 use log::warn;
-use prusti_launch::{get_current_executable_dir, find_viper_home};
+use prusti_launch::{get_current_executable_dir, find_viper_home, PRUSTI_HELPERS, PRUSTI_LIBS};
 use serde::Deserialize;
 use std::{collections::HashSet, env, path::PathBuf, sync::RwLock};
 
@@ -123,6 +123,7 @@ lazy_static::lazy_static! {
         settings.set_default("enable_type_invariants", false).unwrap();
         settings.set_default("use_new_encoder", true).unwrap();
         settings.set_default::<Option<u8>>("number_of_parallel_verifiers", None).unwrap();
+        settings.set_default::<Option<String>>("min_prusti_version", None).unwrap();
 
         settings.set_default("print_desugared_specs", false).unwrap();
         settings.set_default("print_typeckd_specs", false).unwrap();
@@ -474,6 +475,18 @@ pub fn check_timeout() -> Option<u32> {
 /// `--enableMoreCompleteExhale`.
 pub fn use_more_complete_exhale() -> bool {
     read_setting("use_more_complete_exhale")
+}
+
+pub fn is_prusti_helper_crate() -> bool {
+    env::var("CARGO_PKG_NAME")
+        .map(|name| PRUSTI_HELPERS.contains(&name.as_str()))
+        .unwrap_or(false)
+}
+
+pub fn is_prusti_lib_crate() -> bool {
+    env::var("CARGO_PKG_NAME")
+        .map(|name| PRUSTI_LIBS.contains(&name.as_str()))
+        .unwrap_or(false)
 }
 
 /// When enabled, prints the items collected for verification.
@@ -830,6 +843,11 @@ pub fn use_new_encoder() -> bool {
 /// How many parallel verifiers Silicon should use.
 pub fn number_of_parallel_verifiers() -> Option<u8> {
     read_setting("number_of_parallel_verifiers")
+}
+
+/// Throw a compilation error if using a lower prusti version.
+pub fn min_prusti_version() -> Option<String> {
+    read_setting("min_prusti_version")
 }
 
 /// The given basic blocks will be replaced with `assume false`.

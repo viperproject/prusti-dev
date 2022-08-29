@@ -37,18 +37,19 @@ RUSTFMT_CRATES = [
     'jni-gen',
     'prusti',
     #'prusti-common',
-    #'prusti-contracts',
-    'prusti-contracts-impl',
-    'prusti-contracts-internal',
-    'prusti-contracts-test',
+    'prusti-contracts/prusti-contracts',
+    'prusti-contracts/prusti-contracts-std',
+    'prusti-contracts/prusti-contracts-impl',
+    'prusti-contracts/prusti-contracts-internal',
+    #'prusti-contracts/prusti-specs',
+    'prusti-contracts/prusti-utils',
+    'prusti-contracts-build',
     #'prusti-interface',
     'prusti-launch',
     'prusti-rustc-interface',
     'prusti-server',
     'prusti-smt-solver',
-    #'prusti-specs',
     'prusti-tests',
-    'prusti-utils',
     #'prusti-viper',
     'smt-log-analyzer',
     #'test-crates',
@@ -242,9 +243,9 @@ def fmt_check_all():
             run_command(['rustfmt', '--check', file])
 
 def check_smir():
-    """Check that `extern crate` is used only in `prusti_rustc_interface`."""
+    """Check that `extern crate` is used only in `prusti_rustc_interface` (TODO: `prusti_interface` is also ignored for now)."""
     for folder in os.listdir('.'):
-        if folder == 'prusti-rustc-interface':
+        if folder == 'prusti-rustc-interface' or folder == 'prusti-interface':
             continue
         if os.path.exists(os.path.join(folder, 'Cargo.toml')):
             completed = subprocess.run(
@@ -307,6 +308,13 @@ def main(argv):
             break
         elif arg == 'check-smir':
             check_smir(*argv[i+1:])
+            break
+        elif arg == 'build':
+            # First builds `prusti`
+            cargo(argv[i:])
+            # Second runs build script to build `prusti-contracts`
+            argv.extend(["--features", "prusti-contracts-dep"])
+            cargo(argv[i:])
             break
         else:
             cargo(argv[i:])

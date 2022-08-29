@@ -9,24 +9,24 @@ use crate::environment::Environment;
 use prusti_rustc_interface::hir;
 use prusti_rustc_interface::hir::def_id::DefId;
 use prusti_rustc_interface::hir::intravisit::Visitor;
-use prusti_rustc_interface::middle::ty::TyCtxt;
 
-
-use log::{trace};
+use log::trace;
 
 use crate::utils::{has_spec_only_attr, has_extern_spec_attr};
 
-pub struct CollectPrustiSpecVisitor<'a, 'tcx: 'a> {
-    env: &'a Environment<'tcx>,
-    tcx: TyCtxt<'tcx>,
+use super::{EnvQuery, EnvName};
+
+pub struct CollectPrustiSpecVisitor<'tcx> {
+    env_query: EnvQuery<'tcx>,
+    env_name: EnvName<'tcx>,
     result: Vec<DefId>,
 }
 
-impl<'a, 'tcx> CollectPrustiSpecVisitor<'a, 'tcx> {
-    pub fn new(env: &'a Environment<'tcx>) -> Self {
+impl<'tcx> CollectPrustiSpecVisitor<'tcx> {
+    pub fn new(env: &Environment<'tcx>) -> Self {
         CollectPrustiSpecVisitor {
-            env,
-            tcx: env.tcx(),
+            env_query: env.query,
+            env_name: env.name,
             result: Vec::new(),
         }
     }
@@ -35,38 +35,38 @@ impl<'a, 'tcx> CollectPrustiSpecVisitor<'a, 'tcx> {
     }
 
     pub fn visit_all_item_likes(&mut self) {
-        let items = self.tcx.hir_crate_items(());
+        let items = self.env_query.tcx().hir_crate_items(());
         for id in items.items() {
-            self.visit_item(self.tcx.hir().item(id));
+            self.visit_item(self.env_query.hir().item(id));
         }
         for id in items.trait_items() {
-            self.visit_trait_item(self.tcx.hir().trait_item(id));
+            self.visit_trait_item(self.env_query.hir().trait_item(id));
         }
         for id in items.impl_items() {
-            self.visit_impl_item(self.tcx.hir().impl_item(id));
+            self.visit_impl_item(self.env_query.hir().impl_item(id));
         }
         for id in items.foreign_items() {
-            self.visit_foreign_item(self.tcx.hir().foreign_item(id));
+            self.visit_foreign_item(self.env_query.hir().foreign_item(id));
         }
     }
 }
 
-impl<'a, 'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
+impl<'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'tcx> {
     fn visit_item(&mut self, item: &hir::Item) {
-        let attrs = self.env.get_local_attributes(item.def_id);
+        let attrs = self.env_query.get_local_attributes(item.def_id);
         if has_spec_only_attr(attrs) || has_extern_spec_attr(attrs) {
             return;
         }
         if let hir::ItemKind::Fn(..) = item.kind {
-            let def_id = self.tcx.hir().local_def_id(item.hir_id()).to_def_id();
-            let item_def_path = self.env.get_item_def_path(def_id);
+            let def_id = self.env_query.as_local_def_id(item.hir_id()).to_def_id();
+            let item_def_path = self.env_name.get_item_def_path(def_id);
             trace!("Add {} to result", item_def_path);
             self.result.push(def_id);
         }
     }
 
     fn visit_trait_item(&mut self, trait_item: &hir::TraitItem) {
-        let attrs = self.env.get_local_attributes(trait_item.def_id);
+        let attrs = self.env_query.get_local_attributes(trait_item.def_id);
         if has_spec_only_attr(attrs) || has_extern_spec_attr(attrs) {
             return;
         }
@@ -82,14 +82,14 @@ impl<'a, 'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
         if let hir::TraitItemKind::Fn(_, hir::TraitFn::Required(_)) = trait_item.kind {
             return;
         }
-        let def_id = self.tcx.hir().local_def_id(trait_item.hir_id()).to_def_id();
-        let item_def_path = self.env.get_item_def_path(def_id);
+        let def_id = self.env_query.as_local_def_id(trait_item.hir_id()).to_def_id();
+        let item_def_path = self.env_name.get_item_def_path(def_id);
         trace!("Add {} to result", item_def_path);
         self.result.push(def_id);
     }
 
     fn visit_impl_item(&mut self, impl_item: &hir::ImplItem) {
-        let attrs = self.env.get_local_attributes(impl_item.def_id);
+        let attrs = self.env_query.get_local_attributes(impl_item.def_id);
         if has_spec_only_attr(attrs) || has_extern_spec_attr(attrs) {
             return;
         }
@@ -101,8 +101,8 @@ impl<'a, 'tcx> Visitor<'tcx> for CollectPrustiSpecVisitor<'a, 'tcx> {
             return;
         }
 
-        let def_id = self.tcx.hir().local_def_id(impl_item.hir_id()).to_def_id();
-        let item_def_path = self.env.get_item_def_path(def_id);
+        let def_id = self.env_query.as_local_def_id(impl_item.hir_id()).to_def_id();
+        let item_def_path = self.env_name.get_item_def_path(def_id);
         trace!("Add {} to result", item_def_path);
         self.result.push(def_id);
     }

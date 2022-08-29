@@ -12,7 +12,7 @@ use prusti_viper::verifier::Verifier;
 pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
     trace!("[verify] enter");
 
-    if env.has_errors() {
+    if env.diagnostic.has_errors() {
         warn!("The compiler reported an error, so the program will not be verified.");
     } else {
         debug!("Prepare verification task...");
@@ -29,7 +29,7 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
             verification_task.procedures.len()
         ));
 
-        if config::print_collected_verification_items() {
+        if config::print_collected_verification_items() && !config::is_prusti_lib_crate() {
             println!(
                 "Collected verification items {}:",
                 verification_task.procedures.len()
@@ -37,8 +37,8 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
             for procedure in &verification_task.procedures {
                 println!(
                     "procedure: {} at {:?}",
-                    env.get_item_def_path(*procedure),
-                    env.get_def_span(*procedure)
+                    env.name.get_item_def_path(*procedure),
+                    env.query.get_def_span(procedure)
                 );
             }
         }
@@ -58,7 +58,7 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
 
         match verification_result {
             VerificationResult::Success => {
-                if env.has_errors() {
+                if env.diagnostic.has_errors() {
                     user::message(
                         "Verification result is inconclusive because errors \
                                        were encountered during encoding.",
@@ -72,7 +72,7 @@ pub fn verify(env: Environment<'_>, def_spec: typed::DefSpecificationMap) {
             }
             VerificationResult::Failure => {
                 user::message("Verification failed");
-                assert!(env.has_errors() || config::internal_errors_as_warnings());
+                assert!(env.diagnostic.has_errors() || config::internal_errors_as_warnings());
             }
         };
     }

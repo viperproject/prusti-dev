@@ -433,8 +433,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ExpressionBackwardInterpreter<'p, 'v, 'tcx> {
     ) -> SpannedEncodingResult<ExprBackwardInterpreterState> {
         if let ty::TyKind::FnDef(def_id, call_substs) = ty.kind() {
             let def_id = *def_id;
-            let full_func_proc_name: &str = &self.encoder.env().tcx().def_path_str(def_id);
-            let func_proc_name = &self.encoder.env().get_item_name(def_id);
+            let full_func_proc_name: &str = &self.encoder.env().name.get_absolute_item_name(def_id);
+            let func_proc_name = &self.encoder.env().name.get_item_name(def_id);
 
             // compose substitutions
             // TODO(tymap): do we need this?

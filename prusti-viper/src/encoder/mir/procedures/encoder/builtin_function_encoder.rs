@@ -29,7 +29,11 @@ impl<'p, 'v, 'tcx> BuiltinFuncAppEncoder<'p, 'v, 'tcx> for super::ProcedureEncod
         target: &Option<mir::BasicBlock>,
         cleanup: &Option<mir::BasicBlock>,
     ) -> SpannedEncodingResult<bool> {
-        let full_called_function_name = self.encoder.env().tcx().def_path_str(called_def_id);
+        let full_called_function_name = self
+            .encoder
+            .env()
+            .name
+            .get_absolute_item_name(called_def_id);
 
         let make_manual_assign =
             |encoder: &mut Self,

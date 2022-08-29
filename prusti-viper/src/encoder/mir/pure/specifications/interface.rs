@@ -24,7 +24,7 @@ use crate::encoder::{
     snapshot::interface::SnapshotEncoderInterface,
 };
 use prusti_rustc_interface::{
-    hir::def_id::{DefId, LocalDefId},
+    hir::def_id::DefId,
     middle::{mir, ty::subst::SubstsRef},
     span::Span,
 };
@@ -46,7 +46,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
     #[allow(clippy::too_many_arguments)]
     fn encode_assertion_high(
         &self,
-        assertion: &LocalDefId,
+        assertion: DefId,
         pre_label: Option<&str>,
         target_args: &[vir_high::Expression],
         target_return: Option<&vir_high::Expression>,
@@ -74,7 +74,7 @@ pub(crate) trait SpecificationEncoderInterface<'tcx> {
     #[allow(clippy::too_many_arguments)]
     fn encode_assertion(
         &self,
-        assertion: &LocalDefId,
+        assertion: &DefId,
         pre_label: Option<&str>,
         target_args: &[vir_poly::Expr],
         target_return: Option<&vir_poly::Expr>,
@@ -116,7 +116,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
 
     fn encode_assertion_high(
         &self,
-        assertion: &LocalDefId,
+        assertion: DefId,
         _pre_label: Option<&str>, // TODO: use pre_label (map labels)
         target_args: &[vir_high::Expression],
         target_return: Option<&vir_high::Expression>,
@@ -125,17 +125,16 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
     ) -> SpannedEncodingResult<vir_high::Expression> {
         let encoded_assertion = inline_spec_item_high(
             self,
-            assertion.to_def_id(),
+            assertion,
             target_args,
             target_return,
             false,
             parent_def_id,
             substs,
         )?;
-        let position = self.error_manager().register_span(
-            parent_def_id,
-            self.env().tcx().def_span(assertion.to_def_id()),
-        );
+        let position = self
+            .error_manager()
+            .register_span(parent_def_id, self.env().query.get_def_span(assertion));
         Ok(encoded_assertion.set_default_position(position.into()))
     }
 
@@ -258,7 +257,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
 
     fn encode_assertion(
         &self,
-        assertion: &LocalDefId,
+        assertion: &DefId,
         pre_label: Option<&str>,
         target_args: &[vir_poly::Expr],
         target_return: Option<&vir_poly::Expr>,
@@ -268,7 +267,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
     ) -> SpannedEncodingResult<vir_poly::Expr> {
         let mut encoded_assertion = inline_spec_item(
             self,
-            assertion.to_def_id(),
+            *assertion,
             target_args,
             target_return,
             targets_are_values,
@@ -287,7 +286,7 @@ impl<'v, 'tcx: 'v> SpecificationEncoderInterface<'tcx> for crate::encoder::Encod
             });
         }
 
-        let span = self.env().tcx().def_span(assertion.to_def_id());
+        let span = self.env().query.get_def_span(assertion);
         encoded_assertion = self.patch_snapshots(encoded_assertion).with_span(span)?;
 
         Ok(encoded_assertion

@@ -41,7 +41,10 @@ pub(super) fn inline_closure_high<'tcx>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
-    let mir = encoder.env().local_mir(def_id.expect_local(), substs);
+    let mir = encoder
+        .env()
+        .body
+        .get_closure_body(def_id.expect_local(), substs);
     assert_eq!(mir.arg_count, args.len() + 1);
     let mut body_replacements = vec![];
     for (arg_idx, arg_local) in mir.args_iter().enumerate() {
@@ -72,7 +75,7 @@ pub(super) fn inline_spec_item_high<'tcx>(
     parent_def_id: DefId,
     substs: SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
-    let mir = encoder.env().local_mir(def_id.expect_local(), substs);
+    let mir = encoder.env().body.get_spec_body(def_id, substs);
     assert_eq!(
         mir.arg_count,
         target_args.len() + if target_return.is_some() { 1 } else { 0 },
@@ -117,8 +120,6 @@ pub(super) fn encode_quantifier_high<'tcx>(
     parent_def_id: DefId,
     substs: ty::subst::SubstsRef<'tcx>,
 ) -> SpannedEncodingResult<vir_high::Expression> {
-    let tcx = encoder.env().tcx();
-
     // Quantifiers are encoded as:
     //   forall(
     //     (
@@ -132,7 +133,8 @@ pub(super) fn encode_quantifier_high<'tcx>(
     //   )
 
     let cl_type_body = substs.type_at(1);
-    let (body_def_id, body_substs, _, args, _) = extract_closure_from_ty(tcx, cl_type_body);
+    let (body_def_id, body_substs, _, args, _) =
+        extract_closure_from_ty(encoder.env().query, cl_type_body);
 
     let mut encoded_qvars = vec![];
     let mut bounds = vec![];
@@ -160,7 +162,7 @@ pub(super) fn encode_quantifier_high<'tcx>(
         let mut encoded_triggers = vec![];
         for (trigger_idx, ty_trigger) in ty_trigger_set.tuple_fields().into_iter().enumerate() {
             let (trigger_def_id, trigger_substs, _, _, _) =
-                extract_closure_from_ty(tcx, ty_trigger);
+                extract_closure_from_ty(encoder.env().query, ty_trigger);
             let set_field = vir_high::FieldDecl::new(
                 format!("tuple_{}", trigger_set_idx),
                 trigger_set_idx,
