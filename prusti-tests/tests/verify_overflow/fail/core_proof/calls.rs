@@ -22,8 +22,7 @@ fn test1(a: u32, b: T) -> G {
     callee(a, b)
 }
 
-#[requires(c.f == 1)]
-fn test2(a: u32, b: T, c: T) {
+fn test2(a: u32, b: T) {
     let x = callee(a, b);
     assert!(x.g1 == 0);     //~ ERROR: the asserted expression might not hold
 }
