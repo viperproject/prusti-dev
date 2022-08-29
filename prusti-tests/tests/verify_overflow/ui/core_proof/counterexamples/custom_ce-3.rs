@@ -15,13 +15,13 @@ struct X {
 
 
 
-#[requires(x.model().a == x.a)]
-#[ensures(x.model().a == 5)]
+#[requires(x.model().a == x.a && x.a == 2)] //force specific counterexample
+#[ensures(x.model().a == 5)] 
 fn test1(x: X) {}
 
-#[requires(x.model().a == x.a)]
+#[requires(x.model().a == x.a && x.a == 2)] //force specific counterexample
 #[requires(y.model().a == y.a)]
-#[ensures(x.model().a == y.model().a)]
+#[ensures(!(x.model().a == y.model().a))]
 fn test2(x: X, y: X) {}
 
 fn main() {}

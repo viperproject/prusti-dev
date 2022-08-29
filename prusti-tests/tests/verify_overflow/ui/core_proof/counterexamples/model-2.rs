@@ -27,7 +27,7 @@ fn push_i32(v: &mut VecWrapper<i32>, val: i32) {
     v.values.push(val);
 }
 
-
+#[requires(v.model().last_pushed == 2)] //force specific counterexample
 #[ensures(v.model().last_pushed == 5)]
 fn test(v: VecWrapper<i32>){}
 

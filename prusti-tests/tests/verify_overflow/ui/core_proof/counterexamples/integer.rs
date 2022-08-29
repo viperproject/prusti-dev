@@ -7,6 +7,7 @@ use prusti_contracts::*;
 #[ensures(a == Int::new(5))]
 fn test1(a: Int) {}
 
+#[requires(a == Int::new(10))] //force specific counterexample
 #[ensures(!result)]
 fn test2(a: Int, b: Int) -> bool{
     let c = a + b;

@@ -33,6 +33,7 @@ fn test1(v: &VecWrapper<i8>) {
 }
 
 #[requires(v.model().values.len() == Int::new(1) )]
+#[requires(v.model().values[Int::new(0)] == 3 )] //force specific counterexample
 #[ensures(v.model().values[0] == 1)]
 fn test2(v: VecWrapper<i8>) {}
 

@@ -26,8 +26,9 @@ enum Z{
     NotInit,
 }
 
+#[requires(x.a == 1 && y.0 == 1)] //force specific counterexample
 #[ensures(!result)]
-fn test1(x: X<i32>, a: i32, y: Y, z:Z) -> bool{
+fn test1(x: X<i32>, a: i32, y: Y) -> bool{
     prusti_assume!(a > 0);
     x.a + y.0 == a
 }

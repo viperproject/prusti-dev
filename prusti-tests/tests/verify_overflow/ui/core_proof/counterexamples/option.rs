@@ -9,8 +9,8 @@ struct X{
 #[ensures(!result)]
 fn test_1(x: X) -> bool {
     match x.a {
-        Some(_) => true,
-        None => false,
+        Some(2) => true,
+        _ => false,
     }
 }
 
