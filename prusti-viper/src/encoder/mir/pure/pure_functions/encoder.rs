@@ -101,7 +101,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> PureFunctionEncoder<'p, 'v, 'tcx> {
         );
 
         let span = encoder.get_spec_span(proc_def_id);
-        let sig = encoder.env().query.get_fn_sig(proc_def_id, substs);
+        let sig = encoder.env().query.get_fn_sig_resolved(proc_def_id, substs);
 
         PureFunctionEncoder {
             encoder,
