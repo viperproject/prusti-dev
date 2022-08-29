@@ -32,7 +32,7 @@ pub(crate) struct PureFunction{
 
 pub(crate) trait VarMappingInterface {
     fn create_mapping(&mut self, def_id: ProcedureDefId, encoder: &Encoder);
-    fn get_successor(&self, label: &String, label_markers: &FxHashMap<String, bool>) -> Option<&String>;
+    fn get_successor(&self, label: &str, label_markers: &FxHashMap<String, bool>) -> Option<&String>;
     fn get_span(&self, position_manager: &PositionManager, position: &vir_low::Position) -> MultiSpan;
     fn extract_var_from_assume(&self, statement: &Assume) -> Option<SnapshotVar>;
     fn extract_pure_fn_from_assume(&self, statement: &Assume) -> Option<PureFunction>;
@@ -53,7 +53,7 @@ impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_re
                     };
 
                     if let Some(snapshot_var) = snapshot_var_option{
-                        let mir_var = snapshot_var.name.split_once("$").unwrap().0.to_string();
+                        let mir_var = snapshot_var.name.split_once('$').unwrap().0.to_string();
                         match self.var_mapping.var_snaphot_mapping.get_mut(&mir_var) {
                             Some(label_snapshot_mapping) => { //mir var already in mapping
                                 match label_snapshot_mapping.get_mut(label){ //other snapshot vars are in mapping for that label
@@ -101,7 +101,7 @@ impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_re
 
     ///Given a counterexample (label_markers) and a label, it returns the sucessor
     /// There can be at most 1 successor
-    fn get_successor(&self, label: &String, label_markers: &FxHashMap<String, bool>) -> Option<&String>{
+    fn get_successor(&self, label: &str, label_markers: &FxHashMap<String, bool>) -> Option<&String>{
         match self.var_mapping.labels_successor_mapping.get(label){
             Some(possible_successors) => {
                let successor = possible_successors.iter().filter(|x| *label_markers.get(*x).unwrap_or(&false)).collect::<Vec<&String>>();
@@ -133,12 +133,12 @@ impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_re
             vir_low::Expression::FuncApp(FuncApp{function_name, arguments, position, ..}) => {
                 if function_name.contains("caller_for$"){
                     let args = arguments.iter().filter_map(|arg| {
-                        self.extract_var_from_assume(&Assume{expression: arg.clone(), position: vir_low::Position::default()}).and_then(|x| Some(x.name))
+                        self.extract_var_from_assume(&Assume{expression: arg.clone(), position: vir_low::Position::default()}).map(|x| x.name)
                     }).collect();
                     return Some(PureFunction{
                         name: function_name.clone(),
                         args,
-                        position: position.clone(),
+                        position: *position,
                     });
                 }
                 None
@@ -160,7 +160,7 @@ impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_re
                 if local.variable.name.contains("snapshot"){
                     Some(SnapshotVar{
                         name: local.variable.name.clone(),
-                        position: local.position.clone(),
+                        position: local.position,
                     })
                 } else {
                     None
@@ -171,13 +171,14 @@ impl<'ce, 'tcx, 'v> VarMappingInterface for super::counterexample_translation_re
             //inhale destruct_field_value(destruct_field(_1$snapshot$1)) == snapvar_2     (unions)
             vir_low::Expression::DomainFuncApp(DomainFuncApp{domain_name: _, function_name, arguments, .. }) | 
             vir_low::Expression::BinaryOp(BinaryOp{ op_kind:BinaryOpKind::EqCmp ,  left:box vir_low::Expression::DomainFuncApp(DomainFuncApp{domain_name: _, function_name, arguments, .. }), ..}) => {
-                if arguments.len() == 1 {
-                    if function_name.contains("target_current") || function_name.contains("destructor") {
-                        if matches!(arguments.first().unwrap(), vir_low::Expression::Local(_)) || matches!(arguments.first().unwrap(), vir_low::Expression::DomainFuncApp(_)) {
-                            return self.extract_var_from_assume(&Assume{expression: arguments.first().unwrap().clone(), position: vir_low::Position::default()})
-                        }
-                    }   
+                if arguments.len() == 1 && (function_name.contains("target_current") || function_name.contains("destructor")) {
+                    match arguments.first().unwrap(){
+                        vir_low::Expression::Local(_) |
+                        vir_low::Expression::DomainFuncApp(_) => return self.extract_var_from_assume(&Assume{expression: arguments.first().unwrap().clone(), position: vir_low::Position::default()}),
+                        _ => ()
+                    }
                 }
+                    
                 None
                 
                 

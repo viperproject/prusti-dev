@@ -701,7 +701,7 @@ fn extract_prusti_attributes_for_types(
 ) -> Vec<(SpecAttributeKind, TokenStream)> {
     let mut prusti_attributes = Vec::new();
     let mut regular_attributes = Vec::new();
-    for attr in (&mut item.attrs).drain(0..) {
+    for attr in item.attrs.drain(0..) {
         if attr.path.segments.len() == 1 {
             if let Ok(attr_kind) = attr.path.segments[0].ident.to_string().try_into() {
                 let tokens = match attr_kind {
@@ -735,7 +735,7 @@ fn extract_prusti_attributes_for_types(
             regular_attributes.push(attr);
         }
     }
-    *(&mut item.attrs) = regular_attributes;
+    item.attrs = regular_attributes;
     prusti_attributes
 }
 

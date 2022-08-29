@@ -127,12 +127,12 @@ impl Entry {
         match (self, other) {
             (Entry::Int(x),_) => Entry::Int(x.clone()),
             (Entry::Float(x),_) => Entry::Float(x.clone()),
-            (Entry::Bool(x),_) => Entry::Bool(x.clone()),
-            (Entry::Char(x),_) => Entry::Char(x.clone()),
+            (Entry::Bool(x),_) => Entry::Bool(*x),
+            (Entry::Char(x),_) => Entry::Char(*x),
             (Entry::Ref(entry),_) => Entry::Ref(box entry.merge(other)),
             (Entry::Box(entry),_) => Entry::Box(box entry.merge(other)),
             (Entry::Struct{name: name1, field_entries: field_entries1}, Entry::Struct{name: name2, field_entries: field_entries2}) => {
-                if name1.to_string() == name2.to_string() && field_entries1.len() == field_entries2.len(){
+                if *name1 == *name2 && field_entries1.len() == field_entries2.len(){
                     let mut other_iter = field_entries2.iter();
                         let new_field_entries = field_entries1.iter().map(|x| {
                             let next = other_iter.next().unwrap();
@@ -147,12 +147,12 @@ impl Entry {
             },
             (Entry::Enum { super_name: super_name1, name: name1,  field_entries: field_entries1 },
                 Entry::Enum { super_name: super_name2, name: name2,  field_entries: field_entries2 }) => {
-                    if super_name1.to_string() == super_name2.to_string() {
-                        if name1.to_string() == "?".to_string() {
+                    if *super_name1 == *super_name2 {
+                        if *name1 == *"?" {
                             return other.clone();
                         }
 
-                        if name1.to_string() == name2.to_string() && field_entries1.len() == field_entries2.len() {
+                        if *name1 == *name2 && field_entries1.len() == field_entries2.len() {
                             let mut other_iter = field_entries2.iter();
                             let new_field_entries = field_entries1.iter().map(|x| {
                                 let next = other_iter.next().unwrap();

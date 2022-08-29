@@ -446,11 +446,7 @@ fn unwrap_option_entry<'a>(
         .filter_map(|arg| {
             //filter out any snap types
             let mut tmp = FxHashMap::default();
-            match unwrap_model_entry(env, jni, arg, &mut tmp, converter_obj, converter) {
-                //tmp is not changed by unwrap_model_entry()
-                Some(arg) => Some(Some(arg)),
-                None => None,
-            }
+            unwrap_model_entry(env, jni, arg, &mut tmp, converter_obj, converter).map(Some)
         })
         .collect::<Vec<_>>();
     let mut tmp = FxHashMap::default(); //tmp is not changed by unwrap_model_entry()
@@ -459,10 +455,8 @@ fn unwrap_option_entry<'a>(
     let result_eval = if let Some(ModelEntry::Var(_)) = result {
         //if the result is VarEntry we need to resolve it further; at the moment only needed for Sequences
         let resolved_entry =
-            jni.unwrap_result(converter.call_extractVal(converter_obj.clone(), result_scala));
-        let mode_entry =
-            unwrap_model_entry(env, jni, resolved_entry, &mut tmp, converter_obj, converter);
-        mode_entry
+            jni.unwrap_result(converter.call_extractVal(*converter_obj, result_scala));
+        unwrap_model_entry(env, jni, resolved_entry, &mut tmp, converter_obj, converter)
     } else {
         result
     };

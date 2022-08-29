@@ -28,7 +28,7 @@ use uuid::Uuid;
 
 /// See module level documentation
 pub fn rewrite(item_struct: syn::ItemStruct) -> syn::Result<Vec<syn::Item>> {
-    let res = rewrite_internal(item_struct.clone());
+    let res = rewrite_internal(item_struct);
     match res {
         Ok(result) => {
             Ok(vec![syn::Item::Struct(result.model_struct), syn::Item::Trait(result.to_model_trait), syn::Item::Impl(result.model_impl)])

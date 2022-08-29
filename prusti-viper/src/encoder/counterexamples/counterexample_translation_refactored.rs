@@ -32,7 +32,7 @@ pub fn backtranslate(
 ) ->  Counterexample {
     let mut translator = CounterexampleTranslator::new(encoder, def_id, silicon_counterexample);
 
-    translator.create_mapping(def_id, &encoder); //creates the mapping between mir var and the corresponding snapshot var
+    translator.create_mapping(def_id, encoder); //creates the mapping between mir var and the corresponding snapshot var
     let label_markers = translator.get_label_markers();
 
     let counterexample_entry_vec = translator.process_entries(position_manager, &label_markers);
@@ -60,7 +60,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         let var_debug_info = mir.var_debug_info.clone();
         let local_variable_manager = LocalVariableManager::new(&mir.local_decls);
         Self {
-            encoder: encoder,
+            encoder,
             silicon_counterexample,
             tcx: encoder.env().tcx(),
             var_debug_info,
@@ -73,7 +73,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         self.var_mapping.labels_successor_mapping.iter().map(
             | (label, _) | {
                 match self.silicon_counterexample.model.entries.get(&format!("{}$marker",label)){
-                    Some(ModelEntry::LitBool(b)) => (label.clone(), b.clone()),
+                    Some(ModelEntry::LitBool(b)) => (label.clone(), *b),
                     _ => (label.clone(), false) //if label marker is not found, we treat it like it was not visited (should be impossible) 
                 }
             }
@@ -82,15 +82,15 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
 
     //Given a MIR var name, it returns all relevant snapshot variables
     fn get_trace_of_var(&self, position_manager: &PositionManager, var: &String, label_markers: &FxHashMap<String, bool>) -> Vec<(String, MultiSpan)>{
-        let mut label = &format!("start_label");
+        let mut label = "start_label".to_string();
         let mut snapshot_var_vec = Vec::new();
         if let Some(label_snapshot_mapping) = self.var_mapping.var_snaphot_mapping.get(var){
             loop {
-                if let Some(snapshot_vars) = label_snapshot_mapping.get(label){
+                if let Some(snapshot_vars) = label_snapshot_mapping.get(&label){
                     snapshot_var_vec.extend(snapshot_vars.iter().map(|x| (x.name.clone(), self.get_span(position_manager, &x.position))));
                 }
-                if let Some(next) = self.get_successor(label, label_markers){
-                    label = next;
+                if let Some(next) = self.get_successor(&label, label_markers){
+                    label = next.to_string();
                 } else {
                     break;
                 }
@@ -117,16 +117,16 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
             let var_local = Local::from(local);
             let typ = self.local_variable_manager.get_type(var_local);
             let vir_name = self.local_variable_manager.get_name(var_local);
-            let trace = self.get_trace_of_var(&position_manager, &vir_name, &label_markers);
+            let trace = self.get_trace_of_var(position_manager, &vir_name, label_markers);
             let history = self.process_entry(&trace, typ);
             entries.push( CounterexampleEntry::new(Some(rust_name), history))
         } 
 
         //result
-        let vir_name = format!("_0");
+        let vir_name = "_0".to_string();
         let return_local = Local::from(mir::Local::from_usize(0));
         let typ = self.local_variable_manager.get_type(return_local);
-        let trace = self.get_trace_of_var(&position_manager, &vir_name, &label_markers);
+        let trace = self.get_trace_of_var(position_manager, &vir_name, label_markers);
         let history = self.process_entry(&trace, typ);
         entries.push( CounterexampleEntry::new(None, history));
 
@@ -140,8 +140,8 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         }
         for pure_fn in relevant_pure_functions{
             let ce_pure_fn = self.process_pure_function(pure_fn, position_manager);
-            let mut pure_fn_name = format!("{}()", pure_fn.name.trim_start_matches("caller_for$m_").trim_end_matches("$"));
-            pure_fn_name = format!("{}", pure_fn_name.split("$").last().unwrap()); //remove prefix of functions in implementations
+            let mut pure_fn_name = format!("{}()", pure_fn.name.trim_start_matches("caller_for$m_").trim_end_matches('$'));
+            pure_fn_name = pure_fn_name.split('$').last().unwrap().to_string(); //remove prefix of functions in implementations
             entries.push(CounterexampleEntry::new(Some(pure_fn_name), vec![ce_pure_fn]));
         }
 
@@ -149,11 +149,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
     }
 
     fn process_pure_function(&self, pure_fn: &PureFunction, position_manager: &PositionManager, ) -> (Entry,MultiSpan) {
-        let typ = if let Some(fn_proc_id) = self.encoder.get_proc_def_id(pure_fn.name.trim_start_matches("caller_for$").to_string()){
-            Some(self.tcx.fn_sig(fn_proc_id).skip_binder().output())
-        } else {
-            None
-        };
+        let typ = self.encoder.get_proc_def_id(pure_fn.name.trim_start_matches("caller_for$").to_string()).map(|fn_proc_id| self.tcx.fn_sig(fn_proc_id).skip_binder().output());
         let sil_arguments = pure_fn.args.iter().map(|arg | {
             self.silicon_counterexample.model.entries.get(arg).cloned()
         }).collect();
@@ -203,11 +199,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                             StmtKind::Semi(Expr{kind: ExprKind::Lit(Spanned {node: LitKind::Str(symbol, _), ..} ), ..}) => Some(symbol.to_ident_string()), //first arg
                             StmtKind::Semi(Expr{kind: ExprKind::Lit(Spanned {node: LitKind::Int(int, _), ..} ), ..}) => Some(int.to_string()), //unnamed fields
                             StmtKind::Semi(Expr{kind: ExprKind::Path(QPath::Resolved(_, Path{segments, ..})), ..}) => { //named fields
-                                if let Some(path_segment) = segments.first() {
-                                    Some(path_segment.ident.name.to_ident_string())
-                                } else {
-                                    None
-                                }
+                                segments.first().map(|path_segment| path_segment.ident.name.to_ident_string())
                             },
                             _ => None
                         }
@@ -225,9 +217,9 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
         typ: Option<Ty<'tcx>>,
         model: bool, //if false, ignore models
     ) -> Entry {
-       match (model_entry, typ.and_then(|x| Some(x.kind()))){
+       match (model_entry, typ.map(|x| x.kind())){
             (Some(ModelEntry::LitInt(string)),Some(ty::TyKind::Char)) => {
-                if let Some(value_int) = string.parse::<u32>().ok(){
+                if let Ok(value_int) = string.parse::<u32>(){
                     if let Some(value_char) = char::from_u32(value_int){
                         Entry::Char(value_char)
                     } else { Entry::Unknown}
@@ -235,12 +227,12 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
             }, 
             (Some(ModelEntry::LitInt(string)),_) => Entry::Int(string.clone()), 
             (Some(ModelEntry::LitFloat(string)),_) => Entry::Float(string.clone()),
-            (Some(ModelEntry::LitBool(bool)),_) => Entry::Bool(bool.clone()),
+            (Some(ModelEntry::LitBool(bool)),_) => Entry::Bool(*bool),
             (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Ref(_, typ, _))) => {
                 //this should never fail since a DomainValue can only exist if the corresponding domain exists
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                 let sil_fn_name = format!("destructor${}$$target_current", domain_name);
-                Entry::Ref(box self.extract_field_value(&sil_fn_name, Some(typ.clone()), model_entry, sil_domain, model))
+                Entry::Ref(box self.extract_field_value(&sil_fn_name, Some(*typ), model_entry, sil_domain, model))
             },
            (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Tuple(subst))) => {
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
@@ -260,7 +252,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                 let sil_fn_name = format!("destructor${}$$val_ref", domain_name);
                 let new_typ = subst.type_at(0);
-                Entry::Box(box self.extract_field_value(&sil_fn_name, Some(new_typ.clone()), model_entry, sil_domain, model))
+                Entry::Box(box self.extract_field_value(&sil_fn_name, Some(new_typ), model_entry, sil_domain, model))
             },
                 
             (Some(ModelEntry::DomainValue(domain_name, ..)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_struct() => {
@@ -308,68 +300,61 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                 let sil_fn_param = vec![model_entry.cloned()];
                 if let Some(disc_function) = sil_domain.functions.entries.get(&disc_function_name){
-                    match disc_function.get_function_value(&sil_fn_param){
-                        Some(ModelEntry::LitInt(disc_value)) => {
-                            let super_name = format!("{:?}", adt_def);
-                            let disc_value_int = disc_value.parse::<usize>().unwrap();
-                            let variant = adt_def.variants().iter().next().unwrap();
-                            let variant_name = variant.fields[disc_value_int].ident(self.tcx).name.to_ident_string();
-                            let field_typ = Some(variant.fields[disc_value_int].ty(self.tcx, subst));
+                    if let Some(ModelEntry::LitInt(disc_value)) = disc_function.get_function_value(&sil_fn_param) {
+                        let super_name = format!("{:?}", adt_def);
+                        let disc_value_int = disc_value.parse::<usize>().unwrap();
+                        let variant = adt_def.variants().iter().next().unwrap();
+                        let variant_name = variant.fields[disc_value_int].ident(self.tcx).name.to_ident_string();
+                        let field_typ = Some(variant.fields[disc_value_int].ty(self.tcx, subst));
 
-                            let destructor_sil_name = format!("destructor${}${}$value", domain_name, &variant_name);
-                            
-                            if let Some(value_function) = sil_domain.functions.entries.get(&destructor_sil_name){
-                                let new_model_entry = value_function.get_function_value(&sil_fn_param); 
-                                if let Some(ModelEntry::DomainValue(domain_name, _)) = new_model_entry{
-                                    let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
-                                    let sil_fn_name = format!("destructor${}$$value", domain_name);
-                                    let field_entry = self.extract_field_value(&sil_fn_name, field_typ, new_model_entry.as_ref(), sil_domain, model);
-                                    return Entry::Union { 
-                                        name: super_name, 
-                                        field_entry: (variant_name, box field_entry),
-                                    };
-                                }
+                        let destructor_sil_name = format!("destructor${}${}$value", domain_name, &variant_name);
+                        
+                        if let Some(value_function) = sil_domain.functions.entries.get(&destructor_sil_name){
+                            let new_model_entry = value_function.get_function_value(&sil_fn_param); 
+                            if let Some(ModelEntry::DomainValue(domain_name, _)) = new_model_entry{
+                                let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
+                                let sil_fn_name = format!("destructor${}$$value", domain_name);
+                                let field_entry = self.extract_field_value(&sil_fn_name, field_typ, new_model_entry.as_ref(), sil_domain, model);
                                 return Entry::Union { 
                                     name: super_name, 
-                                    field_entry: (variant_name, box Entry::Unknown),
-                                };    
+                                    field_entry: (variant_name, box field_entry),
+                                };
                             }
-                        
-                        },
-                        _ => () // should not be possible
+                            return Entry::Union { 
+                                name: super_name, 
+                                field_entry: (variant_name, box Entry::Unknown),
+                            };    
+                        }
                     }
                 }
-                return Entry::Union { 
+                Entry::Union { 
                     name: format!("{:?}", adt_def), 
                     field_entry: ("?".to_string(), box Entry::Unknown),
-                };
+                }
             },
             (Some(ModelEntry::DomainValue(domain_name, _)), Some(ty::TyKind::Adt(adt_def, subst))) if adt_def.is_enum() => {
                 let disc_function_name = format!("discriminant${}", domain_name);
                 let sil_domain = self.silicon_counterexample.domains.entries.get(domain_name).unwrap();
                 let sil_fn_param = vec![model_entry.cloned()];
                 if let Some(disc_function) = sil_domain.functions.entries.get(&disc_function_name){
-                    match disc_function.get_function_value(&sil_fn_param){
-                        Some(ModelEntry::LitInt(disc_value)) => {
-                            let super_name = format!("{:?}", adt_def);
-                            let disc_value_int = disc_value.parse::<u32>().unwrap();
-                            if let Some(variant) = adt_def.variants().iter().find(|x| get_discriminant_of_vardef(x) == Some(disc_value_int)){
-                                let variant_name = variant.ident(self.tcx).name.to_ident_string();
-                                let destructor_sil_name = format!("destructor${}${}$value", domain_name, &variant_name);
-                                 if let Some(value_function) = sil_domain.functions.entries.get(&destructor_sil_name){
-                                    let domain_entry = value_function.get_function_value(&sil_fn_param);
-                                    let field_entries = self.translate_snapshot_adt_fields(&variant, domain_entry.as_ref(), subst, model);
-                                    let custom_print_option = self.encoder.get_type_specs(adt_def.did()).and_then(| p | self.custom_print(p.counterexample_print, Some(variant_name.clone())));
-                                    return Entry::Enum {
-                                        super_name,
-                                        name: variant_name,
-                                        field_entries,
-                                        custom_print_option,
-                                    };
-                                }
+                    if let Some(ModelEntry::LitInt(disc_value)) = disc_function.get_function_value(&sil_fn_param){
+                        let super_name = format!("{:?}", adt_def);
+                        let disc_value_int = disc_value.parse::<u32>().unwrap();
+                        if let Some(variant) = adt_def.variants().iter().find(|x| get_discriminant_of_vardef(x) == Some(disc_value_int)){
+                            let variant_name = variant.ident(self.tcx).name.to_ident_string();
+                            let destructor_sil_name = format!("destructor${}${}$value", domain_name, &variant_name);
+                                if let Some(value_function) = sil_domain.functions.entries.get(&destructor_sil_name){
+                                let domain_entry = value_function.get_function_value(&sil_fn_param);
+                                let field_entries = self.translate_snapshot_adt_fields(variant, domain_entry.as_ref(), subst, model);
+                                let custom_print_option = self.encoder.get_type_specs(adt_def.did()).and_then(| p | self.custom_print(p.counterexample_print, Some(variant_name.clone())));
+                                return Entry::Enum {
+                                    super_name,
+                                    name: variant_name,
+                                    field_entries,
+                                    custom_print_option,
+                                };
                             }
-                        },
-                        _ =>  ()// should not be possible
+                        }
                     }
                 }
                 Entry::Enum {
@@ -391,7 +376,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
             (Some(ModelEntry::Seq(_, model_entries)), Some(ty::TyKind::Array(typ, _))) => {
                 let entries = model_entries.iter().map(|entry| 
                 {
-                    self.translate_snapshot_entry(Some(entry), Some(typ.clone()), model)
+                    self.translate_snapshot_entry(Some(entry), Some(*typ), model)
                 }).collect();
 
                 Entry::Array(entries)
@@ -450,7 +435,7 @@ impl<'ce, 'tcx, 'v> CounterexampleTranslator<'ce, 'tcx, 'v> {
 
     fn extract_model(&self,
         model_entry: Option<&ModelEntry>,
-        domain_name: &String, 
+        domain_name: &str, 
         to_model: String, 
         model_id: LocalDefId,
     )->Entry{
