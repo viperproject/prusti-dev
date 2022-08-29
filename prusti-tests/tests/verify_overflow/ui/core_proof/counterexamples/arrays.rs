@@ -10,15 +10,8 @@ fn test1() {
     assert!(a[1] == 2);
 }
 
-fn test2() {
-    let a = [1; 10]; 
-    //This is an exception. Here a counterexample contains all elements of the array 
-    //as long as no elements is directly accessed. This works only with this syntax.
-    assert!(false)
-}
-
 #[ensures(result)]
-fn test3() -> bool {
+fn test2() -> bool {
     let a = [1, 2, 3, 4];
     a[0] == a[1]   
 }
