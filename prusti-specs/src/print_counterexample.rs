@@ -59,7 +59,7 @@ impl std::convert::From<TypeCounterexampleError> for syn::Error {
             TypeCounterexampleError::WrongNumberOfArguemnts(span) => {
                 syn::Error::new(span, "Number of arguments are incorrect")
             }
-            TypeCounterexampleError::ParsingError(parse_err) => parse_err.into(),
+            TypeCounterexampleError::ParsingError(parse_err) => parse_err,
         }
     }
 }
@@ -81,7 +81,7 @@ fn rewrite_internal_struct(attr: TokenStream, item_struct: syn::ItemStruct) -> T
         &format!("prusti_print_counterexample_item_{}_{}", item_struct.ident, spec_id),
         item_span,
     );
-    let mut args2: Punctuated<Pat, Token![,]> = attrs.clone().into_iter().skip(1).unique().collect::<Punctuated<Pat, Token![,]>>();
+    let mut args2: Punctuated<Pat, Token![,]> = attrs.into_iter().skip(1).unique().collect::<Punctuated<Pat, Token![,]>>();
     //add trailing punctuation
     if !args2.empty_or_trailing(){
         args2.push_punct(<syn::Token![,]>::default());
@@ -142,7 +142,7 @@ fn rewrite_internal_struct(attr: TokenStream, item_struct: syn::ItemStruct) -> T
         },
     };
     
-    let item_impl = generate_generics(item_struct.span().clone(), item_struct.ident.clone(), &item_struct.generics, spec_item.into_token_stream());
+    let item_impl = generate_generics(item_struct.span(), item_struct.ident.clone(), &item_struct.generics, spec_item.into_token_stream());
     Ok(vec![syn::Item::Impl(item_impl)])
 }
 
@@ -165,7 +165,7 @@ fn rewrite_internal_enum(attr: TokenStream, item_enum: syn::ItemEnum) -> TypeCou
     let spec_id_str = spec_id.to_string(); //Does this have to be unique?
     
     for variant in &item_enum.variants{
-        if let Some(custom_print) = variant.attrs.iter().find( |attr| attr.path.get_ident().and_then(| x | Some(x.to_string())) == Some("print_counterexample".to_string())){
+        if let Some(custom_print) = variant.attrs.iter().find( |attr| attr.path.get_ident().map(| x | x.to_string()) == Some("print_counterexample".to_string())){
             let variant_name = variant.ident.clone();
             let item_span = variant.ident.span();
             let item_name = syn::Ident::new(
@@ -246,13 +246,13 @@ fn rewrite_internal_enum(attr: TokenStream, item_enum: syn::ItemEnum) -> TypeCou
         x.to_tokens(&mut spec_item_as_tokens);
     }      
 
-    let item_impl = generate_generics(item_enum.span().clone(), item_enum.ident.clone(), &item_enum.generics, spec_item_as_tokens.into_token_stream());
-    let mut item_enum = item_enum.clone();
-    for variant in &mut item_enum.variants{
+    let item_impl = generate_generics(item_enum.span(), item_enum.ident.clone(), &item_enum.generics, spec_item_as_tokens.into_token_stream());
+    let mut item_enum_new = item_enum;
+    for variant in &mut item_enum_new.variants{
         //remove all macros inside the enum
-        variant.attrs.retain( |attr| attr.path.get_ident().and_then(| x | Some(x.to_string())) != Some("print_counterexample".to_string()));
+        variant.attrs.retain( |attr| attr.path.get_ident().map(| x | x.to_string()) != Some("print_counterexample".to_string()));
     }
-    Ok(vec![syn::Item::Enum(item_enum) , syn::Item::Impl(item_impl)])
+    Ok(vec![syn::Item::Enum(item_enum_new) , syn::Item::Impl(item_impl)])
 }
 
 fn process_attr(attrs: &Punctuated::<Pat, Token![,]>, len: usize) -> TypeCounterexampleResult<(TokenStream, TokenStream)>{

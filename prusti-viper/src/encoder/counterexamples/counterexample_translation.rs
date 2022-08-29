@@ -48,7 +48,7 @@ pub fn backtranslate(
     // can perform the `process_variable` part immediately with `*_to_process`.
 
     // to be processed
-    let entries_to_process = translator.entries_to_process(&encoder);
+    let entries_to_process = translator.entries_to_process(encoder);
     let (result_sil_name, result_span, result_typ, result_encoded_typ) = translator.result_to_process(encoder);
 
     // map those needed
@@ -61,14 +61,14 @@ pub fn backtranslate(
 
             let (silicon_model, opt_sil_entry) = translator.get_silicon_at_label(last_label, &vir_name); //We cannot use the "main" model of silicon because of references
             
-            let entry_snapshot = translator.translate_silicon_entry_with_snapshot(typ.clone(), opt_sil_entry, Some(encoded_typ.clone())).unwrap_or_default();
+            let entry_snapshot = translator.translate_silicon_entry_with_snapshot(typ, opt_sil_entry, Some(encoded_typ.clone())).unwrap_or_default();
             
             
             let entry_heap_based = translator.translate_silicon_entry(typ, opt_sil_entry, vir_name.clone(), silicon_model).unwrap_or_default();
             let entry = entry_heap_based.merge(&entry_snapshot); //We prefer the heap based counterexample over the snapshot one
             
             
-            entries.insert((format!("{}",rust_name.clone()), span), entry);
+            entries.insert((rust_name.clone().to_string(), span), entry);
         }
         if is_arg {
             let (silicon_model, opt_sil_entry) = translator.get_silicon_at_label(old_label, &vir_name);
@@ -116,7 +116,7 @@ pub fn backtranslate(
 
     // add counterexample note for the return value, if any
     if !result_entry_heap_based.is_unit() {
-        let result_entry_snapshot = translator.translate_silicon_entry_with_snapshot(result_typ.clone(), opt_sil_entry, Some(result_encoded_typ)).unwrap_or_default();    
+        let result_entry_snapshot = translator.translate_silicon_entry_with_snapshot(result_typ, opt_sil_entry, Some(result_encoded_typ)).unwrap_or_default();    
         let result = result_entry_heap_based.merge(&result_entry_snapshot); //We prefer the heap based counterexample over the snapshot one
         ce_entries.push(CounterexampleEntry::with_one_value(
             result_span,
@@ -180,7 +180,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             let typ = self.local_variable_manager.get_type(var_local);
             let is_arg = index > 0 && index <= self.mir.arg_count;
             let vir_name = self.local_variable_manager.get_name(var_local);
-            let encoded_typ = self.get_encoded_type(typ.clone(), &encoder);
+            let encoded_typ = self.get_encoded_type(typ, encoder);
             entries_to_process.push((rust_name.clone(), span, vir_name.clone(), typ, encoded_typ, is_arg));
         }
         entries_to_process
@@ -202,7 +202,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
             "Result()".to_string()
         };
         let typ = self.local_variable_manager.get_type(return_local);
-        let encoded_typ = self.get_encoded_type(typ.clone(), encoder);
+        let encoded_typ = self.get_encoded_type(typ, encoder);
         (vir_name, span, typ, encoded_typ)
     }
 
@@ -471,10 +471,10 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 _ => Entry::Unknown
             }
             Some(ModelEntry::LitFloat(string)) => Entry::Float(string.clone()),
-            Some(ModelEntry::LitBool(bool)) => Entry::Bool(bool.clone()),
+            Some(ModelEntry::LitBool(bool)) => Entry::Bool(*bool),
             Some(ModelEntry::Ref(name, _))=> {  
                 let encoded_typ = encoded_typ_option.unwrap_or_default();
-                if let Some(_) = self.silicon_counterexample.domains.entries.get(&encoded_typ) {  //need a domain to extract a counterexample
+                if self.silicon_counterexample.domains.entries.get(&encoded_typ).is_some() {  //need a domain to extract a counterexample
                     let hd_function_param = vec![Some(ModelEntry::Var(name.clone()))];
                     let snapshot_var = self.get_hd_function_value(&encoded_typ, &hd_function_param);
                     self.translate_snapshot_entry(typ, snapshot_var.as_ref(), Some(encoded_typ))          
@@ -511,7 +511,7 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                     if let Some(encoded_typ) = encoded_typ_option{
                         let new_encoded_typ = Some(encoded_typ.replacen("ref$", "", 1)); //remove a ref
                         let sil_entry = map.get("val_ref");
-                        Entry::Ref(box self.translate_silicon_entry_with_snapshot(typ.clone(), sil_entry, new_encoded_typ).unwrap_or_default())
+                        Entry::Ref(box self.translate_silicon_entry_with_snapshot(*typ, sil_entry, new_encoded_typ).unwrap_or_default())
                     } else {
                        Entry::Ref(box Entry::Unknown)
                     }
@@ -558,34 +558,28 @@ impl<'ce, 'tcx> CounterexampleTranslator<'ce, 'tcx> {
                 }
             },
             ty::TyKind::Adt(adt_def, subst) if adt_def.is_enum() => {
-                match snapshot_var{
-                    Some(ModelEntry::DomainValue(domain, _)) => {
-                        if let Some(encoded_typ) = encoded_typ_option {
-                            let disc_function_name = format!("discriminant$__$TY$__{}$", &encoded_typ);
-                            //this should never fail since a DomainValue can only exist if the corresponding domain exists
-                            let sil_domain = self.silicon_counterexample.domains.entries.get(domain).unwrap();
-                            let sil_fn_param = vec![snapshot_var.cloned()];
-                            if let Some(disc_function) = sil_domain.functions.entries.get(&disc_function_name){
-                                match disc_function.get_function_value(&sil_fn_param){
-                                    Some(ModelEntry::LitInt(disc_value)) => {
-                                        let super_name = format!("{:?}", adt_def);
-                                        let disc_value_int = disc_value.parse::<u32>().unwrap();
-                                        if let Some(variant) = adt_def.variants().iter().find(|x| get_discriminant_of_vardef(x) == Some(disc_value_int)){
-                                            let variant_name = variant.ident(self.tcx).name.to_ident_string();
-                                            let field_entries = self.translate_snapshot_adt_fields(&variant, snapshot_var, encoded_typ, subst);
-                                            return Entry::Enum {
-                                                super_name,
-                                                name: variant_name,
-                                                field_entries,
-                                            };
-                                        }
-                                    }
-                                    _ =>  ()// should not be possible
+                if let Some(ModelEntry::DomainValue(domain, _)) = snapshot_var{
+                    if let Some(encoded_typ) = encoded_typ_option {
+                        let disc_function_name = format!("discriminant$__$TY$__{}$", &encoded_typ);
+                        //this should never fail since a DomainValue can only exist if the corresponding domain exists
+                        let sil_domain = self.silicon_counterexample.domains.entries.get(domain).unwrap();
+                        let sil_fn_param = vec![snapshot_var.cloned()];
+                        if let Some(disc_function) = sil_domain.functions.entries.get(&disc_function_name){
+                            if let Some(ModelEntry::LitInt(disc_value)) = disc_function.get_function_value(&sil_fn_param){
+                                let super_name = format!("{:?}", adt_def);
+                                let disc_value_int = disc_value.parse::<u32>().unwrap();
+                                if let Some(variant) = adt_def.variants().iter().find(|x| get_discriminant_of_vardef(x) == Some(disc_value_int)){
+                                    let variant_name = variant.ident(self.tcx).name.to_ident_string();
+                                    let field_entries = self.translate_snapshot_adt_fields(variant, snapshot_var, encoded_typ, subst);
+                                    return Entry::Enum {
+                                        super_name,
+                                        name: variant_name,
+                                        field_entries,
+                                    };
                                 }
                             }
                         }
-                    }, 
-                    _ => ()
+                    }
                 }
                 Entry::Enum {
                     super_name: format!("{:?}", adt_def),

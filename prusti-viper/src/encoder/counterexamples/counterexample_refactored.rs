@@ -145,7 +145,7 @@ impl fmt::Debug for Entry {
                     let text = custom_print_iter.next().unwrap(); //safe because custom_print has at least one element
                     let mut text_iter = text.split("{}");
                     let mut output = text_iter.next().unwrap().to_string(); //safe because text_iter has at least one element
-                    while let Some(next) = text_iter.next(){
+                    for next in text_iter {
                         let fieldname = custom_print_iter.next().unwrap(); //safe because of encoding (checked by compiler)
                         let field_entry = &field_entries.iter().find(|(name, _) | fieldname == name).unwrap().1; //safe because of encoding (checked by compiler)
                         output.push_str(&format!("{:#?}", field_entry));
@@ -176,7 +176,7 @@ impl fmt::Debug for Entry {
                     let text = custom_print_iter.next().unwrap(); //safe because custom_print has at least one element
                     let mut text_iter = text.split("{}");
                     let mut output = text_iter.next().unwrap().to_string(); //safe because text_iter has at least one element
-                    while let Some(next) = text_iter.next(){
+                    for next in text_iter {
                         let fieldname = custom_print_iter.next().unwrap(); //safe because of encoding (checked by compiler)
                         let field_entry = &field_entries.iter().find(|(name, _) | fieldname == name).unwrap().1; //safe because of encoding (checked by compiler)
                         output.push_str(&format!("{:#?}", field_entry));

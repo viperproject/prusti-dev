@@ -44,12 +44,11 @@ impl MirProcedureMapping{
                             ).collect()
                     }
                 };
-                let new_block = BasicBlock{
+                BasicBlock{
                     label: basic_block.label.name.clone(),
                     successor,
                     stmts,
-                };
-                new_block
+                }
             }
         ).collect::<Vec<BasicBlock>>()
     }
