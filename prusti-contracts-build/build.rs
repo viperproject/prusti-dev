@@ -79,6 +79,8 @@ fn main() {
                             std::fs::remove_file(exe).ok();
                         }
                         panic!("Fix the above Prusti crash and run build again to rebuild Prusti.")
+                    } else {
+                        std::fs::remove_dir_all(target).ok();
                     }
                 }
             }
