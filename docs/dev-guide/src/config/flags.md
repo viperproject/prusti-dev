@@ -48,6 +48,7 @@
 | [`OPTIMIZATIONS`](#optimizations) | `Vec<String>` | "all" |
 | [`PRESERVE_SMT_TRACE_FILES`](#preserve_smt_trace_files) | `bool` | `false` |
 | [`PRINT_COLLECTED_VERIFICATION_ITEMS`](#print_collected_verification_items) | `bool` | `false` |
+| [`PRINT_COUNTEREXAMPLE_IF_MODEL_IS_PRESENT`](#print_counterexample_if_model_is_present) | `bool` | `false` |
 | [`PRINT_DESUGARED_SPECS`](#print_desugared_specs) | `bool` | `false` |
 | [`PRINT_HASH`](#print_hash) | `bool` | `false` |
 | [`PRINT_TYPECKD_SPECS`](#print_typeckd_specs) | `bool` | `false` | `bool` | `false` |
@@ -305,6 +306,10 @@ When enabled, does not delete Z3 trace files.
 ## `PRINT_COLLECTED_VERIFICATION_ITEMS`
 
 When enabled, prints the items collected for verification.
+
+## `PRINT_COUNTEREXAMPLE_IF_MODEL_IS_PRESENT`
+
+When enabled, a counterexample contains values for the original type and its model.
 
 ## `PRINT_DESUGARED_SPECS`
 
