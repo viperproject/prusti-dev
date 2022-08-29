@@ -38,7 +38,8 @@ impl<'qry, 'tcx> RefinementContext<'qry, 'tcx> {
             })
             | SpecQuery::FunctionDefEncoding(def_id, substs)
             | SpecQuery::GetProcKind(def_id, substs) => {
-                let (trait_def_id, trait_substs) = env.find_trait_method_substs(*def_id, substs)?;
+                let (trait_def_id, trait_substs) =
+                    env.query.find_trait_method_substs(*def_id, substs)?;
                 let trait_query = query.adapt_to(trait_def_id, trait_substs);
                 Some(RefinementContext {
                     impl_query: query,
@@ -143,11 +144,13 @@ impl<'tcx> Specifications<'tcx> {
         let impl_spec = self
             .get_proc_spec(env, impl_query)
             .cloned()
-            .unwrap_or_else(ProcedureSpecification::empty);
+            .unwrap_or_else(|| ProcedureSpecification::empty(impl_query.referred_def_id()));
 
-        let empty = ProcedureSpecification::empty();
-        let trait_spec = self.get_proc_spec(env, trait_query).unwrap_or(&empty);
-        let refined = impl_spec.refine(trait_spec);
+        let trait_spec = self
+            .get_proc_spec(env, trait_query)
+            .cloned()
+            .unwrap_or_else(|| ProcedureSpecification::empty(trait_query.referred_def_id()));
+        let refined = impl_spec.refine(&trait_spec);
 
         self.validate_refined_kind(
             env,
@@ -191,13 +194,13 @@ impl<'tcx> Specifications<'tcx> {
                 base_kind,
                 refined_kind,
             )) => {
-                let impl_method_span = env.tcx().def_span(impl_proc_def_id);
+                let impl_method_span = env.query.get_def_span(impl_proc_def_id);
 
-                let trait_def_id = env.tcx().trait_of_item(trait_proc_def_id).unwrap();
-                let trait_span = env.tcx().def_span(trait_def_id);
-                let trait_name = env.tcx().def_path_str(trait_def_id);
-                let trait_method_name = env.tcx().def_path_str(trait_proc_def_id);
-                let impl_method_name = env.tcx().def_path_str(impl_proc_def_id);
+                let trait_def_id = env.query.get_trait_of_item(trait_proc_def_id).unwrap();
+                let trait_span = env.query.get_def_span(trait_def_id);
+                let trait_name = env.name.get_absolute_item_name(trait_def_id);
+                let trait_method_name = env.name.get_absolute_item_name(trait_proc_def_id);
+                let impl_method_name = env.name.get_absolute_item_name(impl_proc_def_id);
 
                 PrustiError::incorrect(
                     format!(
@@ -234,7 +237,7 @@ impl<'tcx> Specifications<'tcx> {
                     ),
                     Some(impl_method_span),
                 )
-                .emit(env);
+                .emit(&env.diagnostic);
             }
         }
     }

@@ -112,7 +112,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         env: &'v Environment<'tcx>,
         def_spec: typed::DefSpecificationMap,
     ) -> Self {
-        let source_path = env.source_path();
+        let source_path = env.name.source_path();
         let source_filename = source_path.file_name().unwrap().to_str().unwrap();
         let vir_program_before_foldunfold_writer = config::dump_debug_info().then_some(()).map(|_|
             RefCell::new(
@@ -137,7 +137,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
         Encoder {
             env,
-            error_manager: RefCell::new(ErrorManager::new(env.codemap())),
+            error_manager: RefCell::new(ErrorManager::new(env.query.codemap())),
             functions: RefCell::new(FxHashMap::default()),
             builtin_methods: RefCell::new(FxHashMap::default()),
             high_builtin_function_encoder_state: Default::default(),
@@ -214,7 +214,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn finalize_viper_program(&self, name: String, proc_def_id: DefId) -> SpannedEncodingResult<vir::Program> {
-        let error_span = self.env.get_def_span(proc_def_id);
+        let error_span = self.env.query.get_def_span(proc_def_id);
         super::definition_collector::collect_definitions(error_span, self, name, self.get_used_viper_methods())
     }
 
@@ -232,7 +232,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         if prusti_error.is_error() {
             self.encoding_errors_counter.borrow_mut().add_assign(1);
         }
-        prusti_error.emit(self.env);
+        prusti_error.emit(&self.env.diagnostic);
     }
 
     pub fn count_encoding_errors(&self) -> usize {
@@ -282,7 +282,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
                     const_value.try_to_scalar()
                 }
                 ty::ConstKind::Unevaluated(ct) => {
-                    let tcx = self.env().tcx();
+                    let tcx = self.env.tcx();
                     let param_env = tcx.param_env(ct.def.did);
                     tcx.const_eval_resolve(param_env, ct, None)
                         .ok()
@@ -515,7 +515,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         // moved to where the spec function is used. `encode_spec_funcs` already
         // ensures that spec functions for a particular `DefId` are encoded only
         // once.
-        if self.env.tcx().is_closure(def_id) {
+        if self.env.query.is_closure(def_id) {
             self.encode_spec_funcs(def_id)?;
         }
 
@@ -526,15 +526,14 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     pub fn encode_spec_funcs(&self, def_id: ProcedureDefId)
         -> SpannedEncodingResult<Vec<vir::FunctionIdentifier>>
     {
-        if !self.env().tcx().is_mir_available(def_id) || self.env().tcx().is_constructor(def_id)
-            || !def_id.is_local() {
+        if !self.env.query.has_body(def_id) || !def_id.is_local() {
             return Ok(vec![]);
         }
 
         if !self.spec_functions.borrow().contains_key(&def_id) {
             let procedure = self.env.get_procedure(def_id);
             // TODO(tymap): for now use identity, long-term might need separate spec funcs
-            let substs = self.env.identity_substs(def_id);
+            let substs = self.env.query.identity_substs(def_id);
             let spec_func_encoder = SpecFunctionEncoder::new(self, &procedure, substs);
             let result = spec_func_encoder.encode()?.into_iter().map(|function| {
                 self.insert_function(function)
@@ -548,7 +547,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     /// by either being a primitive type or by deriving the Eq trait.
     pub fn has_structural_eq_impl(&self, ty: ty::Ty<'tcx>) -> bool {
         let ty = ty.peel_refs();
-        let ty = self.env().tcx().erase_regions_ty(ty);
+        let ty = self.env.tcx().erase_regions_ty(ty);
         match ty.kind() {
             ty::TyKind::Bool
             | ty::TyKind::Int(_)
@@ -562,7 +561,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             | ty::TyKind::Param(_) => true, // TODO(tymap): this is weird, use substs properly?
             ty::TyKind::Adt(_, _)
             | ty::TyKind::Closure(_, _) => {
-                self.env().tcx().has_structural_eq_impls(ty)
+                self.env.tcx().has_structural_eq_impls(ty)
             }
             _ => false,
         }
@@ -584,13 +583,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             ty::TyKind::Int(ty::IntTy::I32) => scalar_value.to_i32().unwrap().into(),
             ty::TyKind::Int(ty::IntTy::I64) => scalar_value.to_i64().unwrap().into(),
             ty::TyKind::Int(ty::IntTy::I128) => scalar_value.to_i128().unwrap().into(),
-            ty::TyKind::Int(ty::IntTy::Isize) => scalar_value.to_machine_isize(&self.env().tcx()).unwrap().into(),
+            ty::TyKind::Int(ty::IntTy::Isize) => scalar_value.to_machine_isize(&self.env.tcx()).unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::U8) => scalar_value.to_u8().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::U16) => scalar_value.to_u16().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::U32) => scalar_value.to_u32().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::U64) => scalar_value.to_u64().unwrap().into(),
             ty::TyKind::Uint(ty::UintTy::U128) => scalar_value.to_u128().unwrap().into(),
-            ty::TyKind::Uint(ty::UintTy::Usize) => scalar_value.to_machine_usize(&self.env().tcx()).unwrap().into(),
+            ty::TyKind::Uint(ty::UintTy::Usize) => scalar_value.to_machine_usize(&self.env.tcx()).unwrap().into(),
             ty::TyKind::Float(ty::FloatTy::F32) => {
                 let bits = scalar_value.to_u32().unwrap();
                 vir::Expr::Const(
@@ -646,15 +645,15 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
     }
 
     pub fn encode_item_name(&self, def_id: DefId) -> String {
-        let full_name = format!("m_{}", encode_identifier(self.env.get_unique_item_name(def_id)));
+        let full_name = format!("m_{}", encode_identifier(self.env.name.get_unique_item_name(def_id)));
         let short_name = format!("m_{}", encode_identifier(
-            self.env.get_item_name(def_id)
+            self.env.name.get_item_name(def_id)
         ));
         self.intern_viper_identifier(full_name, short_name)
     }
 
     pub fn get_item_name(&self, proc_def_id: ProcedureDefId) -> String {
-        self.env.get_item_name(proc_def_id)
+        self.env.name.get_item_name(proc_def_id)
     }
 
     pub fn queue_procedure_encoding(&self, proc_def_id: ProcedureDefId) {
@@ -669,13 +668,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
             let mut queue = self.encoding_queue.borrow_mut();
             queue.pop()
         } {
-            let proc_name = self.env.get_unique_item_name(proc_def_id);
-            let proc_def_path = self.env.get_item_def_path(proc_def_id);
+            let proc_name = self.env.name.get_unique_item_name(proc_def_id);
+            let proc_def_path = self.env.name.get_item_def_path(proc_def_id);
             info!("Encoding: {} ({})", proc_name, proc_def_path);
             assert!(substs.is_empty());
 
             if config::unsafe_core_proof() {
-                if self.env.is_unsafe_function(proc_def_id) {
+                if self.env.query.is_unsafe_function(proc_def_id) {
                     if let Err(error) = self.encode_lifetimes_core_proof(proc_def_id, CheckMode::Both) {
                         self.register_encoding_error(error);
                         debug!("Error encoding function: {:?} {}", proc_def_id, CheckMode::Both);
@@ -711,7 +710,7 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
 
                 // TODO: Make sure that this encoded function does not end up in
                 // the Viper file because that would be unsound.
-                let identity_substs = self.env().identity_substs(proc_def_id);
+                let identity_substs = self.env.query.identity_substs(proc_def_id);
                 if let Err(error) = self.encode_pure_function_def(proc_def_id, identity_substs) {
                     self.register_encoding_error(error);
                     debug!("Error encoding function: {:?}", proc_def_id);
@@ -761,13 +760,13 @@ impl<'v, 'tcx> Encoder<'v, 'tcx> {
         let full_name = format!(
             "sf_{}_{}",
             kind_name,
-            encode_identifier(self.env.get_unique_item_name(def_id))
+            encode_identifier(self.env.name.get_unique_item_name(def_id))
         );
         let short_name = format!(
             "sf_{}_{}",
             kind_name,
             encode_identifier(
-                self.env.get_item_name(def_id)
+                self.env.name.get_item_name(def_id)
             )
         );
         self.intern_viper_identifier(full_name, short_name)

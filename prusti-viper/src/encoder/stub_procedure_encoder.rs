@@ -82,7 +82,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> StubProcedureEncoder<'p, 'v, 'tcx> {
         // Dump method
         if config::dump_debug_info() {
             let method_name = cfg_method.name();
-            let source_path = self.encoder.env().source_path();
+            let source_path = self.encoder.env().name.source_path();
             let source_filename = source_path.file_name().unwrap().to_str().unwrap();
 
             self.encoder

@@ -121,7 +121,7 @@ impl<'p, 'v, 'tcx> Drop for Visitor<'p, 'v, 'tcx> {
     fn drop(&mut self) {
         if self.graphviz_on_crash {
             let graph = self.render_crash_state();
-            let source_filename = self.encoder.env().source_file_name();
+            let source_filename = self.encoder.env().name.source_file_name();
             let procedure_name = self.procedure_name.take().unwrap();
             // TODO: Include all relevant information:
             // 1. Fold-unfold state.

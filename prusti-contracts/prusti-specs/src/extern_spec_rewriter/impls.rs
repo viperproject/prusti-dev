@@ -1,3 +1,4 @@
+use crate::SPECS_VERSION;
 use crate::{ExternSpecKind, is_predicate_macro, specifications::common::generate_struct_name};
 use proc_macro2::TokenStream;
 use quote::quote_spanned;
@@ -11,6 +12,7 @@ pub fn rewrite_extern_spec(item_impl: &syn::ItemImpl) -> syn::Result<TokenStream
     let new_struct = rewritten.generated_struct;
     let new_impl = rewritten.generated_impl;
     Ok(quote_spanned! {item_impl.span()=>
+        #[prusti::specs_version = #SPECS_VERSION]
         #new_struct
         #new_impl
     })

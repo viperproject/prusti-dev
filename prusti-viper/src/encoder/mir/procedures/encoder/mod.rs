@@ -77,7 +77,8 @@ pub(super) fn encode_procedure<'v, 'tcx: 'v>(
     let move_env = self::initialisation::create_move_data_param_env(tcx, mir, def_id);
     let init_data = InitializationData::new(tcx, mir, &move_env);
     let locals_without_explicit_allocation: BTreeSet<_> = mir.vars_and_temps_iter().collect();
-    let specification_blocks = SpecificationBlocks::build(tcx, mir, &procedure, true);
+    let specification_blocks =
+        SpecificationBlocks::build(encoder.env().query, mir, &procedure, true);
     let initialization = compute_definitely_initialized(def_id, mir, encoder.env().tcx());
     let allocation = compute_definitely_allocated(def_id, mir);
     let lifetime_count = lifetimes.lifetime_count();
@@ -295,7 +296,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             procedure_contract.functional_precondition(self.encoder.env(), call_substs)
         {
             let expression = self.encoder.encode_assertion_high(
-                &assertion,
+                assertion,
                 None,
                 arguments,
                 None,
@@ -331,7 +332,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             procedure_contract.functional_postcondition(self.encoder.env(), call_substs)
         {
             let expression = self.encoder.encode_assertion_high(
-                &assertion,
+                assertion,
                 Some(precondition_label),
                 &arguments_in_old,
                 Some(result),
@@ -347,7 +348,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         &mut self,
     ) -> SpannedEncodingResult<(Vec<vir_high::Statement>, Vec<vir_high::Statement>)> {
         let mir_span = self.mir.span;
-        let substs = self.encoder.env().identity_substs(self.def_id);
+        let substs = self.encoder.env().query.identity_substs(self.def_id);
         // Retrieve the contract
         let procedure_contract = self
             .encoder
@@ -1421,6 +1422,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
         let (called_def_id, call_substs) =
             self.encoder
                 .env()
+                .query
                 .resolve_method_call(self.def_id, called_def_id, call_substs);
 
         // find static lifetime to exhale
@@ -1547,7 +1549,7 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
             }
         }
 
-        if self.encoder.env().tcx().is_closure(called_def_id) {
+        if self.encoder.env().query.is_closure(called_def_id) {
             // Closure calls are wrapped around std::ops::Fn::call(), which receives
             // two arguments: The closure instance, and the tupled-up arguments
             assert_eq!(args.len(), 2);
@@ -2017,7 +2019,8 @@ impl<'p, 'v: 'p, 'tcx: 'v> ProcedureEncoder<'p, 'v, 'tcx> {
                 from_hir_call: _,
             } => {
                 if let ty::TyKind::FnDef(def_id, _substs) = literal.ty().kind() {
-                    let full_called_function_name = self.encoder.env().tcx().def_path_str(*def_id);
+                    let full_called_function_name =
+                        self.encoder.env().name.get_absolute_item_name(*def_id);
                     match full_called_function_name.as_ref() {
                         "prusti_contracts::prusti_set_union_active_field" => {
                             assert_eq!(args.len(), 1);
