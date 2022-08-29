@@ -138,10 +138,16 @@ impl<'tcx> EnvQuery<'tcx> {
         self.tcx.fn_sig(def_id.into_param()).unsafety() == prusti_rustc_interface::hir::Unsafety::Unsafe
     }
 
-    /// Computes the signature of the function with subst applied and associated types resolved.
+    /// Computes the signature of the function with subst applied.
     pub fn get_fn_sig(self, def_id: impl IntoParam<ProcedureDefId>, substs: SubstsRef<'tcx>) -> ty::PolyFnSig<'tcx> {
         let def_id = def_id.into_param();
-        let sig = ty::EarlyBinder(self.tcx.fn_sig(def_id)).subst(self.tcx, substs);
+        ty::EarlyBinder(self.tcx.fn_sig(def_id)).subst(self.tcx, substs)
+    }
+
+    /// Computes the signature of the function with subst applied and associated types resolved.
+    pub fn get_fn_sig_resolved(self, def_id: impl IntoParam<ProcedureDefId>, substs: SubstsRef<'tcx>) -> ty::PolyFnSig<'tcx> {
+        let def_id = def_id.into_param();
+        let sig = self.get_fn_sig(def_id, substs);
         self.resolve_assoc_types(sig, def_id)
     }
 
