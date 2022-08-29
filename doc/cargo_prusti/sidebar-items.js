@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["main",""],["process",""]]};
+window.SIDEBAR_ITEMS = {"fn":[["copy_exported_specs","Copy specs from ‘{cargo_target}//deps/.specs’ to ‘{cargo_target}//.specs’"],["main",""],["process",""]]};

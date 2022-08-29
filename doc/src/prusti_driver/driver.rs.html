@@ -229,15 +229,6 @@
 <span id="229">229</span>
 <span id="230">230</span>
 <span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
-<span id="240">240</span>
 </pre><pre class="rust"><code><span class="comment">// © 2020, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -251,11 +242,11 @@
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">unused_must_use</span>)]</span>
 
 <span class="kw">mod</span> <a class="ident" href="../../src/prusti_driver/arg_value.rs.html#8-45">arg_value</a>;
-<span class="kw">mod</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#1-149">callbacks</a>;
+<span class="kw">mod</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#1-105">callbacks</a>;
 <span class="kw">mod</span> <a class="ident" href="../../src/prusti_driver/verifier.rs.html#1-81">verifier</a>;
 
 <span class="kw">use</span> <a class="ident" href="../../src/prusti_driver/arg_value.rs.html#13-17">arg_value::arg_value</a>;
-<span class="kw">use</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#21">callbacks::PrustiCompilerCalls</a>;
+<span class="kw">use</span> <a class="ident" href="../../src/prusti_driver/callbacks.rs.html#20">callbacks::PrustiCompilerCalls</a>;
 <span class="kw">use</span> <a class="ident" href="../../lazy_static/macro.lazy_static.html">lazy_static::lazy_static</a>;
 <span class="kw">use</span> <span class="ident">log</span>::{<a class="ident" href="../../log/macro.info.html">info</a>, <a class="ident" href="../../log/macro.warn.html">warn</a>};
 <span class="kw">use</span> <span class="ident">prusti_common</span>::{<a class="ident" href="../../prusti_common/config/index.html">config</a>, <a class="ident" href="../../prusti_common/report/user/index.html">report::user</a>, <a class="ident" href="../../prusti_common/stopwatch/struct.Stopwatch.html">Stopwatch</a>};
@@ -347,13 +338,6 @@
     <span class="ident">prusti_rustc_interface::driver::init_rustc_env_logger</span>();
 }
 
-<span class="kw">const</span> <span class="ident">PRUSTI_PACKAGES</span>: [<span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>; <span class="number">4</span>] <span class="op">=</span> [
-    <span class="string">&quot;prusti-contracts-internal&quot;</span>,
-    <span class="string">&quot;prusti-contracts-impl&quot;</span>,
-    <span class="string">&quot;prusti-contracts&quot;</span>,
-    <span class="string">&quot;prusti-specs&quot;</span>,
-];
-
 <span class="kw">fn</span> <span class="ident">main</span>() {
     <span class="kw">let</span> <span class="ident">stopwatch</span> <span class="op">=</span> <span class="ident">Stopwatch::start</span>(<span class="string">&quot;prusti&quot;</span>, <span class="string">&quot;main&quot;</span>);
 
@@ -367,12 +351,10 @@
     <span class="kw">let</span> <span class="ident">prusti_be_rustc</span> <span class="op">=</span> <span class="ident">config::be_rustc</span>();
     <span class="comment">// This environment variable will not be set when building dependencies.</span>
     <span class="kw">let</span> <span class="ident">is_primary_package</span> <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;CARGO_PRIMARY_PACKAGE&quot;</span>).<span class="ident">is_ok</span>();
-    <span class="kw">let</span> <span class="ident">is_no_verify_crate</span> <span class="op">=</span> <span class="op">!</span><a class="ident" href="../../src/prusti_driver/driver.rs.html#129">is_primary_package</a> <span class="op">&amp;&amp;</span> <span class="ident">config::no_verify_deps</span>();
+    <span class="kw">let</span> <span class="ident">is_no_verify_crate</span> <span class="op">=</span> <span class="op">!</span><a class="ident" href="../../src/prusti_driver/driver.rs.html#122">is_primary_package</a> <span class="op">&amp;&amp;</span> <span class="ident">config::no_verify_deps</span>();
     <span class="kw">let</span> <span class="ident">are_lints_disabled</span> <span class="op">=</span>
-        <a class="ident" href="../../src/prusti_driver/arg_value.rs.html#13-17">arg_value</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/driver.rs.html#123">original_rustc_args</a>, <span class="string">&quot;--cap-lints&quot;</span>, <span class="op">|</span><span class="ident">val</span><span class="op">|</span> <a class="ident" href="../../src/prusti_driver/driver.rs.html#132">val</a> <span class="op">==</span> <span class="string">&quot;allow&quot;</span>).<span class="ident">is_some</span>();
-    <span class="kw">let</span> <span class="ident">is_prusti_package</span> <span class="op">=</span> <span class="ident">env::var</span>(<span class="string">&quot;CARGO_PKG_NAME&quot;</span>)
-        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <a class="ident" href="../../src/prusti_driver/driver.rs.html#110">PRUSTI_PACKAGES</a>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/driver.rs.html#134">name</a>.<span class="ident">as_str</span>()))
-        .<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
+        <a class="ident" href="../../src/prusti_driver/arg_value.rs.html#13-17">arg_value</a>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/driver.rs.html#116">original_rustc_args</a>, <span class="string">&quot;--cap-lints&quot;</span>, <span class="op">|</span><span class="ident">val</span><span class="op">|</span> <a class="ident" href="../../src/prusti_driver/driver.rs.html#125">val</a> <span class="op">==</span> <span class="string">&quot;allow&quot;</span>).<span class="ident">is_some</span>();
+    <span class="kw">let</span> <span class="ident">is_prusti_package</span> <span class="op">=</span> <span class="ident">config::is_prusti_helper_crate</span>();
     <span class="kw">if</span> <span class="ident">prusti_be_rustc</span> <span class="op">|</span><span class="op">|</span> <span class="ident">is_no_verify_crate</span> <span class="op">|</span><span class="op">|</span> <span class="ident">are_lints_disabled</span> <span class="op">|</span><span class="op">|</span> <span class="ident">is_prusti_package</span> {
         <span class="ident">prusti_rustc_interface::driver::main</span>();
     }
@@ -424,36 +406,36 @@
         <span class="ident">user::message</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(<span class="string">&quot;Prusti version: {}&quot;</span>, <span class="ident">get_prusti_version_info</span>()));
         <a class="macro" href="../../log/macro.info.html">info!</a>(<span class="string">&quot;Prusti version: {}&quot;</span>, <span class="ident">get_prusti_version_info</span>());
 
-        <a class="ident" href="../../src/prusti_driver/driver.rs.html#145">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zpolonius&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-        <a class="ident" href="../../src/prusti_driver/driver.rs.html#145">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zalways-encode-mir&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-        <a class="ident" href="../../src/prusti_driver/driver.rs.html#145">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zcrate-attr=feature(type_ascription)&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-        <a class="ident" href="../../src/prusti_driver/driver.rs.html#145">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zcrate-attr=feature(stmt_expr_attributes)&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-        <a class="ident" href="../../src/prusti_driver/driver.rs.html#145">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zcrate-attr=feature(register_tool)&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-        <a class="ident" href="../../src/prusti_driver/driver.rs.html#145">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zcrate-attr=register_tool(prusti)&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+        <a class="ident" href="../../src/prusti_driver/driver.rs.html#136">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zpolonius&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+        <a class="ident" href="../../src/prusti_driver/driver.rs.html#136">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zalways-encode-mir&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+        <a class="ident" href="../../src/prusti_driver/driver.rs.html#136">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zcrate-attr=feature(type_ascription)&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+        <a class="ident" href="../../src/prusti_driver/driver.rs.html#136">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zcrate-attr=feature(stmt_expr_attributes)&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+        <a class="ident" href="../../src/prusti_driver/driver.rs.html#136">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zcrate-attr=feature(register_tool)&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+        <a class="ident" href="../../src/prusti_driver/driver.rs.html#136">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zcrate-attr=register_tool(prusti)&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
 
         <span class="kw">if</span> <span class="ident">config::check_overflows</span>() {
             <span class="comment">// Some crates might have a `overflow-checks = false` in their `Cargo.toml` to</span>
             <span class="comment">// disable integer overflow checks, but we want to override that.</span>
-            <a class="ident" href="../../src/prusti_driver/driver.rs.html#145">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Coverflow-checks=on&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+            <a class="ident" href="../../src/prusti_driver/driver.rs.html#136">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Coverflow-checks=on&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
         }
 
         <span class="kw">if</span> <span class="ident">config::dump_debug_info</span>() {
-            <a class="ident" href="../../src/prusti_driver/driver.rs.html#145">rustc_args</a>.<span class="ident">push</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+            <a class="ident" href="../../src/prusti_driver/driver.rs.html#136">rustc_args</a>.<span class="ident">push</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;-Zdump-mir-dir={}&quot;</span>,
                 <span class="ident">config::log_dir</span>()
                     .<span class="ident">join</span>(<span class="string">&quot;mir&quot;</span>)
                     .<span class="ident">to_str</span>()
                     .<span class="ident">expect</span>(<span class="string">&quot;failed to configure dump-mir-dir&quot;</span>)
             ));
-            <a class="ident" href="../../src/prusti_driver/driver.rs.html#145">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zdump-mir=all&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
-            <a class="ident" href="../../src/prusti_driver/driver.rs.html#145">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zdump-mir-graphviz&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+            <a class="ident" href="../../src/prusti_driver/driver.rs.html#136">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zdump-mir=all&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+            <a class="ident" href="../../src/prusti_driver/driver.rs.html#136">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zdump-mir-graphviz&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
             <span class="kw">if</span> <span class="op">!</span><span class="ident">config::ignore_regions</span>() {
-                <a class="ident" href="../../src/prusti_driver/driver.rs.html#145">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zidentify-regions=yes&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
+                <a class="ident" href="../../src/prusti_driver/driver.rs.html#136">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Zidentify-regions=yes&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/borrow/trait.ToOwned.html">to_owned</a>());
             }
         }
         <span class="kw">if</span> <span class="ident">config::dump_nll_facts</span>() {
-            <a class="ident" href="../../src/prusti_driver/driver.rs.html#145">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Znll-facts=yes&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
-            <a class="ident" href="../../src/prusti_driver/driver.rs.html#145">rustc_args</a>.<span class="ident">push</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
+            <a class="ident" href="../../src/prusti_driver/driver.rs.html#136">rustc_args</a>.<span class="ident">push</span>(<span class="string">&quot;-Znll-facts=yes&quot;</span>.<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/trait.ToString.html">to_string</a>());
+            <a class="ident" href="../../src/prusti_driver/driver.rs.html#136">rustc_args</a>.<span class="ident">push</span>(<a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.format.html">format!</a>(
                 <span class="string">&quot;-Znll-facts-dir={}&quot;</span>,
                 <span class="ident">config::log_dir</span>()
                     .<span class="ident">join</span>(<span class="string">&quot;nll-facts&quot;</span>)
@@ -464,9 +446,9 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">callbacks</span> <span class="op">=</span> <span class="ident">PrustiCompilerCalls::default</span>();
 
-        <span class="ident">prusti_rustc_interface::driver::RunCompiler::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/driver.rs.html#145">rustc_args</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/prusti_driver/driver.rs.html#225">callbacks</a>).<span class="ident">run</span>()
+        <span class="ident">prusti_rustc_interface::driver::RunCompiler::new</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_driver/driver.rs.html#136">rustc_args</a>, <span class="kw-2">&amp;mut</span> <a class="ident" href="../../src/prusti_driver/driver.rs.html#216">callbacks</a>).<span class="ident">run</span>()
     });
-    <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_driver/driver.rs.html#118">stopwatch</a>.<span class="ident">finish</span>();
+    <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <a class="ident" href="../../src/prusti_driver/driver.rs.html#111">stopwatch</a>.<span class="ident">finish</span>();
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">deadline</span>) <span class="op">=</span> <span class="ident">config::verification_deadline</span>() {
         <span class="comment">// Check that we met the deadline.</span>
         <a class="macro" href="https://doc.rust-lang.org/nightly/core/macro.assert.html">assert!</a>(
@@ -476,7 +458,7 @@
             <span class="ident">duration</span>,
         );
     }
-    <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/fn.exit.html">std::process::exit</a>(<a class="ident" href="../../src/prusti_driver/driver.rs.html#177">exit_code</a>)
+    <a class="ident" href="https://doc.rust-lang.org/nightly/std/process/fn.exit.html">std::process::exit</a>(<a class="ident" href="../../src/prusti_driver/driver.rs.html#168">exit_code</a>)
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_driver" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

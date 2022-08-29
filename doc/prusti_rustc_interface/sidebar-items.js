@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"externcrate":[["ast",""],["attr",""],["data_structures",""],["driver",""],["errors",""],["index",""],["infer",""],["interface",""],["polonius_engine",""],["session",""],["span",""],["target",""]]};
+window.SIDEBAR_ITEMS = {"externcrate":[["ast",""],["attr",""],["data_structures",""],["driver",""],["errors",""],["index",""],["infer",""],["interface",""],["macros",""],["metadata",""],["polonius_engine",""],["serialize",""],["session",""],["span",""],["target",""]]};

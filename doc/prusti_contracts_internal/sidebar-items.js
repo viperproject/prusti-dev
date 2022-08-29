@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"attr":[["after_expiry",""],["assert_on_expiry",""],["ensures",""],["extern_spec",""],["ghost_constraint",""],["invariant",""],["model",""],["pure",""],["refine_trait_spec",""],["requires",""],["trusted",""]],"macro":[["body_invariant",""],["closure",""],["ghost",""],["predicate",""],["prusti_assert",""],["prusti_assume",""]]};

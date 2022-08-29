@@ -291,14 +291,6 @@
 <span id="291">291</span>
 <span id="292">292</span>
 <span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-<span id="299">299</span>
-<span id="300">300</span>
-<span id="301">301</span>
 </pre><pre class="rust"><code><span class="comment">// © 2019, ETH Zurich</span>
 <span class="comment">//</span>
 <span class="comment">// This Source Code Form is subject to the terms of the Mozilla Public</span>
@@ -310,11 +302,11 @@
 <span class="kw">use</span> <a class="ident" href="../../log/macro.trace.html">log::trace</a>;
 <span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/index.html">prusti_rustc_interface::ast::ast</a>;
 <span class="kw">use</span> <a class="ident" href="../../rustc_hash/type.FxHashSet.html">prusti_rustc_interface::data_structures::fx::FxHashSet</a>;
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface::hir::def_id</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>};
 <span class="kw">use</span> <span class="ident">prusti_rustc_interface::middle</span>::{
     <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>,
-    <span class="ident">ty</span>::{<a class="self" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/index.html">self</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">TyCtxt</a>},
+    <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>,
 };
+<span class="kw">use</span> <a class="ident" href="https://doc.rust-lang.org/nightly/core/borrow/trait.Borrow.html">std::borrow::Borrow</a>;
 
 <span class="doccomment">/// Check if the place `potential_prefix` is a prefix of `place`. For example:</span>
 <span class="doccomment">///</span>
@@ -495,22 +487,10 @@
     }
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_local_attributes</span>(<span class="ident">tcx</span>: <span class="ident">ty::TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.LocalDefId.html">LocalDefId</a>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">prusti_rustc_interface::ast::ast::Attribute</a>] {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#197">tcx</a>.<span class="ident">hir</span>().<span class="ident">attrs</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#197">tcx</a>.<span class="ident">hir</span>().<span class="ident">local_def_id_to_hir_id</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#197">def_id</a>))
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_attributes</span>(<span class="ident">tcx</span>: <span class="ident">ty::TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">def_id</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_span/def_id/struct.DefId.html">DefId</a>) -&gt; <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">prusti_rustc_interface::ast::ast::Attribute</a>] {
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">local_def_id</span>) <span class="op">=</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#201">def_id</a>.<span class="ident">as_local</span>() {
-        <a class="ident" href="../../src/prusti_interface/utils.rs.html#197">get_local_attributes</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#201">tcx</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#202">local_def_id</a>)
-    } <span class="kw">else</span> {
-        <a class="ident" href="../../src/prusti_interface/utils.rs.html#201">tcx</a>.<span class="ident">item_attrs</span>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#201">def_id</a>)
-    }
-}
-
 <span class="doccomment">/// Check if `prusti::&lt;name&gt;` is among the attributes.</span>
 <span class="doccomment">/// Any arguments of the attribute are ignored.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_prusti_attr</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>], <span class="ident">name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#211">attrs</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">attr</span><span class="op">|</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#212">attr</a>.<span class="ident">kind</span> {
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#199">attrs</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">any</a>(<span class="op">|</span><span class="ident">attr</span><span class="op">|</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><a class="ident" href="../../src/prusti_interface/utils.rs.html#200">attr</a>.<span class="ident">kind</span> {
         <span class="ident">ast::AttrKind::Normal</span>(
             <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.AttrItem.html">ast::AttrItem</a> {
                 <span class="ident">path</span>:
@@ -524,9 +504,9 @@
             },
             <span class="kw">_</span>,
         ) =&gt; {
-            <a class="ident" href="../../src/prusti_interface/utils.rs.html#218">segments</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span>
-                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#218">segments</a>[<span class="number">0</span>].<span class="ident">ident</span>.<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;prusti&quot;</span>
-                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#218">segments</a>[<span class="number">1</span>].<span class="ident">ident</span>.<span class="ident">as_str</span>() <span class="op">==</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#211">name</a>
+            <a class="ident" href="../../src/prusti_interface/utils.rs.html#206">segments</a>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span>
+                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#206">segments</a>[<span class="number">0</span>].<span class="ident">ident</span>.<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;prusti&quot;</span>
+                <span class="op">&amp;&amp;</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#206">segments</a>[<span class="number">1</span>].<span class="ident">ident</span>.<span class="ident">as_str</span>() <span class="op">==</span> <a class="ident" href="../../src/prusti_interface/utils.rs.html#199">name</a>
         }
         <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
     })
@@ -534,36 +514,40 @@
 
 <span class="doccomment">/// Check if `prusti::spec_only` is among the attributes.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_spec_only_attr</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#211">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#235">attrs</a>, <span class="string">&quot;spec_only&quot;</span>)
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#199">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#223">attrs</a>, <span class="string">&quot;spec_only&quot;</span>)
 }
 
 <span class="doccomment">/// Check if `prusti::extern_spec` is among the attributes.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_extern_spec_attr</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#211">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#240">attrs</a>, <span class="string">&quot;extern_spec&quot;</span>)
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#199">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#228">attrs</a>, <span class="string">&quot;extern_spec&quot;</span>)
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_extern_spec_attr</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#299">read_prusti_attr</a>(<span class="string">&quot;extern_spec&quot;</span>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#244">attrs</a>)
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#291">read_prusti_attr</a>(<span class="string">&quot;extern_spec&quot;</span>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#232">attrs</a>)
+}
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_specs_version_attr</span>(<span class="ident">attr</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#291">read_prusti_attr</a>(<span class="string">&quot;specs_version&quot;</span>, <span class="kw-2">&amp;</span>[<a class="ident" href="../../src/prusti_interface/utils.rs.html#236">attr</a>])
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_to_model_fn_attr</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#211">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#248">attrs</a>, <span class="string">&quot;type_models_to_model_fn&quot;</span>)
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#199">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#240">attrs</a>, <span class="string">&quot;type_models_to_model_fn&quot;</span>)
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_to_model_impl_attr</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#211">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#252">attrs</a>, <span class="string">&quot;type_models_to_model_impl&quot;</span>)
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#199">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#244">attrs</a>, <span class="string">&quot;type_models_to_model_impl&quot;</span>)
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_trait_bounds_ghost_constraint</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#211">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#256">attrs</a>, <span class="string">&quot;ghost_constraint_trait_bounds_in_where_clause&quot;</span>)
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#199">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#248">attrs</a>, <span class="string">&quot;ghost_constraint_trait_bounds_in_where_clause&quot;</span>)
 }
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_abstract_predicate_attr</span>(<span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#211">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#260">attrs</a>, <span class="string">&quot;abstract_predicate&quot;</span>)
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#199">has_prusti_attr</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#252">attrs</a>, <span class="string">&quot;abstract_predicate&quot;</span>)
 }
 
 <span class="doccomment">/// Read the value stored in a Prusti attribute (e.g. `prusti::&lt;attr_name&gt;=&quot;...&quot;)`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_prusti_attrs</span>(<span class="ident">attr_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_prusti_attrs</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Borrow</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">attr_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">strings</span> <span class="op">=</span> <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[];
     <span class="kw">for</span> <span class="ident">attr</span> <span class="kw">in</span> <span class="ident">attrs</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ast::AttrKind::Normal</span>(
@@ -578,7 +562,7 @@
                 <span class="ident">tokens</span>: <span class="kw">_</span>,
             },
             <span class="kw">_</span>,
-        ) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">attr</span>.<span class="ident">kind</span>
+        ) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">attr</span>.<span class="ident">borrow</span>().<span class="ident">kind</span>
         {
             <span class="comment">// Skip attributes whose path don&#39;t match with &quot;prusti::&lt;attr_name&gt;&quot;</span>
             <span class="kw">if</span> <span class="op">!</span>(<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span>
@@ -593,12 +577,12 @@
             <span class="ident">strings</span>.<span class="ident">push</span>(<span class="ident">extract_string</span>(<span class="ident">token</span>));
         };
     }
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#266">strings</a>
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#258">strings</a>
 }
 
 <span class="doccomment">/// Read the value stored in a single Prusti attribute (e.g. `prusti::&lt;attr_name&gt;=&quot;...&quot;)`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_prusti_attr</span>(<span class="ident">attr_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
-    <a class="ident" href="../../src/prusti_interface/utils.rs.html#265">read_prusti_attrs</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#299">attr_name</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#299">attrs</a>).<span class="ident">pop</span>()
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_prusti_attr</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Borrow</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/struct.Attribute.html">ast::Attribute</a><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">attr_name</span>: <span class="kw-2">&amp;</span><a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.str.html">str</a>, <span class="ident">attrs</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/alloc/string/struct.String.html">String</a><span class="op">&gt;</span> {
+    <a class="ident" href="../../src/prusti_interface/utils.rs.html#257">read_prusti_attrs</a>(<a class="ident" href="../../src/prusti_interface/utils.rs.html#291">attr_name</a>, <a class="ident" href="../../src/prusti_interface/utils.rs.html#291">attrs</a>).<span class="ident">pop</span>()
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="prusti_interface" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0-nightly (f9cba6374 2022-07-31)" ></div></body></html>

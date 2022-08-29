@@ -42,16 +42,21 @@
 <span id="42">42</span>
 <span id="43">43</span>
 <span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Module for verifying user-provided specifications after macro expansion</span>
 
 <span class="kw">mod</span> <a class="ident" href="../../../../src/prusti_interface/specs/checker/common.rs.html#1-89">common</a>;
-<span class="kw">mod</span> <a class="ident" href="../../../../src/prusti_interface/specs/checker/type_model_checks.rs.html#1-167">type_model_checks</a>;
+<span class="kw">mod</span> <a class="ident" href="../../../../src/prusti_interface/specs/checker/type_model_checks.rs.html#1-168">type_model_checks</a>;
 <span class="kw">mod</span> <a class="ident" href="../../../../src/prusti_interface/specs/checker/predicate_checks.rs.html#1-177">predicate_checks</a>;
+<span class="kw">mod</span> <a class="ident" href="../../../../src/prusti_interface/specs/checker/version_checks.rs.html#1-73">version_checks</a>;
 
 <span class="kw">use</span> <a class="ident" href="../../../../src/prusti_interface/specs/checker/mod.rs.html#3">common</a>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">type_model_checks</span>::{<a class="ident" href="../../../../src/prusti_interface/specs/checker/type_model_checks.rs.html#19">IllegalModelUsagesChecker</a>, <a class="ident" href="../../../../src/prusti_interface/specs/checker/type_model_checks.rs.html#88">ModelDefinedOnTypeWithoutFields</a>};
+<span class="kw">use</span> <span class="ident">type_model_checks</span>::{<a class="ident" href="../../../../src/prusti_interface/specs/checker/type_model_checks.rs.html#19">IllegalModelUsagesChecker</a>, <a class="ident" href="../../../../src/prusti_interface/specs/checker/type_model_checks.rs.html#89">ModelDefinedOnTypeWithoutFields</a>};
 <span class="kw">use</span> <a class="ident" href="../../../../src/prusti_interface/specs/checker/predicate_checks.rs.html#21">predicate_checks::IllegalPredicateUsagesChecker</a>;
-<span class="kw">use</span> <a class="ident" href="../../../../src/prusti_interface/environment/mod.rs.html#69"><span class="kw">crate</span>::environment::Environment</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/prusti_interface/specs/checker/version_checks.rs.html#14">version_checks::MismatchedVersionsChecker</a>;
+<span class="kw">use</span> <a class="ident" href="../../../../src/prusti_interface/environment/mod.rs.html#46"><span class="kw">crate</span>::environment::Environment</a>;
 
 <span class="doccomment">/// Checker visitor for the specifications.</span>
 <span class="doccomment">/// Checks are implemented in various [SpecCheckerStrategy]s</span>
@@ -69,9 +74,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">checks</span>: <a class="macro" href="https://doc.rust-lang.org/nightly/alloc/macro.vec.html">vec!</a>[
+                <span class="ident">Box::new</span>(<span class="ident">MismatchedVersionsChecker</span> {}),
                 <span class="ident">Box::new</span>(<span class="ident">IllegalPredicateUsagesChecker</span> {}),
                 <span class="ident">Box::new</span>(<span class="ident">IllegalModelUsagesChecker</span> {}),
-                <span class="ident">Box::new</span>(<span class="ident">ModelDefinedOnTypeWithoutFields</span> {})
+                <span class="ident">Box::new</span>(<span class="ident">ModelDefinedOnTypeWithoutFields</span> {}),
             ]
         }
     }
@@ -81,7 +87,7 @@
         <span class="kw">for</span> <span class="ident">check</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">checks</span>.<span class="ident">iter</span>() {
             <span class="kw">let</span> <span class="ident">errors</span> <span class="op">=</span> <span class="ident">check</span>.<span class="ident">check</span>(<span class="ident">env</span>);
             <span class="kw">for</span> <span class="ident">error</span> <span class="kw">in</span> <span class="ident">errors</span> {
-                <span class="ident">error</span>.<span class="ident">emit</span>(<span class="ident">env</span>);
+                <span class="ident">error</span>.<span class="ident">emit</span>(<span class="kw-2">&amp;</span><span class="ident">env</span>.<span class="ident">diagnostic</span>);
             }
         }
     }

@@ -189,17 +189,11 @@
 <span id="189">189</span>
 <span id="190">190</span>
 <span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">prusti_interface::environment</span>::{
     <a class="ident" href="../../../../../../prusti_interface/environment/procedure/fn.is_ghost_begin_marker.html">is_ghost_begin_marker</a>, <a class="ident" href="../../../../../../prusti_interface/environment/procedure/fn.is_ghost_end_marker.html">is_ghost_end_marker</a>, <a class="ident" href="../../../../../../prusti_interface/environment/procedure/fn.is_loop_invariant_block.html">is_loop_invariant_block</a>,
-    <a class="ident" href="../../../../../../prusti_interface/environment/procedure/fn.is_marked_specification_block.html">is_marked_specification_block</a>, <a class="ident" href="../../../../../../prusti_interface/environment/procedure/struct.Procedure.html">Procedure</a>,
+    <a class="ident" href="../../../../../../prusti_interface/environment/procedure/fn.is_marked_specification_block.html">is_marked_specification_block</a>, <a class="ident" href="../../../../../../prusti_interface/environment/query/struct.EnvQuery.html">EnvQuery</a>, <a class="ident" href="../../../../../../prusti_interface/environment/procedure/struct.Procedure.html">Procedure</a>,
 };
-<span class="kw">use</span> <span class="ident">prusti_rustc_interface</span>::{
-    <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_data_structures/graph/trait.WithSuccessors.html">data_structures::graph::WithSuccessors</a>,
-    <span class="ident">middle</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">mir</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/context/struct.TyCtxt.html">ty::TyCtxt</a>},
-};
+<span class="kw">use</span> <span class="ident">prusti_rustc_interface</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_data_structures/graph/trait.WithSuccessors.html">data_structures::graph::WithSuccessors</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/index.html">middle::mir</a>};
 <span class="kw">use</span> <span class="ident">std::collections</span>::{<a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/map/struct.BTreeMap.html">BTreeMap</a>, <a class="ident" href="https://doc.rust-lang.org/nightly/alloc/collections/btree/set/struct.BTreeSet.html">BTreeSet</a>};
 
 <span class="doccomment">/// Information about the specification blocks.</span>
@@ -213,7 +207,7 @@
     <span class="doccomment">/// execution order.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// FIXME: Add a check that ensure that the blocks are one after another.</span>
-    <span class="ident">loop_invariant_blocks</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#27">LoopInvariantBlocks</a><span class="op">&gt;</span>,
+    <span class="ident">loop_invariant_blocks</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#24">LoopInvariantBlocks</a><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Information about loop invariant.</span>
@@ -225,9 +219,9 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">specification_blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#12">SpecificationBlocks</a> {
+<span class="kw">impl</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#9">SpecificationBlocks</a> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>(
-        <span class="ident">tcx</span>: <span class="ident">TyCtxt</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
+        <span class="ident">env_query</span>: <span class="ident">EnvQuery</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
         <span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">mir::Body</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
         <span class="ident">procedure</span>: <span class="kw-2">&amp;</span><span class="ident">Procedure</span><span class="op">&lt;</span><span class="lifetime">&#39;tcx</span><span class="op">&gt;</span>,
         <span class="ident">collect_loop_invariants</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a>,
@@ -235,15 +229,15 @@
         <span class="comment">// Blocks that contain closures marked with `#[spec_only]` attributes.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">marked_specification_blocks</span> <span class="op">=</span> <span class="ident">BTreeSet::new</span>();
         <span class="kw">for</span> (<span class="ident">bb</span>, <span class="ident">block</span>) <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">basic_blocks</span>().<span class="ident">iter_enumerated</span>() {
-            <span class="kw">if</span> <span class="ident">is_marked_specification_block</span>(<span class="ident">block</span>, <span class="kw-2">&amp;</span><span class="ident">tcx</span>) {
+            <span class="kw">if</span> <span class="ident">is_marked_specification_block</span>(<span class="ident">env_query</span>, <span class="ident">block</span>) {
                 <span class="ident">marked_specification_blocks</span>.<span class="ident">insert</span>(<span class="ident">bb</span>);
             }
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">specification_blocks</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#42">marked_specification_blocks</a>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">specification_blocks</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#39">marked_specification_blocks</a>;
         <span class="comment">// All blocks dominated by specification blocks are also specification</span>
         <span class="comment">// blocks.</span>
-        <span class="kw">let</span> <span class="ident">dominators</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#37">body</a>.<span class="ident">basic_blocks</span>.<span class="ident">dominators</span>();
+        <span class="kw">let</span> <span class="ident">dominators</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#34">body</a>.<span class="ident">basic_blocks</span>.<span class="ident">dominators</span>();
         <span class="kw">for</span> <span class="ident">specification_block</span> <span class="kw">in</span> <span class="ident">specification_blocks</span>.<span class="ident">clone</span>() {
             <span class="kw">for</span> <span class="ident">bb</span> <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">basic_blocks</span>().<span class="ident">indices</span>() {
                 <span class="kw">if</span> <span class="ident">dominators</span>.<span class="ident">is_dominated_by</span>(<span class="ident">bb</span>, <span class="ident">specification_block</span>) {
@@ -253,8 +247,8 @@
         }
         <span class="comment">// All blocks unavoidably leading to specification blocks are also</span>
         <span class="comment">// specification blocks.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work_queue</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#49">specification_blocks</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
-        <span class="kw">let</span> <span class="ident">predecessors</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#37">body</a>.<span class="ident">basic_blocks</span>.<span class="ident">predecessors</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">work_queue</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#46">specification_blocks</a>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">collect</a>();
+        <span class="kw">let</span> <span class="ident">predecessors</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#34">body</a>.<span class="ident">basic_blocks</span>.<span class="ident">predecessors</span>();
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">specification_block</span>) <span class="op">=</span> <span class="ident">work_queue</span>.<span class="ident">pop</span>() {
             <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">predecessor</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">predecessors</span>[<span class="ident">specification_block</span>] {
                 <span class="kw">if</span> <span class="ident">specification_blocks</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">predecessor</span>) {
@@ -274,9 +268,9 @@
         }
 
         <span class="comment">// Collect loop invariant blocks.</span>
-        <span class="kw">let</span> <span class="ident">loop_info</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#38">procedure</a>.<span class="ident">loop_info</span>();
-        <span class="kw">let</span> <span class="ident">predecessors</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#37">body</a>.<span class="ident">basic_blocks</span>.<span class="ident">predecessors</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">loop_invariant_blocks</span> <span class="op">=</span> <span class="ident">BTreeMap</span>::<span class="op">&lt;</span><span class="kw">_</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#27">LoopInvariantBlocks</a><span class="op">&gt;</span><span class="ident">::new</span>();
+        <span class="kw">let</span> <span class="ident">loop_info</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#35">procedure</a>.<span class="ident">loop_info</span>();
+        <span class="kw">let</span> <span class="ident">predecessors</span> <span class="op">=</span> <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#34">body</a>.<span class="ident">basic_blocks</span>.<span class="ident">predecessors</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">loop_invariant_blocks</span> <span class="op">=</span> <span class="ident">BTreeMap</span>::<span class="op">&lt;</span><span class="kw">_</span>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#24">LoopInvariantBlocks</a><span class="op">&gt;</span><span class="ident">::new</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">loop_invariant_blocks_flat</span> <span class="op">=</span> <span class="ident">BTreeSet::new</span>();
         <span class="kw">if</span> <span class="ident">collect_loop_invariants</span> {
             <span class="comment">// We use reverse_postorder here because we need to make sure that we</span>
@@ -285,7 +279,7 @@
             <span class="kw">for</span> (<span class="ident">bb</span>, <span class="ident">data</span>) <span class="kw">in</span>
                 <span class="ident">prusti_rustc_interface::middle::mir::traversal::reverse_postorder</span>(<span class="ident">body</span>)
             {
-                <span class="kw">if</span> <span class="ident">specification_blocks</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">bb</span>) <span class="op">&amp;&amp;</span> <span class="ident">is_loop_invariant_block</span>(<span class="ident">data</span>, <span class="ident">tcx</span>) {
+                <span class="kw">if</span> <span class="ident">specification_blocks</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">bb</span>) <span class="op">&amp;&amp;</span> <span class="ident">is_loop_invariant_block</span>(<span class="ident">env_query</span>, <span class="ident">data</span>) {
                     <span class="kw">let</span> <span class="ident">loop_head</span> <span class="op">=</span> <span class="ident">loop_info</span>.<span class="ident">get_loop_head</span>(<span class="ident">bb</span>).<span class="ident">unwrap</span>();
                     <span class="kw">let</span> <span class="ident">loop_blocks</span> <span class="op">=</span> <span class="ident">loop_invariant_blocks</span>.<span class="ident">entry</span>(<span class="ident">loop_head</span>).<span class="ident">or_insert_with</span>(<span class="op">|</span><span class="op">|</span> {
                         <span class="macro">assert_eq!</span>(
@@ -326,10 +320,10 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">queue</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
             <span class="kw">for</span> (<span class="ident">bb</span>, <span class="ident">data</span>) <span class="kw">in</span> <span class="ident">mir::traversal::reverse_postorder</span>(<span class="ident">body</span>) {
-                <span class="kw">if</span> <span class="ident">is_ghost_begin_marker</span>(<span class="ident">data</span>, <span class="ident">tcx</span>) {
+                <span class="kw">if</span> <span class="ident">is_ghost_begin_marker</span>(<span class="ident">env_query</span>, <span class="ident">data</span>) {
                     <span class="ident">queue</span>.<span class="ident">push</span>(<span class="ident">bb</span>);
                 }
-                <span class="kw">if</span> <span class="ident">is_ghost_end_marker</span>(<span class="ident">data</span>, <span class="ident">tcx</span>) {
+                <span class="kw">if</span> <span class="ident">is_ghost_end_marker</span>(<span class="ident">env_query</span>, <span class="ident">data</span>) {
                     <span class="ident">ghost_blocks</span>.<span class="ident">insert</span>(<span class="ident">bb</span>);
                 }
             }
@@ -346,7 +340,7 @@
                 <span class="kw">let</span> <span class="ident">before_end</span> <span class="op">=</span> <span class="ident">data</span>
                     .<span class="ident">terminator</span>()
                     .<span class="ident">successors</span>()
-                    .<span class="ident">any</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> <span class="ident">is_ghost_end_marker</span>(<span class="kw-2">&amp;</span><span class="ident">body</span>.<span class="ident">basic_blocks</span>()[<span class="ident">bb</span>], <span class="ident">tcx</span>));
+                    .<span class="ident">any</span>(<span class="op">|</span><span class="ident">bb</span><span class="op">|</span> <span class="ident">is_ghost_end_marker</span>(<span class="ident">env_query</span>, <span class="kw-2">&amp;</span><span class="ident">body</span>.<span class="ident">basic_blocks</span>()[<span class="ident">bb</span>]));
 
                 <span class="kw">for</span> <span class="ident">succ</span> <span class="kw">in</span> <span class="ident">data</span>.<span class="ident">terminator</span>.<span class="ident">iter</span>().<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">successors</span>()) {
                     <span class="kw">if</span> <span class="ident">before_end</span> {
@@ -359,31 +353,31 @@
         }
 
         <span class="self">Self</span> {
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#49">specification_blocks</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#114">specification_entry_blocks</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#85">loop_invariant_blocks</a>,
-            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#130">ghost_blocks</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#46">specification_blocks</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#111">specification_entry_blocks</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#82">loop_invariant_blocks</a>,
+            <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#127">ghost_blocks</a>,
         }
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">entry_points</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#175">self</a>.<span class="ident">specification_entry_blocks</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#172">self</a>.<span class="ident">specification_entry_blocks</span>.<span class="ident">iter</span>().<a class="ident" href="https://doc.rust-lang.org/nightly/core/iter/traits/iterator/trait.Iterator.html">cloned</a>()
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_specification_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bb</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#179">self</a>.<span class="ident">specification_blocks</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#179">bb</a>)
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#176">self</a>.<span class="ident">specification_blocks</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#176">bb</a>)
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">is_ghost_block</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">bb</span>: <a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>) -&gt; <a class="ident" href="https://doc.rust-lang.org/nightly/std/primitive.bool.html">bool</a> {
-        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#183">self</a>.<span class="ident">ghost_blocks</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#183">bb</a>)
+        <a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#180">self</a>.<span class="ident">ghost_blocks</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#180">bb</a>)
     }
 
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">loop_invariant_blocks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#27">LoopInvariantBlocks</a><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#187">self</a>.<span class="ident">loop_invariant_blocks</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">loop_invariant_blocks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">BTreeMap</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a>, <a class="ident" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#24">LoopInvariantBlocks</a><span class="op">&gt;</span> {
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#184">self</a>.<span class="ident">loop_invariant_blocks</span>
     }
 
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">ghost_blocks</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">BTreeSet</span><span class="op">&lt;</span><a class="ident" href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/mir/struct.BasicBlock.html">mir::BasicBlock</a><span class="op">&gt;</span> {
-        <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#191">self</a>.<span class="ident">ghost_blocks</span>
+        <span class="kw-2">&amp;</span><a class="self" href="../../../../../../src/prusti_viper/encoder/mir/procedures/encoder/specification_blocks.rs.html#188">self</a>.<span class="ident">ghost_blocks</span>
     }
 }
 </code></pre></div>
