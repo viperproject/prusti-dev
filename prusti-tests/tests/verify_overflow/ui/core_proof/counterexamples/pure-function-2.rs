@@ -20,7 +20,7 @@ fn baz(x: X) -> X {
     X {a: x.a + 1}
 }
 
-
+#[requires(y.a == 5)] //force specific counterexample
 fn test(x: i32, y: X) {
     //FIXME: Counterexample generation treats y.get_a() as an assignment for y and
     //produces a counterexample of y at that point

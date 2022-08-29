@@ -12,6 +12,7 @@ fn get_balance(acc: Account) -> i32 {
     acc.balance
 }
 
+#[requires(acc.balance >= 0)] //force specific counterexample
 #[ensures(result)]
 fn has_money(acc: Account) -> bool {
     get_balance(acc) > 0

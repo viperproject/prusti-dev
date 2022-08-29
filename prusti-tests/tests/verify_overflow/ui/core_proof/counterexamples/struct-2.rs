@@ -9,12 +9,13 @@ struct X{
 }
 
 #[pure]
-#[ensures(result)]
+#[requires(x.a == 5)] // force specific counterexample
+#[ensures(!result)]
 fn test_pure(x: X) -> bool{
     x.a == x.b
 }
 
-#[requires(x.a > 0)]
+#[requires(x.a == 0 && a == -2 && x.b == 3)] // force specific counterexample
 #[ensures(result)]
 fn test_mut(x: &mut X, a: i32) -> bool{
     x.a = a;

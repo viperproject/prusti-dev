@@ -23,6 +23,7 @@ fn test3() {
 }
 
 #[requires(seq.len() == Int::new(2))]
+#[requires(a == 2 && a == b)] // force specific counterexample
 fn test4(a: i32, b: i32, seq: Seq<i32>) {
     //the counterexample only contains values for a and b but not for the elements of seq
     prusti_assert!(seq == Seq::concat(Seq::single(a), Seq::single(b)));
