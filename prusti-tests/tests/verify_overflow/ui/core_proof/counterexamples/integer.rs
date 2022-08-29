@@ -4,6 +4,7 @@
 
 use prusti_contracts::*;
 
+#[requires(a == Int::new(2))] //force specific counterexample
 #[ensures(a == Int::new(5))]
 fn test1(a: Int) {}
 
